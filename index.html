@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,26 +10,25 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Ridgebox">
-
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
-
     <style>
         :root {
             --amber: #f59e0b;
             --amber-light: #fbbf24;
             --amber-dim: #92400e;
-            --bg: #0a0a0a;
-            --surface: #141414;
-            --surface2: #1a1a1a;
-            --border: #1f1f1f;
-            --border2: #2a2a2a;
-            --text: #ffffff;
-            --text2: #a3a3a3;
-            --text3: #737373;
-            --text4: #525252;
+        }
+        [data-theme="dark"] {
+            --bg: #0a0a0a; --surface: #141414; --surface2: #1a1a1a;
+            --border: #1f1f1f; --border2: #2a2a2a;
+            --text: #ffffff; --text2: #a3a3a3; --text3: #737373; --text4: #525252;
+        }
+        [data-theme="light"] {
+            --bg: #fafafa; --surface: #ffffff; --surface2: #f5f5f5;
+            --border: #e5e5e5; --border2: #d4d4d4;
+            --text: #171717; --text2: #525252; --text3: #737373; --text4: #a3a3a3;
         }
         * { box-sizing: border-box; }
         body {
@@ -38,1512 +37,1347 @@
             color: var(--text);
             min-height: 100vh;
             overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
         }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
-
-        /* Noise texture overlay */
         body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            opacity: 0.03;
-            z-index: 9999;
-            pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.025; z-index: 9999; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
-
-        /* Scrollbar */
+        [data-theme="light"] body::before { opacity: 0.015; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
-
-        /* Card */
         .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            transition: border-color 0.2s;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; transition: border-color 0.2s, background 0.3s;
         }
         .card:hover { border-color: var(--border2); }
         .card-inner {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 12px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 12px; transition: background 0.3s;
         }
-
-        /* Input */
         .input-field {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text);
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 13px;
-            transition: border-color 0.2s;
-            outline: none;
-            width: 100%;
+            background: var(--surface); border: 1px solid var(--border); color: var(--text);
+            border-radius: 10px; padding: 10px 14px; font-size: 13px;
+            transition: border-color 0.2s, background 0.3s; outline: none; width: 100%;
         }
         .input-field:focus { border-color: var(--amber); }
         .input-field::placeholder { color: var(--text4); }
-
-        /* Buttons */
         .btn-primary {
-            background: var(--amber);
-            color: #000;
-            font-weight: 600;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 13px;
-            transition: all 0.15s;
-            border: none;
-            cursor: pointer;
+            background: var(--amber); color: #000; font-weight: 600; padding: 10px 20px;
+            border-radius: 10px; font-size: 13px; transition: all 0.15s;
+            border: none; cursor: pointer;
         }
         .btn-primary:hover { background: var(--amber-light); }
         .btn-primary:active { transform: scale(0.97); }
         .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-
         .btn-ghost {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text2);
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-size: 12px;
-            transition: all 0.15s;
-            cursor: pointer;
+            background: transparent; border: 1px solid var(--border); color: var(--text2);
+            padding: 8px 16px; border-radius: 10px; font-size: 12px;
+            transition: all 0.15s; cursor: pointer;
         }
         .btn-ghost:hover { border-color: var(--border2); color: var(--text); background: var(--surface2); }
-
         .btn-icon {
-            width: 34px; height: 34px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 8px;
-            border: none;
-            background: transparent;
-            color: var(--text3);
-            cursor: pointer;
-            transition: all 0.15s;
+            width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; border: none; background: transparent; color: var(--text3);
+            cursor: pointer; transition: all 0.15s;
         }
         .btn-icon:hover { background: var(--surface2); color: var(--text); }
         .btn-icon.danger:hover { color: #ef4444; }
-
-        /* Badge */
         .badge {
             display: inline-flex; align-items: center; gap: 6px;
-            padding: 4px 12px;
-            border-radius: 100px;
-            font-size: 11px;
-            font-weight: 500;
+            padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 500;
         }
-
-        /* Checkbox */
         .file-checkbox {
-            width: 18px; height: 18px;
-            border: 1.5px solid var(--border2);
-            border-radius: 5px;
-            background: var(--surface);
-            cursor: pointer;
-            appearance: none;
-            -webkit-appearance: none;
-            transition: all 0.15s;
-            flex-shrink: 0;
+            width: 18px; height: 18px; border: 1.5px solid var(--border2);
+            border-radius: 5px; background: var(--surface); cursor: pointer;
+            appearance: none; -webkit-appearance: none; transition: all 0.15s; flex-shrink: 0;
         }
-        .file-checkbox:checked {
-            background: var(--amber);
-            border-color: var(--amber);
-        }
+        .file-checkbox:checked { background: var(--amber); border-color: var(--amber); }
         .file-checkbox:checked::after {
-            content: '✓';
-            display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 700; color: #000;
-            height: 100%;
+            content: '\2713'; display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; color: #000; height: 100%;
         }
-
-        /* Terminal */
         .terminal {
-            background: #0c0c0c;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            font-family: 'JetBrains Mono', monospace;
+            background: #0c0c0c; border: 1px solid var(--border); border-radius: 12px;
+            overflow: hidden; font-family: 'JetBrains Mono', monospace;
         }
         .terminal-bar {
-            display: flex; align-items: center; gap: 6px;
-            padding: 10px 14px;
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 6px; padding: 10px 14px;
+            background: #141414; border-bottom: 1px solid var(--border);
         }
         .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
-        .terminal-body {
-            padding: 16px;
-            font-size: 12px;
-            line-height: 1.8;
-            color: var(--text3);
-        }
+        .terminal-body { padding: 16px; font-size: 12px; line-height: 1.8; color: #737373; }
         .terminal-body .t-amber { color: var(--amber); }
         .terminal-body .t-green { color: #22c55e; }
-        .terminal-body .t-white { color: var(--text); }
-
-        /* Animations */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeUp { animation: fadeUp 0.3s ease-out; }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(100%); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-slideUp { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-
-        /* Preview */
+        .terminal-body .t-white { color: #ffffff; }
         .preview-overlay {
-            position: fixed; inset: 0; z-index: 60;
-            background: rgba(0,0,0,0.9);
+            position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.92);
             display: flex; align-items: center; justify-content: center;
         }
-        .preview-overlay img, .preview-overlay video {
-            max-width: 90vw; max-height: 85vh;
-            border-radius: 8px;
-        }
-
-        /* Batch action bar */
+        .preview-overlay img, .preview-overlay video { max-width: 90vw; max-height: 85vh; border-radius: 8px; }
         .batch-bar {
-            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            z-index: 45;
-            background: var(--surface);
-            border: 1px solid var(--amber-dim);
-            border-radius: 14px;
-            padding: 10px 20px;
-            display: flex; align-items: center; gap: 16px;
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 45;
+            background: var(--surface); border: 1px solid var(--amber-dim); border-radius: 14px;
+            padding: 10px 20px; display: flex; align-items: center; gap: 16px;
             box-shadow: 0 8px 32px rgba(245, 158, 11, 0.15);
         }
-
-        /* Expiry badge */
-        .expiry-badge {
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-weight: 500;
-        }
-
-        /* File item hover */
-        .file-item {
-            transition: all 0.15s;
-        }
-        .file-item:hover {
-            background: var(--surface2);
-        }
-        .file-item.selected {
-            background: rgba(245, 158, 11, 0.05);
-            border-color: var(--amber-dim);
-        }
-
-        /* Category pills */
+        .expiry-badge { font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 500; }
+        .file-item { transition: all 0.15s; }
+        .file-item:hover { background: var(--surface2); }
+        .file-item.selected { background: rgba(245, 158, 11, 0.05); border-color: var(--amber-dim) !important; }
         .pill {
-            padding: 6px 14px;
-            border-radius: 100px;
-            font-size: 11px;
-            font-weight: 600;
-            border: 1px solid var(--border);
-            background: transparent;
-            color: var(--text3);
-            cursor: pointer;
-            transition: all 0.15s;
-            white-space: nowrap;
+            padding: 6px 14px; border-radius: 100px; font-size: 11px; font-weight: 600;
+            border: 1px solid var(--border); background: transparent; color: var(--text3);
+            cursor: pointer; transition: all 0.15s; white-space: nowrap;
         }
         .pill:hover { border-color: var(--border2); color: var(--text2); }
-        .pill.active {
-            background: var(--amber);
-            border-color: var(--amber);
-            color: #000;
-        }
-
-        /* QR container */
-        #qrCanvas {
-            border-radius: 8px;
-        }
-
-        /* Install banner */
-        .install-banner {
-            position: fixed; bottom: 16px; left: 16px; right: 16px;
-            z-index: 55;
-            background: var(--surface);
-            border: 1px solid var(--amber-dim);
-            border-radius: 14px;
-            padding: 14px 18px;
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
-
-        /* Share modal expiry selector */
+        .pill.active { background: var(--amber); border-color: var(--amber); color: #000; }
         .expiry-option {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 500;
-            border: 1px solid var(--border);
-            background: transparent;
-            color: var(--text3);
-            cursor: pointer;
-            transition: all 0.15s;
+            padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 500;
+            border: 1px solid var(--border); background: transparent; color: var(--text3);
+            cursor: pointer; transition: all 0.15s;
         }
         .expiry-option:hover { border-color: var(--border2); color: var(--text2); }
-        .expiry-option.active {
-            background: var(--amber);
-            border-color: var(--amber);
-            color: #000;
-        }
-
-        /* Setup banner */
+        .expiry-option.active { background: var(--amber); border-color: var(--amber); color: #000; }
         .setup-banner {
-            background: rgba(245, 158, 11, 0.08);
-            border: 1px solid var(--amber-dim);
-            border-radius: 12px;
-            padding: 14px 20px;
-            display: flex; align-items: center; gap: 12px;
-            margin-bottom: 20px;
+            background: rgba(245, 158, 11, 0.08); border: 1px solid var(--amber-dim);
+            border-radius: 12px; padding: 14px 20px; display: flex; align-items: center;
+            gap: 12px; margin-bottom: 20px;
         }
-
-        /* PWA offline indicator */
+        .install-banner {
+            position: fixed; bottom: 16px; left: 16px; right: 16px; z-index: 55;
+            background: var(--surface); border: 1px solid var(--amber-dim); border-radius: 14px;
+            padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
         .offline-badge {
-            position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
-            z-index: 55;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 100px;
-            padding: 6px 16px;
-            font-size: 11px;
-            color: var(--text3);
-            display: none;
+            position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 55;
+            background: var(--surface); border: 1px solid var(--border); border-radius: 100px;
+            padding: 6px 16px; font-size: 11px; color: var(--text3); display: none;
+        }
+        /* Grid view */
+        .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+        .file-grid .file-item { flex-direction: column; padding: 12px; align-items: center; text-align: center; }
+        .file-grid .file-thumb { width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: var(--surface2); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+        .file-grid .file-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+        .file-grid .file-actions-row { display: flex; gap: 2px; justify-content: center; margin-top: 6px; }
+        /* Rename input */
+        .rename-input {
+            background: var(--surface); border: 1px solid var(--amber); color: var(--text);
+            border-radius: 6px; padding: 2px 6px; font-size: 12px; width: 100%; outline: none;
+        }
+        /* Folder sidebar */
+        .folder-item {
+            display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+            border-radius: 8px; cursor: pointer; transition: all 0.15s; font-size: 12px; color: var(--text3);
+        }
+        .folder-item:hover { background: var(--surface2); color: var(--text2); }
+        .folder-item.active { background: rgba(245,158,11,0.08); color: var(--amber); }
+        /* Stats */
+        .stat-bar { height: 8px; border-radius: 4px; background: var(--surface2); overflow: hidden; }
+        .stat-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fadeUp { animation: fadeUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slideUp { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        /* Pin icon */
+        .pin-icon { color: var(--amber); font-size: 10px; }
+        /* Password modal overlay */
+        .password-prompt {
+            position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,0.85);
+            display: flex; align-items: center; justify-content: center;
         }
     </style>
 </head>
 <body class="antialiased">
 
-    <!-- Offline Badge -->
-    <div id="offlineBadge" class="offline-badge">
-        <i class="fa-solid fa-wifi-slash mr-2"></i> Offline Mode
-    </div>
+<div id="offlineBadge" class="offline-badge"><i class="fa-solid fa-wifi mr-2"></i>Offline Mode</div>
+<div id="toastContainer" class="fixed top-6 right-6 z-[70] flex flex-col gap-3 pointer-events-none"></div>
 
-    <!-- Toast Container -->
-    <div id="toastContainer" class="fixed top-6 right-6 z-[70] flex flex-col gap-3 pointer-events-none"></div>
-
-    <!-- ==================== HOMEPAGE ==================== -->
-    <div id="homeView" class="min-h-screen flex flex-col">
-        <nav class="px-6 py-5 md:px-12 flex justify-between items-center border-b border-[var(--border)]">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-[var(--amber)] flex items-center justify-center">
-                    <i class="fa-solid fa-box text-black text-xs"></i>
-                </div>
-                <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
-            </div>
+<!-- ==================== HOMEPAGE ==================== -->
+<div id="homeView" class="min-h-screen flex flex-col">
+    <nav class="px-6 py-5 md:px-12 flex justify-between items-center border-b border-[var(--border)]">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-[var(--amber)] flex items-center justify-center"><i class="fa-solid fa-box text-black text-xs"></i></div>
+            <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="toggleTheme()" class="btn-icon" title="Toggle theme"><i id="themeIconHome" class="fa-solid fa-moon text-sm"></i></button>
             <a href="#/dashboard" class="btn-ghost">Buka Dasbor <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i></a>
-        </nav>
-
-        <main class="flex-grow flex items-center">
-            <div class="max-w-6xl mx-auto w-full px-6 md:px-12 py-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                <!-- Left: Copy -->
-                <div class="space-y-8">
-                    <div>
-                        <div class="badge bg-[var(--amber)]/10 text-[var(--amber)] mb-4">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[var(--amber)]"></span>
-                            Cloud Storage Gratis
-                        </div>
-                        <h1 class="text-4xl md:text-5xl font-bold leading-tight">
-                            Simpan file di cloud,<br>
-                            <span class="text-[var(--amber)]">pakai Telegram.</span>
-                        </h1>
-                    </div>
-                    <p class="text-[var(--text2)] text-base leading-relaxed max-w-md">
-                        Ridgebox bikin Telegram Bot kamu jadi cloud storage personal. Upload, share, dan kelola file langsung dari browser. Tanpa server, tanpa biaya.
-                    </p>
-                    <div class="flex gap-3">
-                        <a href="#/dashboard" class="btn-primary inline-flex items-center gap-2">
-                            Mulai Pakai <i class="fa-solid fa-arrow-right text-xs"></i>
-                        </a>
-                        <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" class="btn-ghost inline-flex items-center gap-2">
-                            <i class="fa-brands fa-github text-sm"></i> Source
-                        </a>
-                    </div>
-                    <div class="flex items-center gap-6 text-[var(--text4)] text-xs">
-                        <span><i class="fa-solid fa-shield-halved mr-1.5"></i>End-to-end masking</span>
-                        <span><i class="fa-solid fa-bolt mr-1.5"></i>No server needed</span>
-                        <span><i class="fa-solid fa-infinity mr-1.5"></i>Gratis selamanya</span>
-                    </div>
+        </div>
+    </nav>
+    <main class="flex-grow flex items-center">
+        <div class="max-w-6xl mx-auto w-full px-6 md:px-12 py-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div class="space-y-8">
+                <div>
+                    <div class="badge bg-[var(--amber)]/10 text-[var(--amber)] mb-4"><span class="w-1.5 h-1.5 rounded-full bg-[var(--amber)]"></span>Cloud Storage Gratis</div>
+                    <h1 class="text-4xl md:text-5xl font-bold leading-tight">Simpan file di cloud,<br><span class="text-[var(--amber)]">pakai Telegram.</span></h1>
                 </div>
-
-                <!-- Right: Terminal -->
-                <div class="terminal shadow-2xl">
-                    <div class="terminal-bar">
-                        <div class="terminal-dot bg-[#ff5f57]"></div>
-                        <div class="terminal-dot bg-[#febc2e]"></div>
-                        <div class="terminal-dot bg-[#28c840]"></div>
-                        <span class="ml-3 text-[10px] text-[var(--text4)]">ridgebox-terminal</span>
-                    </div>
-                    <div class="terminal-body">
-                        <div><span class="t-amber">$</span> ridgebox upload backup.zip</div>
-                        <div class="t-green">✓ Uploaded to Telegram Cloud</div>
-                        <div class="t-green">✓ File ID stored in local DB</div>
-                        <div><span class="t-amber">$</span> ridgebox share backup.zip</div>
-                        <div class="t-white">→ https://ridgebox.vercel.app/#/file/djQ0...</div>
-                        <div class="t-green">✓ Link masked &amp; encrypted</div>
-                        <div><span class="t-amber">$</span> ridgebox scan expired</div>
-                        <div class="t-white">→ 3 files expired, auto-removed</div>
-                        <div class="mt-2"><span class="t-amber">$</span> <span class="animate-pulse">_</span></div>
-                    </div>
+                <p class="text-[var(--text2)] text-base leading-relaxed max-w-md">Ridgebox bikin Telegram Bot kamu jadi cloud storage personal. Upload, share, dan kelola file langsung dari browser. Token bot disimpan aman di server.</p>
+                <div class="flex gap-3">
+                    <a href="#/dashboard" class="btn-primary inline-flex items-center gap-2">Mulai Pakai <i class="fa-solid fa-arrow-right text-xs"></i></a>
+                    <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" class="btn-ghost inline-flex items-center gap-2"><i class="fa-brands fa-github text-sm"></i> Source</a>
+                </div>
+                <div class="flex items-center gap-6 text-[var(--text4)] text-xs">
+                    <span><i class="fa-solid fa-shield-halved mr-1.5"></i>Token di server</span>
+                    <span><i class="fa-solid fa-bolt mr-1.5"></i>No client token</span>
+                    <span><i class="fa-solid fa-infinity mr-1.5"></i>Gratis selamanya</span>
                 </div>
             </div>
-        </main>
-
-        <footer class="text-center py-8 text-[var(--text4)] text-xs border-t border-[var(--border)]">
-            &copy; 2026 Ridgebox. Built with Telegram Bot API.
-        </footer>
-    </div>
-
-    <!-- ==================== DASHBOARD ==================== -->
-    <div id="appView" class="hidden min-h-screen flex flex-col">
-        <nav class="px-6 py-4 md:px-12 flex justify-between items-center border-b border-[var(--border)] sticky top-0 bg-[var(--bg)] z-40">
-            <div class="flex items-center gap-3">
-                <a href="/" class="w-8 h-8 rounded-lg bg-[var(--amber)] flex items-center justify-center">
-                    <i class="fa-solid fa-box text-black text-xs"></i>
-                </a>
-                <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="badge bg-[var(--surface)] border border-[var(--border)] text-[var(--text3)]">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse"></span>
-                    <span id="connStatus">Cloud Aktif</span>
+            <div class="terminal shadow-2xl">
+                <div class="terminal-bar">
+                    <div class="terminal-dot bg-[#ff5f57]"></div><div class="terminal-dot bg-[#febc2e]"></div><div class="terminal-dot bg-[#28c840]"></div>
+                    <span class="ml-3 text-[10px] text-[var(--text4)]">ridgebox v2</span>
                 </div>
-                <button onclick="openSettings()" class="btn-icon" title="Pengaturan">
-                    <i class="fa-solid fa-gear text-sm"></i>
-                </button>
-            </div>
-        </nav>
-
-        <main class="max-w-6xl mx-auto w-full px-6 py-8 md:px-8 grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
-            <div class="lg:col-span-2 space-y-5">
-                <!-- Setup Banner -->
-                <div id="setupBanner" class="setup-banner hidden">
-                    <i class="fa-solid fa-triangle-exclamation text-[var(--amber)]"></i>
-                    <div class="flex-grow">
-                        <span class="text-sm font-medium">Bot belum dikonfigurasi</span>
-                        <p class="text-xs text-[var(--text3)] mt-0.5">Masukkan Token Bot & Chat ID di pengaturan untuk mulai menggunakan Ridgebox.</p>
-                    </div>
-                    <button onclick="openSettings()" class="btn-primary text-xs">Setup</button>
+                <div class="terminal-body">
+                    <div><span class="t-amber">$</span> ridgebox upload backup.zip</div>
+                    <div class="t-green">✓ Uploaded via secure API proxy</div>
+                    <div class="t-green">✓ Token never touched the browser</div>
+                    <div><span class="t-amber">$</span> ridgebox share backup.zip --expire 24h</div>
+                    <div class="t-white">→ https://ridgebox.vercel.app/#/file/djQ0...</div>
+                    <div><span class="t-amber">$</span> ridgebox share backup.zip --password</div>
+                    <div class="t-green">✓ Password-protected link created</div>
+                    <div class="mt-2"><span class="t-amber">$</span> <span class="animate-pulse">_</span></div>
                 </div>
+            </div>
+        </div>
+    </main>
+    <footer class="text-center py-8 text-[var(--text4)] text-xs border-t border-[var(--border)]">&copy; 2026 Ridgebox. Built with Telegram Bot API.</footer>
+</div>
 
-                <!-- Dropzone -->
-                <div id="dropZone" class="card p-8 text-center cursor-pointer group border-dashed hover:border-[var(--amber)]/30">
+<!-- ==================== DASHBOARD ==================== -->
+<div id="appView" class="hidden min-h-screen flex flex-col">
+    <nav class="px-6 py-4 md:px-12 flex justify-between items-center border-b border-[var(--border)] sticky top-0 z-40" style="background:var(--bg)">
+        <div class="flex items-center gap-3">
+            <a href="/" class="w-8 h-8 rounded-lg bg-[var(--amber)] flex items-center justify-center"><i class="fa-solid fa-box text-black text-xs"></i></a>
+            <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
+            <!-- Bot selector -->
+            <select id="botSelector" class="input-field py-1 px-2 text-[10px] w-auto ml-2 hidden"></select>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="badge bg-[var(--surface)] border border-[var(--border)] text-[var(--text3)]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" id="connDot"></span>
+                <span id="connStatus">Checking...</span>
+            </div>
+            <button onclick="toggleTheme()" class="btn-icon" title="Theme"><i id="themeIcon" class="fa-solid fa-moon text-sm"></i></button>
+            <button onclick="openStats()" class="btn-icon" title="Stats"><i class="fa-solid fa-chart-simple text-sm"></i></button>
+            <button onclick="openSettings()" class="btn-icon" title="Settings"><i class="fa-solid fa-gear text-sm"></i></button>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto w-full px-6 py-8 md:px-8 flex flex-col lg:flex-row gap-6 flex-grow">
+        <!-- Left sidebar: Folders -->
+        <div id="folderSidebar" class="hidden lg:block w-52 flex-shrink-0 space-y-2">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-[10px] font-bold tracking-widest text-[var(--text4)] uppercase">Folder</h3>
+                <button onclick="createFolder()" class="btn-icon" style="width:24px;height:24px" title="New folder"><i class="fa-solid fa-plus text-[8px]"></i></button>
+            </div>
+            <div class="folder-item active" onclick="selectFolder('all')"><i class="fa-solid fa-layer-group text-[10px]"></i> Semua</div>
+            <div id="folderList"></div>
+        </div>
+
+        <!-- Main content -->
+        <div class="flex-grow space-y-5 min-w-0">
+            <!-- Setup Banner -->
+            <div id="setupBanner" class="setup-banner hidden">
+                <i class="fa-solid fa-triangle-exclamation text-[var(--amber)]"></i>
+                <div class="flex-grow">
+                    <span class="text-sm font-medium">Bot belum dikonfigurasi di server</span>
+                    <p class="text-xs text-[var(--text3)] mt-0.5">Set TG_BOT_TOKEN & TG_CHAT_ID di Vercel environment variables.</p>
+                </div>
+            </div>
+
+            <!-- Dropzone + URL Upload -->
+            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
+                <div id="dropZone" class="card p-6 text-center cursor-pointer group border-dashed hover:border-[var(--amber)]/30">
                     <input type="file" id="fileInput" class="hidden" multiple>
-                    <div class="py-6 flex flex-col items-center">
-                        <div class="w-12 h-12 mb-4 rounded-xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center group-hover:border-[var(--amber)]/30 transition-colors">
-                            <i class="fa-solid fa-arrow-up-from-bracket text-lg text-[var(--text3)] group-hover:text-[var(--amber)] transition-colors"></i>
+                    <div class="py-4 flex flex-col items-center">
+                        <div class="w-11 h-11 mb-3 rounded-xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center group-hover:border-[var(--amber)]/30 transition-colors">
+                            <i class="fa-solid fa-arrow-up-from-bracket text-base text-[var(--text3)] group-hover:text-[var(--amber)] transition-colors"></i>
                         </div>
-                        <h2 class="text-base font-semibold mb-1">Seret & lepas berkas</h2>
-                        <p class="text-[var(--text4)] text-xs mb-5">Mendukung berkas apa saja. Batas ukuran bisa diatur di pengaturan.</p>
+                        <h2 class="text-sm font-semibold mb-1">Seret & lepas berkas</h2>
+                        <p class="text-[var(--text4)] text-[11px] mb-4">Atau klik tombol di bawah</p>
                         <button onclick="document.getElementById('fileInput').click()" class="btn-primary text-xs">Pilih Berkas</button>
                     </div>
                 </div>
-
-                <!-- Upload Queue -->
-                <div id="uploadQueueContainer" class="hidden card p-5 space-y-3">
-                    <h3 class="text-[10px] font-bold tracking-widest text-[var(--text4)] uppercase">Mengunggah</h3>
-                    <div id="uploadQueue" class="space-y-2"></div>
-                </div>
-
-                <!-- File List -->
-                <div class="card p-5">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-                        <div>
-                            <h3 class="text-sm font-semibold">Semua Berkas</h3>
-                            <p class="text-[11px] text-[var(--text4)] mt-0.5" id="fileCountText">0 berkas</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="relative">
-                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text4)]"></i>
-                                <input type="text" id="searchInput" placeholder="Cari berkas..." class="input-field pl-8 py-2 text-xs w-48">
-                            </div>
-                            <button id="batchSelectToggle" onclick="toggleBatchMode()" class="btn-icon" title="Pilih banyak">
-                                <i class="fa-regular fa-square-check text-sm"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Category Filter -->
-                    <div class="flex gap-2 overflow-x-auto pb-4">
-                        <button class="pill active" data-category="all">Semua</button>
-                        <button class="pill" data-category="image">Gambar</button>
-                        <button class="pill" data-category="video">Video</button>
-                        <button class="pill" data-category="audio">Audio</button>
-                        <button class="pill" data-category="archive">Arsip</button>
-                    </div>
-
-                    <!-- Select All (batch mode) -->
-                    <div id="batchSelectAll" class="hidden flex items-center gap-3 pb-3 border-b border-[var(--border)] mb-3">
-                        <input type="checkbox" id="selectAllCheckbox" class="file-checkbox" onchange="toggleSelectAll(this)">
-                        <label for="selectAllCheckbox" class="text-xs text-[var(--text3)] cursor-pointer">Pilih Semua</label>
-                    </div>
-
-                    <!-- File Items -->
-                    <div class="space-y-2" id="fileList">
-                        <div id="emptyState" class="text-center py-12">
-                            <i class="fa-regular fa-folder-open text-2xl text-[var(--text4)] mb-2"></i>
-                            <p class="text-[var(--text4)] text-xs">Belum ada berkas terunggah.</p>
-                        </div>
-                    </div>
+                <div class="card p-5 flex flex-col justify-center items-center gap-3 min-w-[200px]">
+                    <i class="fa-solid fa-link text-[var(--amber)] text-lg"></i>
+                    <span class="text-xs font-medium">Upload dari URL</span>
+                    <input type="text" id="urlInput" placeholder="https://example.com/file.zip" class="input-field text-[11px] py-2">
+                    <button onclick="uploadFromURL()" class="btn-primary text-[11px] py-2 w-full" id="btnUrlUpload">Upload</button>
                 </div>
             </div>
 
-            <!-- Sidebar -->
-            <div class="space-y-5">
-                <!-- Storage -->
-                <div class="card p-5">
-                    <h3 class="text-sm font-semibold mb-4">Penyimpanan</h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-[11px] text-[var(--text3)]">
-                            <span>Tersimpan</span>
-                            <span class="text-[var(--text)] font-medium" id="storageUsedText">0 B</span>
-                        </div>
-                        <div class="w-full h-1 bg-[var(--surface2)] rounded-full overflow-hidden">
-                            <div id="storageProgressBar" class="h-full bg-[var(--amber)] rounded-full transition-all duration-500" style="width: 0%"></div>
-                        </div>
-                        <p class="text-[10px] text-[var(--text4)]" id="storageStatusText">0 B / 5.0 GB</p>
-                    </div>
-                </div>
-
-                <!-- Limit Info -->
-                <div class="card p-5">
-                    <h3 class="text-sm font-semibold mb-3">Batas Upload</h3>
-                    <p class="text-[var(--amber)] font-mono text-lg font-bold" id="limitDisplay">1 GB</p>
-                    <p class="text-[10px] text-[var(--text4)] mt-1">Ubah di pengaturan</p>
-                </div>
-
-                <!-- Info -->
-                <div class="card p-5 space-y-4">
-                    <h4 class="text-[10px] font-bold tracking-widest text-[var(--text4)] uppercase">Keamanan</h4>
-                    <div class="flex items-start gap-3 text-xs">
-                        <i class="fa-solid fa-lock text-[var(--amber)] mt-0.5"></i>
-                        <div>
-                            <h5 class="font-medium text-[var(--text2)]">Link Masking</h5>
-                            <p class="text-[10px] text-[var(--text4)] mt-0.5">Token Bot disembunyikan di setiap link yang dibagikan.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3 text-xs">
-                        <i class="fa-solid fa-clock text-[var(--amber)] mt-0.5"></i>
-                        <div>
-                            <h5 class="font-medium text-[var(--text2)]">File Expiry</h5>
-                            <p class="text-[10px] text-[var(--text4)] mt-0.5">Tentukan masa berlaku link berbagi: 24 jam, 7 hari, atau selamanya.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <footer class="text-center py-6 text-[var(--text4)] text-[10px] border-t border-[var(--border)]">
-            &copy; 2026 Ridgebox Cloud Systems.
-        </footer>
-    </div>
-
-    <!-- ==================== DOWNLOAD PORTAL ==================== -->
-    <div id="downloadPortal" class="hidden min-h-screen flex flex-col">
-        <nav class="px-6 py-4 md:px-12 flex justify-between items-center border-b border-[var(--border)]">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-[var(--amber)] flex items-center justify-center">
-                    <i class="fa-solid fa-box text-black text-xs"></i>
-                </div>
-                <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
-            </div>
-            <a href="#/dashboard" class="btn-ghost text-xs">Dasbor <i class="fa-solid fa-arrow-right ml-1 text-[9px]"></i></a>
-        </nav>
-
-        <main class="max-w-md mx-auto w-full px-6 py-12 flex-grow flex flex-col justify-center items-center">
-            <!-- Expired State -->
-            <div id="expiredState" class="hidden text-center space-y-4">
-                <div class="w-16 h-16 mx-auto rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-                    <i class="fa-solid fa-clock-rotate-left text-red-400 text-2xl"></i>
-                </div>
-                <h2 class="text-lg font-semibold text-red-400">Link Kedaluwarsa</h2>
-                <p class="text-xs text-[var(--text3)] max-w-xs">Link berbagi ini sudah melewati masa berlaku. Minta pemilik file untuk membagikan ulang.</p>
+            <!-- Upload Queue -->
+            <div id="uploadQueueContainer" class="hidden card p-5 space-y-3">
+                <h3 class="text-[10px] font-bold tracking-widest text-[var(--text4)] uppercase">Mengunggah</h3>
+                <div id="uploadQueue" class="space-y-2"></div>
             </div>
 
-            <!-- Active State -->
-            <div id="activePortal" class="card w-full p-8 text-center space-y-6">
-                <div class="w-14 h-14 mx-auto rounded-2xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center text-xl" id="portalFileIcon">
-                    <i class="fa-regular fa-file-lines text-[var(--text3)]"></i>
+            <!-- File List -->
+            <div class="card p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="text-sm font-semibold">Semua Berkas</h3>
+                        <p class="text-[11px] text-[var(--text4)] mt-0.5" id="fileCountText">0 berkas</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text4)]"></i>
+                            <input type="text" id="searchInput" placeholder="Cari berkas..." class="input-field pl-8 py-2 text-xs w-44">
+                        </div>
+                        <button onclick="toggleViewMode()" class="btn-icon" title="Toggle view" id="viewToggleBtn"><i class="fa-solid fa-grip text-sm"></i></button>
+                        <button onclick="toggleBatchMode()" class="btn-icon" title="Pilih banyak" id="batchSelectToggle"><i class="fa-regular fa-square-check text-sm"></i></button>
+                    </div>
                 </div>
-                <div>
-                    <span class="text-[9px] tracking-widest text-[var(--text4)] uppercase font-bold">Unduhan Aman</span>
-                    <h2 class="text-base font-semibold mt-1 break-words" id="portalFileName">Memuat...</h2>
-                    <p class="text-xs text-[var(--text3)] mt-1" id="portalFileSize">-</p>
-                    <div id="portalExpiryBadge" class="hidden mt-2"></div>
+                <!-- Category Filter -->
+                <div class="flex gap-2 overflow-x-auto pb-3">
+                    <button class="pill active" data-category="all">Semua</button>
+                    <button class="pill" data-category="image">Gambar</button>
+                    <button class="pill" data-category="video">Video</button>
+                    <button class="pill" data-category="audio">Audio</button>
+                    <button class="pill" data-category="archive">Arsip</button>
                 </div>
-                <div class="h-px bg-[var(--border)]"></div>
-                <button id="btnPortalDownload" class="btn-primary w-full py-3.5 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-arrow-down"></i>
-                    <span>Unduh Berkas</span>
-                </button>
-                <div id="portalDownloadProgress" class="hidden space-y-2 text-left">
+                <!-- Batch select all -->
+                <div id="batchSelectAll" class="hidden flex items-center gap-3 pb-3 border-b border-[var(--border)] mb-3">
+                    <input type="checkbox" id="selectAllCheckbox" class="file-checkbox" onchange="toggleSelectAll(this)">
+                    <label for="selectAllCheckbox" class="text-xs text-[var(--text3)] cursor-pointer">Pilih Semua</label>
+                </div>
+                <!-- File Items -->
+                <div id="fileList" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- Right sidebar -->
+        <div class="w-full lg:w-56 flex-shrink-0 space-y-5">
+            <!-- Storage -->
+            <div class="card p-5">
+                <h3 class="text-sm font-semibold mb-3">Penyimpanan</h3>
+                <div class="space-y-2">
                     <div class="flex justify-between text-[11px] text-[var(--text3)]">
-                        <span id="portalProgressStatus">Mengunduh...</span>
-                        <span id="portalProgressPercent" class="font-bold text-[var(--amber)]">0%</span>
+                        <span>Tersimpan</span><span class="text-[var(--text)] font-medium" id="storageUsedText">0 B</span>
                     </div>
                     <div class="w-full h-1 bg-[var(--surface2)] rounded-full overflow-hidden">
-                        <div id="portalProgressBar" class="h-full bg-[var(--amber)] rounded-full transition-all" style="width: 0%"></div>
+                        <div id="storageProgressBar" class="h-full bg-[var(--amber)] rounded-full transition-all duration-500" style="width:0%"></div>
                     </div>
+                    <p class="text-[10px] text-[var(--text4)]" id="storageStatusText">0 B / 5.0 GB</p>
                 </div>
             </div>
-        </main>
-
-        <footer class="text-center py-6 text-[var(--text4)] text-[10px] border-t border-[var(--border)]">
-            Ridgebox Encrypted Cloud.
-        </footer>
-    </div>
-
-    <!-- ==================== SETTINGS MODAL ==================== -->
-    <div id="settingsModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="card w-full max-w-md p-6 space-y-6 animate-fadeUp">
-            <div class="flex justify-between items-center">
-                <h3 class="text-sm font-semibold">Pengaturan</h3>
-                <button onclick="closeSettings()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
+            <!-- Bot Info -->
+            <div class="card p-5">
+                <h3 class="text-sm font-semibold mb-2">Bot Aktif</h3>
+                <p class="text-[var(--amber)] text-xs font-mono font-bold" id="activeBotName">-</p>
+                <p class="text-[10px] text-[var(--text4)] mt-1">Token tersimpan di server</p>
             </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-1.5">Bot Token</label>
-                    <input type="password" id="settingsBotToken" class="input-field font-mono text-xs" placeholder="123456:ABC-DEF...">
-                </div>
-                <div>
-                    <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-1.5">Chat ID</label>
-                    <input type="text" id="settingsChatId" class="input-field font-mono text-xs" placeholder="-100xxxxxxxxxx">
-                </div>
-                <div>
-                    <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-1.5">Batas Ukuran Upload</label>
-                    <div class="flex gap-2 flex-wrap">
-                        <button class="expiry-option size-preset" data-size="10">10 MB</button>
-                        <button class="expiry-option size-preset" data-size="25">25 MB</button>
-                        <button class="expiry-option size-preset" data-size="50">50 MB</button>
-                        <button class="expiry-option size-preset active" data-size="1024">1 GB</button>
-                        <button class="expiry-option size-preset" data-size="2048">2 GB</button>
-                    </div>
-                </div>
+            <!-- Limit -->
+            <div class="card p-5">
+                <h3 class="text-sm font-semibold mb-2">Batas Upload</h3>
+                <p class="text-[var(--amber)] font-mono text-lg font-bold" id="limitDisplay">50 MB</p>
+                <p class="text-[10px] text-[var(--text4)] mt-1">Ubah di pengaturan</p>
             </div>
-            <button onclick="saveSettings()" class="btn-primary w-full">Simpan Pengaturan</button>
+            <!-- Quick Stats -->
+            <div class="card p-5 space-y-3">
+                <h4 class="text-[10px] font-bold tracking-widest text-[var(--text4)] uppercase">Ringkasan</h4>
+                <div class="flex justify-between text-xs"><span class="text-[var(--text3)]">Total file</span><span id="qsTotalFiles" class="font-medium">0</span></div>
+                <div class="flex justify-between text-xs"><span class="text-[var(--text3)]">Gambar</span><span id="qsImages" class="font-medium">0</span></div>
+                <div class="flex justify-between text-xs"><span class="text-[var(--text3)]">Video</span><span id="qsVideos" class="font-medium">0</span></div>
+                <div class="flex justify-between text-xs"><span class="text-[var(--text3)]">Dipin</span><span id="qsPinned" class="font-medium">0</span></div>
+            </div>
         </div>
-    </div>
+    </main>
+    <footer class="text-center py-6 text-[var(--text4)] text-[10px] border-t border-[var(--border)]">&copy; 2026 Ridgebox Cloud Systems.</footer>
+</div>
 
-    <!-- ==================== SHARE MODAL (QR + Expiry) ==================== -->
-    <div id="shareModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="card w-full max-w-md p-6 space-y-5 animate-fadeUp">
-            <div class="flex justify-between items-center">
-                <h3 class="text-sm font-semibold">Bagikan Berkas</h3>
-                <button onclick="closeShareModal()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <!-- Expiry Selector -->
-            <div>
-                <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-2">Masa Berlaku Link</label>
-                <div class="flex gap-2">
-                    <button class="expiry-option share-expiry" data-expiry="24h" onclick="setShareExpiry('24h')">24 Jam</button>
-                    <button class="expiry-option share-expiry" data-expiry="7d" onclick="setShareExpiry('7d')">7 Hari</button>
-                    <button class="expiry-option share-expiry active" data-expiry="never" onclick="setShareExpiry('never')">Selamanya</button>
-                </div>
-            </div>
-
-            <!-- Link -->
-            <div class="space-y-2">
-                <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide">Tautan Aman</label>
-                <div class="relative">
-                    <input type="text" id="shareLinkInput" readonly class="input-field font-mono text-[11px] pr-20">
-                    <button onclick="copyShareLink()" class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[var(--amber)] hover:bg-[var(--amber-light)] text-black text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors">
-                        Salin
-                    </button>
-                </div>
-            </div>
-
-            <!-- QR Code -->
-            <div class="flex flex-col items-center gap-3 py-3">
-                <canvas id="qrCanvas" width="180" height="180"></canvas>
-                <span class="text-[10px] text-[var(--text4)]">Scan QR code untuk akses cepat</span>
-            </div>
-
-            <!-- File Info -->
-            <div class="card-inner p-4 space-y-2">
-                <div class="grid grid-cols-2 gap-4 text-xs">
-                    <div>
-                        <span class="text-[var(--text4)] block text-[10px]">Nama</span>
-                        <span class="text-[var(--text2)] font-medium truncate block mt-0.5" id="modalFileName">-</span>
-                    </div>
-                    <div>
-                        <span class="text-[var(--text4)] block text-[10px]">Ukuran</span>
-                        <span class="text-[var(--text2)] font-medium block mt-0.5" id="modalFileSize">-</span>
-                    </div>
-                </div>
-            </div>
-
-            <button onclick="closeShareModal()" class="btn-ghost w-full">Selesai</button>
-        </div>
-    </div>
-
-    <!-- ==================== PREVIEW MODAL ==================== -->
-    <div id="previewModal" class="preview-overlay hidden">
-        <button onclick="closePreview()" class="absolute top-5 right-5 btn-icon bg-black/50 hover:bg-black/80 z-10" style="width:40px;height:40px;border-radius:50%;">
-            <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-        <div id="previewContent" class="animate-fadeUp"></div>
-    </div>
-
-    <!-- ==================== BATCH ACTION BAR ==================== -->
-    <div id="batchBar" class="batch-bar hidden animate-slideUp">
-        <span class="text-xs text-[var(--text2)]"><strong id="batchCount">0</strong> berkas dipilih</span>
-        <button onclick="batchDeleteSelected()" class="bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-lg text-xs font-semibold transition-colors">
-            <i class="fa-regular fa-trash-can mr-1"></i> Hapus
-        </button>
-        <button onclick="toggleBatchMode()" class="btn-icon text-[var(--text3)]">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-    </div>
-
-    <!-- ==================== PWA INSTALL BANNER ==================== -->
-    <div id="installBanner" class="install-banner hidden animate-slideUp">
+<!-- ==================== DOWNLOAD PORTAL ==================== -->
+<div id="downloadPortal" class="hidden min-h-screen flex flex-col">
+    <nav class="px-6 py-4 md:px-12 flex justify-between items-center border-b border-[var(--border)]">
         <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[var(--amber)] flex items-center justify-center flex-shrink-0">
-                <i class="fa-solid fa-box text-black text-xs"></i>
+            <div class="w-8 h-8 rounded-lg bg-[var(--amber)] flex items-center justify-center"><i class="fa-solid fa-box text-black text-xs"></i></div>
+            <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
+        </div>
+        <a href="#/dashboard" class="btn-ghost text-xs">Dasbor <i class="fa-solid fa-arrow-right ml-1 text-[9px]"></i></a>
+    </nav>
+    <main class="max-w-md mx-auto w-full px-6 py-12 flex-grow flex flex-col justify-center items-center">
+        <!-- Expired State -->
+        <div id="expiredState" class="hidden text-center space-y-4">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center"><i class="fa-solid fa-clock-rotate-left text-red-400 text-2xl"></i></div>
+            <h2 class="text-lg font-semibold text-red-400">Link Kedaluwarsa</h2>
+            <p class="text-xs text-[var(--text3)] max-w-xs">Link berbagi ini sudah melewati masa berlaku.</p>
+        </div>
+        <!-- Password Required State -->
+        <div id="passwordState" class="hidden card w-full p-8 text-center space-y-5">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-[var(--amber)]/10 border border-[var(--amber)]/20 flex items-center justify-center"><i class="fa-solid fa-lock text-[var(--amber)] text-xl"></i></div>
+            <h2 class="text-base font-semibold">Link Dilindungi Password</h2>
+            <input type="password" id="portalPasswordInput" class="input-field text-center" placeholder="Masukkan password">
+            <button onclick="verifyPortalPassword()" class="btn-primary w-full">Buka</button>
+            <p id="passwordError" class="text-red-400 text-xs hidden">Password salah.</p>
+        </div>
+        <!-- Active State -->
+        <div id="activePortal" class="card w-full p-8 text-center space-y-6">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center text-xl" id="portalFileIcon"><i class="fa-regular fa-file-lines text-[var(--text3)]"></i></div>
+            <div>
+                <span class="text-[9px] tracking-widest text-[var(--text4)] uppercase font-bold">Unduhan Aman</span>
+                <h2 class="text-base font-semibold mt-1 break-words" id="portalFileName">Memuat...</h2>
+                <p class="text-xs text-[var(--text3)] mt-1" id="portalFileSize">-</p>
+                <div id="portalExpiryBadge" class="hidden mt-2"></div>
+            </div>
+            <div class="h-px bg-[var(--border)]"></div>
+            <button id="btnPortalDownload" class="btn-primary w-full py-3.5 flex items-center justify-center gap-2"><i class="fa-solid fa-arrow-down"></i><span>Unduh Berkas</span></button>
+            <div id="portalDownloadProgress" class="hidden space-y-2 text-left">
+                <div class="flex justify-between text-[11px] text-[var(--text3)]">
+                    <span id="portalProgressStatus">Mengunduh...</span>
+                    <span id="portalProgressPercent" class="font-bold text-[var(--amber)]">0%</span>
+                </div>
+                <div class="w-full h-1 bg-[var(--surface2)] rounded-full overflow-hidden">
+                    <div id="portalProgressBar" class="h-full bg-[var(--amber)] rounded-full transition-all" style="width:0%"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="text-center py-6 text-[var(--text4)] text-[10px] border-t border-[var(--border)]">Ridgebox Encrypted Cloud.</footer>
+</div>
+
+<!-- ==================== SETTINGS MODAL ==================== -->
+<div id="settingsModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="card w-full max-w-md p-6 space-y-5 animate-fadeUp">
+        <div class="flex justify-between items-center"><h3 class="text-sm font-semibold">Pengaturan</h3><button onclick="closeSettings()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="space-y-4">
+            <div class="card-inner p-4 space-y-2">
+                <div class="flex items-center gap-2 text-xs"><i class="fa-solid fa-robot text-[var(--amber)]"></i><span class="font-medium">Bot Aktif</span></div>
+                <p class="text-[11px] text-[var(--text3)]" id="settingsBotInfo">Token disimpan aman di server environment.</p>
+                <p class="text-[var(--amber)] font-mono text-xs font-bold" id="settingsBotName">-</p>
             </div>
             <div>
-                <p class="text-xs font-semibold">Install Ridgebox</p>
-                <p class="text-[10px] text-[var(--text3)]">Akses lebih cepat dari homescreen</p>
+                <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-1.5">Batas Ukuran Upload</label>
+                <div class="flex gap-2 flex-wrap">
+                    <button class="expiry-option size-preset" data-size="10">10 MB</button>
+                    <button class="expiry-option size-preset" data-size="25">25 MB</button>
+                    <button class="expiry-option size-preset active" data-size="50">50 MB</button>
+                    <button class="expiry-option size-preset" data-size="100">100 MB</button>
+                    <button class="expiry-option size-preset" data-size="2048">2 GB</button>
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-1.5">Tema</label>
+                <div class="flex gap-2">
+                    <button class="expiry-option theme-opt" data-theme-val="dark" onclick="setTheme('dark')"><i class="fa-solid fa-moon mr-1"></i>Gelap</button>
+                    <button class="expiry-option theme-opt" data-theme-val="light" onclick="setTheme('light')"><i class="fa-solid fa-sun mr-1"></i>Terang</button>
+                </div>
             </div>
         </div>
-        <div class="flex gap-2">
-            <button onclick="dismissInstall()" class="btn-ghost text-[10px] py-1.5 px-3">Nanti</button>
-            <button onclick="installPWA()" class="btn-primary text-[10px] py-1.5 px-3">Install</button>
+        <button onclick="saveSettings()" class="btn-primary w-full">Simpan Pengaturan</button>
+    </div>
+</div>
+
+<!-- ==================== SHARE MODAL (QR + Expiry + Password) ==================== -->
+<div id="shareModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="card w-full max-w-md p-6 space-y-5 animate-fadeUp max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center"><h3 class="text-sm font-semibold">Bagikan Berkas</h3><button onclick="closeShareModal()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button></div>
+        <!-- Expiry -->
+        <div>
+            <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-2">Masa Berlaku</label>
+            <div class="flex gap-2">
+                <button class="expiry-option share-expiry" data-expiry="24h" onclick="setShareExpiry('24h')">24 Jam</button>
+                <button class="expiry-option share-expiry" data-expiry="7d" onclick="setShareExpiry('7d')">7 Hari</button>
+                <button class="expiry-option share-expiry active" data-expiry="never" onclick="setShareExpiry('never')">Selamanya</button>
+            </div>
+        </div>
+        <!-- Password -->
+        <div>
+            <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-2">Proteksi Password <span class="text-[var(--text4)]">(opsional)</span></label>
+            <div class="flex gap-2">
+                <input type="text" id="sharePassword" class="input-field text-xs py-2" placeholder="Kosongkan jika tidak perlu">
+                <button onclick="toggleSharePassword()" id="btnTogglePwd" class="btn-ghost text-[10px] px-3">Aktifkan</button>
+            </div>
+        </div>
+        <!-- Link -->
+        <div class="space-y-2">
+            <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide">Tautan Aman</label>
+            <div class="relative">
+                <input type="text" id="shareLinkInput" readonly class="input-field font-mono text-[11px] pr-20">
+                <button onclick="copyShareLink()" class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[var(--amber)] hover:bg-[var(--amber-light)] text-black text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors">Salin</button>
+            </div>
+        </div>
+        <!-- QR Code -->
+        <div class="flex flex-col items-center gap-3 py-2">
+            <canvas id="qrCanvas" width="160" height="160"></canvas>
+            <span class="text-[10px] text-[var(--text4)]">Scan untuk akses cepat</span>
+        </div>
+        <!-- File Info -->
+        <div class="card-inner p-4 space-y-2">
+            <div class="grid grid-cols-2 gap-4 text-xs">
+                <div><span class="text-[var(--text4)] block text-[10px]">Nama</span><span class="text-[var(--text2)] font-medium truncate block mt-0.5" id="modalFileName">-</span></div>
+                <div><span class="text-[var(--text4)] block text-[10px]">Ukuran</span><span class="text-[var(--text2)] font-medium block mt-0.5" id="modalFileSize">-</span></div>
+            </div>
+        </div>
+        <button onclick="closeShareModal()" class="btn-ghost w-full">Selesai</button>
+    </div>
+</div>
+
+<!-- ==================== PREVIEW MODAL ==================== -->
+<div id="previewModal" class="preview-overlay hidden">
+    <button onclick="closePreview()" class="absolute top-5 right-5 btn-icon bg-black/50 hover:bg-black/80 z-10" style="width:40px;height:40px;border-radius:50%"><i class="fa-solid fa-xmark text-lg"></i></button>
+    <div id="previewContent" class="animate-fadeUp"></div>
+</div>
+
+<!-- ==================== STATS MODAL ==================== -->
+<div id="statsModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="card w-full max-w-lg p-6 space-y-5 animate-fadeUp max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center"><h3 class="text-sm font-semibold">Statistik</h3><button onclick="closeStats()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="card-inner p-4 text-center"><p class="text-2xl font-bold text-[var(--amber)]" id="statTotal">0</p><p class="text-[10px] text-[var(--text4)]">Total File</p></div>
+            <div class="card-inner p-4 text-center"><p class="text-2xl font-bold text-[var(--amber)]" id="statSize">0 B</p><p class="text-[10px] text-[var(--text4)]">Total Ukuran</p></div>
+        </div>
+        <div>
+            <h4 class="text-xs font-semibold mb-3">Tipe File</h4>
+            <div class="space-y-3" id="statTypeBars"></div>
+        </div>
+        <div>
+            <h4 class="text-xs font-semibold mb-3">Upload 7 Hari Terakhir</h4>
+            <div class="flex items-end gap-1 h-20" id="statWeekChart"></div>
         </div>
     </div>
+</div>
 
-    <!-- ==================== JAVASCRIPT ENGINE ==================== -->
-    <script>
-        // ── Credentials (localStorage only) ──
-        let TG_BOT_TOKEN = localStorage.getItem('ridgebox_bot_token') || '';
-        let TG_CHAT_ID = localStorage.getItem('ridgebox_chat_id') || '';
-        let SIZE_LIMIT_MB = parseInt(localStorage.getItem('ridgebox_size_limit')) || 1024;
+<!-- ==================== FOLDER CREATE MODAL ==================== -->
+<div id="folderModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="card w-full max-w-sm p-6 space-y-5 animate-fadeUp">
+        <h3 class="text-sm font-semibold">Buat Folder Baru</h3>
+        <input type="text" id="folderNameInput" class="input-field text-sm" placeholder="Nama folder">
+        <div class="flex gap-2">
+            <button onclick="closeFolderModal()" class="btn-ghost flex-grow">Batal</button>
+            <button onclick="saveNewFolder()" class="btn-primary flex-grow">Buat</button>
+        </div>
+    </div>
+</div>
 
-        let db;
-        let filesData = [];
-        let currentFilter = 'all';
-        let batchMode = false;
-        let selectedFiles = new Set();
-        let currentShareExpiry = 'never';
-        let currentShareData = null;
-        let deferredPrompt = null;
+<!-- ==================== BATCH ACTION BAR ==================== -->
+<div id="batchBar" class="batch-bar hidden animate-slideUp">
+    <span class="text-xs text-[var(--text2)]"><strong id="batchCount">0</strong> dipilih</span>
+    <button onclick="batchDeleteSelected()" class="bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-lg text-xs font-semibold transition-colors"><i class="fa-regular fa-trash-can mr-1"></i> Hapus</button>
+    <button onclick="toggleBatchMode()" class="btn-icon text-[var(--text3)]"><i class="fa-solid fa-xmark"></i></button>
+</div>
 
-        // ── IndexedDB ──
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('RidgeboxDB', 2);
-                request.onupgradeneeded = function(e) {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains('files')) {
-                        db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
-                    }
-                };
-                request.onsuccess = function(e) {
-                    db = e.target.result;
-                    resolve();
-                };
-                request.onerror = function() {
-                    showToast('Gagal inisialisasi database.', 'error');
-                    reject();
-                };
-            });
-        }
+<!-- PWA Install Banner -->
+<div id="installBanner" class="install-banner hidden animate-slideUp">
+    <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-[var(--amber)] flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-box text-black text-xs"></i></div>
+        <div><p class="text-xs font-semibold">Install Ridgebox</p><p class="text-[10px] text-[var(--text3)]">Akses dari homescreen</p></div>
+    </div>
+    <div class="flex gap-2">
+        <button onclick="dismissInstall()" class="btn-ghost text-[10px] py-1.5 px-3">Nanti</button>
+        <button onclick="installPWA()" class="btn-primary text-[10px] py-1.5 px-3">Install</button>
+    </div>
+</div>
 
-        function saveFileToDB(fileObj) {
-            return new Promise((resolve) => {
-                const tx = db.transaction(['files'], 'readwrite');
-                const store = tx.objectStore('files');
-                store.add(fileObj);
-                tx.oncomplete = () => resolve();
-            });
-        }
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+// ── State ──
+let SIZE_LIMIT_MB = parseInt(localStorage.getItem('ridgebox_size_limit')) || 50;
+let currentTheme = localStorage.getItem('ridgebox_theme') || 'dark';
+let currentBotIndex = localStorage.getItem('ridgebox_bot_index') || '0';
+let availableBots = [];
+let db;
+let filesData = [];
+let foldersData = [];
+let currentFilter = 'all';
+let currentFolder = 'all';
+let batchMode = false;
+let selectedFiles = new Set();
+let currentShareExpiry = 'never';
+let sharePasswordEnabled = false;
+let currentShareData = null;
+let viewMode = localStorage.getItem('ridgebox_view') || 'list';
+let deferredPrompt = null;
+let portalDecodedInfo = null;
 
-        function loadFilesFromDB() {
-            if (!db) return;
-            const tx = db.transaction(['files'], 'readonly');
-            const store = tx.objectStore('files');
-            const request = store.getAll();
-            request.onsuccess = function() {
-                filesData = request.result;
-                // Auto-clean expired files from local DB
-                const now = Date.now();
-                filesData = filesData.filter(f => !f.expiresAt || f.expiresAt > now);
-                renderFileList();
-                updateStorageMetrics();
-            };
-        }
+// ── Theme ──
+function applyTheme(t) {
+    currentTheme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('ridgebox_theme', t);
+    const icons = document.querySelectorAll('#themeIcon, #themeIconHome');
+    icons.forEach(i => i.className = t === 'dark' ? 'fa-solid fa-moon text-sm' : 'fa-solid fa-sun text-sm');
+    document.querySelectorAll('.theme-opt').forEach(b => b.classList.toggle('active', b.dataset.themeVal === t));
+}
+function toggleTheme() { applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+function setTheme(t) { applyTheme(t); }
+applyTheme(currentTheme);
 
-        function deleteFileFromDB(id) {
-            return new Promise((resolve) => {
-                const tx = db.transaction(['files'], 'readwrite');
-                const store = tx.objectStore('files');
-                store.delete(id);
-                tx.oncomplete = () => {
-                    loadFilesFromDB();
-                    resolve();
-                };
-            });
-        }
+// ── IndexedDB ──
+function initDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open('RidgeboxDB', 3);
+        req.onupgradeneeded = e => {
+            const d = e.target.result;
+            if (!d.objectStoreNames.contains('files')) d.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
+            if (!d.objectStoreNames.contains('folders')) d.createObjectStore('folders', { keyPath: 'id', autoIncrement: true });
+        };
+        req.onsuccess = e => { db = e.target.result; resolve(); };
+        req.onerror = () => { showToast('Gagal inisialisasi DB.', 'error'); reject(); };
+    });
+}
 
-        function deleteMultipleFromDB(ids) {
-            return new Promise((resolve) => {
-                const tx = db.transaction(['files'], 'readwrite');
-                const store = tx.objectStore('files');
-                ids.forEach(id => store.delete(id));
-                tx.oncomplete = () => {
-                    showToast(`${ids.length} berkas berhasil dihapus.`, 'success');
-                    selectedFiles.clear();
-                    loadFilesFromDB();
-                    resolve();
-                };
-            });
-        }
+function saveFileToDB(obj) {
+    return new Promise(r => { const tx = db.transaction(['files'], 'readwrite'); tx.objectStore('files').add(obj); tx.oncomplete = () => r(); });
+}
+function updateFileInDB(obj) {
+    return new Promise(r => { const tx = db.transaction(['files'], 'readwrite'); tx.objectStore('files').put(obj); tx.oncomplete = () => r(); });
+}
+function loadFilesFromDB() {
+    if (!db) return;
+    const tx = db.transaction(['files'], 'readonly');
+    const req = tx.objectStore('files').getAll();
+    req.onsuccess = () => {
+        filesData = req.result.filter(f => !f.expiresAt || f.expiresAt > Date.now());
+        renderFileList(); updateStorageMetrics(); updateQuickStats();
+    };
+}
+function deleteFileFromDB(id) {
+    return new Promise(r => { const tx = db.transaction(['files'], 'readwrite'); tx.objectStore('files').delete(id); tx.oncomplete = () => { loadFilesFromDB(); r(); }; });
+}
+function deleteMultipleFromDB(ids) {
+    return new Promise(r => { const tx = db.transaction(['files'], 'readwrite'); const s = tx.objectStore('files'); ids.forEach(id => s.delete(id)); tx.oncomplete = () => { showToast(`${ids.length} berkas dihapus.`, 'success'); selectedFiles.clear(); loadFilesFromDB(); r(); }; });
+}
+// Folders
+function loadFoldersFromDB() {
+    if (!db) return;
+    const tx = db.transaction(['folders'], 'readonly');
+    const req = tx.objectStore('folders').getAll();
+    req.onsuccess = () => { foldersData = req.result; renderFolderList(); };
+}
+function saveFolderToDB(obj) {
+    return new Promise(r => { const tx = db.transaction(['folders'], 'readwrite'); tx.objectStore('folders').add(obj); tx.oncomplete = () => { loadFoldersFromDB(); r(); }; });
+}
+function deleteFolderFromDB(id) {
+    return new Promise(r => { const tx = db.transaction(['folders'], 'readwrite'); tx.objectStore('folders').delete(id); tx.oncomplete = () => { loadFoldersFromDB(); r(); }; });
+}
 
-        // ── Startup ──
-        window.addEventListener('DOMContentLoaded', async () => {
-            await initDB();
-            checkUrlRouting();
-            loadFilesFromDB();
-            setupDragAndDrop();
-            setupPWA();
-            checkSetup();
+// ── API Helpers ──
+async function apiUpload(formData) {
+    formData.append('bot_index', currentBotIndex);
+    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+    return res.json();
+}
+async function apiGetFileInfo(fileId, botIndex) {
+    const res = await fetch('/api/file-info', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_id: fileId, bot_index: botIndex || currentBotIndex })
+    });
+    return res.json();
+}
+async function apiGetDownloadUrl(filePath, botIndex) {
+    return `/api/download?path=${encodeURIComponent(filePath)}&bot_index=${botIndex || currentBotIndex}`;
+}
+function apiThumbUrl(fileId, botIndex) {
+    return `/api/thumb?file_id=${encodeURIComponent(fileId)}&bot_index=${botIndex || currentBotIndex}`;
+}
 
-            document.getElementById('searchInput').addEventListener('input', renderFileList);
+// ── Startup ──
+window.addEventListener('DOMContentLoaded', async () => {
+    await initDB();
+    loadFilesFromDB();
+    loadFoldersFromDB();
+    checkUrlRouting();
+    setupDragAndDrop();
+    setupPWA();
+    fetchBotInfo();
+    applyViewMode();
 
-            document.querySelectorAll('.pill[data-category]').forEach(pill => {
-                pill.addEventListener('click', (e) => {
-                    document.querySelectorAll('.pill[data-category]').forEach(p => p.classList.remove('active'));
-                    e.target.classList.add('active');
-                    currentFilter = e.target.getAttribute('data-category');
-                    renderFileList();
-                });
-            });
-
-            // Size preset buttons
-            document.querySelectorAll('.size-preset').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.size-preset').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                });
-            });
-
-            // Offline detection
-            window.addEventListener('online', () => document.getElementById('offlineBadge').style.display = 'none');
-            window.addEventListener('offline', () => document.getElementById('offlineBadge').style.display = 'block');
-        });
-
-        window.addEventListener('hashchange', checkUrlRouting);
-
-        // ── Setup Check ──
-        function checkSetup() {
-            const banner = document.getElementById('setupBanner');
-            const connStatus = document.getElementById('connStatus');
-            if (!TG_BOT_TOKEN || !TG_CHAT_ID) {
-                banner.classList.remove('hidden');
-                connStatus.textContent = 'Belum Dikonfigurasi';
-            } else {
-                banner.classList.add('hidden');
-                connStatus.textContent = 'Cloud Aktif';
-            }
-        }
-
-        // ── Routing ──
-        function checkUrlRouting() {
-            const hash = window.location.hash;
-            const homeView = document.getElementById('homeView');
-            const appView = document.getElementById('appView');
-            const downloadPortal = document.getElementById('downloadPortal');
-
-            homeView.classList.add('hidden');
-            appView.classList.add('hidden');
-            downloadPortal.classList.add('hidden');
-
-            if (hash.startsWith('#/file/')) {
-                downloadPortal.classList.remove('hidden');
-                setupDownloadPortal(hash.substring(7));
-            } else if (hash.startsWith('#/dashboard')) {
-                appView.classList.remove('hidden');
-            } else {
-                homeView.classList.remove('hidden');
-            }
-        }
-
-        // ── Secure Link (with expiry) ──
-        function createSecureLink(tgFileId, fileName, fileSize, expiry) {
-            const ext = fileName.split('.').pop();
-            let shortName = fileName;
-            if (fileName.length > 20) shortName = fileName.substring(0, 16) + '..' + ext;
-
-            let expiresAt = 0;
-            if (expiry === '24h') expiresAt = Date.now() + (24 * 60 * 60 * 1000);
-            else if (expiry === '7d') expiresAt = Date.now() + (7 * 24 * 60 * 60 * 1000);
-
-            // Format: fileId|shortName|fileSize|expiresAt
-            const rawString = `${tgFileId}|${shortName}|${fileSize}|${expiresAt}`;
-            const encoded = btoa(unescape(encodeURIComponent(rawString)));
-            const cleanOrigin = window.location.origin + window.location.pathname;
-            return `${cleanOrigin}#/file/${encoded}`;
-        }
-
-        function decodeSecureLink(base64Str) {
-            try {
-                const decoded = decodeURIComponent(escape(atob(base64Str)));
-                const parts = decoded.split('|');
-                return {
-                    fileId: parts[0],
-                    fileName: parts[1],
-                    fileSize: parts[2],
-                    expiresAt: parseInt(parts[3]) || 0
-                };
-            } catch (err) {
-                return null;
-            }
-        }
-
-        // ── Download Portal (with expiry check) ──
-        function setupDownloadPortal(encodedPayload) {
-            const fileInfo = decodeSecureLink(encodedPayload);
-            const activePortal = document.getElementById('activePortal');
-            const expiredState = document.getElementById('expiredState');
-            const portalExpiryBadge = document.getElementById('portalExpiryBadge');
-
-            if (!fileInfo) {
-                activePortal.classList.add('hidden');
-                expiredState.classList.remove('hidden');
-                return;
-            }
-
-            // Check expiry
-            if (fileInfo.expiresAt > 0 && Date.now() > fileInfo.expiresAt) {
-                activePortal.classList.add('hidden');
-                expiredState.classList.remove('hidden');
-                return;
-            }
-
-            activePortal.classList.remove('hidden');
-            expiredState.classList.add('hidden');
-
-            document.getElementById('portalFileName').innerText = fileInfo.fileName;
-            document.getElementById('portalFileSize').innerText = formatBytes(parseInt(fileInfo.fileSize));
-
-            const iconEl = document.getElementById('portalFileIcon');
-            const fileType = getFileTypeByName(fileInfo.fileName);
-            iconEl.innerHTML = getIconMarkup(fileType);
-
-            // Show expiry info if applicable
-            if (fileInfo.expiresAt > 0) {
-                const remaining = fileInfo.expiresAt - Date.now();
-                const hours = Math.floor(remaining / (60 * 60 * 1000));
-                const days = Math.floor(hours / 24);
-                const timeLeft = days > 0 ? `${days} hari lagi` : `${hours} jam lagi`;
-                portalExpiryBadge.innerHTML = `<span class="expiry-badge bg-[var(--amber)]/10 text-[var(--amber)]"><i class="fa-solid fa-clock mr-1"></i>Berlaku ${timeLeft}</span>`;
-                portalExpiryBadge.classList.remove('hidden');
-            } else {
-                portalExpiryBadge.classList.add('hidden');
-            }
-
-            const btn = document.getElementById('btnPortalDownload');
-            btn.disabled = false;
-            btn.onclick = () => startPremiumDownload(fileInfo.fileId, fileInfo.fileName);
-        }
-
-        async function startPremiumDownload(fileId, fileName) {
-            const progressContainer = document.getElementById('portalDownloadProgress');
-            const progressBar = document.getElementById('portalProgressBar');
-            const progressPercent = document.getElementById('portalProgressPercent');
-            const progressStatus = document.getElementById('portalProgressStatus');
-            const btn = document.getElementById('btnPortalDownload');
-
-            btn.disabled = true;
-            progressContainer.classList.remove('hidden');
-            progressStatus.innerText = "Menghubungi server...";
-            progressBar.style.width = '5%';
-            progressPercent.innerText = '5%';
-
-            try {
-                const pathResponse = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getFile?file_id=${fileId}`);
-                const pathData = await pathResponse.json();
-
-                if (!pathData.ok) throw new Error('Akses ditolak oleh server.');
-
-                const filePath = pathData.result.file_path;
-                progressStatus.innerText = "Mengunduh data...";
-                progressBar.style.width = '20%';
-                progressPercent.innerText = '20%';
-
-                const downloadUrl = `https://api.telegram.org/file/bot${TG_BOT_TOKEN}/${filePath}`;
-                const response = await fetch(downloadUrl);
-
-                const reader = response.body.getReader();
-                const contentLength = +response.headers.get('Content-Length');
-                let receivedLength = 0;
-                let chunks = [];
-
-                while(true) {
-                    const {done, value} = await reader.read();
-                    if (done) break;
-                    chunks.push(value);
-                    receivedLength += value.length;
-                    if (contentLength) {
-                        const percent = 20 + Math.round((receivedLength / contentLength) * 80);
-                        progressBar.style.width = `${percent}%`;
-                        progressPercent.innerText = `${percent}%`;
-                    }
-                }
-
-                const blob = new Blob(chunks);
-                const blobUrl = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = fileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(blobUrl);
-
-                progressStatus.innerText = "Selesai!";
-                btn.disabled = false;
-                showToast('Berkas berhasil diunduh!', 'success');
-            } catch (err) {
-                console.error(err);
-                progressStatus.innerText = "Gagal mengunduh.";
-                btn.disabled = false;
-                showToast(err.message || 'Kesalahan pengunduhan.', 'error');
-            }
-        }
-
-        // ── Drag & Drop ──
-        function setupDragAndDrop() {
-            const dropZone = document.getElementById('dropZone');
-            ['dragenter', 'dragover'].forEach(evt => {
-                dropZone.addEventListener(evt, (e) => {
-                    e.preventDefault();
-                    dropZone.style.borderColor = 'var(--amber)';
-                });
-            });
-            ['dragleave', 'drop'].forEach(evt => {
-                dropZone.addEventListener(evt, (e) => {
-                    e.preventDefault();
-                    dropZone.style.borderColor = '';
-                });
-            });
-            dropZone.addEventListener('drop', (e) => handleFileUpload(e.dataTransfer.files));
-            document.getElementById('fileInput').addEventListener('change', (e) => handleFileUpload(e.target.files));
-        }
-
-        // ── Upload ──
-        async function handleFileUpload(files) {
-            if (files.length === 0) return;
-            if (!TG_BOT_TOKEN || !TG_CHAT_ID) {
-                showToast('Konfigurasi Bot Token & Chat ID dulu.', 'error');
-                openSettings();
-                return;
-            }
-
-            const queueContainer = document.getElementById('uploadQueueContainer');
-            const queueList = document.getElementById('uploadQueue');
-            queueContainer.classList.remove('hidden');
-
-            for (let file of files) {
-                const limitBytes = SIZE_LIMIT_MB * 1024 * 1024;
-                if (file.size > limitBytes) {
-                    showToast(`"${file.name}" melewati batas ${SIZE_LIMIT_MB} MB.`, 'error');
-                    continue;
-                }
-
-                const uniqueId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-                const queueItem = document.createElement('div');
-                queueItem.id = `queue-${uniqueId}`;
-                queueItem.className = "card-inner p-3 space-y-2";
-                queueItem.innerHTML = `
-                    <div class="flex justify-between items-center text-[11px]">
-                        <div class="flex items-center gap-2 truncate">
-                            <i class="fa-solid fa-circle-notch animate-spin text-[var(--amber)] text-[10px]"></i>
-                            <span class="font-medium text-[var(--text2)] truncate max-w-[200px]">${file.name}</span>
-                        </div>
-                        <span id="percent-${uniqueId}" class="text-[var(--text3)] font-mono font-bold text-[10px]">0%</span>
-                    </div>
-                    <div class="w-full h-[3px] bg-[var(--surface2)] rounded-full overflow-hidden">
-                        <div id="bar-${uniqueId}" class="h-full bg-[var(--amber)] rounded-full transition-all duration-100" style="width: 0%"></div>
-                    </div>
-                `;
-                queueList.appendChild(queueItem);
-                executeTelegramUpload(file, uniqueId);
-            }
-        }
-
-        function executeTelegramUpload(file, uniqueId) {
-            const xhr = new XMLHttpRequest();
-            const formData = new FormData();
-            formData.append('chat_id', TG_CHAT_ID);
-            formData.append('document', file);
-
-            xhr.upload.onprogress = function(e) {
-                if (e.lengthComputable) {
-                    const percent = Math.round((e.loaded / e.total) * 100);
-                    document.getElementById(`bar-${uniqueId}`).style.width = `${percent}%`;
-                    document.getElementById(`percent-${uniqueId}`).innerText = `${percent}%`;
-                }
-            };
-
-            xhr.onload = async function() {
-                if (xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    if (response.ok) {
-                        const fileId = response.result.document.file_id;
-                        const fileType = getFileTypeByName(file.name);
-                        const fileObj = {
-                            id: uniqueId,
-                            tgFileId: fileId,
-                            name: file.name,
-                            size: file.size,
-                            type: fileType,
-                            uploadedAt: new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}),
-                            uploadedTimestamp: Date.now(),
-                            expiresAt: 0
-                        };
-                        await saveFileToDB(fileObj);
-                        showToast(`"${file.name}" berhasil diupload.`, 'success');
-                        removeQueueItem(uniqueId);
-                        loadFilesFromDB();
-                    } else {
-                        handleUploadError(uniqueId, "Server Telegram menolak");
-                    }
-                } else {
-                    handleUploadError(uniqueId, "Gagal mengunggah");
-                }
-            };
-
-            xhr.onerror = function() { handleUploadError(uniqueId, "Kesalahan jaringan"); };
-            xhr.open('POST', `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendDocument`);
-            xhr.send(formData);
-        }
-
-        function handleUploadError(uniqueId, message) {
-            const item = document.getElementById(`queue-${uniqueId}`);
-            if (item) {
-                item.style.borderColor = 'rgba(239,68,68,0.3)';
-                item.innerHTML = `<div class="flex justify-between items-center text-[10px] text-red-400"><span class="truncate">Gagal: ${message}</span><i class="fa-solid fa-circle-exclamation"></i></div>`;
-                setTimeout(() => item.remove(), 4000);
-            }
-            showToast(`Error: ${message}`, 'error');
-        }
-
-        function removeQueueItem(id) {
-            const item = document.getElementById(`queue-${id}`);
-            if (item) {
-                item.style.opacity = '0';
-                setTimeout(() => {
-                    item.remove();
-                    if (document.getElementById('uploadQueue').children.length === 0) {
-                        document.getElementById('uploadQueueContainer').classList.add('hidden');
-                    }
-                }, 200);
-            }
-        }
-
-        // ── File List Rendering ──
-        function renderFileList() {
-            const listContainer = document.getElementById('fileList');
-            const emptyState = document.getElementById('emptyState');
-            const searchVal = document.getElementById('searchInput').value.toLowerCase();
-
-            listContainer.innerHTML = '';
-
-            const filtered = filesData.filter(f => {
-                const matchSearch = f.name.toLowerCase().includes(searchVal);
-                const matchCategory = currentFilter === 'all' || f.type === currentFilter;
-                return matchSearch && matchCategory;
-            });
-
-            document.getElementById('fileCountText').innerText = `${filtered.length} berkas`;
-
-            if (filtered.length === 0) {
-                listContainer.appendChild(emptyState.cloneNode(true));
-                return;
-            }
-
-            filtered.slice().reverse().forEach(file => {
-                const item = document.createElement('div');
-                const isSelected = selectedFiles.has(file.id);
-                item.className = `file-item flex items-center justify-between p-3 rounded-xl border border-[var(--border)] ${isSelected ? 'selected' : ''}`;
-
-                const iconMarkup = getIconMarkup(file.type);
-                const isPreviewable = file.type === 'image' || file.type === 'video';
-                const nameClass = isPreviewable ? 'cursor-pointer hover:text-[var(--amber)]' : '';
-
-                // Expiry info
-                let expiryTag = '';
-                if (file.expiresAt && file.expiresAt > 0) {
-                    const remaining = file.expiresAt - Date.now();
-                    if (remaining <= 0) {
-                        expiryTag = `<span class="expiry-badge bg-red-500/10 text-red-400 ml-2">Expired</span>`;
-                    } else {
-                        const days = Math.floor(remaining / (24*60*60*1000));
-                        const hours = Math.floor(remaining / (60*60*1000));
-                        expiryTag = `<span class="expiry-badge bg-[var(--amber)]/10 text-[var(--amber)] ml-2">${days > 0 ? days+'h' : hours+'j'} lagi</span>`;
-                    }
-                }
-
-                const checkboxHtml = batchMode ? `<input type="checkbox" class="file-checkbox mr-3" ${isSelected ? 'checked' : ''} onchange="toggleFileSelection('${file.id}', this)">` : '';
-
-                item.innerHTML = `
-                    <div class="flex items-center gap-3 min-w-0 flex-grow">
-                        ${checkboxHtml}
-                        <div class="w-9 h-9 rounded-lg bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">
-                            ${iconMarkup}
-                        </div>
-                        <div class="min-w-0">
-                            <h4 class="text-xs font-medium text-[var(--text2)] truncate max-w-[150px] sm:max-w-[280px] ${nameClass}" ${isPreviewable ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g, "\\'")}','${file.type}')"` : ''}>${file.name}${expiryTag}</h4>
-                            <p class="text-[10px] text-[var(--text4)] mt-0.5">${formatBytes(file.size)} &middot; ${file.uploadedAt}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-0.5 flex-shrink-0">
-                        ${isPreviewable ? `<button onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g, "\\'")}','${file.type}')" class="btn-icon" title="Preview"><i class="fa-regular fa-eye text-[10px]"></i></button>` : ''}
-                        <button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g, "\\'")}',${file.size})" class="btn-icon" title="Bagikan"><i class="fa-solid fa-share-nodes text-[10px]"></i></button>
-                        <button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" title="Hapus"><i class="fa-regular fa-trash-can text-[10px]"></i></button>
-                    </div>
-                `;
-                listContainer.appendChild(item);
-            });
-        }
-
-        // ── Batch Mode ──
-        function toggleBatchMode() {
-            batchMode = !batchMode;
-            selectedFiles.clear();
-            document.getElementById('batchSelectAll').classList.toggle('hidden', !batchMode);
-            document.getElementById('batchBar').classList.toggle('hidden', !batchMode);
-            document.getElementById('batchSelectToggle').classList.toggle('text-[var(--amber)]', batchMode);
+    document.getElementById('searchInput').addEventListener('input', renderFileList);
+    document.querySelectorAll('.pill[data-category]').forEach(p => {
+        p.addEventListener('click', e => {
+            document.querySelectorAll('.pill[data-category]').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            currentFilter = e.target.dataset.category;
             renderFileList();
-            updateBatchCount();
-        }
-
-        function toggleFileSelection(id, checkbox) {
-            if (checkbox.checked) {
-                selectedFiles.add(id);
-            } else {
-                selectedFiles.delete(id);
-            }
-            updateBatchCount();
-            renderFileList();
-        }
-
-        function toggleSelectAll(checkbox) {
-            const searchVal = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = filesData.filter(f => {
-                const matchSearch = f.name.toLowerCase().includes(searchVal);
-                const matchCategory = currentFilter === 'all' || f.type === currentFilter;
-                return matchSearch && matchCategory;
-            });
-            if (checkbox.checked) {
-                filtered.forEach(f => selectedFiles.add(f.id));
-            } else {
-                selectedFiles.clear();
-            }
-            updateBatchCount();
-            renderFileList();
-        }
-
-        function updateBatchCount() {
-            document.getElementById('batchCount').innerText = selectedFiles.size;
-        }
-
-        async function batchDeleteSelected() {
-            if (selectedFiles.size === 0) return;
-            const count = selectedFiles.size;
-            if (!confirm(`Hapus ${count} berkas? Tindakan ini tidak bisa dibatalkan.`)) return;
-            await deleteMultipleFromDB([...selectedFiles]);
-            toggleBatchMode();
-        }
-
-        async function deleteSingleFile(id) {
-            if (!confirm('Hapus berkas ini?')) return;
-            await deleteFileFromDB(id);
-            showToast('Berkas dihapus.', 'success');
-        }
-
-        // ── Share Modal (with QR + Expiry) ──
-        function setShareExpiry(expiry) {
-            currentShareExpiry = expiry;
-            document.querySelectorAll('.share-expiry').forEach(b => b.classList.remove('active'));
-            document.querySelector(`.share-expiry[data-expiry="${expiry}"]`).classList.add('active');
-
-            // Regenerate link with new expiry
-            if (currentShareData) {
-                const link = createSecureLink(currentShareData.tgFileId, currentShareData.name, currentShareData.size, expiry);
-                document.getElementById('shareLinkInput').value = link;
-                generateQR(link);
-            }
-        }
-
-        function openShareModal(tgFileId, name, size) {
-            currentShareData = { tgFileId, name, size };
-            currentShareExpiry = 'never';
-
-            // Reset expiry buttons
-            document.querySelectorAll('.share-expiry').forEach(b => b.classList.remove('active'));
-            document.querySelector('.share-expiry[data-expiry="never"]').classList.add('active');
-
-            const link = createSecureLink(tgFileId, name, size, 'never');
-            document.getElementById('shareLinkInput').value = link;
-            document.getElementById('modalFileName').innerText = name;
-            document.getElementById('modalFileSize').innerText = formatBytes(size);
-
-            generateQR(link);
-            document.getElementById('shareModal').classList.remove('hidden');
-        }
-
-        function closeShareModal() {
-            document.getElementById('shareModal').classList.add('hidden');
-            currentShareData = null;
-        }
-
-        function generateQR(text) {
-            const canvas = document.getElementById('qrCanvas');
-            new QRious({
-                element: canvas,
-                value: text,
-                size: 180,
-                background: '#141414',
-                foreground: '#f59e0b',
-                level: 'M',
-                padding: 12
-            });
-        }
-
-        function copyShareLink() {
-            const input = document.getElementById('shareLinkInput');
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(input.value).then(() => {
-                    showToast('Link tersalin!', 'success');
-                });
-            } else {
-                input.select();
-                document.execCommand('copy');
-                showToast('Link tersalin!', 'success');
-            }
-        }
-
-        // ── Preview Modal ──
-        async function openPreview(tgFileId, fileName, fileType) {
-            const previewModal = document.getElementById('previewModal');
-            const previewContent = document.getElementById('previewContent');
-
-            previewContent.innerHTML = `
-                <div class="flex flex-col items-center gap-4">
-                    <i class="fa-solid fa-circle-notch animate-spin text-3xl text-[var(--amber)]"></i>
-                    <span class="text-sm text-[var(--text3)]">Memuat preview...</span>
-                </div>
-            `;
-            previewModal.classList.remove('hidden');
-
-            try {
-                const pathResponse = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getFile?file_id=${tgFileId}`);
-                const pathData = await pathResponse.json();
-
-                if (!pathData.ok) throw new Error('Gagal mendapatkan file.');
-
-                const filePath = pathData.result.file_path;
-                const fileUrl = `https://api.telegram.org/file/bot${TG_BOT_TOKEN}/${filePath}`;
-
-                if (fileType === 'image') {
-                    previewContent.innerHTML = `<img src="${fileUrl}" alt="${fileName}" class="animate-fadeUp">`;
-                } else if (fileType === 'video') {
-                    previewContent.innerHTML = `
-                        <video controls autoplay class="animate-fadeUp" style="max-width:90vw;max-height:85vh;border-radius:8px;">
-                            <source src="${fileUrl}">
-                            Browser tidak mendukung video ini.
-                        </video>
-                    `;
-                }
-            } catch (err) {
-                previewContent.innerHTML = `
-                    <div class="text-center space-y-3">
-                        <i class="fa-solid fa-circle-exclamation text-3xl text-red-400"></i>
-                        <p class="text-sm text-[var(--text3)]">Gagal memuat preview: ${err.message}</p>
-                    </div>
-                `;
-            }
-        }
-
-        function closePreview() {
-            const previewModal = document.getElementById('previewModal');
-            const previewContent = document.getElementById('previewContent');
-            // Stop any playing videos
-            const video = previewContent.querySelector('video');
-            if (video) video.pause();
-            previewModal.classList.add('hidden');
-        }
-
-        // ── Settings ──
-        function openSettings() {
-            document.getElementById('settingsBotToken').value = TG_BOT_TOKEN;
-            document.getElementById('settingsChatId').value = TG_CHAT_ID;
-
-            // Highlight active size preset
-            document.querySelectorAll('.size-preset').forEach(b => {
-                b.classList.toggle('active', parseInt(b.dataset.size) === SIZE_LIMIT_MB);
-            });
-
-            document.getElementById('settingsModal').classList.remove('hidden');
-        }
-
-        function closeSettings() {
-            document.getElementById('settingsModal').classList.add('hidden');
-        }
-
-        function saveSettings() {
-            const token = document.getElementById('settingsBotToken').value.trim();
-            const chatId = document.getElementById('settingsChatId').value.trim();
-            const activeSize = document.querySelector('.size-preset.active');
-            const sizeLimit = activeSize ? parseInt(activeSize.dataset.size) : SIZE_LIMIT_MB;
-
-            TG_BOT_TOKEN = token;
-            TG_CHAT_ID = chatId;
-            SIZE_LIMIT_MB = sizeLimit;
-
-            localStorage.setItem('ridgebox_bot_token', token);
-            localStorage.setItem('ridgebox_chat_id', chatId);
-            localStorage.setItem('ridgebox_size_limit', sizeLimit.toString());
-
-            document.getElementById('limitDisplay').innerText = sizeLimit >= 1024 ? `${(sizeLimit/1024).toFixed(0)} GB` : `${sizeLimit} MB`;
-            checkSetup();
-            closeSettings();
-            showToast('Pengaturan tersimpan!', 'success');
-        }
-
-        // ── Storage Metrics ──
-        function updateStorageMetrics() {
-            const totalQuota = 5 * 1024 * 1024 * 1024;
-            const totalUsed = filesData.reduce((acc, f) => acc + f.size, 0);
-            const percentUsed = (totalUsed / totalQuota) * 100;
-
-            document.getElementById('storageUsedText').innerText = formatBytes(totalUsed);
-            document.getElementById('storageProgressBar').style.width = `${Math.min(percentUsed, 100)}%`;
-            document.getElementById('storageStatusText').innerText = `${formatBytes(totalUsed)} / 5.0 GB`;
-        }
-
-        // ── Utilities ──
-        function formatBytes(bytes, decimals = 2) {
-            if (bytes === 0) return '0 B';
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-        }
-
-        function getFileTypeByName(name) {
-            const ext = name.split('.').pop().toLowerCase();
-            const images = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'ico'];
-            const videos = ['mp4', 'mkv', 'avi', 'mov', 'webm', '3gp', 'flv'];
-            const audios = ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac'];
-            const archives = ['zip', 'rar', 'tar', 'gz', '7z', 'iso', 'dmg'];
-            if (images.includes(ext)) return 'image';
-            if (videos.includes(ext)) return 'video';
-            if (audios.includes(ext)) return 'audio';
-            if (archives.includes(ext)) return 'archive';
-            return 'other';
-        }
-
-        function getIconMarkup(type) {
-            switch(type) {
-                case 'image': return '<i class="fa-regular fa-file-image text-[var(--amber)] text-sm"></i>';
-                case 'video': return '<i class="fa-regular fa-file-video text-purple-400 text-sm"></i>';
-                case 'audio': return '<i class="fa-regular fa-file-audio text-sky-400 text-sm"></i>';
-                case 'archive': return '<i class="fa-regular fa-file-zipper text-orange-400 text-sm"></i>';
-                default: return '<i class="fa-regular fa-file-lines text-[var(--text3)] text-sm"></i>';
-            }
-        }
-
-        // ── Toast ──
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            let icon = '<i class="fa-solid fa-circle-info text-[var(--text3)]"></i>';
-            if (type === 'success') icon = '<i class="fa-solid fa-circle-check text-[var(--amber)]"></i>';
-            else if (type === 'error') icon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>';
-
-            toast.className = "card flex items-center gap-3 px-4 py-3 pointer-events-auto shadow-lg animate-fadeUp";
-            toast.innerHTML = `${icon}<span class="text-[var(--text2)] text-xs font-medium">${message}</span>`;
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(12px)';
-                toast.style.transition = 'all 0.3s';
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
-        }
-
-        // ── PWA ──
-        function setupPWA() {
-            // Register service worker
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js').catch(() => {});
-            }
-
-            // Install prompt
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                // Show install banner after 3 seconds
-                setTimeout(() => {
-                    if (deferredPrompt) {
-                        document.getElementById('installBanner').classList.remove('hidden');
-                    }
-                }, 3000);
-            });
-        }
-
-        async function installPWA() {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                showToast('Ridgebox berhasil diinstall!', 'success');
-            }
-            deferredPrompt = null;
-            document.getElementById('installBanner').classList.add('hidden');
-        }
-
-        function dismissInstall() {
-            document.getElementById('installBanner').classList.add('hidden');
-        }
-
-        // ── Close modals on ESC ──
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeSettings();
-                closeShareModal();
-                closePreview();
-            }
         });
+    });
+    document.querySelectorAll('.size-preset').forEach(b => {
+        b.addEventListener('click', e => {
+            document.querySelectorAll('.size-preset').forEach(x => x.classList.remove('active'));
+            e.target.classList.add('active');
+        });
+    });
+    window.addEventListener('online', () => document.getElementById('offlineBadge').style.display = 'none');
+    window.addEventListener('offline', () => document.getElementById('offlineBadge').style.display = 'block');
+});
+window.addEventListener('hashchange', checkUrlRouting);
 
-        // ── Close modals on backdrop click ──
-        ['settingsModal', 'shareModal'].forEach(id => {
-            document.getElementById(id).addEventListener('click', function(e) {
-                if (e.target === this) {
-                    if (id === 'settingsModal') closeSettings();
-                    else closeShareModal();
-                }
+async function fetchBotInfo() {
+    try {
+        const res = await fetch('/api/bots');
+        const data = await res.json();
+        if (data.ok && data.bots.length > 0) {
+            availableBots = data.bots;
+            const active = availableBots.find(b => b.index === currentBotIndex) || availableBots[0];
+            document.getElementById('connStatus').textContent = 'Cloud Aktif';
+            document.getElementById('activeBotName').textContent = active.name;
+            document.getElementById('settingsBotName').textContent = active.name;
+            document.getElementById('settingsBotInfo').textContent = 'Token disimpan aman di server environment.';
+            document.getElementById('setupBanner').classList.add('hidden');
+            // Populate bot selector
+            if (availableBots.length > 1) {
+                const sel = document.getElementById('botSelector');
+                sel.innerHTML = availableBots.map(b => `<option value="${b.index}" ${b.index === currentBotIndex ? 'selected' : ''}>${b.name}</option>`).join('');
+                sel.classList.remove('hidden');
+                sel.onchange = () => { currentBotIndex = sel.value; localStorage.setItem('ridgebox_bot_index', currentBotIndex); loadFilesFromDB(); };
+            }
+        } else {
+            document.getElementById('connStatus').textContent = 'Tidak Dikonfigurasi';
+            document.getElementById('connDot').classList.remove('bg-[#22c55e]');
+            document.getElementById('connDot').classList.add('bg-red-500');
+            document.getElementById('setupBanner').classList.remove('hidden');
+        }
+    } catch (e) {
+        document.getElementById('connStatus').textContent = 'Gagal terhubung';
+        document.getElementById('connDot').classList.remove('bg-[#22c55e]');
+        document.getElementById('connDot').classList.add('bg-red-500');
+    }
+}
+
+// ── Routing ──
+function checkUrlRouting() {
+    const hash = window.location.hash;
+    document.getElementById('homeView').classList.add('hidden');
+    document.getElementById('appView').classList.add('hidden');
+    document.getElementById('downloadPortal').classList.add('hidden');
+    if (hash.startsWith('#/file/')) {
+        document.getElementById('downloadPortal').classList.remove('hidden');
+        setupDownloadPortal(hash.substring(7));
+    } else if (hash.startsWith('#/dashboard')) {
+        document.getElementById('appView').classList.remove('hidden');
+    } else {
+        document.getElementById('homeView').classList.remove('hidden');
+    }
+}
+
+// ── Secure Link (with expiry + password) ──
+function createSecureLink(tgFileId, fileName, fileSize, expiry, passwordHash, botIndex) {
+    const ext = fileName.split('.').pop();
+    let shortName = fileName;
+    if (fileName.length > 20) shortName = fileName.substring(0, 16) + '..' + ext;
+    let expiresAt = 0;
+    if (expiry === '24h') expiresAt = Date.now() + 86400000;
+    else if (expiry === '7d') expiresAt = Date.now() + 604800000;
+    const raw = `${tgFileId}|${shortName}|${fileSize}|${expiresAt}|${passwordHash || ''}|${botIndex || currentBotIndex}`;
+    const encoded = btoa(unescape(encodeURIComponent(raw)));
+    return `${window.location.origin}${window.location.pathname}#/file/${encoded}`;
+}
+function decodeSecureLink(b64) {
+    try {
+        const d = decodeURIComponent(escape(atob(b64))).split('|');
+        return { fileId: d[0], fileName: d[1], fileSize: d[2], expiresAt: parseInt(d[3]) || 0, passwordHash: d[4] || '', botIndex: d[5] || '0' };
+    } catch { return null; }
+}
+
+// ── Download Portal ──
+function setupDownloadPortal(encoded) {
+    const info = decodeSecureLink(encoded);
+    portalDecodedInfo = info;
+    const activePortal = document.getElementById('activePortal');
+    const expiredState = document.getElementById('expiredState');
+    const passwordState = document.getElementById('passwordState');
+    activePortal.classList.add('hidden'); expiredState.classList.add('hidden'); passwordState.classList.add('hidden');
+
+    if (!info) { expiredState.classList.remove('hidden'); return; }
+    if (info.expiresAt > 0 && Date.now() > info.expiresAt) { expiredState.classList.remove('hidden'); return; }
+    if (info.passwordHash) { passwordState.classList.remove('hidden'); return; }
+
+    showPortalActive(info);
+}
+function verifyPortalPassword() {
+    const pwd = document.getElementById('portalPasswordInput').value;
+    const errEl = document.getElementById('passwordError');
+    if (!pwd || !portalDecodedInfo) { errEl.classList.remove('hidden'); return; }
+    // Hash and compare
+    hashString(pwd).then(hash => {
+        if (hash === portalDecodedInfo.passwordHash) {
+            document.getElementById('passwordState').classList.add('hidden');
+            showPortalActive(portalDecodedInfo);
+        } else {
+            errEl.classList.remove('hidden');
+        }
+    });
+}
+async function hashString(str) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function showPortalActive(info) {
+    const portal = document.getElementById('activePortal');
+    portal.classList.remove('hidden');
+    document.getElementById('portalFileName').innerText = info.fileName;
+    document.getElementById('portalFileSize').innerText = formatBytes(parseInt(info.fileSize));
+    const iconEl = document.getElementById('portalFileIcon');
+    iconEl.innerHTML = getIconMarkup(getFileTypeByName(info.fileName));
+    // Expiry badge
+    const badge = document.getElementById('portalExpiryBadge');
+    if (info.expiresAt > 0) {
+        const hrs = Math.floor((info.expiresAt - Date.now()) / 3600000);
+        const days = Math.floor(hrs / 24);
+        badge.innerHTML = `<span class="expiry-badge bg-[var(--amber)]/10 text-[var(--amber)]"><i class="fa-solid fa-clock mr-1"></i>${days > 0 ? days+' hari' : hrs+' jam'} lagi</span>`;
+        badge.classList.remove('hidden');
+    } else { badge.classList.add('hidden'); }
+    const btn = document.getElementById('btnPortalDownload');
+    btn.disabled = false;
+    btn.onclick = () => startPremiumDownload(info.fileId, info.fileName, info.botIndex);
+}
+
+async function startPremiumDownload(fileId, fileName, botIndex) {
+    const pc = document.getElementById('portalDownloadProgress');
+    const pb = document.getElementById('portalProgressBar');
+    const pp = document.getElementById('portalProgressPercent');
+    const ps = document.getElementById('portalProgressStatus');
+    const btn = document.getElementById('btnPortalDownload');
+    btn.disabled = true; pc.classList.remove('hidden');
+    ps.innerText = 'Menghubungi server...'; pb.style.width = '5%'; pp.innerText = '5%';
+    try {
+        const infoData = await apiGetFileInfo(fileId, botIndex);
+        if (!infoData.ok) throw new Error('Gagal mendapatkan info file.');
+        const filePath = infoData.result.file_path;
+        ps.innerText = 'Mengunduh...'; pb.style.width = '15%'; pp.innerText = '15%';
+        const dlUrl = await apiGetDownloadUrl(filePath, botIndex);
+        const response = await fetch(dlUrl);
+        const reader = response.body.getReader();
+        const cl = +response.headers.get('Content-Length');
+        let received = 0; let chunks = [];
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value); received += value.length;
+            if (cl) { const p = 15 + Math.round((received / cl) * 85); pb.style.width = p+'%'; pp.innerText = p+'%'; }
+        }
+        const blob = new Blob(chunks);
+        const bUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = bUrl; a.download = fileName;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(bUrl);
+        ps.innerText = 'Selesai!'; btn.disabled = false;
+        showToast('Berkas berhasil diunduh!', 'success');
+    } catch (err) {
+        console.error(err); ps.innerText = 'Gagal.'; btn.disabled = false;
+        showToast(err.message || 'Kesalahan pengunduhan.', 'error');
+    }
+}
+
+// ── Drag & Drop ──
+function setupDragAndDrop() {
+    const dz = document.getElementById('dropZone');
+    ['dragenter', 'dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.style.borderColor = 'var(--amber)'; }));
+    ['dragleave', 'drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.style.borderColor = ''; }));
+    dz.addEventListener('drop', e => handleFileUpload(e.dataTransfer.files));
+    document.getElementById('fileInput').addEventListener('change', e => handleFileUpload(e.target.files));
+}
+
+// ── Upload ──
+async function handleFileUpload(files) {
+    if (files.length === 0) return;
+    const qc = document.getElementById('uploadQueueContainer');
+    const ql = document.getElementById('uploadQueue');
+    qc.classList.remove('hidden');
+    for (let file of files) {
+        if (file.size > SIZE_LIMIT_MB * 1024 * 1024) {
+            showToast(`"${file.name}" melebihi batas ${SIZE_LIMIT_MB} MB.`, 'error'); continue;
+        }
+        const uid = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        const qi = document.createElement('div');
+        qi.id = `queue-${uid}`; qi.className = 'card-inner p-3 space-y-2';
+        qi.innerHTML = `<div class="flex justify-between items-center text-[11px]"><div class="flex items-center gap-2 truncate"><i class="fa-solid fa-circle-notch animate-spin text-[var(--amber)] text-[10px]"></i><span class="font-medium text-[var(--text2)] truncate max-w-[200px]">${file.name}</span></div><span id="percent-${uid}" class="text-[var(--text3)] font-mono font-bold text-[10px]">0%</span></div><div class="w-full h-[3px] bg-[var(--surface2)] rounded-full overflow-hidden"><div id="bar-${uid}" class="h-full bg-[var(--amber)] rounded-full transition-all duration-100" style="width:0%"></div></div><div id="retry-${uid}" class="hidden flex justify-end"><button onclick="retryUpload('${uid}')" class="text-[10px] text-[var(--amber)] font-semibold hover:underline"><i class="fa-solid fa-rotate-right mr-1"></i>Coba Lagi</button></div>`;
+        ql.appendChild(qi);
+        executeUpload(file, uid);
+    }
+}
+function executeUpload(file, uid) {
+    const xhr = new XMLHttpRequest();
+    const fd = new FormData();
+    fd.append('document', file);
+    fd.append('bot_index', currentBotIndex);
+    xhr.upload.onprogress = e => {
+        if (e.lengthComputable) {
+            const p = Math.round((e.loaded / e.total) * 100);
+            const bar = document.getElementById(`bar-${uid}`);
+            const pct = document.getElementById(`percent-${uid}`);
+            if (bar) bar.style.width = p+'%';
+            if (pct) pct.innerText = p+'%';
+        }
+    };
+    xhr.onload = async function() {
+        if (xhr.status === 200) {
+            const res = JSON.parse(xhr.responseText);
+            if (res.ok) {
+                const fileId = res.result.document.file_id;
+                const thumbId = res.result.document.thumb ? res.result.document.thumb.file_id : '';
+                const fileType = getFileTypeByName(file.name);
+                const obj = {
+                    id: uid, tgFileId: fileId, name: file.name, size: file.size, type: fileType,
+                    uploadedAt: new Date().toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}),
+                    uploadedTimestamp: Date.now(), expiresAt: 0, pinned: false, folder: currentFolder !== 'all' ? currentFolder : '',
+                    thumbId, botIndex: currentBotIndex
+                };
+                await saveFileToDB(obj);
+                showToast(`"${file.name}" berhasil diupload.`, 'success');
+                removeQueueItem(uid); loadFilesFromDB();
+            } else {
+                uploadError(uid, res.description || 'Server Telegram menolak');
+            }
+        } else { uploadError(uid, 'Gagal mengunggah'); }
+    };
+    xhr.onerror = () => uploadError(uid, 'Kesalahan jaringan');
+    xhr.open('POST', '/api/upload');
+    xhr.send(fd);
+    // Store for retry
+    window[`_retryFile_${uid}`] = file;
+}
+function retryUpload(uid) {
+    const file = window[`_retryFile_${uid}`];
+    if (!file) return;
+    const qi = document.getElementById(`queue-${uid}`);
+    if (qi) {
+        qi.className = 'card-inner p-3 space-y-2';
+        document.getElementById(`retry-${uid}`).classList.add('hidden');
+    }
+    executeUpload(file, uid);
+}
+function uploadError(uid, msg) {
+    const item = document.getElementById(`queue-${uid}`);
+    if (item) {
+        item.style.borderColor = 'rgba(239,68,68,0.3)';
+        const bar = document.getElementById(`bar-${uid}`);
+        const pct = document.getElementById(`percent-${uid}`);
+        if (bar) bar.style.width = '0%';
+        if (pct) { pct.innerText = 'Gagal'; pct.className = 'text-red-400 font-mono font-bold text-[10px]'; }
+        const retry = document.getElementById(`retry-${uid}`);
+        if (retry) retry.classList.remove('hidden');
+        // Change spinner to error icon
+        const spinner = item.querySelector('.fa-circle-notch');
+        if (spinner) { spinner.classList.remove('fa-circle-notch', 'animate-spin', 'text-[var(--amber)]'); spinner.classList.add('fa-solid fa-circle-exclamation', 'text-red-400'); }
+    }
+    showToast(`Error: ${msg}`, 'error');
+}
+function removeQueueItem(id) {
+    const item = document.getElementById(`queue-${id}`);
+    if (item) { item.style.opacity = '0'; setTimeout(() => { item.remove(); if (document.getElementById('uploadQueue').children.length === 0) document.getElementById('uploadQueueContainer').classList.add('hidden'); }, 200); }
+    delete window[`_retryFile_${id}`];
+}
+
+// ── URL Upload ──
+async function uploadFromURL() {
+    const input = document.getElementById('urlInput');
+    const url = input.value.trim();
+    if (!url) { showToast('Masukkan URL file.', 'error'); return; }
+    const btn = document.getElementById('btnUrlUpload');
+    btn.disabled = true; btn.innerText = 'Mengunduh...';
+    try {
+        const res = await fetch('/api/url-upload', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, bot_index: currentBotIndex })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            const fileId = data.result.document.file_id;
+            const thumbId = data.result.document.thumb ? data.result.document.thumb.file_id : '';
+            const fileName = data.result.document.file_name || url.split('/').pop() || 'download';
+            const fileSize = data.result.document.file_size || 0;
+            const fileType = getFileTypeByName(fileName);
+            const uid = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+            await saveFileToDB({ id: uid, tgFileId: fileId, name: fileName, size: fileSize, type: fileType,
+                uploadedAt: new Date().toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}),
+                uploadedTimestamp: Date.now(), expiresAt: 0, pinned: false, folder: '', thumbId, botIndex: currentBotIndex
             });
-        });
+            showToast(`"${fileName}" berhasil diupload dari URL.`, 'success');
+            input.value = ''; loadFilesFromDB();
+        } else {
+            showToast(data.error || 'Gagal upload dari URL.', 'error');
+        }
+    } catch (err) {
+        showToast('Gagal mengunduh dari URL.', 'error');
+    }
+    btn.disabled = false; btn.innerText = 'Upload';
+}
 
-        document.getElementById('previewModal').addEventListener('click', function(e) {
-            if (e.target === this) closePreview();
+// ── View Mode ──
+function applyViewMode() {
+    const btn = document.getElementById('viewToggleBtn');
+    btn.innerHTML = viewMode === 'list' ? '<i class="fa-solid fa-grip text-sm"></i>' : '<i class="fa-solid fa-list text-sm"></i>';
+}
+function toggleViewMode() {
+    viewMode = viewMode === 'list' ? 'grid' : 'list';
+    localStorage.setItem('ridgebox_view', viewMode);
+    applyViewMode(); renderFileList();
+}
+
+// ── File List Rendering ──
+function renderFileList() {
+    const container = document.getElementById('fileList');
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+    container.innerHTML = '';
+
+    let filtered = filesData.filter(f => {
+        const matchSearch = f.name.toLowerCase().includes(searchVal);
+        const matchCat = currentFilter === 'all' || f.type === currentFilter;
+        const matchFolder = currentFolder === 'all' || f.folder === currentFolder;
+        return matchSearch && matchCat && matchFolder;
+    });
+    // Sort: pinned first, then by date
+    filtered.sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return (b.uploadedTimestamp || 0) - (a.uploadedTimestamp || 0);
+    });
+
+    document.getElementById('fileCountText').innerText = `${filtered.length} berkas`;
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="text-center py-12"><i class="fa-regular fa-folder-open text-2xl text-[var(--text4)] mb-2"></i><p class="text-[var(--text4)] text-xs">Belum ada berkas.</p></div>';
+        return;
+    }
+
+    if (viewMode === 'grid') {
+        container.className = 'file-grid';
+        filtered.forEach(file => {
+            const item = document.createElement('div');
+            const isSel = selectedFiles.has(file.id);
+            item.className = `file-item card flex flex-col items-center p-3 text-center ${isSel ? 'selected' : ''}`;
+            const isPreviewable = file.type === 'image' || file.type === 'video';
+            let thumbHtml;
+            if (file.type === 'image' && file.thumbId) {
+                thumbHtml = `<div class="file-thumb"><img src="${apiThumbUrl(file.thumbId, file.botIndex)}" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\\'${getIconClass(file.type)} text-2xl text-[var(--text3)]\\'></i>'"></div>`;
+            } else if (file.type === 'video') {
+                thumbHtml = `<div class="file-thumb"><i class="${getIconClass(file.type)} text-2xl text-purple-400"></i></div>`;
+            } else {
+                thumbHtml = `<div class="file-thumb"><i class="${getIconClass(file.type)} text-2xl text-[var(--text3)]"></i></div>`;
+            }
+            const cbHtml = batchMode ? `<input type="checkbox" class="file-checkbox mb-2" ${isSel?'checked':''} onchange="toggleFileSelection('${file.id}',this)">` : '';
+            const pinHtml = file.pinned ? '<i class="fa-solid fa-thumbtack pin-icon mr-1"></i>' : '';
+            item.innerHTML = `${cbHtml}${thumbHtml}<div class="w-full"><h4 class="text-[11px] font-medium text-[var(--text2)] truncate ${isPreviewable?'cursor-pointer hover:text-[var(--amber)]':''}" ${isPreviewable ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')"` : ''}>${pinHtml}${file.name}</h4><p class="text-[9px] text-[var(--text4)]">${formatBytes(file.size)}</p></div><div class="file-actions-row"><button onclick="togglePin('${file.id}')" class="btn-icon" style="width:24px;height:24px" title="Pin"><i class="fa-solid fa-thumbtack text-[8px] ${file.pinned?'text-[var(--amber)]':''}"></i></button><button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}',${file.size},'${file.botIndex||'0'}')" class="btn-icon" style="width:24px;height:24px" title="Share"><i class="fa-solid fa-share-nodes text-[8px]"></i></button><button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" style="width:24px;height:24px" title="Hapus"><i class="fa-regular fa-trash-can text-[8px]"></i></button></div>`;
+            container.appendChild(item);
         });
-    </script>
+    } else {
+        container.className = 'space-y-2';
+        filtered.forEach(file => {
+            const item = document.createElement('div');
+            const isSel = selectedFiles.has(file.id);
+            item.className = `file-item flex items-center justify-between p-3 rounded-xl border border-[var(--border)] ${isSel?'selected':''}`;
+            const iconMarkup = getIconMarkup(file.type);
+            const isPreviewable = file.type === 'image' || file.type === 'video';
+            const nameClass = isPreviewable ? 'cursor-pointer hover:text-[var(--amber)]' : '';
+            const cbHtml = batchMode ? `<input type="checkbox" class="file-checkbox mr-3" ${isSel?'checked':''} onchange="toggleFileSelection('${file.id}',this)">` : '';
+            const pinHtml = file.pinned ? '<i class="fa-solid fa-thumbtack pin-icon mr-1"></i>' : '';
+            let expiryTag = '';
+            if (file.expiresAt && file.expiresAt > 0) {
+                const rem = file.expiresAt - Date.now();
+                if (rem <= 0) expiryTag = '<span class="expiry-badge bg-red-500/10 text-red-400 ml-1">Expired</span>';
+                else { const d = Math.floor(rem/86400000); const h = Math.floor(rem/3600000); expiryTag = `<span class="expiry-badge bg-[var(--amber)]/10 text-[var(--amber)] ml-1">${d>0?d+'h':h+'j'}</span>`; }
+            }
+            const folderTag = file.folder ? `<span class="text-[9px] text-[var(--text4)] bg-[var(--surface2)] px-1.5 py-0.5 rounded ml-1">${file.folder}</span>` : '';
+            item.innerHTML = `<div class="flex items-center gap-3 min-w-0 flex-grow">${cbHtml}<div class="w-9 h-9 rounded-lg bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">${iconMarkup}</div><div class="min-w-0"><h4 class="text-xs font-medium text-[var(--text2)] truncate max-w-[150px] sm:max-w-[280px] ${nameClass}" ${isPreviewable ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')"` : ''} ondblclick="startRename('${file.id}',this)" id="name-${file.id}">${pinHtml}${file.name}${expiryTag}${folderTag}</h4><p class="text-[10px] text-[var(--text4)] mt-0.5">${formatBytes(file.size)} &middot; ${file.uploadedAt}</p></div></div><div class="flex items-center gap-0.5 flex-shrink-0"><button onclick="togglePin('${file.id}')" class="btn-icon" title="Pin"><i class="fa-solid fa-thumbtack text-[10px] ${file.pinned?'text-[var(--amber)]':''}"></i></button>${isPreviewable?`<button onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')" class="btn-icon" title="Preview"><i class="fa-regular fa-eye text-[10px]"></i></button>`:''}<button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}',${file.size},'${file.botIndex||'0'}')" class="btn-icon" title="Share"><i class="fa-solid fa-share-nodes text-[10px]"></i></button><button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" title="Hapus"><i class="fa-regular fa-trash-can text-[10px]"></i></button></div>`;
+            container.appendChild(item);
+        });
+    }
+}
+
+// ── Pin ──
+async function togglePin(id) {
+    const file = filesData.find(f => f.id === id);
+    if (!file) return;
+    file.pinned = !file.pinned;
+    await updateFileInDB(file);
+    loadFilesFromDB();
+    showToast(file.pinned ? 'File dipin.' : 'Pin dilepas.', 'success');
+}
+
+// ── Rename ──
+function startRename(id, el) {
+    const file = filesData.find(f => f.id === id);
+    if (!file) return;
+    const input = document.createElement('input');
+    input.type = 'text'; input.value = file.name;
+    input.className = 'rename-input';
+    input.onblur = () => finishRename(id, input.value, el);
+    input.onkeydown = (e) => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input.value = file.name; input.blur(); } };
+    el.innerHTML = ''; el.appendChild(input); input.focus(); input.select();
+}
+async function finishRename(id, newName, el) {
+    if (!newName.trim()) { loadFilesFromDB(); return; }
+    const file = filesData.find(f => f.id === id);
+    if (!file || file.name === newName) { loadFilesFromDB(); return; }
+    file.name = newName.trim();
+    file.type = getFileTypeByName(file.name);
+    await updateFileInDB(file);
+    loadFilesFromDB();
+    showToast('Nama berhasil diubah.', 'success');
+}
+
+// ── Batch Mode ──
+function toggleBatchMode() {
+    batchMode = !batchMode; selectedFiles.clear();
+    document.getElementById('batchSelectAll').classList.toggle('hidden', !batchMode);
+    document.getElementById('batchBar').classList.toggle('hidden', !batchMode);
+    document.getElementById('batchSelectToggle').classList.toggle('text-[var(--amber)]', batchMode);
+    renderFileList(); updateBatchCount();
+}
+function toggleFileSelection(id, cb) {
+    if (cb.checked) selectedFiles.add(id); else selectedFiles.delete(id);
+    updateBatchCount(); renderFileList();
+}
+function toggleSelectAll(cb) {
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = filesData.filter(f => f.name.toLowerCase().includes(searchVal) && (currentFilter === 'all' || f.type === currentFilter));
+    if (cb.checked) filtered.forEach(f => selectedFiles.add(f.id)); else selectedFiles.clear();
+    updateBatchCount(); renderFileList();
+}
+function updateBatchCount() { document.getElementById('batchCount').innerText = selectedFiles.size; }
+async function batchDeleteSelected() {
+    if (selectedFiles.size === 0) return;
+    if (!confirm(`Hapus ${selectedFiles.size} berkas?`)) return;
+    await deleteMultipleFromDB([...selectedFiles]);
+    toggleBatchMode();
+}
+async function deleteSingleFile(id) {
+    if (!confirm('Hapus berkas ini?')) return;
+    await deleteFileFromDB(id); showToast('Berkas dihapus.', 'success');
+}
+
+// ── Folders ──
+function renderFolderList() {
+    const container = document.getElementById('folderList');
+    const sidebar = document.getElementById('folderSidebar');
+    container.innerHTML = '';
+    if (foldersData.length === 0 && window.innerWidth < 1024) { sidebar.classList.add('hidden'); return; }
+    sidebar.classList.remove('hidden');
+    foldersData.forEach(f => {
+        const el = document.createElement('div');
+        el.className = `folder-item ${currentFolder === f.name ? 'active' : ''}`;
+        el.innerHTML = `<i class="fa-solid fa-folder text-[10px]"></i><span class="flex-grow truncate">${f.name}</span><button onclick="event.stopPropagation();deleteFolder('${f.id}')" class="text-[var(--text4)] hover:text-red-400 text-[9px]"><i class="fa-solid fa-xmark"></i></button>`;
+        el.onclick = () => selectFolder(f.name);
+        container.appendChild(el);
+    });
+}
+function selectFolder(name) {
+    currentFolder = name;
+    document.querySelectorAll('.folder-item').forEach(el => el.classList.toggle('active', el.textContent.trim().includes(name === 'all' ? 'Semua' : name)));
+    renderFileList();
+}
+function createFolder() { document.getElementById('folderModal').classList.remove('hidden'); document.getElementById('folderNameInput').value = ''; document.getElementById('folderNameInput').focus(); }
+function closeFolderModal() { document.getElementById('folderModal').classList.add('hidden'); }
+async function saveNewFolder() {
+    const name = document.getElementById('folderNameInput').value.trim();
+    if (!name) return;
+    if (foldersData.find(f => f.name === name)) { showToast('Folder sudah ada.', 'error'); return; }
+    await saveFolderToDB({ name, createdAt: Date.now() });
+    closeFolderModal(); showToast('Folder dibuat!', 'success');
+}
+async function deleteFolder(id) {
+    if (!confirm('Hapus folder? File di dalamnya tidak akan dihapus.')) return;
+    await deleteFolderFromDB(id);
+    if (currentFolder !== 'all') { currentFolder = 'all'; }
+    loadFoldersFromDB(); loadFilesFromDB();
+}
+
+// ── Share Modal ──
+function setShareExpiry(expiry) {
+    currentShareExpiry = expiry;
+    document.querySelectorAll('.share-expiry').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.share-expiry[data-expiry="${expiry}"]`).classList.add('active');
+    if (currentShareData) regenerateShareLink();
+}
+function toggleSharePassword() {
+    sharePasswordEnabled = !sharePasswordEnabled;
+    const btn = document.getElementById('btnTogglePwd');
+    btn.innerText = sharePasswordEnabled ? 'Nonaktifkan' : 'Aktifkan';
+    btn.classList.toggle('text-[var(--amber)]', sharePasswordEnabled);
+    if (!sharePasswordEnabled) document.getElementById('sharePassword').value = '';
+    if (currentShareData) regenerateShareLink();
+}
+async function regenerateShareLink() {
+    if (!currentShareData) return;
+    const pwd = sharePasswordEnabled ? document.getElementById('sharePassword').value.trim() : '';
+    const hash = pwd ? await hashString(pwd) : '';
+    const link = createSecureLink(currentShareData.tgFileId, currentShareData.name, currentShareData.size, currentShareExpiry, hash, currentShareData.botIndex);
+    document.getElementById('shareLinkInput').value = link;
+    generateQR(link);
+}
+function openShareModal(tgFileId, name, size, botIndex) {
+    currentShareData = { tgFileId, name, size, botIndex: botIndex || '0' };
+    currentShareExpiry = 'never'; sharePasswordEnabled = false;
+    document.querySelectorAll('.share-expiry').forEach(b => b.classList.remove('active'));
+    document.querySelector('.share-expiry[data-expiry="never"]').classList.add('active');
+    document.getElementById('sharePassword').value = '';
+    document.getElementById('btnTogglePwd').innerText = 'Aktifkan';
+    document.getElementById('btnTogglePwd').classList.remove('text-[var(--amber)]');
+    const link = createSecureLink(tgFileId, name, size, 'never', '', botIndex || '0');
+    document.getElementById('shareLinkInput').value = link;
+    document.getElementById('modalFileName').innerText = name;
+    document.getElementById('modalFileSize').innerText = formatBytes(size);
+    generateQR(link);
+    document.getElementById('shareModal').classList.remove('hidden');
+}
+function closeShareModal() { document.getElementById('shareModal').classList.add('hidden'); currentShareData = null; }
+function generateQR(text) {
+    new QRious({ element: document.getElementById('qrCanvas'), value: text, size: 160, background: currentTheme === 'dark' ? '#141414' : '#ffffff', foreground: '#f59e0b', level: 'M', padding: 10 });
+}
+function copyShareLink() {
+    const val = document.getElementById('shareLinkInput').value;
+    if (navigator.clipboard) navigator.clipboard.writeText(val).then(() => showToast('Link tersalin!', 'success'));
+    else { document.getElementById('shareLinkInput').select(); document.execCommand('copy'); showToast('Link tersalin!', 'success'); }
+}
+
+// ── Preview ──
+async function openPreview(tgFileId, fileName, fileType, botIndex) {
+    const modal = document.getElementById('previewModal');
+    const content = document.getElementById('previewContent');
+    content.innerHTML = '<div class="flex flex-col items-center gap-4"><i class="fa-solid fa-circle-notch animate-spin text-3xl text-[var(--amber)]"></i><span class="text-sm text-[var(--text3)]">Memuat preview...</span></div>';
+    modal.classList.remove('hidden');
+    try {
+        const infoData = await apiGetFileInfo(tgFileId, botIndex);
+        if (!infoData.ok) throw new Error('Gagal mendapatkan file.');
+        const dlUrl = await apiGetDownloadUrl(infoData.result.file_path, botIndex);
+        if (fileType === 'image') content.innerHTML = `<img src="${dlUrl}" alt="${fileName}" class="animate-fadeUp">`;
+        else if (fileType === 'video') content.innerHTML = `<video controls autoplay class="animate-fadeUp" style="max-width:90vw;max-height:85vh;border-radius:8px"><source src="${dlUrl}">Browser tidak mendukung.</video>`;
+    } catch (err) {
+        content.innerHTML = `<div class="text-center space-y-3"><i class="fa-solid fa-circle-exclamation text-3xl text-red-400"></i><p class="text-sm text-[var(--text3)]">${err.message}</p></div>`;
+    }
+}
+function closePreview() {
+    const v = document.querySelector('#previewContent video'); if (v) v.pause();
+    document.getElementById('previewModal').classList.add('hidden');
+}
+
+// ── Stats ──
+function openStats() {
+    const modal = document.getElementById('statsModal');
+    document.getElementById('statTotal').innerText = filesData.length;
+    document.getElementById('statSize').innerText = formatBytes(filesData.reduce((a,f) => a+f.size, 0));
+    // Type bars
+    const types = ['image','video','audio','archive','other'];
+    const typeLabels = { image:'Gambar', video:'Video', audio:'Audio', archive:'Arsip', other:'Lainnya' };
+    const typeColors = { image:'var(--amber)', video:'#a855f7', audio:'#38bdf8', archive:'#f97316', other:'#737373' };
+    const counts = {};
+    types.forEach(t => counts[t] = filesData.filter(f => f.type === t).length);
+    const max = Math.max(...Object.values(counts), 1);
+    document.getElementById('statTypeBars').innerHTML = types.map(t => `<div class="flex items-center gap-3 text-xs"><span class="w-16 text-[var(--text3)]">${typeLabels[t]}</span><div class="stat-bar flex-grow"><div class="stat-bar-fill" style="width:${(counts[t]/max)*100}%;background:${typeColors[t]}"></div></div><span class="font-mono text-[var(--text2)] w-8 text-right">${counts[t]}</span></div>`).join('');
+    // Week chart
+    const now = Date.now();
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+        const start = now - i * 86400000;
+        const end = start + 86400000;
+        days.push(filesData.filter(f => f.uploadedTimestamp >= start && f.uploadedTimestamp < end).length);
+    }
+    const maxDay = Math.max(...days, 1);
+    const dayLabels = ['6h','5h','4h','3h','2h','1h','0h'];
+    document.getElementById('statWeekChart').innerHTML = days.map((c,i) => `<div class="flex flex-col items-center flex-grow gap-1"><div class="w-full bg-[var(--amber)] rounded-sm transition-all" style="height:${Math.max((c/maxDay)*100,4)}%"></div><span class="text-[8px] text-[var(--text4)]">${dayLabels[i]}</span></div>`).join('');
+    modal.classList.remove('hidden');
+}
+function closeStats() { document.getElementById('statsModal').classList.add('hidden'); }
+
+// ── Settings ──
+function openSettings() {
+    document.querySelectorAll('.size-preset').forEach(b => b.classList.toggle('active', parseInt(b.dataset.size) === SIZE_LIMIT_MB));
+    document.querySelectorAll('.theme-opt').forEach(b => b.classList.toggle('active', b.dataset.themeVal === currentTheme));
+    document.getElementById('settingsModal').classList.remove('hidden');
+}
+function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
+function saveSettings() {
+    const activeSize = document.querySelector('.size-preset.active');
+    SIZE_LIMIT_MB = activeSize ? parseInt(activeSize.dataset.size) : SIZE_LIMIT_MB;
+    localStorage.setItem('ridgebox_size_limit', SIZE_LIMIT_MB.toString());
+    document.getElementById('limitDisplay').innerText = SIZE_LIMIT_MB >= 1024 ? `${(SIZE_LIMIT_MB/1024).toFixed(0)} GB` : `${SIZE_LIMIT_MB} MB`;
+    closeSettings(); showToast('Pengaturan tersimpan!', 'success');
+}
+
+// ── Storage Metrics ──
+function updateStorageMetrics() {
+    const total = 5*1024*1024*1024;
+    const used = filesData.reduce((a,f) => a+f.size, 0);
+    const pct = (used/total)*100;
+    document.getElementById('storageUsedText').innerText = formatBytes(used);
+    document.getElementById('storageProgressBar').style.width = Math.min(pct,100)+'%';
+    document.getElementById('storageStatusText').innerText = `${formatBytes(used)} / 5.0 GB`;
+}
+function updateQuickStats() {
+    document.getElementById('qsTotalFiles').innerText = filesData.length;
+    document.getElementById('qsImages').innerText = filesData.filter(f=>f.type==='image').length;
+    document.getElementById('qsVideos').innerText = filesData.filter(f=>f.type==='video').length;
+    document.getElementById('qsPinned').innerText = filesData.filter(f=>f.pinned).length;
+}
+
+// ── Utilities ──
+function formatBytes(b, d=2) {
+    if (b===0) return '0 B'; const k=1024; const dm=d<0?0:d;
+    const s=['B','KB','MB','GB','TB']; const i=Math.floor(Math.log(b)/Math.log(k));
+    return parseFloat((b/Math.pow(k,i)).toFixed(dm))+' '+s[i];
+}
+function getFileTypeByName(n) {
+    const ext = n.split('.').pop().toLowerCase();
+    const img=['jpg','jpeg','png','gif','svg','webp','bmp','ico'];
+    const vid=['mp4','mkv','avi','mov','webm','3gp','flv'];
+    const aud=['mp3','wav','ogg','m4a','flac','aac'];
+    const arc=['zip','rar','tar','gz','7z','iso','dmg'];
+    if (img.includes(ext)) return 'image'; if (vid.includes(ext)) return 'video';
+    if (aud.includes(ext)) return 'audio'; if (arc.includes(ext)) return 'archive'; return 'other';
+}
+function getIconMarkup(t) {
+    switch(t) {
+        case 'image': return '<i class="fa-regular fa-file-image text-[var(--amber)] text-sm"></i>';
+        case 'video': return '<i class="fa-regular fa-file-video text-purple-400 text-sm"></i>';
+        case 'audio': return '<i class="fa-regular fa-file-audio text-sky-400 text-sm"></i>';
+        case 'archive': return '<i class="fa-regular fa-file-zipper text-orange-400 text-sm"></i>';
+        default: return '<i class="fa-regular fa-file-lines text-[var(--text3)] text-sm"></i>';
+    }
+}
+function getIconClass(t) {
+    switch(t) {
+        case 'image': return 'fa-regular fa-file-image';
+        case 'video': return 'fa-regular fa-file-video';
+        case 'audio': return 'fa-regular fa-file-audio';
+        case 'archive': return 'fa-regular fa-file-zipper';
+        default: return 'fa-regular fa-file-lines';
+    }
+}
+
+// ── Toast ──
+function showToast(message, type='info') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    let icon = '<i class="fa-solid fa-circle-info text-[var(--text3)]"></i>';
+    if (type==='success') icon = '<i class="fa-solid fa-circle-check text-[var(--amber)]"></i>';
+    else if (type==='error') icon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>';
+    t.className = 'card flex items-center gap-3 px-4 py-3 pointer-events-auto shadow-lg animate-fadeUp';
+    t.innerHTML = `${icon}<span class="text-[var(--text2)] text-xs font-medium">${message}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(12px)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); }, 3500);
+}
+
+// ── PWA ──
+function setupPWA() {
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+    window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault(); deferredPrompt = e;
+        setTimeout(() => { if (deferredPrompt) document.getElementById('installBanner').classList.remove('hidden'); }, 3000);
+    });
+}
+async function installPWA() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') showToast('Ridgebox berhasil diinstall!', 'success');
+    deferredPrompt = null; document.getElementById('installBanner').classList.add('hidden');
+}
+function dismissInstall() { document.getElementById('installBanner').classList.add('hidden'); }
+
+// ── Keyboard & Click shortcuts ──
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSettings(); closeShareModal(); closePreview(); closeStats(); closeFolderModal(); } });
+['settingsModal','shareModal','statsModal','folderModal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e) { if (e.target === this) { this.classList.add('hidden'); } });
+});
+document.getElementById('previewModal').addEventListener('click', function(e) { if (e.target === this) closePreview(); });
+</script>
 </body>
 </html>
