@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ridgebox — Cloud Storage via Telegram</title>
+    <meta name="description" content="Simpan berkas di cloud pakai Telegram Bot. Gratis, tanpa batas, langsung dari browser.">
+    <meta name="theme-color" content="#0a0a0a">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ridgebox">
+
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+
+    <style>
+        :root {
+            --amber: #f59e0b;
+            --amber-light: #fbbf24;
+            --amber-dim: #92400e;
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --surface2: #1a1a1a;
+            --border: #1f1f1f;
+            --border2: #2a2a2a;
+            --text: #ffffff;
+            --text2: #a3a3a3;
+            --text3: #737373;
+            --text4: #525252;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Noise texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.03;
+            z-index: 9999;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: border-color 0.2s;
+        }
+        .card:hover { border-color: var(--border2); }
+        .card-inner {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        /* Input */
+        .input-field {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            transition: border-color 0.2s;
+            outline: none;
+            width: 100%;
+        }
+        .input-field:focus { border-color: var(--amber); }
+        .input-field::placeholder { color: var(--text4); }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--amber);
+            color: #000;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            transition: all 0.15s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover { background: var(--amber-light); }
+        .btn-primary:active { transform: scale(0.97); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text2);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+        .btn-ghost:hover { border-color: var(--border2); color: var(--text); background: var(--surface2); }
+
+        .btn-icon {
+            width: 34px; height: 34px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text3);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-icon:hover { background: var(--surface2); color: var(--text); }
+        .btn-icon.danger:hover { color: #ef4444; }
+
+        /* Badge */
+        .badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Checkbox */
+        .file-checkbox {
+            width: 18px; height: 18px;
+            border: 1.5px solid var(--border2);
+            border-radius: 5px;
+            background: var(--surface);
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .file-checkbox:checked {
+            background: var(--amber);
+            border-color: var(--amber);
+        }
+        .file-checkbox:checked::after {
+            content: '✓';
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; color: #000;
+            height: 100%;
+        }
+
+        /* Terminal */
+        .terminal {
+            background: #0c0c0c;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .terminal-bar {
+            display: flex; align-items: center; gap: 6px;
+            padding: 10px 14px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+        .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .terminal-body {
+            padding: 16px;
+            font-size: 12px;
+            line-height: 1.8;
+            color: var(--text3);
+        }
+        .terminal-body .t-amber { color: var(--amber); }
+        .terminal-body .t-green { color: #22c55e; }
+        .terminal-body .t-white { color: var(--text); }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeUp { animation: fadeUp 0.3s ease-out; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(100%); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slideUp { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* Preview */
+        .preview-overlay {
+            position: fixed; inset: 0; z-index: 60;
+            background: rgba(0,0,0,0.9);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .preview-overlay img, .preview-overlay video {
+            max-width: 90vw; max-height: 85vh;
+            border-radius: 8px;
+        }
+
+        /* Batch action bar */
+        .batch-bar {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            z-index: 45;
+            background: var(--surface);
+            border: 1px solid var(--amber-dim);
+            border-radius: 14px;
+            padding: 10px 20px;
+            display: flex; align-items: center; gap: 16px;
+            box-shadow: 0 8px 32px rgba(245, 158, 11, 0.15);
+        }
+
+        /* Expiry badge */
+        .expiry-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        /* File item hover */
+        .file-item {
+            transition: all 0.15s;
+        }
+        .file-item:hover {
+            background: var(--surface2);
+        }
+        .file-item.selected {
+            background: rgba(245, 158, 11, 0.05);
+            border-color: var(--amber-dim);
+        }
+
+        /* Category pills */
+        .pill {
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text3);
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .pill:hover { border-color: var(--border2); color: var(--text2); }
+        .pill.active {
+            background: var(--amber);
+            border-color: var(--amber);
+            color: #000;
+        }
+
+        /* QR container */
+        #qrCanvas {
+            border-radius: 8px;
+        }
+
+        /* Install banner */
+        .install-banner {
+            position: fixed; bottom: 16px; left: 16px; right: 16px;
+            z-index: 55;
+            background: var(--surface);
+            border: 1px solid var(--amber-dim);
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+
+        /* Share modal expiry selector */
+        .expiry-option {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text3);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .expiry-option:hover { border-color: var(--border2); color: var(--text2); }
+        .expiry-option.active {
+            background: var(--amber);
+            border-color: var(--amber);
+            color: #000;
+        }
+
+        /* Setup banner */
+        .setup-banner {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid var(--amber-dim);
+            border-radius: 12px;
+            padding: 14px 20px;
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        /* PWA offline indicator */
+        .offline-badge {
+            position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+            z-index: 55;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 6px 16px;
+            font-size: 11px;
+            color: var(--text3);
+            display: none;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Offline Badge -->
+    <div id="offlineBadge" class="offline-badge">
+        <i class="fa-solid fa-wifi-slash mr-2"></i> Offline Mode
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-6 right-6 z-[70] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- ==================== HOMEPAGE ==================== -->
+    <div id="homeView" class="min-h-screen flex flex-col">
+        <nav class="px-6 py-5 md:px-12 flex justify-between items-center border-b border-[var(--border)]">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-[var(--amber)] flex items-center justify-center">
+                    <i class="fa-solid fa-box text-black text-xs"></i>
+                </div>
+                <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
+            </div>
+            <a href="#/dashboard" class="btn-ghost">Buka Dasbor <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i></a>
+        </nav>
+
+        <main class="flex-grow flex items-center">
+            <div class="max-w-6xl mx-auto w-full px-6 md:px-12 py-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <!-- Left: Copy -->
+                <div class="space-y-8">
+                    <div>
+                        <div class="badge bg-[var(--amber)]/10 text-[var(--amber)] mb-4">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[var(--amber)]"></span>
+                            Cloud Storage Gratis
+                        </div>
+                        <h1 class="text-4xl md:text-5xl font-bold leading-tight">
+                            Simpan file di cloud,<br>
+                            <span class="text-[var(--amber)]">pakai Telegram.</span>
+                        </h1>
+                    </div>
+                    <p class="text-[var(--text2)] text-base leading-relaxed max-w-md">
+                        Ridgebox bikin Telegram Bot kamu jadi cloud storage personal. Upload, share, dan kelola file langsung dari browser. Tanpa server, tanpa biaya.
+                    </p>
+                    <div class="flex gap-3">
+                        <a href="#/dashboard" class="btn-primary inline-flex items-center gap-2">
+                            Mulai Pakai <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </a>
+                        <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" class="btn-ghost inline-flex items-center gap-2">
+                            <i class="fa-brands fa-github text-sm"></i> Source
+                        </a>
+                    </div>
+                    <div class="flex items-center gap-6 text-[var(--text4)] text-xs">
+                        <span><i class="fa-solid fa-shield-halved mr-1.5"></i>End-to-end masking</span>
+                        <span><i class="fa-solid fa-bolt mr-1.5"></i>No server needed</span>
+                        <span><i class="fa-solid fa-infinity mr-1.5"></i>Gratis selamanya</span>
+                    </div>
+                </div>
+
+                <!-- Right: Terminal -->
+                <div class="terminal shadow-2xl">
+                    <div class="terminal-bar">
+                        <div class="terminal-dot bg-[#ff5f57]"></div>
+                        <div class="terminal-dot bg-[#febc2e]"></div>
+                        <div class="terminal-dot bg-[#28c840]"></div>
+                        <span class="ml-3 text-[10px] text-[var(--text4)]">ridgebox-terminal</span>
+                    </div>
+                    <div class="terminal-body">
+                        <div><span class="t-amber">$</span> ridgebox upload backup.zip</div>
+                        <div class="t-green">✓ Uploaded to Telegram Cloud</div>
+                        <div class="t-green">✓ File ID stored in local DB</div>
+                        <div><span class="t-amber">$</span> ridgebox share backup.zip</div>
+                        <div class="t-white">→ https://ridgebox.vercel.app/#/file/djQ0...</div>
+                        <div class="t-green">✓ Link masked &amp; encrypted</div>
+                        <div><span class="t-amber">$</span> ridgebox scan expired</div>
+                        <div class="t-white">→ 3 files expired, auto-removed</div>
+                        <div class="mt-2"><span class="t-amber">$</span> <span class="animate-pulse">_</span></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center py-8 text-[var(--text4)] text-xs border-t border-[var(--border)]">
+            &copy; 2026 Ridgebox. Built with Telegram Bot API.
+        </footer>
+    </div>
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <div id="appView" class="hidden min-h-screen flex flex-col">
+        <nav class="px-6 py-4 md:px-12 flex justify-between items-center border-b border-[var(--border)] sticky top-0 bg-[var(--bg)] z-40">
+            <div class="flex items-center gap-3">
+                <a href="/" class="w-8 h-8 rounded-lg bg-[var(--amber)] flex items-center justify-center">
+                    <i class="fa-solid fa-box text-black text-xs"></i>
+                </a>
+                <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="badge bg-[var(--surface)] border border-[var(--border)] text-[var(--text3)]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse"></span>
+                    <span id="connStatus">Cloud Aktif</span>
+                </div>
+                <button onclick="openSettings()" class="btn-icon" title="Pengaturan">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </button>
+            </div>
+        </nav>
+
+        <main class="max-w-6xl mx-auto w-full px-6 py-8 md:px-8 grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
+            <div class="lg:col-span-2 space-y-5">
+                <!-- Setup Banner -->
+                <div id="setupBanner" class="setup-banner hidden">
+                    <i class="fa-solid fa-triangle-exclamation text-[var(--amber)]"></i>
+                    <div class="flex-grow">
+                        <span class="text-sm font-medium">Bot belum dikonfigurasi</span>
+                        <p class="text-xs text-[var(--text3)] mt-0.5">Masukkan Token Bot & Chat ID di pengaturan untuk mulai menggunakan Ridgebox.</p>
+                    </div>
+                    <button onclick="openSettings()" class="btn-primary text-xs">Setup</button>
+                </div>
+
+                <!-- Dropzone -->
+                <div id="dropZone" class="card p-8 text-center cursor-pointer group border-dashed hover:border-[var(--amber)]/30">
+                    <input type="file" id="fileInput" class="hidden" multiple>
+                    <div class="py-6 flex flex-col items-center">
+                        <div class="w-12 h-12 mb-4 rounded-xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center group-hover:border-[var(--amber)]/30 transition-colors">
+                            <i class="fa-solid fa-arrow-up-from-bracket text-lg text-[var(--text3)] group-hover:text-[var(--amber)] transition-colors"></i>
+                        </div>
+                        <h2 class="text-base font-semibold mb-1">Seret & lepas berkas</h2>
+                        <p class="text-[var(--text4)] text-xs mb-5">Mendukung berkas apa saja. Batas ukuran bisa diatur di pengaturan.</p>
+                        <button onclick="document.getElementById('fileInput').click()" class="btn-primary text-xs">Pilih Berkas</button>
+                    </div>
+                </div>
+
+                <!-- Upload Queue -->
+                <div id="uploadQueueContainer" class="hidden card p-5 space-y-3">
+                    <h3 class="text-[10px] font-bold tracking-widest text-[var(--text4)] uppercase">Mengunggah</h3>
+                    <div id="uploadQueue" class="space-y-2"></div>
+                </div>
+
+                <!-- File List -->
+                <div class="card p-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                        <div>
+                            <h3 class="text-sm font-semibold">Semua Berkas</h3>
+                            <p class="text-[11px] text-[var(--text4)] mt-0.5" id="fileCountText">0 berkas</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text4)]"></i>
+                                <input type="text" id="searchInput" placeholder="Cari berkas..." class="input-field pl-8 py-2 text-xs w-48">
+                            </div>
+                            <button id="batchSelectToggle" onclick="toggleBatchMode()" class="btn-icon" title="Pilih banyak">
+                                <i class="fa-regular fa-square-check text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="flex gap-2 overflow-x-auto pb-4">
+                        <button class="pill active" data-category="all">Semua</button>
+                        <button class="pill" data-category="image">Gambar</button>
+                        <button class="pill" data-category="video">Video</button>
+                        <button class="pill" data-category="audio">Audio</button>
+                        <button class="pill" data-category="archive">Arsip</button>
+                    </div>
+
+                    <!-- Select All (batch mode) -->
+                    <div id="batchSelectAll" class="hidden flex items-center gap-3 pb-3 border-b border-[var(--border)] mb-3">
+                        <input type="checkbox" id="selectAllCheckbox" class="file-checkbox" onchange="toggleSelectAll(this)">
+                        <label for="selectAllCheckbox" class="text-xs text-[var(--text3)] cursor-pointer">Pilih Semua</label>
+                    </div>
+
+                    <!-- File Items -->
+                    <div class="space-y-2" id="fileList">
+                        <div id="emptyState" class="text-center py-12">
+                            <i class="fa-regular fa-folder-open text-2xl text-[var(--text4)] mb-2"></i>
+                            <p class="text-[var(--text4)] text-xs">Belum ada berkas terunggah.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-5">
+                <!-- Storage -->
+                <div class="card p-5">
+                    <h3 class="text-sm font-semibold mb-4">Penyimpanan</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-[11px] text-[var(--text3)]">
+                            <span>Tersimpan</span>
+                            <span class="text-[var(--text)] font-medium" id="storageUsedText">0 B</span>
+                        </div>
+                        <div class="w-full h-1 bg-[var(--surface2)] rounded-full overflow-hidden">
+                            <div id="storageProgressBar" class="h-full bg-[var(--amber)] rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <p class="text-[10px] text-[var(--text4)]" id="storageStatusText">0 B / 5.0 GB</p>
+                    </div>
+                </div>
+
+                <!-- Limit Info -->
+                <div class="card p-5">
+                    <h3 class="text-sm font-semibold mb-3">Batas Upload</h3>
+                    <p class="text-[var(--amber)] font-mono text-lg font-bold" id="limitDisplay">1 GB</p>
+                    <p class="text-[10px] text-[var(--text4)] mt-1">Ubah di pengaturan</p>
+                </div>
+
+                <!-- Info -->
+                <div class="card p-5 space-y-4">
+                    <h4 class="text-[10px] font-bold tracking-widest text-[var(--text4)] uppercase">Keamanan</h4>
+                    <div class="flex items-start gap-3 text-xs">
+                        <i class="fa-solid fa-lock text-[var(--amber)] mt-0.5"></i>
+                        <div>
+                            <h5 class="font-medium text-[var(--text2)]">Link Masking</h5>
+                            <p class="text-[10px] text-[var(--text4)] mt-0.5">Token Bot disembunyikan di setiap link yang dibagikan.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 text-xs">
+                        <i class="fa-solid fa-clock text-[var(--amber)] mt-0.5"></i>
+                        <div>
+                            <h5 class="font-medium text-[var(--text2)]">File Expiry</h5>
+                            <p class="text-[10px] text-[var(--text4)] mt-0.5">Tentukan masa berlaku link berbagi: 24 jam, 7 hari, atau selamanya.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center py-6 text-[var(--text4)] text-[10px] border-t border-[var(--border)]">
+            &copy; 2026 Ridgebox Cloud Systems.
+        </footer>
+    </div>
+
+    <!-- ==================== DOWNLOAD PORTAL ==================== -->
+    <div id="downloadPortal" class="hidden min-h-screen flex flex-col">
+        <nav class="px-6 py-4 md:px-12 flex justify-between items-center border-b border-[var(--border)]">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-[var(--amber)] flex items-center justify-center">
+                    <i class="fa-solid fa-box text-black text-xs"></i>
+                </div>
+                <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
+            </div>
+            <a href="#/dashboard" class="btn-ghost text-xs">Dasbor <i class="fa-solid fa-arrow-right ml-1 text-[9px]"></i></a>
+        </nav>
+
+        <main class="max-w-md mx-auto w-full px-6 py-12 flex-grow flex flex-col justify-center items-center">
+            <!-- Expired State -->
+            <div id="expiredState" class="hidden text-center space-y-4">
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                    <i class="fa-solid fa-clock-rotate-left text-red-400 text-2xl"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-red-400">Link Kedaluwarsa</h2>
+                <p class="text-xs text-[var(--text3)] max-w-xs">Link berbagi ini sudah melewati masa berlaku. Minta pemilik file untuk membagikan ulang.</p>
+            </div>
+
+            <!-- Active State -->
+            <div id="activePortal" class="card w-full p-8 text-center space-y-6">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center text-xl" id="portalFileIcon">
+                    <i class="fa-regular fa-file-lines text-[var(--text3)]"></i>
+                </div>
+                <div>
+                    <span class="text-[9px] tracking-widest text-[var(--text4)] uppercase font-bold">Unduhan Aman</span>
+                    <h2 class="text-base font-semibold mt-1 break-words" id="portalFileName">Memuat...</h2>
+                    <p class="text-xs text-[var(--text3)] mt-1" id="portalFileSize">-</p>
+                    <div id="portalExpiryBadge" class="hidden mt-2"></div>
+                </div>
+                <div class="h-px bg-[var(--border)]"></div>
+                <button id="btnPortalDownload" class="btn-primary w-full py-3.5 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-down"></i>
+                    <span>Unduh Berkas</span>
+                </button>
+                <div id="portalDownloadProgress" class="hidden space-y-2 text-left">
+                    <div class="flex justify-between text-[11px] text-[var(--text3)]">
+                        <span id="portalProgressStatus">Mengunduh...</span>
+                        <span id="portalProgressPercent" class="font-bold text-[var(--amber)]">0%</span>
+                    </div>
+                    <div class="w-full h-1 bg-[var(--surface2)] rounded-full overflow-hidden">
+                        <div id="portalProgressBar" class="h-full bg-[var(--amber)] rounded-full transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center py-6 text-[var(--text4)] text-[10px] border-t border-[var(--border)]">
+            Ridgebox Encrypted Cloud.
+        </footer>
+    </div>
+
+    <!-- ==================== SETTINGS MODAL ==================== -->
+    <div id="settingsModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="card w-full max-w-md p-6 space-y-6 animate-fadeUp">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-semibold">Pengaturan</h3>
+                <button onclick="closeSettings()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-1.5">Bot Token</label>
+                    <input type="password" id="settingsBotToken" class="input-field font-mono text-xs" placeholder="123456:ABC-DEF...">
+                </div>
+                <div>
+                    <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-1.5">Chat ID</label>
+                    <input type="text" id="settingsChatId" class="input-field font-mono text-xs" placeholder="-100xxxxxxxxxx">
+                </div>
+                <div>
+                    <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-1.5">Batas Ukuran Upload</label>
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="expiry-option size-preset" data-size="10">10 MB</button>
+                        <button class="expiry-option size-preset" data-size="25">25 MB</button>
+                        <button class="expiry-option size-preset" data-size="50">50 MB</button>
+                        <button class="expiry-option size-preset active" data-size="1024">1 GB</button>
+                        <button class="expiry-option size-preset" data-size="2048">2 GB</button>
+                    </div>
+                </div>
+            </div>
+            <button onclick="saveSettings()" class="btn-primary w-full">Simpan Pengaturan</button>
+        </div>
+    </div>
+
+    <!-- ==================== SHARE MODAL (QR + Expiry) ==================== -->
+    <div id="shareModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="card w-full max-w-md p-6 space-y-5 animate-fadeUp">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-semibold">Bagikan Berkas</h3>
+                <button onclick="closeShareModal()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Expiry Selector -->
+            <div>
+                <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-2">Masa Berlaku Link</label>
+                <div class="flex gap-2">
+                    <button class="expiry-option share-expiry" data-expiry="24h" onclick="setShareExpiry('24h')">24 Jam</button>
+                    <button class="expiry-option share-expiry" data-expiry="7d" onclick="setShareExpiry('7d')">7 Hari</button>
+                    <button class="expiry-option share-expiry active" data-expiry="never" onclick="setShareExpiry('never')">Selamanya</button>
+                </div>
+            </div>
+
+            <!-- Link -->
+            <div class="space-y-2">
+                <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide">Tautan Aman</label>
+                <div class="relative">
+                    <input type="text" id="shareLinkInput" readonly class="input-field font-mono text-[11px] pr-20">
+                    <button onclick="copyShareLink()" class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[var(--amber)] hover:bg-[var(--amber-light)] text-black text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors">
+                        Salin
+                    </button>
+                </div>
+            </div>
+
+            <!-- QR Code -->
+            <div class="flex flex-col items-center gap-3 py-3">
+                <canvas id="qrCanvas" width="180" height="180"></canvas>
+                <span class="text-[10px] text-[var(--text4)]">Scan QR code untuk akses cepat</span>
+            </div>
+
+            <!-- File Info -->
+            <div class="card-inner p-4 space-y-2">
+                <div class="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <span class="text-[var(--text4)] block text-[10px]">Nama</span>
+                        <span class="text-[var(--text2)] font-medium truncate block mt-0.5" id="modalFileName">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[var(--text4)] block text-[10px]">Ukuran</span>
+                        <span class="text-[var(--text2)] font-medium block mt-0.5" id="modalFileSize">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeShareModal()" class="btn-ghost w-full">Selesai</button>
+        </div>
+    </div>
+
+    <!-- ==================== PREVIEW MODAL ==================== -->
+    <div id="previewModal" class="preview-overlay hidden">
+        <button onclick="closePreview()" class="absolute top-5 right-5 btn-icon bg-black/50 hover:bg-black/80 z-10" style="width:40px;height:40px;border-radius:50%;">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+        <div id="previewContent" class="animate-fadeUp"></div>
+    </div>
+
+    <!-- ==================== BATCH ACTION BAR ==================== -->
+    <div id="batchBar" class="batch-bar hidden animate-slideUp">
+        <span class="text-xs text-[var(--text2)]"><strong id="batchCount">0</strong> berkas dipilih</span>
+        <button onclick="batchDeleteSelected()" class="bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-lg text-xs font-semibold transition-colors">
+            <i class="fa-regular fa-trash-can mr-1"></i> Hapus
+        </button>
+        <button onclick="toggleBatchMode()" class="btn-icon text-[var(--text3)]">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- ==================== PWA INSTALL BANNER ==================== -->
+    <div id="installBanner" class="install-banner hidden animate-slideUp">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[var(--amber)] flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-box text-black text-xs"></i>
+            </div>
+            <div>
+                <p class="text-xs font-semibold">Install Ridgebox</p>
+                <p class="text-[10px] text-[var(--text3)]">Akses lebih cepat dari homescreen</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="dismissInstall()" class="btn-ghost text-[10px] py-1.5 px-3">Nanti</button>
+            <button onclick="installPWA()" class="btn-primary text-[10px] py-1.5 px-3">Install</button>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT ENGINE ==================== -->
+    <script>
+        // ── Credentials (localStorage only) ──
+        let TG_BOT_TOKEN = localStorage.getItem('ridgebox_bot_token') || '';
+        let TG_CHAT_ID = localStorage.getItem('ridgebox_chat_id') || '';
+        let SIZE_LIMIT_MB = parseInt(localStorage.getItem('ridgebox_size_limit')) || 1024;
+
+        let db;
+        let filesData = [];
+        let currentFilter = 'all';
+        let batchMode = false;
+        let selectedFiles = new Set();
+        let currentShareExpiry = 'never';
+        let currentShareData = null;
+        let deferredPrompt = null;
+
+        // ── IndexedDB ──
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('RidgeboxDB', 2);
+                request.onupgradeneeded = function(e) {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('files')) {
+                        db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+                request.onsuccess = function(e) {
+                    db = e.target.result;
+                    resolve();
+                };
+                request.onerror = function() {
+                    showToast('Gagal inisialisasi database.', 'error');
+                    reject();
+                };
+            });
+        }
+
+        function saveFileToDB(fileObj) {
+            return new Promise((resolve) => {
+                const tx = db.transaction(['files'], 'readwrite');
+                const store = tx.objectStore('files');
+                store.add(fileObj);
+                tx.oncomplete = () => resolve();
+            });
+        }
+
+        function loadFilesFromDB() {
+            if (!db) return;
+            const tx = db.transaction(['files'], 'readonly');
+            const store = tx.objectStore('files');
+            const request = store.getAll();
+            request.onsuccess = function() {
+                filesData = request.result;
+                // Auto-clean expired files from local DB
+                const now = Date.now();
+                filesData = filesData.filter(f => !f.expiresAt || f.expiresAt > now);
+                renderFileList();
+                updateStorageMetrics();
+            };
+        }
+
+        function deleteFileFromDB(id) {
+            return new Promise((resolve) => {
+                const tx = db.transaction(['files'], 'readwrite');
+                const store = tx.objectStore('files');
+                store.delete(id);
+                tx.oncomplete = () => {
+                    loadFilesFromDB();
+                    resolve();
+                };
+            });
+        }
+
+        function deleteMultipleFromDB(ids) {
+            return new Promise((resolve) => {
+                const tx = db.transaction(['files'], 'readwrite');
+                const store = tx.objectStore('files');
+                ids.forEach(id => store.delete(id));
+                tx.oncomplete = () => {
+                    showToast(`${ids.length} berkas berhasil dihapus.`, 'success');
+                    selectedFiles.clear();
+                    loadFilesFromDB();
+                    resolve();
+                };
+            });
+        }
+
+        // ── Startup ──
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            checkUrlRouting();
+            loadFilesFromDB();
+            setupDragAndDrop();
+            setupPWA();
+            checkSetup();
+
+            document.getElementById('searchInput').addEventListener('input', renderFileList);
+
+            document.querySelectorAll('.pill[data-category]').forEach(pill => {
+                pill.addEventListener('click', (e) => {
+                    document.querySelectorAll('.pill[data-category]').forEach(p => p.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentFilter = e.target.getAttribute('data-category');
+                    renderFileList();
+                });
+            });
+
+            // Size preset buttons
+            document.querySelectorAll('.size-preset').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.size-preset').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                });
+            });
+
+            // Offline detection
+            window.addEventListener('online', () => document.getElementById('offlineBadge').style.display = 'none');
+            window.addEventListener('offline', () => document.getElementById('offlineBadge').style.display = 'block');
+        });
+
+        window.addEventListener('hashchange', checkUrlRouting);
+
+        // ── Setup Check ──
+        function checkSetup() {
+            const banner = document.getElementById('setupBanner');
+            const connStatus = document.getElementById('connStatus');
+            if (!TG_BOT_TOKEN || !TG_CHAT_ID) {
+                banner.classList.remove('hidden');
+                connStatus.textContent = 'Belum Dikonfigurasi';
+            } else {
+                banner.classList.add('hidden');
+                connStatus.textContent = 'Cloud Aktif';
+            }
+        }
+
+        // ── Routing ──
+        function checkUrlRouting() {
+            const hash = window.location.hash;
+            const homeView = document.getElementById('homeView');
+            const appView = document.getElementById('appView');
+            const downloadPortal = document.getElementById('downloadPortal');
+
+            homeView.classList.add('hidden');
+            appView.classList.add('hidden');
+            downloadPortal.classList.add('hidden');
+
+            if (hash.startsWith('#/file/')) {
+                downloadPortal.classList.remove('hidden');
+                setupDownloadPortal(hash.substring(7));
+            } else if (hash.startsWith('#/dashboard')) {
+                appView.classList.remove('hidden');
+            } else {
+                homeView.classList.remove('hidden');
+            }
+        }
+
+        // ── Secure Link (with expiry) ──
+        function createSecureLink(tgFileId, fileName, fileSize, expiry) {
+            const ext = fileName.split('.').pop();
+            let shortName = fileName;
+            if (fileName.length > 20) shortName = fileName.substring(0, 16) + '..' + ext;
+
+            let expiresAt = 0;
+            if (expiry === '24h') expiresAt = Date.now() + (24 * 60 * 60 * 1000);
+            else if (expiry === '7d') expiresAt = Date.now() + (7 * 24 * 60 * 60 * 1000);
+
+            // Format: fileId|shortName|fileSize|expiresAt
+            const rawString = `${tgFileId}|${shortName}|${fileSize}|${expiresAt}`;
+            const encoded = btoa(unescape(encodeURIComponent(rawString)));
+            const cleanOrigin = window.location.origin + window.location.pathname;
+            return `${cleanOrigin}#/file/${encoded}`;
+        }
+
+        function decodeSecureLink(base64Str) {
+            try {
+                const decoded = decodeURIComponent(escape(atob(base64Str)));
+                const parts = decoded.split('|');
+                return {
+                    fileId: parts[0],
+                    fileName: parts[1],
+                    fileSize: parts[2],
+                    expiresAt: parseInt(parts[3]) || 0
+                };
+            } catch (err) {
+                return null;
+            }
+        }
+
+        // ── Download Portal (with expiry check) ──
+        function setupDownloadPortal(encodedPayload) {
+            const fileInfo = decodeSecureLink(encodedPayload);
+            const activePortal = document.getElementById('activePortal');
+            const expiredState = document.getElementById('expiredState');
+            const portalExpiryBadge = document.getElementById('portalExpiryBadge');
+
+            if (!fileInfo) {
+                activePortal.classList.add('hidden');
+                expiredState.classList.remove('hidden');
+                return;
+            }
+
+            // Check expiry
+            if (fileInfo.expiresAt > 0 && Date.now() > fileInfo.expiresAt) {
+                activePortal.classList.add('hidden');
+                expiredState.classList.remove('hidden');
+                return;
+            }
+
+            activePortal.classList.remove('hidden');
+            expiredState.classList.add('hidden');
+
+            document.getElementById('portalFileName').innerText = fileInfo.fileName;
+            document.getElementById('portalFileSize').innerText = formatBytes(parseInt(fileInfo.fileSize));
+
+            const iconEl = document.getElementById('portalFileIcon');
+            const fileType = getFileTypeByName(fileInfo.fileName);
+            iconEl.innerHTML = getIconMarkup(fileType);
+
+            // Show expiry info if applicable
+            if (fileInfo.expiresAt > 0) {
+                const remaining = fileInfo.expiresAt - Date.now();
+                const hours = Math.floor(remaining / (60 * 60 * 1000));
+                const days = Math.floor(hours / 24);
+                const timeLeft = days > 0 ? `${days} hari lagi` : `${hours} jam lagi`;
+                portalExpiryBadge.innerHTML = `<span class="expiry-badge bg-[var(--amber)]/10 text-[var(--amber)]"><i class="fa-solid fa-clock mr-1"></i>Berlaku ${timeLeft}</span>`;
+                portalExpiryBadge.classList.remove('hidden');
+            } else {
+                portalExpiryBadge.classList.add('hidden');
+            }
+
+            const btn = document.getElementById('btnPortalDownload');
+            btn.disabled = false;
+            btn.onclick = () => startPremiumDownload(fileInfo.fileId, fileInfo.fileName);
+        }
+
+        async function startPremiumDownload(fileId, fileName) {
+            const progressContainer = document.getElementById('portalDownloadProgress');
+            const progressBar = document.getElementById('portalProgressBar');
+            const progressPercent = document.getElementById('portalProgressPercent');
+            const progressStatus = document.getElementById('portalProgressStatus');
+            const btn = document.getElementById('btnPortalDownload');
+
+            btn.disabled = true;
+            progressContainer.classList.remove('hidden');
+            progressStatus.innerText = "Menghubungi server...";
+            progressBar.style.width = '5%';
+            progressPercent.innerText = '5%';
+
+            try {
+                const pathResponse = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getFile?file_id=${fileId}`);
+                const pathData = await pathResponse.json();
+
+                if (!pathData.ok) throw new Error('Akses ditolak oleh server.');
+
+                const filePath = pathData.result.file_path;
+                progressStatus.innerText = "Mengunduh data...";
+                progressBar.style.width = '20%';
+                progressPercent.innerText = '20%';
+
+                const downloadUrl = `https://api.telegram.org/file/bot${TG_BOT_TOKEN}/${filePath}`;
+                const response = await fetch(downloadUrl);
+
+                const reader = response.body.getReader();
+                const contentLength = +response.headers.get('Content-Length');
+                let receivedLength = 0;
+                let chunks = [];
+
+                while(true) {
+                    const {done, value} = await reader.read();
+                    if (done) break;
+                    chunks.push(value);
+                    receivedLength += value.length;
+                    if (contentLength) {
+                        const percent = 20 + Math.round((receivedLength / contentLength) * 80);
+                        progressBar.style.width = `${percent}%`;
+                        progressPercent.innerText = `${percent}%`;
+                    }
+                }
+
+                const blob = new Blob(chunks);
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(blobUrl);
+
+                progressStatus.innerText = "Selesai!";
+                btn.disabled = false;
+                showToast('Berkas berhasil diunduh!', 'success');
+            } catch (err) {
+                console.error(err);
+                progressStatus.innerText = "Gagal mengunduh.";
+                btn.disabled = false;
+                showToast(err.message || 'Kesalahan pengunduhan.', 'error');
+            }
+        }
+
+        // ── Drag & Drop ──
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('dropZone');
+            ['dragenter', 'dragover'].forEach(evt => {
+                dropZone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    dropZone.style.borderColor = 'var(--amber)';
+                });
+            });
+            ['dragleave', 'drop'].forEach(evt => {
+                dropZone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    dropZone.style.borderColor = '';
+                });
+            });
+            dropZone.addEventListener('drop', (e) => handleFileUpload(e.dataTransfer.files));
+            document.getElementById('fileInput').addEventListener('change', (e) => handleFileUpload(e.target.files));
+        }
+
+        // ── Upload ──
+        async function handleFileUpload(files) {
+            if (files.length === 0) return;
+            if (!TG_BOT_TOKEN || !TG_CHAT_ID) {
+                showToast('Konfigurasi Bot Token & Chat ID dulu.', 'error');
+                openSettings();
+                return;
+            }
+
+            const queueContainer = document.getElementById('uploadQueueContainer');
+            const queueList = document.getElementById('uploadQueue');
+            queueContainer.classList.remove('hidden');
+
+            for (let file of files) {
+                const limitBytes = SIZE_LIMIT_MB * 1024 * 1024;
+                if (file.size > limitBytes) {
+                    showToast(`"${file.name}" melewati batas ${SIZE_LIMIT_MB} MB.`, 'error');
+                    continue;
+                }
+
+                const uniqueId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+                const queueItem = document.createElement('div');
+                queueItem.id = `queue-${uniqueId}`;
+                queueItem.className = "card-inner p-3 space-y-2";
+                queueItem.innerHTML = `
+                    <div class="flex justify-between items-center text-[11px]">
+                        <div class="flex items-center gap-2 truncate">
+                            <i class="fa-solid fa-circle-notch animate-spin text-[var(--amber)] text-[10px]"></i>
+                            <span class="font-medium text-[var(--text2)] truncate max-w-[200px]">${file.name}</span>
+                        </div>
+                        <span id="percent-${uniqueId}" class="text-[var(--text3)] font-mono font-bold text-[10px]">0%</span>
+                    </div>
+                    <div class="w-full h-[3px] bg-[var(--surface2)] rounded-full overflow-hidden">
+                        <div id="bar-${uniqueId}" class="h-full bg-[var(--amber)] rounded-full transition-all duration-100" style="width: 0%"></div>
+                    </div>
+                `;
+                queueList.appendChild(queueItem);
+                executeTelegramUpload(file, uniqueId);
+            }
+        }
+
+        function executeTelegramUpload(file, uniqueId) {
+            const xhr = new XMLHttpRequest();
+            const formData = new FormData();
+            formData.append('chat_id', TG_CHAT_ID);
+            formData.append('document', file);
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    document.getElementById(`bar-${uniqueId}`).style.width = `${percent}%`;
+                    document.getElementById(`percent-${uniqueId}`).innerText = `${percent}%`;
+                }
+            };
+
+            xhr.onload = async function() {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.ok) {
+                        const fileId = response.result.document.file_id;
+                        const fileType = getFileTypeByName(file.name);
+                        const fileObj = {
+                            id: uniqueId,
+                            tgFileId: fileId,
+                            name: file.name,
+                            size: file.size,
+                            type: fileType,
+                            uploadedAt: new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}),
+                            uploadedTimestamp: Date.now(),
+                            expiresAt: 0
+                        };
+                        await saveFileToDB(fileObj);
+                        showToast(`"${file.name}" berhasil diupload.`, 'success');
+                        removeQueueItem(uniqueId);
+                        loadFilesFromDB();
+                    } else {
+                        handleUploadError(uniqueId, "Server Telegram menolak");
+                    }
+                } else {
+                    handleUploadError(uniqueId, "Gagal mengunggah");
+                }
+            };
+
+            xhr.onerror = function() { handleUploadError(uniqueId, "Kesalahan jaringan"); };
+            xhr.open('POST', `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendDocument`);
+            xhr.send(formData);
+        }
+
+        function handleUploadError(uniqueId, message) {
+            const item = document.getElementById(`queue-${uniqueId}`);
+            if (item) {
+                item.style.borderColor = 'rgba(239,68,68,0.3)';
+                item.innerHTML = `<div class="flex justify-between items-center text-[10px] text-red-400"><span class="truncate">Gagal: ${message}</span><i class="fa-solid fa-circle-exclamation"></i></div>`;
+                setTimeout(() => item.remove(), 4000);
+            }
+            showToast(`Error: ${message}`, 'error');
+        }
+
+        function removeQueueItem(id) {
+            const item = document.getElementById(`queue-${id}`);
+            if (item) {
+                item.style.opacity = '0';
+                setTimeout(() => {
+                    item.remove();
+                    if (document.getElementById('uploadQueue').children.length === 0) {
+                        document.getElementById('uploadQueueContainer').classList.add('hidden');
+                    }
+                }, 200);
+            }
+        }
+
+        // ── File List Rendering ──
+        function renderFileList() {
+            const listContainer = document.getElementById('fileList');
+            const emptyState = document.getElementById('emptyState');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+
+            listContainer.innerHTML = '';
+
+            const filtered = filesData.filter(f => {
+                const matchSearch = f.name.toLowerCase().includes(searchVal);
+                const matchCategory = currentFilter === 'all' || f.type === currentFilter;
+                return matchSearch && matchCategory;
+            });
+
+            document.getElementById('fileCountText').innerText = `${filtered.length} berkas`;
+
+            if (filtered.length === 0) {
+                listContainer.appendChild(emptyState.cloneNode(true));
+                return;
+            }
+
+            filtered.slice().reverse().forEach(file => {
+                const item = document.createElement('div');
+                const isSelected = selectedFiles.has(file.id);
+                item.className = `file-item flex items-center justify-between p-3 rounded-xl border border-[var(--border)] ${isSelected ? 'selected' : ''}`;
+
+                const iconMarkup = getIconMarkup(file.type);
+                const isPreviewable = file.type === 'image' || file.type === 'video';
+                const nameClass = isPreviewable ? 'cursor-pointer hover:text-[var(--amber)]' : '';
+
+                // Expiry info
+                let expiryTag = '';
+                if (file.expiresAt && file.expiresAt > 0) {
+                    const remaining = file.expiresAt - Date.now();
+                    if (remaining <= 0) {
+                        expiryTag = `<span class="expiry-badge bg-red-500/10 text-red-400 ml-2">Expired</span>`;
+                    } else {
+                        const days = Math.floor(remaining / (24*60*60*1000));
+                        const hours = Math.floor(remaining / (60*60*1000));
+                        expiryTag = `<span class="expiry-badge bg-[var(--amber)]/10 text-[var(--amber)] ml-2">${days > 0 ? days+'h' : hours+'j'} lagi</span>`;
+                    }
+                }
+
+                const checkboxHtml = batchMode ? `<input type="checkbox" class="file-checkbox mr-3" ${isSelected ? 'checked' : ''} onchange="toggleFileSelection('${file.id}', this)">` : '';
+
+                item.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0 flex-grow">
+                        ${checkboxHtml}
+                        <div class="w-9 h-9 rounded-lg bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">
+                            ${iconMarkup}
+                        </div>
+                        <div class="min-w-0">
+                            <h4 class="text-xs font-medium text-[var(--text2)] truncate max-w-[150px] sm:max-w-[280px] ${nameClass}" ${isPreviewable ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g, "\\'")}','${file.type}')"` : ''}>${file.name}${expiryTag}</h4>
+                            <p class="text-[10px] text-[var(--text4)] mt-0.5">${formatBytes(file.size)} &middot; ${file.uploadedAt}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-0.5 flex-shrink-0">
+                        ${isPreviewable ? `<button onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g, "\\'")}','${file.type}')" class="btn-icon" title="Preview"><i class="fa-regular fa-eye text-[10px]"></i></button>` : ''}
+                        <button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g, "\\'")}',${file.size})" class="btn-icon" title="Bagikan"><i class="fa-solid fa-share-nodes text-[10px]"></i></button>
+                        <button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" title="Hapus"><i class="fa-regular fa-trash-can text-[10px]"></i></button>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        // ── Batch Mode ──
+        function toggleBatchMode() {
+            batchMode = !batchMode;
+            selectedFiles.clear();
+            document.getElementById('batchSelectAll').classList.toggle('hidden', !batchMode);
+            document.getElementById('batchBar').classList.toggle('hidden', !batchMode);
+            document.getElementById('batchSelectToggle').classList.toggle('text-[var(--amber)]', batchMode);
+            renderFileList();
+            updateBatchCount();
+        }
+
+        function toggleFileSelection(id, checkbox) {
+            if (checkbox.checked) {
+                selectedFiles.add(id);
+            } else {
+                selectedFiles.delete(id);
+            }
+            updateBatchCount();
+            renderFileList();
+        }
+
+        function toggleSelectAll(checkbox) {
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = filesData.filter(f => {
+                const matchSearch = f.name.toLowerCase().includes(searchVal);
+                const matchCategory = currentFilter === 'all' || f.type === currentFilter;
+                return matchSearch && matchCategory;
+            });
+            if (checkbox.checked) {
+                filtered.forEach(f => selectedFiles.add(f.id));
+            } else {
+                selectedFiles.clear();
+            }
+            updateBatchCount();
+            renderFileList();
+        }
+
+        function updateBatchCount() {
+            document.getElementById('batchCount').innerText = selectedFiles.size;
+        }
+
+        async function batchDeleteSelected() {
+            if (selectedFiles.size === 0) return;
+            const count = selectedFiles.size;
+            if (!confirm(`Hapus ${count} berkas? Tindakan ini tidak bisa dibatalkan.`)) return;
+            await deleteMultipleFromDB([...selectedFiles]);
+            toggleBatchMode();
+        }
+
+        async function deleteSingleFile(id) {
+            if (!confirm('Hapus berkas ini?')) return;
+            await deleteFileFromDB(id);
+            showToast('Berkas dihapus.', 'success');
+        }
+
+        // ── Share Modal (with QR + Expiry) ──
+        function setShareExpiry(expiry) {
+            currentShareExpiry = expiry;
+            document.querySelectorAll('.share-expiry').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.share-expiry[data-expiry="${expiry}"]`).classList.add('active');
+
+            // Regenerate link with new expiry
+            if (currentShareData) {
+                const link = createSecureLink(currentShareData.tgFileId, currentShareData.name, currentShareData.size, expiry);
+                document.getElementById('shareLinkInput').value = link;
+                generateQR(link);
+            }
+        }
+
+        function openShareModal(tgFileId, name, size) {
+            currentShareData = { tgFileId, name, size };
+            currentShareExpiry = 'never';
+
+            // Reset expiry buttons
+            document.querySelectorAll('.share-expiry').forEach(b => b.classList.remove('active'));
+            document.querySelector('.share-expiry[data-expiry="never"]').classList.add('active');
+
+            const link = createSecureLink(tgFileId, name, size, 'never');
+            document.getElementById('shareLinkInput').value = link;
+            document.getElementById('modalFileName').innerText = name;
+            document.getElementById('modalFileSize').innerText = formatBytes(size);
+
+            generateQR(link);
+            document.getElementById('shareModal').classList.remove('hidden');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.add('hidden');
+            currentShareData = null;
+        }
+
+        function generateQR(text) {
+            const canvas = document.getElementById('qrCanvas');
+            new QRious({
+                element: canvas,
+                value: text,
+                size: 180,
+                background: '#141414',
+                foreground: '#f59e0b',
+                level: 'M',
+                padding: 12
+            });
+        }
+
+        function copyShareLink() {
+            const input = document.getElementById('shareLinkInput');
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(input.value).then(() => {
+                    showToast('Link tersalin!', 'success');
+                });
+            } else {
+                input.select();
+                document.execCommand('copy');
+                showToast('Link tersalin!', 'success');
+            }
+        }
+
+        // ── Preview Modal ──
+        async function openPreview(tgFileId, fileName, fileType) {
+            const previewModal = document.getElementById('previewModal');
+            const previewContent = document.getElementById('previewContent');
+
+            previewContent.innerHTML = `
+                <div class="flex flex-col items-center gap-4">
+                    <i class="fa-solid fa-circle-notch animate-spin text-3xl text-[var(--amber)]"></i>
+                    <span class="text-sm text-[var(--text3)]">Memuat preview...</span>
+                </div>
+            `;
+            previewModal.classList.remove('hidden');
+
+            try {
+                const pathResponse = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getFile?file_id=${tgFileId}`);
+                const pathData = await pathResponse.json();
+
+                if (!pathData.ok) throw new Error('Gagal mendapatkan file.');
+
+                const filePath = pathData.result.file_path;
+                const fileUrl = `https://api.telegram.org/file/bot${TG_BOT_TOKEN}/${filePath}`;
+
+                if (fileType === 'image') {
+                    previewContent.innerHTML = `<img src="${fileUrl}" alt="${fileName}" class="animate-fadeUp">`;
+                } else if (fileType === 'video') {
+                    previewContent.innerHTML = `
+                        <video controls autoplay class="animate-fadeUp" style="max-width:90vw;max-height:85vh;border-radius:8px;">
+                            <source src="${fileUrl}">
+                            Browser tidak mendukung video ini.
+                        </video>
+                    `;
+                }
+            } catch (err) {
+                previewContent.innerHTML = `
+                    <div class="text-center space-y-3">
+                        <i class="fa-solid fa-circle-exclamation text-3xl text-red-400"></i>
+                        <p class="text-sm text-[var(--text3)]">Gagal memuat preview: ${err.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function closePreview() {
+            const previewModal = document.getElementById('previewModal');
+            const previewContent = document.getElementById('previewContent');
+            // Stop any playing videos
+            const video = previewContent.querySelector('video');
+            if (video) video.pause();
+            previewModal.classList.add('hidden');
+        }
+
+        // ── Settings ──
+        function openSettings() {
+            document.getElementById('settingsBotToken').value = TG_BOT_TOKEN;
+            document.getElementById('settingsChatId').value = TG_CHAT_ID;
+
+            // Highlight active size preset
+            document.querySelectorAll('.size-preset').forEach(b => {
+                b.classList.toggle('active', parseInt(b.dataset.size) === SIZE_LIMIT_MB);
+            });
+
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function saveSettings() {
+            const token = document.getElementById('settingsBotToken').value.trim();
+            const chatId = document.getElementById('settingsChatId').value.trim();
+            const activeSize = document.querySelector('.size-preset.active');
+            const sizeLimit = activeSize ? parseInt(activeSize.dataset.size) : SIZE_LIMIT_MB;
+
+            TG_BOT_TOKEN = token;
+            TG_CHAT_ID = chatId;
+            SIZE_LIMIT_MB = sizeLimit;
+
+            localStorage.setItem('ridgebox_bot_token', token);
+            localStorage.setItem('ridgebox_chat_id', chatId);
+            localStorage.setItem('ridgebox_size_limit', sizeLimit.toString());
+
+            document.getElementById('limitDisplay').innerText = sizeLimit >= 1024 ? `${(sizeLimit/1024).toFixed(0)} GB` : `${sizeLimit} MB`;
+            checkSetup();
+            closeSettings();
+            showToast('Pengaturan tersimpan!', 'success');
+        }
+
+        // ── Storage Metrics ──
+        function updateStorageMetrics() {
+            const totalQuota = 5 * 1024 * 1024 * 1024;
+            const totalUsed = filesData.reduce((acc, f) => acc + f.size, 0);
+            const percentUsed = (totalUsed / totalQuota) * 100;
+
+            document.getElementById('storageUsedText').innerText = formatBytes(totalUsed);
+            document.getElementById('storageProgressBar').style.width = `${Math.min(percentUsed, 100)}%`;
+            document.getElementById('storageStatusText').innerText = `${formatBytes(totalUsed)} / 5.0 GB`;
+        }
+
+        // ── Utilities ──
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function getFileTypeByName(name) {
+            const ext = name.split('.').pop().toLowerCase();
+            const images = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'ico'];
+            const videos = ['mp4', 'mkv', 'avi', 'mov', 'webm', '3gp', 'flv'];
+            const audios = ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac'];
+            const archives = ['zip', 'rar', 'tar', 'gz', '7z', 'iso', 'dmg'];
+            if (images.includes(ext)) return 'image';
+            if (videos.includes(ext)) return 'video';
+            if (audios.includes(ext)) return 'audio';
+            if (archives.includes(ext)) return 'archive';
+            return 'other';
+        }
+
+        function getIconMarkup(type) {
+            switch(type) {
+                case 'image': return '<i class="fa-regular fa-file-image text-[var(--amber)] text-sm"></i>';
+                case 'video': return '<i class="fa-regular fa-file-video text-purple-400 text-sm"></i>';
+                case 'audio': return '<i class="fa-regular fa-file-audio text-sky-400 text-sm"></i>';
+                case 'archive': return '<i class="fa-regular fa-file-zipper text-orange-400 text-sm"></i>';
+                default: return '<i class="fa-regular fa-file-lines text-[var(--text3)] text-sm"></i>';
+            }
+        }
+
+        // ── Toast ──
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            let icon = '<i class="fa-solid fa-circle-info text-[var(--text3)]"></i>';
+            if (type === 'success') icon = '<i class="fa-solid fa-circle-check text-[var(--amber)]"></i>';
+            else if (type === 'error') icon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>';
+
+            toast.className = "card flex items-center gap-3 px-4 py-3 pointer-events-auto shadow-lg animate-fadeUp";
+            toast.innerHTML = `${icon}<span class="text-[var(--text2)] text-xs font-medium">${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(12px)';
+                toast.style.transition = 'all 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // ── PWA ──
+        function setupPWA() {
+            // Register service worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            }
+
+            // Install prompt
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                // Show install banner after 3 seconds
+                setTimeout(() => {
+                    if (deferredPrompt) {
+                        document.getElementById('installBanner').classList.remove('hidden');
+                    }
+                }, 3000);
+            });
+        }
+
+        async function installPWA() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                showToast('Ridgebox berhasil diinstall!', 'success');
+            }
+            deferredPrompt = null;
+            document.getElementById('installBanner').classList.add('hidden');
+        }
+
+        function dismissInstall() {
+            document.getElementById('installBanner').classList.add('hidden');
+        }
+
+        // ── Close modals on ESC ──
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSettings();
+                closeShareModal();
+                closePreview();
+            }
+        });
+
+        // ── Close modals on backdrop click ──
+        ['settingsModal', 'shareModal'].forEach(id => {
+            document.getElementById(id).addEventListener('click', function(e) {
+                if (e.target === this) {
+                    if (id === 'settingsModal') closeSettings();
+                    else closeShareModal();
+                }
+            });
+        });
+
+        document.getElementById('previewModal').addEventListener('click', function(e) {
+            if (e.target === this) closePreview();
+        });
+    </script>
+</body>
+</html>
