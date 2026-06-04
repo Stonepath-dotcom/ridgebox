@@ -369,17 +369,11 @@
                     <button class="pill" data-category="video">Video</button>
                     <button class="pill" data-category="audio">Audio</button>
                     <button class="pill" data-category="archive">Arsip</button>
-                    <button class="pill" data-category="document">Dokumen</button>
                 </div>
                 <!-- Batch select all -->
                 <div id="batchSelectAll" class="hidden flex items-center gap-3 pb-3 border-b border-[var(--border)] mb-3">
                     <input type="checkbox" id="selectAllCheckbox" class="file-checkbox" onchange="toggleSelectAll(this)">
                     <label for="selectAllCheckbox" class="text-xs text-[var(--text3)] cursor-pointer">Pilih Semua</label>
-                </div>
-                <!-- Trash actions -->
-                <div id="trashActions" class="hidden flex items-center gap-3 pb-3 border-b border-[var(--border)] mb-3">
-                    <button onclick="restoreAllTrash()" class="btn-ghost text-[10px] py-1.5"><i class="fa-solid fa-rotate-left mr-1"></i>Pulihkan Semua</button>
-                    <button onclick="emptyTrash()" class="bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-colors"><i class="fa-regular fa-trash-can mr-1"></i>Kosongkan Sampah</button>
                 </div>
                 <!-- File Items -->
                 <div id="fileList" class="space-y-2"></div>
@@ -589,13 +583,6 @@
             <h4 class="text-xs font-semibold mb-3">Upload 7 Hari Terakhir</h4>
             <div class="flex items-end gap-1 h-20" id="statWeekChart"></div>
         </div>
-        <div>
-            <h4 class="text-xs font-semibold mb-3">Distribusi Penyimpanan</h4>
-            <div class="flex items-center gap-6">
-                <canvas id="donutCanvas" width="200" height="200"></canvas>
-                <div class="space-y-2" id="donutLegend"></div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -729,8 +716,7 @@ function loadFilesFromDB() {
     const req = tx.objectStore('files').getAll();
     req.onsuccess = () => {
         filesData = req.result.filter(f => !f.expiresAt || f.expiresAt > Date.now());
-        autoPurgeTrash();
-        renderFileList(); updateStorageMetrics(); updateQuickStats(); updateTrashCount();
+        renderFileList(); updateStorageMetrics(); updateQuickStats();
     };
 }
 function deleteFileFromDB(id) {
@@ -990,29 +976,10 @@ async function handleFileUpload(files) {
         executeUpload(file, uid);
     }
 }
-async function executeUpload(file, uid) {
+function executeUpload(file, uid) {
     const xhr = new XMLHttpRequest();
     const fd = new FormData();
-    let fileToUpload = file;
-    let isEncrypted = false;
-
-    // Check encryption
-    const encryptToggle = document.getElementById('encryptToggle');
-    if (encryptToggle && encryptToggle.checked) {
-        const pwd = document.getElementById('encryptPwd').value.trim();
-        if (pwd) {
-            try {
-                const encrypted = await encryptFile(file, pwd);
-                fileToUpload = new File([encrypted], file.name + '.enc', { type: 'application/octet-stream' });
-                isEncrypted = true;
-            } catch(e) {
-                console.error('Encryption failed:', e);
-                showToast('Enkripsi gagal, mengupload tanpa enkripsi.', 'error');
-            }
-        }
-    }
-
-    fd.append('document', fileToUpload);
+    fd.append('document', file);
     fd.append('bot_index', currentBotIndex);
     xhr.upload.onprogress = e => {
         if (e.lengthComputable) {
@@ -1034,7 +1001,7 @@ async function executeUpload(file, uid) {
                     id: uid, tgFileId: fileId, name: file.name, size: file.size, type: fileType,
                     uploadedAt: new Date().toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}),
                     uploadedTimestamp: Date.now(), expiresAt: 0, pinned: false, folder: currentFolder !== 'all' ? currentFolder : '',
-                    thumbId, botIndex: currentBotIndex, encrypted: isEncrypted
+                    thumbId, botIndex: currentBotIndex
                 };
                 await saveFileToDB(obj);
                 showToast(`"${file.name}" berhasil diupload.`, 'success');
@@ -1137,7 +1104,7 @@ function renderFileList() {
     let filtered = filesData.filter(f => {
         const matchSearch = f.name.toLowerCase().includes(searchVal);
         const matchCat = currentFilter === 'all' || f.type === currentFilter;
-        const matchFolder = currentFolder === 'trash' ? !!f.deletedAt : (currentFolder === 'all' ? !f.deletedAt : (f.folder === currentFolder && !f.deletedAt));
+        const matchFolder = currentFolder === 'all' || f.folder === currentFolder;
         return matchSearch && matchCat && matchFolder;
     });
     // Sort: pinned first, then by date
@@ -1171,13 +1138,7 @@ function renderFileList() {
             }
             const cbHtml = batchMode ? `<input type="checkbox" class="file-checkbox mb-2" ${isSel?'checked':''} onchange="toggleFileSelection('${file.id}',this)">` : '';
             const pinHtml = file.pinned ? '<i class="fa-solid fa-thumbtack pin-icon mr-1"></i>' : '';
-            const encHtml = file.encrypted ? '<span class="enc-badge">ENC</span>' : '';
-            const tagHtml = `<span onclick="event.stopPropagation();cycleTag('${file.id}')">${tagDotHtml(file.tag)}</span>`;
-            const isTrash = currentFolder === 'trash';
-            const gridActions = isTrash
-                ? `<button onclick="restoreFile('${file.id}')" class="btn-icon" style="width:24px;height:24px" title="Pulihkan"><i class="fa-solid fa-rotate-left text-[8px] text-[var(--accent)]"></i></button><button onclick="permanentDeleteFile('${file.id}')" class="btn-icon danger" style="width:24px;height:24px" title="Hapus"><i class="fa-regular fa-trash-can text-[8px]"></i></button>`
-                : `<button onclick="togglePin('${file.id}')" class="btn-icon" style="width:24px;height:24px" title="Pin"><i class="fa-solid fa-thumbtack text-[8px] ${file.pinned?'text-[var(--accent)]':''}"></i></button><button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}',${file.size},'${file.botIndex||'0'}')" class="btn-icon" style="width:24px;height:24px" title="Share"><i class="fa-solid fa-share-nodes text-[8px]"></i></button><button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" style="width:24px;height:24px" title="Hapus"><i class="fa-regular fa-trash-can text-[8px]"></i></button>`;
-            item.innerHTML = `${cbHtml}${thumbHtml}<div class="w-full"><h4 class="text-[11px] font-medium text-[var(--text2)] truncate ${isPreviewable?'cursor-pointer hover:text-[var(--accent)]':''}" ${isPreviewable && !isTrash ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')"` : ''}>${pinHtml}${file.name}${encHtml}</h4><div class="flex items-center justify-center gap-1 mt-0.5"><p class="text-[9px] text-[var(--text4)]">${formatBytes(file.size)}</p>${tagHtml}</div></div><div class="file-actions-row">${gridActions}</div>`;
+            item.innerHTML = `${cbHtml}${thumbHtml}<div class="w-full"><h4 class="text-[11px] font-medium text-[var(--text2)] truncate ${isPreviewable?'cursor-pointer hover:text-[var(--accent)]':''}" ${isPreviewable ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')"` : ''}>${pinHtml}${file.name}</h4><p class="text-[9px] text-[var(--text4)]">${formatBytes(file.size)}</p></div><div class="file-actions-row"><button onclick="togglePin('${file.id}')" class="btn-icon" style="width:24px;height:24px" title="Pin"><i class="fa-solid fa-thumbtack text-[8px] ${file.pinned?'text-[var(--accent)]':''}"></i></button><button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}',${file.size},'${file.botIndex||'0'}')" class="btn-icon" style="width:24px;height:24px" title="Share"><i class="fa-solid fa-share-nodes text-[8px]"></i></button><button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" style="width:24px;height:24px" title="Hapus"><i class="fa-regular fa-trash-can text-[8px]"></i></button></div>`;
             container.appendChild(item);
         });
     } else {
@@ -1187,11 +1148,10 @@ function renderFileList() {
             const isSel = selectedFiles.has(file.id);
             item.className = `file-item flex items-center justify-between p-3 rounded-xl border border-[var(--border)] ${isSel?'selected':''}`;
             const iconMarkup = getIconMarkup(file.type);
-            const isPreviewable = file.type === 'image' || file.type === 'video' || isDocPreviewable(file.name);
+            const isPreviewable = file.type === 'image' || file.type === 'video';
             const nameClass = isPreviewable ? 'cursor-pointer hover:text-[var(--accent)]' : '';
             const cbHtml = batchMode ? `<input type="checkbox" class="file-checkbox mr-3" ${isSel?'checked':''} onchange="toggleFileSelection('${file.id}',this)">` : '';
             const pinHtml = file.pinned ? '<i class="fa-solid fa-thumbtack pin-icon mr-1"></i>' : '';
-            const encHtml = file.encrypted ? '<span class="enc-badge">ENC</span>' : '';
             let expiryTag = '';
             if (file.expiresAt && file.expiresAt > 0) {
                 const rem = file.expiresAt - Date.now();
@@ -1199,12 +1159,7 @@ function renderFileList() {
                 else { const d = Math.floor(rem/86400000); const h = Math.floor(rem/3600000); expiryTag = `<span class="expiry-badge bg-[var(--accent)]/10 text-[var(--accent)] ml-1">${d>0?d+'h':h+'j'}</span>`; }
             }
             const folderTag = file.folder ? `<span class="text-[9px] text-[var(--text4)] bg-[var(--surface2)] px-1.5 py-0.5 rounded ml-1">${file.folder}</span>` : '';
-            const tagHtml = `<span onclick="event.stopPropagation();cycleTag('${file.id}')" class="ml-1">${tagDotHtml(file.tag)}</span>`;
-            const isTrash = currentFolder === 'trash';
-            const actionBtns = isTrash
-                ? `<button onclick="restoreFile('${file.id}')" class="btn-icon" title="Pulihkan"><i class="fa-solid fa-rotate-left text-[10px] text-[var(--accent)]"></i></button><button onclick="permanentDeleteFile('${file.id}')" class="btn-icon danger" title="Hapus Permanen"><i class="fa-regular fa-trash-can text-[10px]"></i></button>`
-                : `<button onclick="togglePin('${file.id}')" class="btn-icon" title="Pin"><i class="fa-solid fa-thumbtack text-[10px] ${file.pinned?'text-[var(--accent)]':''}"></i></button>${isPreviewable?`<button onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')" class="btn-icon" title="Preview"><i class="fa-regular fa-eye text-[10px]"></i></button>`:''}<button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}',${file.size},'${file.botIndex||'0'}')" class="btn-icon" title="Share"><i class="fa-solid fa-share-nodes text-[10px]"></i></button><button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" title="Hapus"><i class="fa-regular fa-trash-can text-[10px]"></i></button>`;
-            item.innerHTML = `<div class="flex items-center gap-3 min-w-0 flex-grow">${cbHtml}<div class="w-9 h-9 rounded-lg bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">${iconMarkup}</div><div class="min-w-0"><h4 class="text-xs font-medium text-[var(--text2)] truncate max-w-[150px] sm:max-w-[280px] ${nameClass}" ${isPreviewable && !isTrash ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')"` : ''} ondblclick="${isTrash?'':`startRename('${file.id}',this)`}" id="name-${file.id}">${pinHtml}${file.name}${encHtml}${expiryTag}${folderTag}${tagHtml}</h4><p class="text-[10px] text-[var(--text4)] mt-0.5">${formatBytes(file.size)} &middot; ${file.uploadedAt}</p></div></div><div class="flex items-center gap-0.5 flex-shrink-0">${actionBtns}</div>`;
+            item.innerHTML = `<div class="flex items-center gap-3 min-w-0 flex-grow">${cbHtml}<div class="w-9 h-9 rounded-lg bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">${iconMarkup}</div><div class="min-w-0"><h4 class="text-xs font-medium text-[var(--text2)] truncate max-w-[150px] sm:max-w-[280px] ${nameClass}" ${isPreviewable ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')"` : ''} ondblclick="startRename('${file.id}',this)" id="name-${file.id}">${pinHtml}${file.name}${expiryTag}${folderTag}</h4><p class="text-[10px] text-[var(--text4)] mt-0.5">${formatBytes(file.size)} &middot; ${file.uploadedAt}</p></div></div><div class="flex items-center gap-0.5 flex-shrink-0"><button onclick="togglePin('${file.id}')" class="btn-icon" title="Pin"><i class="fa-solid fa-thumbtack text-[10px] ${file.pinned?'text-[var(--accent)]':''}"></i></button>${isPreviewable?`<button onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')" class="btn-icon" title="Preview"><i class="fa-regular fa-eye text-[10px]"></i></button>`:''}<button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}',${file.size},'${file.botIndex||'0'}')" class="btn-icon" title="Share"><i class="fa-solid fa-share-nodes text-[10px]"></i></button><button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" title="Hapus"><i class="fa-regular fa-trash-can text-[10px]"></i></button></div>`;
             container.appendChild(item);
         });
     }
@@ -1261,7 +1216,16 @@ function toggleSelectAll(cb) {
     updateBatchCount(); renderFileList();
 }
 function updateBatchCount() { document.getElementById('batchCount').innerText = selectedFiles.size; }
-// deleteSingleFile & batchDeleteSelected are defined below with trash support
+async function batchDeleteSelected() {
+    if (selectedFiles.size === 0) return;
+    if (!confirm(`Hapus ${selectedFiles.size} berkas?`)) return;
+    await deleteMultipleFromDB([...selectedFiles]);
+    toggleBatchMode();
+}
+async function deleteSingleFile(id) {
+    if (!confirm('Hapus berkas ini?')) return;
+    await deleteFileFromDB(id); showToast('Berkas dihapus.', 'success');
+}
 
 // ── Folders ──
 function renderFolderList() {
@@ -1371,16 +1335,14 @@ function closePreview() {
 // ── Stats ──
 function openStats() {
     const modal = document.getElementById('statsModal');
-    const activeFiles = filesData.filter(f => !f.deletedAt);
-    document.getElementById('statTotal').innerText = activeFiles.length;
-    document.getElementById('statSize').innerText = formatBytes(activeFiles.reduce((a,f) => a+f.size, 0));
+    document.getElementById('statTotal').innerText = filesData.length;
+    document.getElementById('statSize').innerText = formatBytes(filesData.reduce((a,f) => a+f.size, 0));
     // Type bars
     const types = ['image','video','audio','archive','other'];
     const typeLabels = { image:'Gambar', video:'Video', audio:'Audio', archive:'Arsip', other:'Lainnya' };
     const typeColors = { image:'var(--accent)', video:'#a855f7', audio:'#38bdf8', archive:'#f97316', other:'#737373' };
-    const typeColorHex = { image:'#3b82f6', video:'#a855f7', audio:'#38bdf8', archive:'#f97316', other:'#737373' };
     const counts = {};
-    types.forEach(t => counts[t] = activeFiles.filter(f => f.type === t).length);
+    types.forEach(t => counts[t] = filesData.filter(f => f.type === t).length);
     const max = Math.max(...Object.values(counts), 1);
     document.getElementById('statTypeBars').innerHTML = types.map(t => `<div class="flex items-center gap-3 text-xs"><span class="w-16 text-[var(--text3)]">${typeLabels[t]}</span><div class="stat-bar flex-grow"><div class="stat-bar-fill" style="width:${(counts[t]/max)*100}%;background:${typeColors[t]}"></div></div><span class="font-mono text-[var(--text2)] w-8 text-right">${counts[t]}</span></div>`).join('');
     // Week chart
@@ -1389,16 +1351,11 @@ function openStats() {
     for (let i = 6; i >= 0; i--) {
         const start = now - i * 86400000;
         const end = start + 86400000;
-        days.push(activeFiles.filter(f => f.uploadedTimestamp >= start && f.uploadedTimestamp < end).length);
+        days.push(filesData.filter(f => f.uploadedTimestamp >= start && f.uploadedTimestamp < end).length);
     }
     const maxDay = Math.max(...days, 1);
     const dayLabels = ['6h','5h','4h','3h','2h','1h','0h'];
     document.getElementById('statWeekChart').innerHTML = days.map((c,i) => `<div class="flex flex-col items-center flex-grow gap-1"><div class="w-full bg-[var(--accent)] rounded-sm transition-all" style="height:${Math.max((c/maxDay)*100,4)}%"></div><span class="text-[8px] text-[var(--text4)]">${dayLabels[i]}</span></div>`).join('');
-    // Donut chart
-    const donutData = types.map(t => ({ label: typeLabels[t], value: counts[t], color: typeColorHex[t] })).filter(d => d.value > 0);
-    drawDonutChart('donutCanvas', donutData);
-    const legendEl = document.getElementById('donutLegend');
-    legendEl.innerHTML = donutData.map(d => `<div class="donut-legend"><div class="donut-legend-dot" style="background:${d.color}"></div><span>${d.label}: ${d.value}</span></div>`).join('');
     modal.classList.remove('hidden');
 }
 function closeStats() { document.getElementById('statsModal').classList.add('hidden'); }
@@ -1421,19 +1378,17 @@ function saveSettings() {
 // ── Storage Metrics ──
 function updateStorageMetrics() {
     const total = 5*1024*1024*1024;
-    const activeFiles = filesData.filter(f => !f.deletedAt);
-    const used = activeFiles.reduce((a,f) => a+f.size, 0);
+    const used = filesData.reduce((a,f) => a+f.size, 0);
     const pct = (used/total)*100;
     document.getElementById('storageUsedText').innerText = formatBytes(used);
     document.getElementById('storageProgressBar').style.width = Math.min(pct,100)+'%';
     document.getElementById('storageStatusText').innerText = `${formatBytes(used)} / 5.0 GB`;
 }
 function updateQuickStats() {
-    const activeFiles = filesData.filter(f => !f.deletedAt);
-    document.getElementById('qsTotalFiles').innerText = activeFiles.length;
-    document.getElementById('qsImages').innerText = activeFiles.filter(f=>f.type==='image').length;
-    document.getElementById('qsVideos').innerText = activeFiles.filter(f=>f.type==='video').length;
-    document.getElementById('qsPinned').innerText = activeFiles.filter(f=>f.pinned).length;
+    document.getElementById('qsTotalFiles').innerText = filesData.length;
+    document.getElementById('qsImages').innerText = filesData.filter(f=>f.type==='image').length;
+    document.getElementById('qsVideos').innerText = filesData.filter(f=>f.type==='video').length;
+    document.getElementById('qsPinned').innerText = filesData.filter(f=>f.pinned).length;
 }
 
 // ── Utilities ──
@@ -1448,10 +1403,8 @@ function getFileTypeByName(n) {
     const vid=['mp4','mkv','avi','mov','webm','3gp','flv'];
     const aud=['mp3','wav','ogg','m4a','flac','aac'];
     const arc=['zip','rar','tar','gz','7z','iso','dmg'];
-    const doc=['pdf','txt','md','json','js','css','html','py','xml','csv','ts','jsx','tsx','yaml','yml','sh','bat','log','ini','cfg','doc','docx','xls','xlsx','ppt','pptx'];
     if (img.includes(ext)) return 'image'; if (vid.includes(ext)) return 'video';
-    if (aud.includes(ext)) return 'audio'; if (arc.includes(ext)) return 'archive';
-    if (doc.includes(ext)) return 'document'; return 'other';
+    if (aud.includes(ext)) return 'audio'; if (arc.includes(ext)) return 'archive'; return 'other';
 }
 function getIconMarkup(t) {
     switch(t) {
@@ -1459,7 +1412,6 @@ function getIconMarkup(t) {
         case 'video': return '<i class="fa-regular fa-file-video text-purple-400 text-sm"></i>';
         case 'audio': return '<i class="fa-regular fa-file-audio text-sky-400 text-sm"></i>';
         case 'archive': return '<i class="fa-regular fa-file-zipper text-orange-400 text-sm"></i>';
-        case 'document': return '<i class="fa-regular fa-file-lines text-emerald-400 text-sm"></i>';
         default: return '<i class="fa-regular fa-file-lines text-[var(--text3)] text-sm"></i>';
     }
 }
@@ -1469,7 +1421,6 @@ function getIconClass(t) {
         case 'video': return 'fa-regular fa-file-video';
         case 'audio': return 'fa-regular fa-file-audio';
         case 'archive': return 'fa-regular fa-file-zipper';
-        case 'document': return 'fa-regular fa-file-lines';
         default: return 'fa-regular fa-file-lines';
     }
 }
@@ -1523,14 +1474,6 @@ function emptyTrash() {
     if (trashed.length === 0) return;
     if (!confirm(`Hapus permanen ${trashed.length} file di Sampah?`)) return;
     deleteMultipleFromDB(trashed.map(f => f.id));
-}
-function restoreAllTrash() {
-    const trashed = filesData.filter(f => f.deletedAt);
-    if (trashed.length === 0) return;
-    if (!confirm(`Pulihkan ${trashed.length} file?`)) return;
-    trashed.forEach(f => { delete f.deletedAt; updateFileInDB(f); });
-    showToast(`${trashed.length} file dipulihkan.`, 'success');
-    loadFilesFromDB();
 }
 function autoPurgeTrash() {
     const THIRTY_DAYS = 30 * 86400000;
@@ -1743,64 +1686,18 @@ function runAutoCleanup() {
     loadFilesFromDB();
 }
 
-// ── Override: deleteSingleFile uses trash ──
-async function deleteSingleFile(id) {
-    if (currentFolder === 'trash') {
-        if (!confirm('Hapus permanen berkas ini?')) return;
-        await deleteFileFromDB(id);
-        showToast('Berkas dihapus permanen.', 'success');
-    } else {
-        softDeleteFile(id);
-    }
-}
-
-// ── Override: batchDeleteSelected uses trash ──
+// ── Override deleteSingleFile to use trash ──
+async function deleteSingleFile(id) { softDeleteFile(id); }
+// Override batchDeleteSelected to use trash
 async function batchDeleteSelected() {
     if (selectedFiles.size === 0) return;
-    if (currentFolder === 'trash') {
-        if (!confirm(`Hapus permanen ${selectedFiles.size} berkas?`)) return;
-        await deleteMultipleFromDB([...selectedFiles]);
-        showToast(`${selectedFiles.size} berkas dihapus permanen.`, 'success');
-    } else {
-        if (!confirm(`Pindahkan ${selectedFiles.size} berkas ke Sampah?`)) return;
-        for (const id of selectedFiles) {
-            const f = filesData.find(x => x.id === id);
-            if (f) { f.deletedAt = Date.now(); await updateFileInDB(f); }
-        }
-        showToast(`${selectedFiles.size} berkas dipindahkan ke Sampah.`, 'success');
-    }
-    selectedFiles.clear();
-    loadFilesFromDB();
-    if (batchMode) toggleBatchMode();
+    selectedFiles.forEach(id => { const f = filesData.find(x => x.id === id); if (f) { f.deletedAt = Date.now(); updateFileInDB(f); }});
+    showToast(`${selectedFiles.size} file dipindahkan ke Sampah.`, 'success');
+    selectedFiles.clear(); loadFilesFromDB(); updateBatchCount();
+    document.getElementById('batchBar').classList.add('hidden');
 }
 
-// ── Override: selectFolder handles trash view ──
-const _origSelectFolder = selectFolder;
-selectFolder = function(name) {
-    currentFolder = name;
-    document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('active'));
-    if (name === 'all') document.getElementById('folderAll')?.classList.add('active');
-    else if (name === 'trash') document.getElementById('folderTrash')?.classList.add('active');
-    else {
-        document.querySelectorAll('#folderList .folder-item').forEach(el => {
-            if (el.textContent.trim().includes(name)) el.classList.add('active');
-        });
-    }
-    // Update file list header
-    const h3 = document.querySelector('#appView .card h3');
-    if (h3) h3.textContent = name === 'trash' ? 'Sampah' : 'Semua Berkas';
-    // Show/hide trash actions
-    const trashActions = document.getElementById('trashActions');
-    if (trashActions) trashActions.classList.toggle('hidden', name !== 'trash');
-    // Hide upload zone in trash view
-    const uploadZone = document.querySelector('#appView main .grid.grid-cols-1');
-    if (uploadZone) uploadZone.style.display = name === 'trash' ? 'none' : '';
-    const uploadQueue = document.getElementById('uploadQueueContainer');
-    if (uploadQueue) uploadQueue.style.display = name === 'trash' ? 'none' : '';
-    renderFileList();
-};
-
-// ── Override: showToast adds to notification history ──
+// ── Override showToast to also add to notif history ──
 const _origShowToast = showToast;
 showToast = function(message, type='info') {
     _origShowToast(message, type);
@@ -1808,11 +1705,64 @@ showToast = function(message, type='info') {
     addNotif(icons[type] || icons.info, message);
 };
 
-// ── Override: saveSettings saves cleanup rules ──
+// ── Override selectFolder to handle trash ──
+const _origSelectFolder = selectFolder;
+selectFolder = function(name) {
+    currentFolder = name;
+    document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('active'));
+    if (name === 'all') document.getElementById('folderAll')?.classList.add('active');
+    else if (name === 'trash') document.getElementById('folderTrash')?.classList.add('active');
+    else {
+        const el = document.querySelector(`.folder-item[data-folder="${name}"]`);
+        if (el) el.classList.add('active');
+    }
+    renderFileList();
+    // Show trash actions in file list header if in trash
+    const h3 = document.querySelector('#appView .card h3');
+    if (h3) h3.textContent = name === 'trash' ? 'Sampah' : 'Semua Berkas';
+};
+
+// ── Patch loadFilesFromDB to also handle trash count & auto-purge ──
+const _origLoadFilesFromDB = loadFilesFromDB;
+loadFilesFromDB = function() {
+    if (!db) return;
+    const tx = db.transaction(['files'], 'readonly');
+    const req = tx.objectStore('files').getAll();
+    req.onsuccess = () => {
+        filesData = req.result.filter(f => !f.expiresAt || f.expiresAt > Date.now());
+        // If viewing trash, show only deleted; otherwise show only non-deleted
+        renderFileList(); updateStorageMetrics(); updateQuickStats(); updateTrashCount();
+    };
+};
+
+// ── Init: encrypt toggle, cleanup-age toggle, auto-cleanup ──
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('encryptToggle')?.addEventListener('change', e => {
+        document.getElementById('encryptPwdRow').classList.toggle('hidden', !e.target.checked);
+    });
+    document.querySelectorAll('.cleanup-age').forEach(b => {
+        b.addEventListener('click', e => {
+            document.querySelectorAll('.cleanup-age').forEach(x => x.classList.remove('active'));
+            e.target.classList.add('active');
+        });
+    });
+    // Load cleanup settings
+    const rules = getCleanupRules();
+    if (rules.enabled) document.getElementById('autoCleanupToggle').checked = true;
+    if (rules.age) {
+        document.querySelectorAll('.cleanup-age').forEach(b => {
+            b.classList.toggle('active', b.dataset.age == rules.age);
+        });
+    }
+    // Run auto-cleanup & trash purge on load
+    setTimeout(() => { autoPurgeTrash(); runAutoCleanup(); }, 2000);
+});
+
+// ── Override saveSettings to save cleanup rules ──
 const _origSaveSettings = saveSettings;
 saveSettings = function() {
     SIZE_LIMIT_MB = parseInt(document.querySelector('.size-preset.active')?.dataset.size) || 50;
-    localStorage.setItem('ridgebox_size_limit', SIZE_LIMIT_MB.toString());
+    localStorage.setItem('ridgebox_size_limit', SIZE_LIMIT_MB);
     document.getElementById('limitDisplay').textContent = SIZE_LIMIT_MB >= 1024 ? (SIZE_LIMIT_MB/1024)+' GB' : SIZE_LIMIT_MB+' MB';
     const rules = { enabled: document.getElementById('autoCleanupToggle').checked, age: parseInt(document.querySelector('.cleanup-age.active')?.dataset.age) || 30 };
     saveCleanupRules(rules);
@@ -1820,7 +1770,7 @@ saveSettings = function() {
     showToast('Pengaturan disimpan.', 'success');
 };
 
-// ── Override: openShareModal shows click count ──
+// ── Override openShareModal to show clicks ──
 const _origOpenShareModal = openShareModal;
 openShareModal = function(tgFileId, name, size, botIndex) {
     _origOpenShareModal(tgFileId, name, size, botIndex);
@@ -1833,14 +1783,14 @@ openShareModal = function(tgFileId, name, size, botIndex) {
     }
 };
 
-// ── Override: setupDownloadPortal increments share clicks ──
+// ── Override setupDownloadPortal to increment clicks ──
 const _origSetupDownloadPortal = setupDownloadPortal;
 setupDownloadPortal = function(encoded) {
     _origSetupDownloadPortal(encoded);
     if (portalDecodedInfo) incrementShareClicks(portalDecodedInfo.fileId);
 };
 
-// ── Override: openPreview supports document preview ──
+// ── Override openPreview to support documents ──
 const _origOpenPreview = openPreview;
 openPreview = async function(tgFileId, fileName, fileType, botIndex) {
     if (isDocPreviewable(fileName)) {
@@ -1859,33 +1809,11 @@ openPreview = async function(tgFileId, fileName, fileType, botIndex) {
     }
     _origOpenPreview(tgFileId, fileName, fileType, botIndex);
 };
-
-// ── Init: encrypt toggle, cleanup-age toggle, auto-cleanup ──
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.cleanup-age').forEach(b => {
-        b.addEventListener('click', e => {
-            document.querySelectorAll('.cleanup-age').forEach(x => x.classList.remove('active'));
-            e.target.classList.add('active');
-        });
-    });
-    const rules = getCleanupRules();
-    if (rules.enabled) document.getElementById('autoCleanupToggle').checked = true;
-    if (rules.age) {
-        document.querySelectorAll('.cleanup-age').forEach(b => {
-            b.classList.toggle('active', b.dataset.age == rules.age);
-        });
-    }
-    setTimeout(() => { autoPurgeTrash(); runAutoCleanup(); }, 2000);
-});
-
-// ── Global keydown for Escape ──
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSettings(); closeShareModal(); closePreview(); closeStats(); closeFolderModal(); } });
-
-// ── Click-outside to close modals ──
 ['settingsModal','shareModal','statsModal','folderModal'].forEach(id => {
-    document.getElementById(id)?.addEventListener('click', function(e) { if (e.target === this) { this.classList.add('hidden'); } });
+    document.getElementById(id).addEventListener('click', function(e) { if (e.target === this) { this.classList.add('hidden'); } });
 });
-document.getElementById('previewModal')?.addEventListener('click', function(e) { if (e.target === this) closePreview(); });
+document.getElementById('previewModal').addEventListener('click', function(e) { if (e.target === this) closePreview(); });
 </script>
 </body>
 </html>
