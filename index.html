@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         :root {
             --accent: #3b82f6;
@@ -185,6 +187,24 @@
         .animate-slideUp { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         /* Pin icon */
         .pin-icon { color: var(--accent); font-size: 10px; }
+        /* Tag dots */
+        .tag-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; cursor: pointer; transition: transform 0.15s; }
+        .tag-dot:hover { transform: scale(1.4); }
+        .tag-red { background: #ef4444; } .tag-orange { background: #f97316; } .tag-yellow { background: #eab308; }
+        .tag-green { background: #22c55e; } .tag-blue { background: #3b82f6; } .tag-purple { background: #a855f7; }
+        .tag-dot-none { background: var(--border2); }
+        /* Encrypted badge */
+        .enc-badge { font-size: 8px; padding: 1px 5px; border-radius: 4px; background: rgba(59,130,246,0.1); color: var(--accent); font-weight: 600; margin-left: 4px; }
+        /* Notification panel */
+        .notif-panel { position: absolute; top: 100%; right: 0; width: 320px; max-height: 400px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 50; }
+        .notif-item { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 11px; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-item:hover { background: var(--surface2); }
+        /* Keyboard shortcut overlay */
+        .kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 2px 6px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 4px; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--text3); }
+        /* Donut chart */
+        .donut-legend { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text3); }
+        .donut-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
         /* Password modal overlay */
         .password-prompt {
             position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,0.85);
@@ -264,6 +284,8 @@
             </div>
             <button onclick="toggleTheme()" class="btn-icon" title="Theme"><i id="themeIcon" class="fa-solid fa-moon text-sm"></i></button>
             <button onclick="openStats()" class="btn-icon" title="Stats"><i class="fa-solid fa-chart-simple text-sm"></i></button>
+            <button onclick="openNotifPanel()" class="btn-icon relative" title="Notifikasi" id="btnNotif"><i class="fa-solid fa-bell text-sm"></i><span id="notifDot" class="hidden absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full"></span></button>
+            <button onclick="openShortcuts()" class="btn-icon" title="Shortcut"><i class="fa-regular fa-keyboard text-sm"></i></button>
             <button onclick="openSettings()" class="btn-icon" title="Settings"><i class="fa-solid fa-gear text-sm"></i></button>
         </div>
     </nav>
@@ -275,7 +297,8 @@
                 <h3 class="text-[10px] font-bold tracking-widest text-[var(--text4)] uppercase">Folder</h3>
                 <button onclick="createFolder()" class="btn-icon" style="width:24px;height:24px" title="New folder"><i class="fa-solid fa-plus text-[8px]"></i></button>
             </div>
-            <div class="folder-item active" onclick="selectFolder('all')"><i class="fa-solid fa-layer-group text-[10px]"></i> Semua</div>
+            <div class="folder-item active" onclick="selectFolder('all')" id="folderAll"><i class="fa-solid fa-layer-group text-[10px]"></i> Semua</div>
+            <div class="folder-item" onclick="selectFolder('trash')" id="folderTrash"><i class="fa-regular fa-trash-can text-[10px]"></i> Sampah <span class="text-[9px] text-[var(--text4)] ml-auto" id="trashCount"></span></div>
             <div id="folderList"></div>
         </div>
 
@@ -300,6 +323,12 @@
                         </div>
                         <h2 class="text-sm font-semibold mb-1">Seret & lepas berkas</h2>
                         <p class="text-[var(--text4)] text-[11px] mb-4">Atau klik tombol di bawah</p>
+                        <div class="flex items-center gap-3 mb-3">
+                            <label class="flex items-center gap-2 text-[10px] text-[var(--text3)] cursor-pointer"><input type="checkbox" id="encryptToggle" class="file-checkbox" style="width:14px;height:14px"><i class="fa-solid fa-lock text-[8px]"></i> Enkripsi</label>
+                        </div>
+                        <div id="encryptPwdRow" class="hidden mb-3 w-full max-w-xs mx-auto">
+                            <input type="password" id="encryptPwd" class="input-field text-[10px] py-1.5 text-center" placeholder="Password enkripsi">
+                        </div>
                         <button onclick="document.getElementById('fileInput').click()" class="btn-primary text-xs">Pilih Berkas</button>
                     </div>
                 </div>
@@ -467,6 +496,20 @@
                     <button class="expiry-option theme-opt" data-theme-val="light" onclick="setTheme('light')"><i class="fa-solid fa-sun mr-1"></i>Terang</button>
                 </div>
             </div>
+            <div>
+                <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-1.5">Auto-Cleanup <span class="text-[var(--text4)]">(hapus file lama)</span></label>
+                <div class="flex items-center gap-2 mb-2">
+                    <input type="checkbox" id="autoCleanupToggle" class="file-checkbox" style="width:14px;height:14px">
+                    <span class="text-[11px] text-[var(--text3)]">Aktifkan</span>
+                </div>
+                <div class="flex gap-2 flex-wrap" id="cleanupAgeRow">
+                    <button class="expiry-option cleanup-age" data-age="7">7 Hari</button>
+                    <button class="expiry-option cleanup-age" data-age="14">14 Hari</button>
+                    <button class="expiry-option cleanup-age active" data-age="30">30 Hari</button>
+                    <button class="expiry-option cleanup-age" data-age="60">60 Hari</button>
+                    <button class="expiry-option cleanup-age" data-age="90">90 Hari</button>
+                </div>
+            </div>
         </div>
         <button onclick="saveSettings()" class="btn-primary w-full">Simpan Pengaturan</button>
     </div>
@@ -512,6 +555,7 @@
                 <div><span class="text-[var(--text4)] block text-[10px]">Nama</span><span class="text-[var(--text2)] font-medium truncate block mt-0.5" id="modalFileName">-</span></div>
                 <div><span class="text-[var(--text4)] block text-[10px]">Ukuran</span><span class="text-[var(--text2)] font-medium block mt-0.5" id="modalFileSize">-</span></div>
             </div>
+            <div id="shareClicksRow" class="hidden flex items-center gap-2 text-[10px] text-[var(--text3)] pt-1"><i class="fa-solid fa-eye text-[8px]"></i> <span id="shareClicksText">0</span> kali dikunjungi</div>
         </div>
         <button onclick="closeShareModal()" class="btn-ghost w-full">Selesai</button>
     </div>
@@ -558,7 +602,46 @@
 <div id="batchBar" class="batch-bar hidden animate-slideUp">
     <span class="text-xs text-[var(--text2)]"><strong id="batchCount">0</strong> dipilih</span>
     <button onclick="batchDeleteSelected()" class="bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-lg text-xs font-semibold transition-colors"><i class="fa-regular fa-trash-can mr-1"></i> Hapus</button>
+    <button onclick="batchDownloadZip()" class="bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent)] hover:bg-[var(--accent)]/20 px-4 py-2 rounded-lg text-xs font-semibold transition-colors"><i class="fa-solid fa-file-zipper mr-1"></i> ZIP</button>
     <button onclick="toggleBatchMode()" class="btn-icon text-[var(--text3)]"><i class="fa-solid fa-xmark"></i></button>
+</div>
+
+<!-- ==================== KEYBOARD SHORTCUTS MODAL ==================== -->
+<div id="shortcutsModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="card w-full max-w-sm p-6 space-y-4 animate-fadeUp">
+        <div class="flex justify-between items-center"><h3 class="text-sm font-semibold">Pintasan Keyboard</h3><button onclick="document.getElementById('shortcutsModal').classList.add('hidden')" class="btn-icon"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="space-y-2 text-xs">
+            <div class="flex justify-between"><span class="text-[var(--text3)]">Upload file</span><span><span class="kbd">Ctrl</span>+<span class="kbd">U</span></span></div>
+            <div class="flex justify-between"><span class="text-[var(--text3)]">Cari berkas</span><span><span class="kbd">Ctrl</span>+<span class="kbd">F</span></span></div>
+            <div class="flex justify-between"><span class="text-[var(--text3)]">Pilih semua</span><span><span class="kbd">Ctrl</span>+<span class="kbd">A</span></span></div>
+            <div class="flex justify-between"><span class="text-[var(--text3)]">Hapus file</span><span><span class="kbd">Del</span></span></div>
+            <div class="flex justify-between"><span class="text-[var(--text3)]">Tutup modal</span><span><span class="kbd">Esc</span></span></div>
+            <div class="flex justify-between"><span class="text-[var(--text3)]">Pintasan ini</span><span><span class="kbd">?</span></span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== DECRYPT PROMPT ==================== -->
+<div id="decryptModal" class="fixed inset-0 z-60 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="card w-full max-w-sm p-6 space-y-4 animate-fadeUp">
+        <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center"><i class="fa-solid fa-lock text-[var(--accent)]"></i></div><div><h3 class="text-sm font-semibold">File Terenkripsi</h3><p class="text-[10px] text-[var(--text3)]">Masukkan password untuk mendekripsi</p></div></div>
+        <input type="password" id="decryptPwdInput" class="input-field text-sm text-center" placeholder="Password">
+        <p id="decryptError" class="text-red-400 text-xs hidden">Password salah atau file rusak.</p>
+        <div class="flex gap-2">
+            <button onclick="document.getElementById('decryptModal').classList.add('hidden');window._decryptResolve=null" class="btn-ghost flex-grow">Batal</button>
+            <button onclick="doDecrypt()" class="btn-primary flex-grow">Dekripsi</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== NOTIFICATION PANEL (positioned via JS) ==================== -->
+<div id="notifPanel" class="notif-panel hidden animate-fadeUp" style="position:fixed;top:60px;right:20px;">
+    <div class="flex justify-between items-center p-3 border-b border-[var(--border)]">
+        <span class="text-xs font-semibold">Notifikasi</span>
+        <button onclick="clearNotifs()" class="text-[9px] text-[var(--text4)] hover:text-[var(--text3)]">Hapus Semua</button>
+    </div>
+    <div id="notifList"></div>
+    <div id="notifEmpty" class="p-6 text-center text-[var(--text4)] text-[11px]">Tidak ada notifikasi</div>
 </div>
 
 <!-- PWA Install Banner -->
@@ -1372,7 +1455,360 @@ async function installPWA() {
 }
 function dismissInstall() { document.getElementById('installBanner').classList.add('hidden'); }
 
-// ── Keyboard & Click shortcuts ──
+// ── Feature 16: Trash / Recycle Bin ──
+function softDeleteFile(id) {
+    const file = filesData.find(f => f.id === id);
+    if (!file) return;
+    file.deletedAt = Date.now();
+    updateFileInDB(file).then(() => { loadFilesFromDB(); showToast('File dipindahkan ke Sampah.', 'success'); });
+}
+function restoreFile(id) {
+    const file = filesData.find(f => f.id === id);
+    if (!file) return;
+    delete file.deletedAt;
+    updateFileInDB(file).then(() => { loadFilesFromDB(); showToast('File dipulihkan.', 'success'); });
+}
+async function permanentDeleteFile(id) { await deleteFileFromDB(id); }
+function emptyTrash() {
+    const trashed = filesData.filter(f => f.deletedAt);
+    if (trashed.length === 0) return;
+    if (!confirm(`Hapus permanen ${trashed.length} file di Sampah?`)) return;
+    deleteMultipleFromDB(trashed.map(f => f.id));
+}
+function autoPurgeTrash() {
+    const THIRTY_DAYS = 30 * 86400000;
+    const toPurge = filesData.filter(f => f.deletedAt && (Date.now() - f.deletedAt > THIRTY_DAYS));
+    if (toPurge.length > 0) toPurge.forEach(f => deleteFileFromDB(f.id));
+}
+function updateTrashCount() {
+    const count = filesData.filter(f => f.deletedAt).length;
+    const el = document.getElementById('trashCount');
+    if (el) el.textContent = count > 0 ? count : '';
+}
+
+// ── Feature 17: Bulk Download as ZIP ──
+async function batchDownloadZip() {
+    if (selectedFiles.size === 0) { showToast('Pilih file dulu.', 'error'); return; }
+    showToast('Membuat ZIP...', 'info');
+    const zip = new JSZip();
+    let done = 0;
+    for (const id of selectedFiles) {
+        const file = filesData.find(f => f.id === id);
+        if (!file) continue;
+        try {
+            const infoData = await apiGetFileInfo(file.tgFileId, file.botIndex);
+            if (!infoData.ok) continue;
+            const dlUrl = await apiGetDownloadUrl(infoData.result.file_path, file.botIndex);
+            const resp = await fetch(dlUrl);
+            const blob = await resp.blob();
+            zip.file(file.name, blob);
+            done++;
+        } catch(e) { console.error('Skip', file.name, e); }
+    }
+    if (done === 0) { showToast('Gagal mengunduh file.', 'error'); return; }
+    const content = await zip.generateAsync({type:'blob'});
+    const url = URL.createObjectURL(content);
+    const a = document.createElement('a'); a.href = url; a.download = `ridgebox-${Date.now()}.zip`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    showToast(`${done} file diunduh sebagai ZIP.`, 'success');
+}
+
+// ── Feature 18: File Tags/Labels ──
+const TAG_COLORS = ['red','orange','yellow','green','blue','purple'];
+function cycleTag(id) {
+    const file = filesData.find(f => f.id === id);
+    if (!file) return;
+    if (!file.tag) { file.tag = TAG_COLORS[0]; }
+    else {
+        const idx = TAG_COLORS.indexOf(file.tag);
+        file.tag = idx >= TAG_COLORS.length - 1 ? null : TAG_COLORS[idx + 1];
+    }
+    updateFileInDB(file).then(() => loadFilesFromDB());
+}
+function tagDotHtml(tag) {
+    if (!tag) return `<span class="tag-dot tag-dot-none" title="Tambah tag"></span>`;
+    return `<span class="tag-dot tag-${tag}" title="Tag: ${tag}"></span>`;
+}
+
+// ── Feature 19: Keyboard Shortcuts ──
+function openShortcuts() { document.getElementById('shortcutsModal').classList.remove('hidden'); }
+document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key === 'u') { e.preventDefault(); document.getElementById('fileInput').click(); }
+    if (mod && e.key === 'f') { e.preventDefault(); document.getElementById('searchInput')?.focus(); }
+    if (mod && e.key === 'a' && batchMode) { e.preventDefault(); toggleSelectAll({checked:true}); }
+    if (e.key === 'Delete' && selectedFiles.size > 0) { batchDeleteSelected(); }
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.fixed.inset-0:not(.hidden)').forEach(m => m.classList.add('hidden'));
+        document.getElementById('notifPanel')?.classList.add('hidden');
+        if (batchMode) toggleBatchMode();
+    }
+    if (e.key === '?' && !mod) { openShortcuts(); }
+});
+
+// ── Feature 20: File Encryption ──
+document.getElementById('encryptToggle')?.addEventListener('change', e => {
+    document.getElementById('encryptPwdRow').classList.toggle('hidden', !e.target.checked);
+});
+async function encryptFile(file, password) {
+    const keyMaterial = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'}, keyMaterial, {name:'AES-GCM', length:256}, false, ['encrypt']);
+    const buf = await file.arrayBuffer();
+    const encrypted = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, buf);
+    const result = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+    result.set(salt, 0); result.set(iv, salt.length); result.set(new Uint8Array(encrypted), salt.length + iv.length);
+    return new Blob([result], {type: 'application/octet-stream'});
+}
+async function decryptBlob(blob, password) {
+    const buf = await blob.arrayBuffer();
+    const data = new Uint8Array(buf);
+    const salt = data.slice(0, 16); const iv = data.slice(16, 28); const encrypted = data.slice(28);
+    const keyMaterial = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'}, keyMaterial, {name:'AES-GCM', length:256}, false, ['decrypt']);
+    return await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, encrypted);
+}
+function promptDecrypt() {
+    return new Promise(resolve => {
+        window._decryptResolve = resolve;
+        document.getElementById('decryptModal').classList.remove('hidden');
+        document.getElementById('decryptPwdInput').value = '';
+        document.getElementById('decryptError').classList.add('hidden');
+        document.getElementById('decryptPwdInput').focus();
+    });
+}
+async function doDecrypt() {
+    const pwd = document.getElementById('decryptPwdInput').value;
+    if (!pwd) return;
+    document.getElementById('decryptError').classList.add('hidden');
+    if (window._decryptResolve) { window._decryptResolve(pwd); window._decryptResolve = null; }
+    document.getElementById('decryptModal').classList.add('hidden');
+}
+
+// ── Feature 21: Share Link Analytics ──
+function incrementShareClicks(fileTgId) {
+    const file = filesData.find(f => f.tgFileId === fileTgId);
+    if (!file) return;
+    file.shareClicks = (file.shareClicks || 0) + 1;
+    updateFileInDB(file);
+}
+
+// ── Feature 22: Document Preview ──
+const DOC_EXTS = ['pdf','txt','md','json','js','css','html','py','xml','csv','ts','jsx','tsx','yaml','yml','sh','bat','log','ini','cfg'];
+function isDocPreviewable(name) { const ext = name.split('.').pop().toLowerCase(); return DOC_EXTS.includes(ext); }
+async function openDocPreview(url, name) {
+    const ext = name.split('.').pop().toLowerCase();
+    const content = document.getElementById('previewContent');
+    if (ext === 'pdf') {
+        content.innerHTML = `<iframe src="${url}" style="width:85vw;height:85vh;border:none;border-radius:8px;background:#fff"></iframe>`;
+    } else {
+        const resp = await fetch(url);
+        const text = await resp.text();
+        content.innerHTML = `<div style="max-width:80vw;max-height:85vh;overflow:auto;background:var(--surface);border-radius:12px;padding:24px"><pre style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;color:var(--text2);white-space:pre-wrap;word-break:break-all">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre></div>`;
+    }
+}
+
+// ── Feature 23: Notification / Toast History ──
+function getNotifHistory() { try { return JSON.parse(localStorage.getItem('ridgebox_notifs') || '[]'); } catch { return []; } }
+function saveNotifHistory(arr) { localStorage.setItem('ridgebox_notifs', JSON.stringify(arr.slice(0, 50))); }
+function addNotif(icon, message) {
+    const arr = getNotifHistory();
+    arr.unshift({icon, message, time: Date.now()});
+    saveNotifHistory(arr);
+    document.getElementById('notifDot')?.classList.remove('hidden');
+}
+function openNotifPanel() {
+    const panel = document.getElementById('notifPanel');
+    panel.classList.toggle('hidden');
+    if (!panel.classList.contains('hidden')) {
+        document.getElementById('notifDot')?.classList.add('hidden');
+        renderNotifList();
+    }
+}
+function renderNotifList() {
+    const arr = getNotifHistory();
+    const list = document.getElementById('notifList');
+    const empty = document.getElementById('notifEmpty');
+    if (arr.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+    list.innerHTML = arr.map(n => `<div class="notif-item"><div class="flex items-start gap-2"><i class="${n.icon} text-[var(--accent)] text-[10px] mt-0.5"></i><div><p class="text-[var(--text2)]">${n.message}</p><p class="text-[9px] text-[var(--text4)] mt-0.5">${timeAgo(n.time)}</p></div></div></div>`).join('');
+}
+function clearNotifs() { localStorage.removeItem('ridgebox_notifs'); renderNotifList(); }
+function timeAgo(ts) {
+    const diff = Date.now() - ts;
+    if (diff < 60000) return 'Baru saja';
+    if (diff < 3600000) return Math.floor(diff/60000) + ' menit lalu';
+    if (diff < 86400000) return Math.floor(diff/3600000) + ' jam lalu';
+    return Math.floor(diff/86400000) + ' hari lalu';
+}
+
+// ── Feature 24: Storage Breakdown Chart ──
+function drawDonutChart(canvasId, data) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const cx = 100, cy = 100, r = 70, inner = 45;
+    ctx.clearRect(0, 0, 200, 200);
+    const total = data.reduce((s, d) => s + d.value, 0);
+    if (total === 0) { ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--border2').trim(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.arc(cx, cy, inner, 0, Math.PI*2, true); ctx.fill(); return; }
+    let start = -Math.PI / 2;
+    data.forEach(d => {
+        if (d.value === 0) return;
+        const angle = (d.value / total) * Math.PI * 2;
+        ctx.fillStyle = d.color;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, start, start + angle); ctx.arc(cx, cy, inner, start + angle, start, true); ctx.closePath(); ctx.fill();
+        start += angle;
+    });
+    // Center text
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim();
+    ctx.font = 'bold 16px Space Grotesk'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(total, cx, cy - 6);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text4').trim();
+    ctx.font = '9px Space Grotesk';
+    ctx.fillText('file', cx, cy + 8);
+}
+
+// ── Feature 25: Auto-Cleanup Rules ──
+function getCleanupRules() { try { return JSON.parse(localStorage.getItem('ridgebox_cleanup') || '{}'); } catch { return {}; } }
+function saveCleanupRules(rules) { localStorage.setItem('ridgebox_cleanup', JSON.stringify(rules)); }
+function runAutoCleanup() {
+    const rules = getCleanupRules();
+    if (!rules.enabled) return;
+    const ageMs = (rules.age || 30) * 86400000;
+    const cutoff = Date.now() - ageMs;
+    const toTrash = filesData.filter(f => !f.deletedAt && f.uploadedTimestamp && f.uploadedTimestamp < cutoff);
+    if (toTrash.length === 0) return;
+    toTrash.forEach(f => { f.deletedAt = Date.now(); updateFileInDB(f); });
+    showToast(`Auto-cleanup: ${toTrash.length} file lama dipindahkan ke Sampah.`, 'info');
+    addNotif('fa-solid fa-broom', `Auto-cleanup: ${toTrash.length} file dipindahkan ke Sampah.`);
+    loadFilesFromDB();
+}
+
+// ── Override deleteSingleFile to use trash ──
+async function deleteSingleFile(id) { softDeleteFile(id); }
+// Override batchDeleteSelected to use trash
+async function batchDeleteSelected() {
+    if (selectedFiles.size === 0) return;
+    selectedFiles.forEach(id => { const f = filesData.find(x => x.id === id); if (f) { f.deletedAt = Date.now(); updateFileInDB(f); }});
+    showToast(`${selectedFiles.size} file dipindahkan ke Sampah.`, 'success');
+    selectedFiles.clear(); loadFilesFromDB(); updateBatchCount();
+    document.getElementById('batchBar').classList.add('hidden');
+}
+
+// ── Override showToast to also add to notif history ──
+const _origShowToast = showToast;
+showToast = function(message, type='info') {
+    _origShowToast(message, type);
+    const icons = {success:'fa-solid fa-circle-check', error:'fa-solid fa-circle-xmark', info:'fa-solid fa-circle-info'};
+    addNotif(icons[type] || icons.info, message);
+};
+
+// ── Override selectFolder to handle trash ──
+const _origSelectFolder = selectFolder;
+selectFolder = function(name) {
+    currentFolder = name;
+    document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('active'));
+    if (name === 'all') document.getElementById('folderAll')?.classList.add('active');
+    else if (name === 'trash') document.getElementById('folderTrash')?.classList.add('active');
+    else {
+        const el = document.querySelector(`.folder-item[data-folder="${name}"]`);
+        if (el) el.classList.add('active');
+    }
+    renderFileList();
+    // Show trash actions in file list header if in trash
+    const h3 = document.querySelector('#appView .card h3');
+    if (h3) h3.textContent = name === 'trash' ? 'Sampah' : 'Semua Berkas';
+};
+
+// ── Patch loadFilesFromDB to also handle trash count & auto-purge ──
+const _origLoadFilesFromDB = loadFilesFromDB;
+loadFilesFromDB = function() {
+    if (!db) return;
+    const tx = db.transaction(['files'], 'readonly');
+    const req = tx.objectStore('files').getAll();
+    req.onsuccess = () => {
+        filesData = req.result.filter(f => !f.expiresAt || f.expiresAt > Date.now());
+        // If viewing trash, show only deleted; otherwise show only non-deleted
+        renderFileList(); updateStorageMetrics(); updateQuickStats(); updateTrashCount();
+    };
+};
+
+// ── Init: encrypt toggle, cleanup-age toggle, auto-cleanup ──
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('encryptToggle')?.addEventListener('change', e => {
+        document.getElementById('encryptPwdRow').classList.toggle('hidden', !e.target.checked);
+    });
+    document.querySelectorAll('.cleanup-age').forEach(b => {
+        b.addEventListener('click', e => {
+            document.querySelectorAll('.cleanup-age').forEach(x => x.classList.remove('active'));
+            e.target.classList.add('active');
+        });
+    });
+    // Load cleanup settings
+    const rules = getCleanupRules();
+    if (rules.enabled) document.getElementById('autoCleanupToggle').checked = true;
+    if (rules.age) {
+        document.querySelectorAll('.cleanup-age').forEach(b => {
+            b.classList.toggle('active', b.dataset.age == rules.age);
+        });
+    }
+    // Run auto-cleanup & trash purge on load
+    setTimeout(() => { autoPurgeTrash(); runAutoCleanup(); }, 2000);
+});
+
+// ── Override saveSettings to save cleanup rules ──
+const _origSaveSettings = saveSettings;
+saveSettings = function() {
+    SIZE_LIMIT_MB = parseInt(document.querySelector('.size-preset.active')?.dataset.size) || 50;
+    localStorage.setItem('ridgebox_size_limit', SIZE_LIMIT_MB);
+    document.getElementById('limitDisplay').textContent = SIZE_LIMIT_MB >= 1024 ? (SIZE_LIMIT_MB/1024)+' GB' : SIZE_LIMIT_MB+' MB';
+    const rules = { enabled: document.getElementById('autoCleanupToggle').checked, age: parseInt(document.querySelector('.cleanup-age.active')?.dataset.age) || 30 };
+    saveCleanupRules(rules);
+    closeSettings();
+    showToast('Pengaturan disimpan.', 'success');
+};
+
+// ── Override openShareModal to show clicks ──
+const _origOpenShareModal = openShareModal;
+openShareModal = function(tgFileId, name, size, botIndex) {
+    _origOpenShareModal(tgFileId, name, size, botIndex);
+    const file = filesData.find(f => f.tgFileId === tgFileId);
+    if (file && file.shareClicks) {
+        document.getElementById('shareClicksRow').classList.remove('hidden');
+        document.getElementById('shareClicksText').textContent = file.shareClicks;
+    } else {
+        document.getElementById('shareClicksRow').classList.add('hidden');
+    }
+};
+
+// ── Override setupDownloadPortal to increment clicks ──
+const _origSetupDownloadPortal = setupDownloadPortal;
+setupDownloadPortal = function(encoded) {
+    _origSetupDownloadPortal(encoded);
+    if (portalDecodedInfo) incrementShareClicks(portalDecodedInfo.fileId);
+};
+
+// ── Override openPreview to support documents ──
+const _origOpenPreview = openPreview;
+openPreview = async function(tgFileId, fileName, fileType, botIndex) {
+    if (isDocPreviewable(fileName)) {
+        document.getElementById('previewModal').classList.remove('hidden');
+        const content = document.getElementById('previewContent');
+        content.innerHTML = '<div class="flex flex-col items-center gap-4"><i class="fa-solid fa-circle-notch animate-spin text-3xl text-[var(--accent)]"></i><span class="text-sm text-[var(--text3)]">Memuat dokumen...</span></div>';
+        try {
+            const infoData = await apiGetFileInfo(tgFileId, botIndex);
+            if (!infoData.ok) throw new Error('Gagal');
+            const dlUrl = await apiGetDownloadUrl(infoData.result.file_path, botIndex);
+            await openDocPreview(dlUrl, fileName);
+        } catch(e) {
+            content.innerHTML = '<div class="flex flex-col items-center gap-4 text-red-400"><i class="fa-solid fa-circle-exclamation text-3xl"></i><span class="text-sm">Gagal memuat dokumen.</span></div>';
+        }
+        return;
+    }
+    _origOpenPreview(tgFileId, fileName, fileType, botIndex);
+};
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSettings(); closeShareModal(); closePreview(); closeStats(); closeFolderModal(); } });
 ['settingsModal','shareModal','statsModal','folderModal'].forEach(id => {
     document.getElementById(id).addEventListener('click', function(e) { if (e.target === this) { this.classList.add('hidden'); } });
