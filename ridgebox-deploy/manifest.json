@@ -1,0 +1,25 @@
+{
+    "name": "Ridgebox",
+    "short_name": "Ridgebox",
+    "description": "Cloud storage via Telegram Bot. Simpan file gratis, tanpa server.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0a0a0a",
+    "theme_color": "#0a0a0a",
+    "orientation": "portrait-primary",
+    "categories": ["utilities", "productivity"],
+    "icons": [
+        {
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%230a0a0a'/%3E%3Crect x='56' y='56' width='80' height='80' rx='16' fill='%23f59e0b'/%3E%3Cpath d='M96 76 L96 116 M86 90 L96 76 L106 90' stroke='%23000' stroke-width='6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230a0a0a'/%3E%3Crect x='146' y='146' width='220' height='220' rx='40' fill='%23f59e0b'/%3E%3Cpath d='M256 196 L256 316 M230 240 L256 196 L282 240' stroke='%23000' stroke-width='16' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}

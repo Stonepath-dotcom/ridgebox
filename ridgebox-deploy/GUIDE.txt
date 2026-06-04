@@ -1,0 +1,31 @@
+========================================================================
+                      PANDUAN INTEGRASI TELEGRAM RIDGEBOX
+========================================================================
+
+Website Ridgebox Anda telah berhasil diekspor dan dikonfigurasi dengan:
+• Bot Token: 8946537691:AAH0G4qFdrqh2T3tE5wT2oM6stEI4TtDtlA
+• ID Channel: -1003925371620
+
+------------------------------------------------------------------------
+ISI PAKET ZIP INI:
+1. index.html       -> Kode program utama website cloud Ridgebox.
+2. GUIDE.txt        -> Dokumen panduan teknis operasional (Berkas ini).
+3. LICENSE.txt      -> Lisensi perangkat lunak bebas (MIT License).
+
+------------------------------------------------------------------------
+CARA PENGGUNAAN:
+1. Ekstrak berkas "ridgebox-package.zip" di komputer Anda.
+2. Klik kanan pada berkas "index.html" dan pilih buka menggunakan browser 
+   pilihan Anda (Google Chrome, Firefox, Safari, Microsoft Edge).
+3. Seret berkas apa saja yang ingin Anda unggah langsung ke area berlabel 
+   "Seret & Lepas Berkas".
+4. Klik tombol "Salin" pada menu bagikan berkas untuk membagikan tautan 
+   kepada teman Anda secara aman dan terenkripsi tanpa kebocoran token.
+
+------------------------------------------------------------------------
+CATATAN KEAMANAN TELEGRAM:
+Pastikan bot Telegram Anda dengan token di atas telah ditambahkan ke dalam 
+Channel Anda (-1003925371620) sebagai ADMIN dengan hak akses "Kirim Pesan" 
+(Post Messages) agar proses pengunggahan file dapat berjalan dengan lancar.
+
+========================================================================
