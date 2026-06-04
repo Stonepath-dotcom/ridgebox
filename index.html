@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="dark">
+<html lang="id" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ridgebox — Cloud Storage via Telegram</title>
     <meta name="description" content="Simpan berkas di cloud pakai Telegram Bot. Gratis, tanpa batas, langsung dari browser.">
-    <meta name="theme-color" content="#0a0a0a">
+    <meta name="theme-color" content="#ffffff">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,9 +16,9 @@
     <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
     <style>
         :root {
-            --amber: #f59e0b;
-            --amber-light: #fbbf24;
-            --amber-dim: #92400e;
+            --accent: #3b82f6;
+            --accent-light: #60a5fa;
+            --accent-dim: #1e40af;
         }
         [data-theme="dark"] {
             --bg: #0a0a0a; --surface: #141414; --surface2: #1a1a1a;
@@ -63,14 +63,14 @@
             border-radius: 10px; padding: 10px 14px; font-size: 13px;
             transition: border-color 0.2s, background 0.3s; outline: none; width: 100%;
         }
-        .input-field:focus { border-color: var(--amber); }
+        .input-field:focus { border-color: var(--accent); }
         .input-field::placeholder { color: var(--text4); }
         .btn-primary {
-            background: var(--amber); color: #000; font-weight: 600; padding: 10px 20px;
+            background: var(--accent); color: #fff; font-weight: 600; padding: 10px 20px;
             border-radius: 10px; font-size: 13px; transition: all 0.15s;
             border: none; cursor: pointer;
         }
-        .btn-primary:hover { background: var(--amber-light); }
+        .btn-primary:hover { background: var(--accent-light); }
         .btn-primary:active { transform: scale(0.97); }
         .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-ghost {
@@ -95,10 +95,10 @@
             border-radius: 5px; background: var(--surface); cursor: pointer;
             appearance: none; -webkit-appearance: none; transition: all 0.15s; flex-shrink: 0;
         }
-        .file-checkbox:checked { background: var(--amber); border-color: var(--amber); }
+        .file-checkbox:checked { background: var(--accent); border-color: var(--accent); }
         .file-checkbox:checked::after {
             content: '\2713'; display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 700; color: #000; height: 100%;
+            font-size: 11px; font-weight: 700; color: #fff; height: 100%;
         }
         .terminal {
             background: #0c0c0c; border: 1px solid var(--border); border-radius: 12px;
@@ -110,7 +110,7 @@
         }
         .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
         .terminal-body { padding: 16px; font-size: 12px; line-height: 1.8; color: #737373; }
-        .terminal-body .t-amber { color: var(--amber); }
+        .terminal-body .t-accent { color: var(--accent); }
         .terminal-body .t-green { color: #22c55e; }
         .terminal-body .t-white { color: #ffffff; }
         .preview-overlay {
@@ -120,36 +120,36 @@
         .preview-overlay img, .preview-overlay video { max-width: 90vw; max-height: 85vh; border-radius: 8px; }
         .batch-bar {
             position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 45;
-            background: var(--surface); border: 1px solid var(--amber-dim); border-radius: 14px;
+            background: var(--surface); border: 1px solid var(--accent-dim); border-radius: 14px;
             padding: 10px 20px; display: flex; align-items: center; gap: 16px;
-            box-shadow: 0 8px 32px rgba(245, 158, 11, 0.15);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
         }
         .expiry-badge { font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 500; }
         .file-item { transition: all 0.15s; }
         .file-item:hover { background: var(--surface2); }
-        .file-item.selected { background: rgba(245, 158, 11, 0.05); border-color: var(--amber-dim) !important; }
+        .file-item.selected { background: rgba(59, 130, 246, 0.05); border-color: var(--accent-dim) !important; }
         .pill {
             padding: 6px 14px; border-radius: 100px; font-size: 11px; font-weight: 600;
             border: 1px solid var(--border); background: transparent; color: var(--text3);
             cursor: pointer; transition: all 0.15s; white-space: nowrap;
         }
         .pill:hover { border-color: var(--border2); color: var(--text2); }
-        .pill.active { background: var(--amber); border-color: var(--amber); color: #000; }
+        .pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
         .expiry-option {
             padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 500;
             border: 1px solid var(--border); background: transparent; color: var(--text3);
             cursor: pointer; transition: all 0.15s;
         }
         .expiry-option:hover { border-color: var(--border2); color: var(--text2); }
-        .expiry-option.active { background: var(--amber); border-color: var(--amber); color: #000; }
+        .expiry-option.active { background: var(--accent); border-color: var(--accent); color: #fff; }
         .setup-banner {
-            background: rgba(245, 158, 11, 0.08); border: 1px solid var(--amber-dim);
+            background: rgba(59, 130, 246, 0.08); border: 1px solid var(--accent-dim);
             border-radius: 12px; padding: 14px 20px; display: flex; align-items: center;
             gap: 12px; margin-bottom: 20px;
         }
         .install-banner {
             position: fixed; bottom: 16px; left: 16px; right: 16px; z-index: 55;
-            background: var(--surface); border: 1px solid var(--amber-dim); border-radius: 14px;
+            background: var(--surface); border: 1px solid var(--accent-dim); border-radius: 14px;
             padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;
             gap: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         }
@@ -166,7 +166,7 @@
         .file-grid .file-actions-row { display: flex; gap: 2px; justify-content: center; margin-top: 6px; }
         /* Rename input */
         .rename-input {
-            background: var(--surface); border: 1px solid var(--amber); color: var(--text);
+            background: var(--surface); border: 1px solid var(--accent); color: var(--text);
             border-radius: 6px; padding: 2px 6px; font-size: 12px; width: 100%; outline: none;
         }
         /* Folder sidebar */
@@ -175,7 +175,7 @@
             border-radius: 8px; cursor: pointer; transition: all 0.15s; font-size: 12px; color: var(--text3);
         }
         .folder-item:hover { background: var(--surface2); color: var(--text2); }
-        .folder-item.active { background: rgba(245,158,11,0.08); color: var(--amber); }
+        .folder-item.active { background: rgba(59,130,246,0.08); color: var(--accent); }
         /* Stats */
         .stat-bar { height: 8px; border-radius: 4px; background: var(--surface2); overflow: hidden; }
         .stat-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
@@ -184,7 +184,7 @@
         @keyframes slideUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
         .animate-slideUp { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         /* Pin icon */
-        .pin-icon { color: var(--amber); font-size: 10px; }
+        .pin-icon { color: var(--accent); font-size: 10px; }
         /* Password modal overlay */
         .password-prompt {
             position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,0.85);
@@ -201,7 +201,7 @@
 <div id="homeView" class="min-h-screen flex flex-col">
     <nav class="px-6 py-5 md:px-12 flex justify-between items-center border-b border-[var(--border)]">
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-[var(--amber)] flex items-center justify-center"><i class="fa-solid fa-box text-black text-xs"></i></div>
+            <div class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-xs"></i></div>
             <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
         </div>
         <div class="flex items-center gap-3">
@@ -213,8 +213,8 @@
         <div class="max-w-6xl mx-auto w-full px-6 md:px-12 py-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div class="space-y-8">
                 <div>
-                    <div class="badge bg-[var(--amber)]/10 text-[var(--amber)] mb-4"><span class="w-1.5 h-1.5 rounded-full bg-[var(--amber)]"></span>Cloud Storage Gratis</div>
-                    <h1 class="text-4xl md:text-5xl font-bold leading-tight">Simpan file di cloud,<br><span class="text-[var(--amber)]">pakai Telegram.</span></h1>
+                    <div class="badge bg-[var(--accent)]/10 text-[var(--accent)] mb-4"><span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>Cloud Storage Gratis</div>
+                    <h1 class="text-4xl md:text-5xl font-bold leading-tight">Simpan file di cloud,<br><span class="text-[var(--accent)]">pakai Telegram.</span></h1>
                 </div>
                 <p class="text-[var(--text2)] text-base leading-relaxed max-w-md">Ridgebox bikin Telegram Bot kamu jadi cloud storage personal. Upload, share, dan kelola file langsung dari browser. Token bot disimpan aman di server.</p>
                 <div class="flex gap-3">
@@ -233,14 +233,14 @@
                     <span class="ml-3 text-[10px] text-[var(--text4)]">ridgebox v2</span>
                 </div>
                 <div class="terminal-body">
-                    <div><span class="t-amber">$</span> ridgebox upload backup.zip</div>
+                    <div><span class="t-accent">$</span> ridgebox upload backup.zip</div>
                     <div class="t-green">✓ Uploaded via secure API proxy</div>
                     <div class="t-green">✓ Token never touched the browser</div>
-                    <div><span class="t-amber">$</span> ridgebox share backup.zip --expire 24h</div>
+                    <div><span class="t-accent">$</span> ridgebox share backup.zip --expire 24h</div>
                     <div class="t-white">→ https://ridgebox.vercel.app/#/file/djQ0...</div>
-                    <div><span class="t-amber">$</span> ridgebox share backup.zip --password</div>
+                    <div><span class="t-accent">$</span> ridgebox share backup.zip --password</div>
                     <div class="t-green">✓ Password-protected link created</div>
-                    <div class="mt-2"><span class="t-amber">$</span> <span class="animate-pulse">_</span></div>
+                    <div class="mt-2"><span class="t-accent">$</span> <span class="animate-pulse">_</span></div>
                 </div>
             </div>
         </div>
@@ -252,7 +252,7 @@
 <div id="appView" class="hidden min-h-screen flex flex-col">
     <nav class="px-6 py-4 md:px-12 flex justify-between items-center border-b border-[var(--border)] sticky top-0 z-40" style="background:var(--bg)">
         <div class="flex items-center gap-3">
-            <a href="/" class="w-8 h-8 rounded-lg bg-[var(--amber)] flex items-center justify-center"><i class="fa-solid fa-box text-black text-xs"></i></a>
+            <a href="/" class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-xs"></i></a>
             <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
             <!-- Bot selector -->
             <select id="botSelector" class="input-field py-1 px-2 text-[10px] w-auto ml-2 hidden"></select>
@@ -283,7 +283,7 @@
         <div class="flex-grow space-y-5 min-w-0">
             <!-- Setup Banner -->
             <div id="setupBanner" class="setup-banner hidden">
-                <i class="fa-solid fa-triangle-exclamation text-[var(--amber)]"></i>
+                <i class="fa-solid fa-triangle-exclamation text-[var(--accent)]"></i>
                 <div class="flex-grow">
                     <span class="text-sm font-medium">Bot belum dikonfigurasi di server</span>
                     <p class="text-xs text-[var(--text3)] mt-0.5">Set TG_BOT_TOKEN & TG_CHAT_ID di Vercel environment variables.</p>
@@ -292,11 +292,11 @@
 
             <!-- Dropzone + URL Upload -->
             <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
-                <div id="dropZone" class="card p-6 text-center cursor-pointer group border-dashed hover:border-[var(--amber)]/30">
+                <div id="dropZone" class="card p-6 text-center cursor-pointer group border-dashed hover:border-[var(--accent)]/30">
                     <input type="file" id="fileInput" class="hidden" multiple>
                     <div class="py-4 flex flex-col items-center">
-                        <div class="w-11 h-11 mb-3 rounded-xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center group-hover:border-[var(--amber)]/30 transition-colors">
-                            <i class="fa-solid fa-arrow-up-from-bracket text-base text-[var(--text3)] group-hover:text-[var(--amber)] transition-colors"></i>
+                        <div class="w-11 h-11 mb-3 rounded-xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center group-hover:border-[var(--accent)]/30 transition-colors">
+                            <i class="fa-solid fa-arrow-up-from-bracket text-base text-[var(--text3)] group-hover:text-[var(--accent)] transition-colors"></i>
                         </div>
                         <h2 class="text-sm font-semibold mb-1">Seret & lepas berkas</h2>
                         <p class="text-[var(--text4)] text-[11px] mb-4">Atau klik tombol di bawah</p>
@@ -304,7 +304,7 @@
                     </div>
                 </div>
                 <div class="card p-5 flex flex-col justify-center items-center gap-3 min-w-[200px]">
-                    <i class="fa-solid fa-link text-[var(--amber)] text-lg"></i>
+                    <i class="fa-solid fa-link text-[var(--accent)] text-lg"></i>
                     <span class="text-xs font-medium">Upload dari URL</span>
                     <input type="text" id="urlInput" placeholder="https://example.com/file.zip" class="input-field text-[11px] py-2">
                     <button onclick="uploadFromURL()" class="btn-primary text-[11px] py-2 w-full" id="btnUrlUpload">Upload</button>
@@ -361,7 +361,7 @@
                         <span>Tersimpan</span><span class="text-[var(--text)] font-medium" id="storageUsedText">0 B</span>
                     </div>
                     <div class="w-full h-1 bg-[var(--surface2)] rounded-full overflow-hidden">
-                        <div id="storageProgressBar" class="h-full bg-[var(--amber)] rounded-full transition-all duration-500" style="width:0%"></div>
+                        <div id="storageProgressBar" class="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style="width:0%"></div>
                     </div>
                     <p class="text-[10px] text-[var(--text4)]" id="storageStatusText">0 B / 5.0 GB</p>
                 </div>
@@ -369,13 +369,13 @@
             <!-- Bot Info -->
             <div class="card p-5">
                 <h3 class="text-sm font-semibold mb-2">Bot Aktif</h3>
-                <p class="text-[var(--amber)] text-xs font-mono font-bold" id="activeBotName">-</p>
+                <p class="text-[var(--accent)] text-xs font-mono font-bold" id="activeBotName">-</p>
                 <p class="text-[10px] text-[var(--text4)] mt-1">Token tersimpan di server</p>
             </div>
             <!-- Limit -->
             <div class="card p-5">
                 <h3 class="text-sm font-semibold mb-2">Batas Upload</h3>
-                <p class="text-[var(--amber)] font-mono text-lg font-bold" id="limitDisplay">50 MB</p>
+                <p class="text-[var(--accent)] font-mono text-lg font-bold" id="limitDisplay">50 MB</p>
                 <p class="text-[10px] text-[var(--text4)] mt-1">Ubah di pengaturan</p>
             </div>
             <!-- Quick Stats -->
@@ -395,7 +395,7 @@
 <div id="downloadPortal" class="hidden min-h-screen flex flex-col">
     <nav class="px-6 py-4 md:px-12 flex justify-between items-center border-b border-[var(--border)]">
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-[var(--amber)] flex items-center justify-center"><i class="fa-solid fa-box text-black text-xs"></i></div>
+            <div class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-xs"></i></div>
             <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
         </div>
         <a href="#/dashboard" class="btn-ghost text-xs">Dasbor <i class="fa-solid fa-arrow-right ml-1 text-[9px]"></i></a>
@@ -409,7 +409,7 @@
         </div>
         <!-- Password Required State -->
         <div id="passwordState" class="hidden card w-full p-8 text-center space-y-5">
-            <div class="w-14 h-14 mx-auto rounded-2xl bg-[var(--amber)]/10 border border-[var(--amber)]/20 flex items-center justify-center"><i class="fa-solid fa-lock text-[var(--amber)] text-xl"></i></div>
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center"><i class="fa-solid fa-lock text-[var(--accent)] text-xl"></i></div>
             <h2 class="text-base font-semibold">Link Dilindungi Password</h2>
             <input type="password" id="portalPasswordInput" class="input-field text-center" placeholder="Masukkan password">
             <button onclick="verifyPortalPassword()" class="btn-primary w-full">Buka</button>
@@ -429,10 +429,10 @@
             <div id="portalDownloadProgress" class="hidden space-y-2 text-left">
                 <div class="flex justify-between text-[11px] text-[var(--text3)]">
                     <span id="portalProgressStatus">Mengunduh...</span>
-                    <span id="portalProgressPercent" class="font-bold text-[var(--amber)]">0%</span>
+                    <span id="portalProgressPercent" class="font-bold text-[var(--accent)]">0%</span>
                 </div>
                 <div class="w-full h-1 bg-[var(--surface2)] rounded-full overflow-hidden">
-                    <div id="portalProgressBar" class="h-full bg-[var(--amber)] rounded-full transition-all" style="width:0%"></div>
+                    <div id="portalProgressBar" class="h-full bg-[var(--accent)] rounded-full transition-all" style="width:0%"></div>
                 </div>
             </div>
         </div>
@@ -446,9 +446,9 @@
         <div class="flex justify-between items-center"><h3 class="text-sm font-semibold">Pengaturan</h3><button onclick="closeSettings()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button></div>
         <div class="space-y-4">
             <div class="card-inner p-4 space-y-2">
-                <div class="flex items-center gap-2 text-xs"><i class="fa-solid fa-robot text-[var(--amber)]"></i><span class="font-medium">Bot Aktif</span></div>
+                <div class="flex items-center gap-2 text-xs"><i class="fa-solid fa-robot text-[var(--accent)]"></i><span class="font-medium">Bot Aktif</span></div>
                 <p class="text-[11px] text-[var(--text3)]" id="settingsBotInfo">Token disimpan aman di server environment.</p>
-                <p class="text-[var(--amber)] font-mono text-xs font-bold" id="settingsBotName">-</p>
+                <p class="text-[var(--accent)] font-mono text-xs font-bold" id="settingsBotName">-</p>
             </div>
             <div>
                 <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-1.5">Batas Ukuran Upload</label>
@@ -498,7 +498,7 @@
             <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide">Tautan Aman</label>
             <div class="relative">
                 <input type="text" id="shareLinkInput" readonly class="input-field font-mono text-[11px] pr-20">
-                <button onclick="copyShareLink()" class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[var(--amber)] hover:bg-[var(--amber-light)] text-black text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors">Salin</button>
+                <button onclick="copyShareLink()" class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[var(--accent)] hover:bg-[var(--accent-light)] text-black text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors">Salin</button>
             </div>
         </div>
         <!-- QR Code -->
@@ -528,8 +528,8 @@
     <div class="card w-full max-w-lg p-6 space-y-5 animate-fadeUp max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center"><h3 class="text-sm font-semibold">Statistik</h3><button onclick="closeStats()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button></div>
         <div class="grid grid-cols-2 gap-4">
-            <div class="card-inner p-4 text-center"><p class="text-2xl font-bold text-[var(--amber)]" id="statTotal">0</p><p class="text-[10px] text-[var(--text4)]">Total File</p></div>
-            <div class="card-inner p-4 text-center"><p class="text-2xl font-bold text-[var(--amber)]" id="statSize">0 B</p><p class="text-[10px] text-[var(--text4)]">Total Ukuran</p></div>
+            <div class="card-inner p-4 text-center"><p class="text-2xl font-bold text-[var(--accent)]" id="statTotal">0</p><p class="text-[10px] text-[var(--text4)]">Total File</p></div>
+            <div class="card-inner p-4 text-center"><p class="text-2xl font-bold text-[var(--accent)]" id="statSize">0 B</p><p class="text-[10px] text-[var(--text4)]">Total Ukuran</p></div>
         </div>
         <div>
             <h4 class="text-xs font-semibold mb-3">Tipe File</h4>
@@ -564,7 +564,7 @@
 <!-- PWA Install Banner -->
 <div id="installBanner" class="install-banner hidden animate-slideUp">
     <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-[var(--amber)] flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-box text-black text-xs"></i></div>
+        <div class="w-9 h-9 rounded-lg bg-[var(--accent)] flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-box text-white text-xs"></i></div>
         <div><p class="text-xs font-semibold">Install Ridgebox</p><p class="text-[10px] text-[var(--text3)]">Akses dari homescreen</p></div>
     </div>
     <div class="flex gap-2">
@@ -577,7 +577,7 @@
 <script>
 // ── State ──
 let SIZE_LIMIT_MB = parseInt(localStorage.getItem('ridgebox_size_limit')) || 50;
-let currentTheme = localStorage.getItem('ridgebox_theme') || 'dark';
+let currentTheme = localStorage.getItem('ridgebox_theme') || 'light';
 let currentBotIndex = localStorage.getItem('ridgebox_bot_index') || '0';
 let availableBots = [];
 let db;
@@ -821,7 +821,7 @@ function showPortalActive(info) {
     if (info.expiresAt > 0) {
         const hrs = Math.floor((info.expiresAt - Date.now()) / 3600000);
         const days = Math.floor(hrs / 24);
-        badge.innerHTML = `<span class="expiry-badge bg-[var(--amber)]/10 text-[var(--amber)]"><i class="fa-solid fa-clock mr-1"></i>${days > 0 ? days+' hari' : hrs+' jam'} lagi</span>`;
+        badge.innerHTML = `<span class="expiry-badge bg-[var(--accent)]/10 text-[var(--accent)]"><i class="fa-solid fa-clock mr-1"></i>${days > 0 ? days+' hari' : hrs+' jam'} lagi</span>`;
         badge.classList.remove('hidden');
     } else { badge.classList.add('hidden'); }
     const btn = document.getElementById('btnPortalDownload');
@@ -869,7 +869,7 @@ async function startPremiumDownload(fileId, fileName, botIndex) {
 // ── Drag & Drop ──
 function setupDragAndDrop() {
     const dz = document.getElementById('dropZone');
-    ['dragenter', 'dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.style.borderColor = 'var(--amber)'; }));
+    ['dragenter', 'dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.style.borderColor = 'var(--accent)'; }));
     ['dragleave', 'drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.style.borderColor = ''; }));
     dz.addEventListener('drop', e => handleFileUpload(e.dataTransfer.files));
     document.getElementById('fileInput').addEventListener('change', e => handleFileUpload(e.target.files));
@@ -888,7 +888,7 @@ async function handleFileUpload(files) {
         const uid = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
         const qi = document.createElement('div');
         qi.id = `queue-${uid}`; qi.className = 'card-inner p-3 space-y-2';
-        qi.innerHTML = `<div class="flex justify-between items-center text-[11px]"><div class="flex items-center gap-2 truncate"><i class="fa-solid fa-circle-notch animate-spin text-[var(--amber)] text-[10px]"></i><span class="font-medium text-[var(--text2)] truncate max-w-[200px]">${file.name}</span></div><span id="percent-${uid}" class="text-[var(--text3)] font-mono font-bold text-[10px]">0%</span></div><div class="w-full h-[3px] bg-[var(--surface2)] rounded-full overflow-hidden"><div id="bar-${uid}" class="h-full bg-[var(--amber)] rounded-full transition-all duration-100" style="width:0%"></div></div><div id="retry-${uid}" class="hidden flex justify-end"><button onclick="retryUpload('${uid}')" class="text-[10px] text-[var(--amber)] font-semibold hover:underline"><i class="fa-solid fa-rotate-right mr-1"></i>Coba Lagi</button></div>`;
+        qi.innerHTML = `<div class="flex justify-between items-center text-[11px]"><div class="flex items-center gap-2 truncate"><i class="fa-solid fa-circle-notch animate-spin text-[var(--accent)] text-[10px]"></i><span class="font-medium text-[var(--text2)] truncate max-w-[200px]">${file.name}</span></div><span id="percent-${uid}" class="text-[var(--text3)] font-mono font-bold text-[10px]">0%</span></div><div class="w-full h-[3px] bg-[var(--surface2)] rounded-full overflow-hidden"><div id="bar-${uid}" class="h-full bg-[var(--accent)] rounded-full transition-all duration-100" style="width:0%"></div></div><div id="retry-${uid}" class="hidden flex justify-end"><button onclick="retryUpload('${uid}')" class="text-[10px] text-[var(--accent)] font-semibold hover:underline"><i class="fa-solid fa-rotate-right mr-1"></i>Coba Lagi</button></div>`;
         ql.appendChild(qi);
         executeUpload(file, uid);
     }
@@ -956,7 +956,7 @@ function uploadError(uid, msg) {
         if (retry) retry.classList.remove('hidden');
         // Change spinner to error icon
         const spinner = item.querySelector('.fa-circle-notch');
-        if (spinner) { spinner.classList.remove('fa-circle-notch', 'animate-spin', 'text-[var(--amber)]'); spinner.classList.add('fa-solid fa-circle-exclamation', 'text-red-400'); }
+        if (spinner) { spinner.classList.remove('fa-circle-notch', 'animate-spin', 'text-[var(--accent)]'); spinner.classList.add('fa-solid fa-circle-exclamation', 'text-red-400'); }
     }
     showToast(`Error: ${msg}`, 'error');
 }
@@ -1055,7 +1055,7 @@ function renderFileList() {
             }
             const cbHtml = batchMode ? `<input type="checkbox" class="file-checkbox mb-2" ${isSel?'checked':''} onchange="toggleFileSelection('${file.id}',this)">` : '';
             const pinHtml = file.pinned ? '<i class="fa-solid fa-thumbtack pin-icon mr-1"></i>' : '';
-            item.innerHTML = `${cbHtml}${thumbHtml}<div class="w-full"><h4 class="text-[11px] font-medium text-[var(--text2)] truncate ${isPreviewable?'cursor-pointer hover:text-[var(--amber)]':''}" ${isPreviewable ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')"` : ''}>${pinHtml}${file.name}</h4><p class="text-[9px] text-[var(--text4)]">${formatBytes(file.size)}</p></div><div class="file-actions-row"><button onclick="togglePin('${file.id}')" class="btn-icon" style="width:24px;height:24px" title="Pin"><i class="fa-solid fa-thumbtack text-[8px] ${file.pinned?'text-[var(--amber)]':''}"></i></button><button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}',${file.size},'${file.botIndex||'0'}')" class="btn-icon" style="width:24px;height:24px" title="Share"><i class="fa-solid fa-share-nodes text-[8px]"></i></button><button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" style="width:24px;height:24px" title="Hapus"><i class="fa-regular fa-trash-can text-[8px]"></i></button></div>`;
+            item.innerHTML = `${cbHtml}${thumbHtml}<div class="w-full"><h4 class="text-[11px] font-medium text-[var(--text2)] truncate ${isPreviewable?'cursor-pointer hover:text-[var(--accent)]':''}" ${isPreviewable ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')"` : ''}>${pinHtml}${file.name}</h4><p class="text-[9px] text-[var(--text4)]">${formatBytes(file.size)}</p></div><div class="file-actions-row"><button onclick="togglePin('${file.id}')" class="btn-icon" style="width:24px;height:24px" title="Pin"><i class="fa-solid fa-thumbtack text-[8px] ${file.pinned?'text-[var(--accent)]':''}"></i></button><button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}',${file.size},'${file.botIndex||'0'}')" class="btn-icon" style="width:24px;height:24px" title="Share"><i class="fa-solid fa-share-nodes text-[8px]"></i></button><button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" style="width:24px;height:24px" title="Hapus"><i class="fa-regular fa-trash-can text-[8px]"></i></button></div>`;
             container.appendChild(item);
         });
     } else {
@@ -1066,17 +1066,17 @@ function renderFileList() {
             item.className = `file-item flex items-center justify-between p-3 rounded-xl border border-[var(--border)] ${isSel?'selected':''}`;
             const iconMarkup = getIconMarkup(file.type);
             const isPreviewable = file.type === 'image' || file.type === 'video';
-            const nameClass = isPreviewable ? 'cursor-pointer hover:text-[var(--amber)]' : '';
+            const nameClass = isPreviewable ? 'cursor-pointer hover:text-[var(--accent)]' : '';
             const cbHtml = batchMode ? `<input type="checkbox" class="file-checkbox mr-3" ${isSel?'checked':''} onchange="toggleFileSelection('${file.id}',this)">` : '';
             const pinHtml = file.pinned ? '<i class="fa-solid fa-thumbtack pin-icon mr-1"></i>' : '';
             let expiryTag = '';
             if (file.expiresAt && file.expiresAt > 0) {
                 const rem = file.expiresAt - Date.now();
                 if (rem <= 0) expiryTag = '<span class="expiry-badge bg-red-500/10 text-red-400 ml-1">Expired</span>';
-                else { const d = Math.floor(rem/86400000); const h = Math.floor(rem/3600000); expiryTag = `<span class="expiry-badge bg-[var(--amber)]/10 text-[var(--amber)] ml-1">${d>0?d+'h':h+'j'}</span>`; }
+                else { const d = Math.floor(rem/86400000); const h = Math.floor(rem/3600000); expiryTag = `<span class="expiry-badge bg-[var(--accent)]/10 text-[var(--accent)] ml-1">${d>0?d+'h':h+'j'}</span>`; }
             }
             const folderTag = file.folder ? `<span class="text-[9px] text-[var(--text4)] bg-[var(--surface2)] px-1.5 py-0.5 rounded ml-1">${file.folder}</span>` : '';
-            item.innerHTML = `<div class="flex items-center gap-3 min-w-0 flex-grow">${cbHtml}<div class="w-9 h-9 rounded-lg bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">${iconMarkup}</div><div class="min-w-0"><h4 class="text-xs font-medium text-[var(--text2)] truncate max-w-[150px] sm:max-w-[280px] ${nameClass}" ${isPreviewable ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')"` : ''} ondblclick="startRename('${file.id}',this)" id="name-${file.id}">${pinHtml}${file.name}${expiryTag}${folderTag}</h4><p class="text-[10px] text-[var(--text4)] mt-0.5">${formatBytes(file.size)} &middot; ${file.uploadedAt}</p></div></div><div class="flex items-center gap-0.5 flex-shrink-0"><button onclick="togglePin('${file.id}')" class="btn-icon" title="Pin"><i class="fa-solid fa-thumbtack text-[10px] ${file.pinned?'text-[var(--amber)]':''}"></i></button>${isPreviewable?`<button onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')" class="btn-icon" title="Preview"><i class="fa-regular fa-eye text-[10px]"></i></button>`:''}<button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}',${file.size},'${file.botIndex||'0'}')" class="btn-icon" title="Share"><i class="fa-solid fa-share-nodes text-[10px]"></i></button><button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" title="Hapus"><i class="fa-regular fa-trash-can text-[10px]"></i></button></div>`;
+            item.innerHTML = `<div class="flex items-center gap-3 min-w-0 flex-grow">${cbHtml}<div class="w-9 h-9 rounded-lg bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">${iconMarkup}</div><div class="min-w-0"><h4 class="text-xs font-medium text-[var(--text2)] truncate max-w-[150px] sm:max-w-[280px] ${nameClass}" ${isPreviewable ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')"` : ''} ondblclick="startRename('${file.id}',this)" id="name-${file.id}">${pinHtml}${file.name}${expiryTag}${folderTag}</h4><p class="text-[10px] text-[var(--text4)] mt-0.5">${formatBytes(file.size)} &middot; ${file.uploadedAt}</p></div></div><div class="flex items-center gap-0.5 flex-shrink-0"><button onclick="togglePin('${file.id}')" class="btn-icon" title="Pin"><i class="fa-solid fa-thumbtack text-[10px] ${file.pinned?'text-[var(--accent)]':''}"></i></button>${isPreviewable?`<button onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}','${file.type}','${file.botIndex||'0'}')" class="btn-icon" title="Preview"><i class="fa-regular fa-eye text-[10px]"></i></button>`:''}<button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g,"\\'")}',${file.size},'${file.botIndex||'0'}')" class="btn-icon" title="Share"><i class="fa-solid fa-share-nodes text-[10px]"></i></button><button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" title="Hapus"><i class="fa-regular fa-trash-can text-[10px]"></i></button></div>`;
             container.appendChild(item);
         });
     }
@@ -1119,7 +1119,7 @@ function toggleBatchMode() {
     batchMode = !batchMode; selectedFiles.clear();
     document.getElementById('batchSelectAll').classList.toggle('hidden', !batchMode);
     document.getElementById('batchBar').classList.toggle('hidden', !batchMode);
-    document.getElementById('batchSelectToggle').classList.toggle('text-[var(--amber)]', batchMode);
+    document.getElementById('batchSelectToggle').classList.toggle('text-[var(--accent)]', batchMode);
     renderFileList(); updateBatchCount();
 }
 function toggleFileSelection(id, cb) {
@@ -1191,7 +1191,7 @@ function toggleSharePassword() {
     sharePasswordEnabled = !sharePasswordEnabled;
     const btn = document.getElementById('btnTogglePwd');
     btn.innerText = sharePasswordEnabled ? 'Nonaktifkan' : 'Aktifkan';
-    btn.classList.toggle('text-[var(--amber)]', sharePasswordEnabled);
+    btn.classList.toggle('text-[var(--accent)]', sharePasswordEnabled);
     if (!sharePasswordEnabled) document.getElementById('sharePassword').value = '';
     if (currentShareData) regenerateShareLink();
 }
@@ -1210,7 +1210,7 @@ function openShareModal(tgFileId, name, size, botIndex) {
     document.querySelector('.share-expiry[data-expiry="never"]').classList.add('active');
     document.getElementById('sharePassword').value = '';
     document.getElementById('btnTogglePwd').innerText = 'Aktifkan';
-    document.getElementById('btnTogglePwd').classList.remove('text-[var(--amber)]');
+    document.getElementById('btnTogglePwd').classList.remove('text-[var(--accent)]');
     const link = createSecureLink(tgFileId, name, size, 'never', '', botIndex || '0');
     document.getElementById('shareLinkInput').value = link;
     document.getElementById('modalFileName').innerText = name;
@@ -1220,7 +1220,7 @@ function openShareModal(tgFileId, name, size, botIndex) {
 }
 function closeShareModal() { document.getElementById('shareModal').classList.add('hidden'); currentShareData = null; }
 function generateQR(text) {
-    new QRious({ element: document.getElementById('qrCanvas'), value: text, size: 160, background: currentTheme === 'dark' ? '#141414' : '#ffffff', foreground: '#f59e0b', level: 'M', padding: 10 });
+    new QRious({ element: document.getElementById('qrCanvas'), value: text, size: 160, background: currentTheme === 'dark' ? '#141414' : '#ffffff', foreground: '#3b82f6', level: 'M', padding: 10 });
 }
 function copyShareLink() {
     const val = document.getElementById('shareLinkInput').value;
@@ -1232,7 +1232,7 @@ function copyShareLink() {
 async function openPreview(tgFileId, fileName, fileType, botIndex) {
     const modal = document.getElementById('previewModal');
     const content = document.getElementById('previewContent');
-    content.innerHTML = '<div class="flex flex-col items-center gap-4"><i class="fa-solid fa-circle-notch animate-spin text-3xl text-[var(--amber)]"></i><span class="text-sm text-[var(--text3)]">Memuat preview...</span></div>';
+    content.innerHTML = '<div class="flex flex-col items-center gap-4"><i class="fa-solid fa-circle-notch animate-spin text-3xl text-[var(--accent)]"></i><span class="text-sm text-[var(--text3)]">Memuat preview...</span></div>';
     modal.classList.remove('hidden');
     try {
         const infoData = await apiGetFileInfo(tgFileId, botIndex);
@@ -1257,7 +1257,7 @@ function openStats() {
     // Type bars
     const types = ['image','video','audio','archive','other'];
     const typeLabels = { image:'Gambar', video:'Video', audio:'Audio', archive:'Arsip', other:'Lainnya' };
-    const typeColors = { image:'var(--amber)', video:'#a855f7', audio:'#38bdf8', archive:'#f97316', other:'#737373' };
+    const typeColors = { image:'var(--accent)', video:'#a855f7', audio:'#38bdf8', archive:'#f97316', other:'#737373' };
     const counts = {};
     types.forEach(t => counts[t] = filesData.filter(f => f.type === t).length);
     const max = Math.max(...Object.values(counts), 1);
@@ -1272,7 +1272,7 @@ function openStats() {
     }
     const maxDay = Math.max(...days, 1);
     const dayLabels = ['6h','5h','4h','3h','2h','1h','0h'];
-    document.getElementById('statWeekChart').innerHTML = days.map((c,i) => `<div class="flex flex-col items-center flex-grow gap-1"><div class="w-full bg-[var(--amber)] rounded-sm transition-all" style="height:${Math.max((c/maxDay)*100,4)}%"></div><span class="text-[8px] text-[var(--text4)]">${dayLabels[i]}</span></div>`).join('');
+    document.getElementById('statWeekChart').innerHTML = days.map((c,i) => `<div class="flex flex-col items-center flex-grow gap-1"><div class="w-full bg-[var(--accent)] rounded-sm transition-all" style="height:${Math.max((c/maxDay)*100,4)}%"></div><span class="text-[8px] text-[var(--text4)]">${dayLabels[i]}</span></div>`).join('');
     modal.classList.remove('hidden');
 }
 function closeStats() { document.getElementById('statsModal').classList.add('hidden'); }
@@ -1325,7 +1325,7 @@ function getFileTypeByName(n) {
 }
 function getIconMarkup(t) {
     switch(t) {
-        case 'image': return '<i class="fa-regular fa-file-image text-[var(--amber)] text-sm"></i>';
+        case 'image': return '<i class="fa-regular fa-file-image text-[var(--accent)] text-sm"></i>';
         case 'video': return '<i class="fa-regular fa-file-video text-purple-400 text-sm"></i>';
         case 'audio': return '<i class="fa-regular fa-file-audio text-sky-400 text-sm"></i>';
         case 'archive': return '<i class="fa-regular fa-file-zipper text-orange-400 text-sm"></i>';
@@ -1347,7 +1347,7 @@ function showToast(message, type='info') {
     const c = document.getElementById('toastContainer');
     const t = document.createElement('div');
     let icon = '<i class="fa-solid fa-circle-info text-[var(--text3)]"></i>';
-    if (type==='success') icon = '<i class="fa-solid fa-circle-check text-[var(--amber)]"></i>';
+    if (type==='success') icon = '<i class="fa-solid fa-circle-check text-[var(--accent)]"></i>';
     else if (type==='error') icon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>';
     t.className = 'card flex items-center gap-3 px-4 py-3 pointer-events-auto shadow-lg animate-fadeUp';
     t.innerHTML = `${icon}<span class="text-[var(--text2)] text-xs font-medium">${message}</span>`;
