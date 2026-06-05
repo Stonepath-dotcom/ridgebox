@@ -73,47 +73,84 @@
         @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } } .animate-fadeUp { animation: fadeUp .3s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } } .animate-slideUp { animation: slideUp .3s cubic-bezier(.16,1,.3,1); }
         /* Homepage sections */
-        .hp-section { padding: 80px 0; }
+        html { scroll-behavior: smooth; }
+        .hp-section { padding: 96px 0; }
         .hp-section-alt { background: var(--surface); }
-        .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px 24px; text-align: center; transition: all .25s; position: relative; }
-        .step-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(59,130,246,.08); }
-        .step-num { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; margin-bottom: 16px; }
-        .feat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; transition: all .2s; }
-        .feat-card:hover { border-color: var(--accent-dim); background: var(--surface2); }
-        .feat-card i { color: var(--accent); font-size: 18px; margin-bottom: 8px; display: block; }
-        .stat-counter { font-size: 40px; font-weight: 700; color: var(--accent); line-height: 1; font-family: 'JetBrains Mono', monospace; }
+        @media(max-width:768px) { .hp-section { padding: 56px 0; } }
+        .hp-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 100px; font-size: 12px; font-weight: 600; background: rgba(59,130,246,.08); color: var(--accent); margin-bottom: 16px; }
+        .hp-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+        .hp-title { font-size: 32px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
+        @media(min-width:768px) { .hp-title { font-size: 40px; } }
+        .hp-subtitle { font-size: 15px; color: var(--text3); line-height: 1.65; max-width: 520px; }
+        .hp-subtitle.mx { margin-left: auto; margin-right: auto; }
+        /* Steps */
+        .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 36px 28px; text-align: center; transition: all .3s cubic-bezier(.16,1,.3,1); position: relative; }
+        .step-card:hover { border-color: var(--accent); transform: translateY(-6px); box-shadow: 0 20px 40px rgba(59,130,246,.1); }
+        .step-num { width: 40px; height: 40px; border-radius: 12px; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; margin-bottom: 20px; }
+        .step-connector { display: none; align-items: center; justify-content: center; color: var(--border2); font-size: 20px; }
+        @media(min-width:768px) { .step-connector { display: flex; } }
+        /* Feature grid */
+        .feat-group-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text4); margin-bottom: 12px; padding-left: 2px; }
+        .feat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; transition: all .2s; display: flex; align-items: center; gap: 12px; }
+        .feat-card:hover { border-color: var(--accent); background: var(--surface2); transform: translateY(-1px); }
+        .feat-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(59,130,246,.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .feat-icon i { color: var(--accent); font-size: 14px; }
+        /* Stats */
+        .stat-box { text-align: center; padding: 28px 16px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); transition: all .2s; }
+        .stat-box:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .stat-counter { font-size: 36px; font-weight: 700; color: var(--accent); line-height: 1; font-family: 'JetBrains Mono', monospace; }
+        @media(min-width:768px) { .stat-counter { font-size: 44px; } }
+        .stat-label { font-size: 13px; color: var(--text3); margin-top: 10px; font-weight: 500; }
+        /* Compare */
         .compare-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
-        .compare-table th { padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text3); border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: .5px; }
-        .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text2); }
+        .compare-table th { padding: 14px 20px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text4); border-bottom: 2px solid var(--border); text-transform: uppercase; letter-spacing: .8px; }
+        .compare-table td { padding: 14px 20px; border-bottom: 1px solid var(--border); color: var(--text2); }
         .compare-table tr:last-child td { border-bottom: none; }
-        .compare-highlight { background: rgba(59,130,246,.04); }
-        .compare-highlight th { background: var(--accent); color: #fff; border-radius: 10px 10px 0 0; }
+        .compare-table tr:hover td { background: var(--surface2); }
+        .compare-highlight th { background: var(--accent); color: #fff; font-size: 12px; }
+        .compare-highlight th:first-child { border-radius: 12px 0 0 0; }
+        .compare-highlight th:last-child { border-radius: 0 12px 0 0; }
         .check-yes { color: #22c55e; font-weight: 700; }
-        .check-no { color: #ef4444; }
-        .check-partial { color: #f97316; }
-        .faq-item { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color .2s; }
+        .check-no { color: var(--text4); }
+        .check-partial { color: #f97316; font-size: 11px; }
+        /* FAQ */
+        .faq-item { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: all .2s; background: var(--surface); }
         .faq-item:hover { border-color: var(--border2); }
-        .faq-q { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 500; font-size: 14px; color: var(--text); user-select: none; }
-        .faq-q i { transition: transform .25s; color: var(--text3); font-size: 12px; }
+        .faq-item.open { border-color: var(--accent); box-shadow: 0 4px 16px rgba(59,130,246,.06); }
+        .faq-q { padding: 18px 24px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; font-weight: 600; font-size: 14px; color: var(--text); user-select: none; transition: color .15s; }
+        .faq-q:hover { color: var(--accent); }
+        .faq-q i { transition: transform .25s; color: var(--text4); font-size: 11px; flex-shrink: 0; }
         .faq-item.open .faq-q i { transform: rotate(180deg); color: var(--accent); }
-        .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease, padding .3s; padding: 0 20px; font-size: 13px; color: var(--text2); line-height: 1.7; }
-        .faq-item.open .faq-a { max-height: 300px; padding: 0 20px 16px; }
-        .changelog-item { position: relative; padding-left: 28px; padding-bottom: 24px; }
-        .changelog-item:last-child { padding-bottom: 0; }
-        .changelog-item::before { content: ''; position: absolute; left: 5px; top: 8px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
-        .changelog-item::after { content: ''; position: absolute; left: 9px; top: 22px; width: 2px; height: calc(100% - 16px); background: var(--border); }
-        .changelog-item:last-child::after { display: none; }
-        .security-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; display: flex; gap: 16px; align-items: flex-start; transition: all .2s; }
-        .security-card:hover { border-color: var(--accent); }
-        .mockup-frame { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.1); }
-        .mockup-topbar { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 8px 12px; display: flex; gap: 6px; align-items: center; }
-        .mockup-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .theme-preview-toggle { display: inline-flex; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-        .theme-preview-toggle button { padding: 8px 18px; border: none; background: transparent; color: var(--text3); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
-        .theme-preview-toggle button.active { background: var(--accent); color: #fff; }
+        .faq-a { max-height: 0; overflow: hidden; transition: max-height .35s ease, padding .35s; padding: 0 24px; font-size: 13px; color: var(--text3); line-height: 1.75; }
+        .faq-item.open .faq-a { max-height: 400px; padding: 0 24px 20px; }
+        /* Changelog */
+        .cl-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; transition: all .2s; }
+        .cl-card:hover { border-color: var(--border2); }
+        .cl-version { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .cl-v3 { background: rgba(59,130,246,.1); color: var(--accent); }
+        .cl-v2 { background: rgba(34,197,94,.1); color: #22c55e; }
+        .cl-v1 { background: rgba(168,85,247,.1); color: #a855f7; }
+        /* Security */
+        .security-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; display: flex; gap: 20px; align-items: flex-start; transition: all .25s; }
+        .security-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,.06); }
+        .sec-icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(59,130,246,.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .sec-icon i { color: var(--accent); font-size: 18px; }
+        /* Mockup */
+        .mockup-frame { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,.08), 0 0 0 1px var(--border); }
+        .mockup-topbar { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 10px 14px; display: flex; gap: 6px; align-items: center; }
+        .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+        /* Theme toggle */
+        .theme-preview-toggle { display: inline-flex; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+        .theme-preview-toggle button { padding: 6px 14px; border: none; background: transparent; color: var(--text4); font-size: 11px; font-weight: 600; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 5px; }
+        .theme-preview-toggle button.active { background: var(--accent); color: #fff; border-radius: 7px; }
+        /* CTA */
+        .hp-cta-section { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%); border-radius: 24px; padding: 64px 48px; text-align: center; color: #fff; position: relative; overflow: hidden; }
+        .hp-cta-section::before { content: ''; position: absolute; top: -50%; right: -20%; width: 400px; height: 400px; border-radius: 50%; background: rgba(255,255,255,.04); }
+        .hp-cta-section::after { content: ''; position: absolute; bottom: -30%; left: -10%; width: 300px; height: 300px; border-radius: 50%; background: rgba(255,255,255,.03); }
+        @media(max-width:768px) { .hp-cta-section { padding: 40px 24px; border-radius: 16px; } }
+        /* Animation */
         @keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .count-animated { animation: countUp .5s ease-out; }
-        .hp-cta-section { background: linear-gradient(135deg, var(--accent) 0%, #1e40af 100%); border-radius: 20px; padding: 48px; text-align: center; color: #fff; }
     </style>
 </head>
 <body class="antialiased">
@@ -136,157 +173,220 @@
 <!-- HOMEPAGE -->
 <div id="homeView" class="min-h-screen flex flex-col">
     <!-- Nav -->
-    <nav class="px-6 py-5 md:px-12 flex justify-between items-center border-b border-[var(--border)] sticky top-0 z-40" style="background:var(--bg);backdrop-filter:blur(12px)">
+    <nav class="px-6 py-4 md:px-12 flex justify-between items-center border-b border-[var(--border)] sticky top-0 z-40" style="background:var(--bg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)">
         <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-xs"></i></div><span class="text-lg font-bold tracking-wider">RIDGEBOX</span></div>
         <div class="flex items-center gap-3">
             <div class="theme-preview-toggle">
-                <button onclick="setTheme('light')" class="hp-theme-btn" data-t="light"><i class="fa-solid fa-sun mr-1"></i>Terang</button>
-                <button onclick="setTheme('dark')" class="hp-theme-btn" data-t="dark"><i class="fa-solid fa-moon mr-1"></i>Gelap</button>
+                <button onclick="setTheme('light')" class="hp-theme-btn" data-t="light"><i class="fa-solid fa-sun"></i><span class="hidden sm:inline">Terang</span></button>
+                <button onclick="setTheme('dark')" class="hp-theme-btn" data-t="dark"><i class="fa-solid fa-moon"></i><span class="hidden sm:inline">Gelap</span></button>
             </div>
-            <a href="#/dashboard" class="btn-ghost">Buka Dasbor <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i></a>
+            <a href="#/dashboard" class="btn-primary text-xs py-2 px-4">Buka Dasbor <i class="fa-solid fa-arrow-right ml-1 text-[9px]"></i></a>
         </div>
     </nav>
 
-    <!-- ═══ 1. HERO ═══ -->
+    <!-- ═══ HERO ═══ -->
     <section class="flex-grow flex items-center">
-        <div class="max-w-6xl mx-auto w-full px-6 md:px-12 py-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div class="space-y-8">
-                <div><div class="badge bg-[var(--accent)]/10 text-[var(--accent)] mb-4"><span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>Cloud Storage Gratis</div><h1 class="text-4xl md:text-5xl font-bold leading-tight">Simpan file di cloud,<br><span class="text-[var(--accent)]">pakai Telegram.</span></h1></div>
-                <p class="text-[var(--text2)] text-base leading-relaxed max-w-md">Ridgebox bikin Telegram Bot kamu jadi cloud storage personal. Upload, share, dan kelola file langsung dari browser. 45 fitur lengkap tanpa biaya.</p>
-                <div class="flex gap-3"><a href="#/dashboard" class="btn-primary inline-flex items-center gap-2">Mulai Pakai <i class="fa-solid fa-arrow-right text-xs"></i></a><a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" class="btn-ghost inline-flex items-center gap-2"><i class="fa-brands fa-github text-sm"></i> Source</a></div>
-                <div class="flex items-center gap-6 text-[var(--text4)] text-xs"><span><i class="fa-solid fa-shield-halved mr-1.5"></i>Upload langsung</span><span><i class="fa-solid fa-bolt mr-1.5"></i>Tanpa batas</span><span><i class="fa-solid fa-infinity mr-1.5"></i>Gratis</span></div>
+        <div class="max-w-6xl mx-auto w-full px-6 md:px-12 py-20 md:py-28 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <div class="space-y-7">
+                <div>
+                    <div class="hp-badge"><span class="hp-badge-dot"></span>Cloud Storage Gratis</div>
+                    <h1 class="text-4xl md:text-[44px] font-bold leading-[1.15] tracking-tight">Simpan file di cloud,<br><span class="text-[var(--accent)]">pakai Telegram.</span></h1>
+                </div>
+                <p class="text-[var(--text2)] text-base leading-relaxed max-w-md">Ridgebox bikin Telegram Bot kamu jadi cloud storage personal. Upload, share, dan kelola file langsung dari browser — 45 fitur lengkap tanpa biaya.</p>
+                <div class="flex flex-wrap gap-3">
+                    <a href="#/dashboard" class="btn-primary inline-flex items-center gap-2 py-3 px-6">Mulai Pakai <i class="fa-solid fa-arrow-right text-xs"></i></a>
+                    <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" class="btn-ghost inline-flex items-center gap-2 py-3 px-5"><i class="fa-brands fa-github text-sm"></i> Source Code</a>
+                </div>
+                <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-[var(--text4)] text-xs pt-2">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved"></i>Upload langsung</span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-bolt"></i>Tanpa batas</span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-infinity"></i>Gratis selamanya</span>
+                </div>
             </div>
-            <div class="terminal shadow-2xl" style="background:#0c0c0c;border:1px solid var(--border);border-radius:12px;overflow:hidden;font-family:'JetBrains Mono',monospace">
-                <div style="display:flex;align-items:center;gap:6px;padding:10px 14px;background:#141414;border-bottom:1px solid var(--border)"><div style="width:10px;height:10px;border-radius:50%;background:#ff5f57"></div><div style="width:10px;height:10px;border-radius:50%;background:#febc2e"></div><div style="width:10px;height:10px;border-radius:50%;background:#28c840"></div><span class="ml-3 text-[10px]" style="color:var(--text4)">ridgebox v3</span></div>
-                <div style="padding:16px;font-size:12px;line-height:1.8;color:#737373"><div><span style="color:var(--accent)">$</span> ridgebox upload backup.zip</div><div style="color:#22c55e">✓ Direct upload — no size limit</div><div><span style="color:var(--accent)">$</span> ridgebox encrypt backup.zip</div><div style="color:#22c55e">✓ AES-256-GCM encrypted</div><div><span style="color:var(--accent)">$</span> ridgebox share --self-destruct</div><div style="color:#fff">→ Link expires after 1 download</div><div class="mt-2"><span style="color:var(--accent)">$</span> <span class="animate-pulse">_</span></div></div>
+            <div class="shadow-2xl rounded-2xl overflow-hidden" style="background:#0c0c0c;border:1px solid var(--border)">
+                <div style="display:flex;align-items:center;gap:6px;padding:12px 16px;background:#141414;border-bottom:1px solid var(--border)"><div style="width:10px;height:10px;border-radius:50%;background:#ff5f57"></div><div style="width:10px;height:10px;border-radius:50%;background:#febc2e"></div><div style="width:10px;height:10px;border-radius:50%;background:#28c840"></div><span class="ml-3 text-[10px]" style="color:var(--text4)">ridgebox v3</span></div>
+                <div style="padding:20px;font-size:12px;line-height:2;color:#737373;font-family:'JetBrains Mono',monospace"><div><span style="color:var(--accent)">$</span> ridgebox upload backup.zip</div><div style="color:#22c55e">✓ Direct upload — no size limit</div><div><span style="color:var(--accent)">$</span> ridgebox encrypt backup.zip</div><div style="color:#22c55e">✓ AES-256-GCM encrypted</div><div><span style="color:var(--accent)">$</span> ridgebox share --self-destruct</div><div style="color:#fff">→ Link expires after 1 download</div><div class="mt-1"><span style="color:var(--accent)">$</span> <span class="animate-pulse">_</span></div></div>
             </div>
         </div>
     </section>
 
-    <!-- ═══ 3. STATS COUNTER ═══ -->
+    <!-- ═══ STATS ═══ -->
+    <section class="hp-section-alt hp-section">
+        <div class="max-w-5xl mx-auto px-6 md:px-12">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                <div class="stat-box"><div class="stat-counter" data-target="45">0</div><p class="stat-label">Fitur Lengkap</p></div>
+                <div class="stat-box"><div class="stat-counter" data-target="2000" data-suffix=" MB">0</div><p class="stat-label">Batas Upload</p></div>
+                <div class="stat-box"><div class="stat-counter" data-target="100" data-suffix="%">0</div><p class="stat-label">Gratis</p></div>
+                <div class="stat-box"><div class="stat-counter" data-target="256" data-prefix="AES-" data-suffix="-GCM">0</div><p class="stat-label">Enkripsi</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ HOW IT WORKS ═══ -->
+    <section class="hp-section">
+        <div class="max-w-5xl mx-auto px-6 md:px-12">
+            <div class="text-center mb-14">
+                <div class="hp-badge"><span class="hp-badge-dot"></span>Cara Kerja</div>
+                <h2 class="hp-title">Tiga langkah, langsung jadi</h2>
+                <p class="hp-subtitle mx mt-4">Tidak perlu registrasi. Tidak perlu kartu kredit. Cukup Telegram Bot dan browser.</p>
+            </div>
+            <div class="flex flex-col md:flex-row items-stretch gap-4 md:gap-0">
+                <div class="step-card flex-1"><div class="step-num">1</div><div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center"><i class="fa-solid fa-robot text-[var(--accent)] text-xl"></i></div><h3 class="font-semibold text-base mb-2">Setup Bot</h3><p class="text-[var(--text3)] text-sm leading-relaxed">Buat Telegram Bot via @BotFather, dapatkan token, lalu masukkan ke pengaturan. Prosesnya kurang dari 2 menit.</p></div>
+                <div class="step-connector"><i class="fa-solid fa-chevron-right"></i></div>
+                <div class="step-card flex-1"><div class="step-num">2</div><div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center"><i class="fa-solid fa-arrow-up-from-bracket text-[var(--accent)] text-xl"></i></div><h3 class="font-semibold text-base mb-2">Upload File</h3><p class="text-[var(--text3)] text-sm leading-relaxed">Seret & lepas berkas, paste dari clipboard, atau upload dari URL. File dikirim langsung ke Telegram.</p></div>
+                <div class="step-connector"><i class="fa-solid fa-chevron-right"></i></div>
+                <div class="step-card flex-1"><div class="step-num">3</div><div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center"><i class="fa-solid fa-share-nodes text-[var(--accent)] text-xl"></i></div><h3 class="font-semibold text-base mb-2">Share & Kelola</h3><p class="text-[var(--text3)] text-sm leading-relaxed">Bagikan link aman dengan password dan self-destruct. Organisir di folder dan cari dengan filter canggih.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ FEATURE GRID ═══ -->
     <section class="hp-section-alt hp-section">
         <div class="max-w-6xl mx-auto px-6 md:px-12">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                <div><div class="stat-counter" data-target="45">0</div><p class="text-[var(--text3)] text-sm mt-2">Fitur Lengkap</p></div>
-                <div><div class="stat-counter" data-target="2000" data-suffix=" MB">0</div><p class="text-[var(--text3)] text-sm mt-2">Batas Upload</p></div>
-                <div><div class="stat-counter" data-target="100" data-suffix="%">0</div><p class="text-[var(--text3)] text-sm mt-2">Gratis</p></div>
-                <div><div class="stat-counter" data-target="256" data-prefix="AES-" data-suffix="-GCM">0</div><p class="text-[var(--text3)] text-sm mt-2">Enkripsi</p></div>
+            <div class="text-center mb-14">
+                <div class="hp-badge"><span class="hp-badge-dot"></span>45 Fitur</div>
+                <h2 class="hp-title">Semua yang kamu butuhkan</h2>
+                <p class="hp-subtitle mx mt-4">Dari upload dasar sampai fitur enterprise-grade. Semua gratis, semua di browser.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Group: Upload -->
+                <div><p class="feat-group-title">Upload</p><div class="space-y-3">
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-arrow-up-from-bracket"></i></div><div><h4 class="text-xs font-semibold">Upload File</h4><p class="text-[10px] text-[var(--text4)]">Drag & drop, klik, paste</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-link"></i></div><div><h4 class="text-xs font-semibold">Upload URL</h4><p class="text-[10px] text-[var(--text4)]">Dari link langsung</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-clipboard"></i></div><div><h4 class="text-xs font-semibold">Paste Upload</h4><p class="text-[10px] text-[var(--text4)]">Ctrl+V gambar</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-rotate-right"></i></div><div><h4 class="text-xs font-semibold">Upload Resume</h4><p class="text-[10px] text-[var(--text4)]">Lanjutkan yang terputus</p></div></div>
+                </div></div>
+                <!-- Group: Organize -->
+                <div><p class="feat-group-title">Organisasi</p><div class="space-y-3">
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-folder"></i></div><div><h4 class="text-xs font-semibold">Folder</h4><p class="text-[10px] text-[var(--text4)]">Buat & kelola folder</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-folder-plus"></i></div><div><h4 class="text-xs font-semibold">Pindah Folder</h4><p class="text-[10px] text-[var(--text4)]">Move / bulk move</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-palette"></i></div><div><h4 class="text-xs font-semibold">Tag Warna</h4><p class="text-[10px] text-[var(--text4)]">6 warna label</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-thumbtack"></i></div><div><h4 class="text-xs font-semibold">Pin File</h4><p class="text-[10px] text-[var(--text4)]">Akses cepat</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-sticky-note"></i></div><div><h4 class="text-xs font-semibold">Catatan File</h4><p class="text-[10px] text-[var(--text4)]">Private notes</p></div></div>
+                </div></div>
+                <!-- Group: Search & View -->
+                <div><p class="feat-group-title">Pencarian & Tampilan</p><div class="space-y-3">
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-magnifying-glass"></i></div><div><h4 class="text-xs font-semibold">Pencarian</h4><p class="text-[10px] text-[var(--text4)]">Real-time filter</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-sort"></i></div><div><h4 class="text-xs font-semibold">Sort & Filter</h4><p class="text-[10px] text-[var(--text4)]">7 mode pengurutan</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-grip"></i></div><div><h4 class="text-xs font-semibold">Grid / List View</h4><p class="text-[10px] text-[var(--text4)]">Toggle tampilan</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-clock"></i></div><div><h4 class="text-xs font-semibold">Recent Files</h4><p class="text-[10px] text-[var(--text4)]">Tab file terbaru</p></div></div>
+                </div></div>
+                <!-- Group: Share -->
+                <div><p class="feat-group-title">Berbagi</p><div class="space-y-3">
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-share-nodes"></i></div><div><h4 class="text-xs font-semibold">Share Link</h4><p class="text-[10px] text-[var(--text4)]">Link aman + QR code</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-key"></i></div><div><h4 class="text-xs font-semibold">Password Link</h4><p class="text-[10px] text-[var(--text4)]">Share terproteksi</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-burst"></i></div><div><h4 class="text-xs font-semibold">Self-Destruct</h4><p class="text-[10px] text-[var(--text4)]">1x download link</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-qrcode"></i></div><div><h4 class="text-xs font-semibold">QR Code</h4><p class="text-[10px] text-[var(--text4)]">Scan share link</p></div></div>
+                </div></div>
+                <!-- Group: Security -->
+                <div><p class="feat-group-title">Keamanan</p><div class="space-y-3">
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-lock"></i></div><div><h4 class="text-xs font-semibold">Enkripsi</h4><p class="text-[10px] text-[var(--text4)]">AES-256-GCM</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-shield-halved"></i></div><div><h4 class="text-xs font-semibold">PIN Lock</h4><p class="text-[10px] text-[var(--text4)]">Kunci dashboard</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-clock"></i></div><div><h4 class="text-xs font-semibold">File Expiration</h4><p class="text-[10px] text-[var(--text4)]">Auto-delete timer</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-folder-lock"></i></div><div><h4 class="text-xs font-semibold">Encrypted Folder</h4><p class="text-[10px] text-[var(--text4)]">Folder wajib enkripsi</p></div></div>
+                </div></div>
+                <!-- Group: Batch & Manage -->
+                <div><p class="feat-group-title">Pengelolaan</p><div class="space-y-3">
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-square-check"></i></div><div><h4 class="text-xs font-semibold">Multi-Select</h4><p class="text-[10px] text-[var(--text4)]">Shift+click range</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-file-zipper"></i></div><div><h4 class="text-xs font-semibold">ZIP Download</h4><p class="text-[10px] text-[var(--text4)]">Batch ke ZIP</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-pen"></i></div><div><h4 class="text-xs font-semibold">Bulk Rename</h4><p class="text-[10px] text-[var(--text4)]">Prefix, suffix, nomor</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-clone"></i></div><div><h4 class="text-xs font-semibold">Deteksi Duplikat</h4><p class="text-[10px] text-[var(--text4)]">Scan otomatis</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-regular fa-trash-can"></i></div><div><h4 class="text-xs font-semibold">Sampah</h4><p class="text-[10px] text-[var(--text4)]">Soft delete + restore</p></div></div>
+                </div></div>
+                <!-- Group: Preview & Stats -->
+                <div><p class="feat-group-title">Preview & Info</p><div class="space-y-3">
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-eye"></i></div><div><h4 class="text-xs font-semibold">Preview</h4><p class="text-[10px] text-[var(--text4)]">Img, video, audio, doc</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-chart-simple"></i></div><div><h4 class="text-xs font-semibold">Statistik</h4><p class="text-[10px] text-[var(--text4)]">Chart + donut</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-code-branch"></i></div><div><h4 class="text-xs font-semibold">Versioning</h4><p class="text-[10px] text-[var(--text4)]">Riwayat versi file</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-clock-rotate-left"></i></div><div><h4 class="text-xs font-semibold">Activity Log</h4><p class="text-[10px] text-[var(--text4)]">Riwayat aktivitas</p></div></div>
+                </div></div>
+                <!-- Group: System -->
+                <div><p class="feat-group-title">Sistem</p><div class="space-y-3">
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-moon"></i></div><div><h4 class="text-xs font-semibold">Dark Mode</h4><p class="text-[10px] text-[var(--text4)]">Gelap & terang</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-robot"></i></div><div><h4 class="text-xs font-semibold">Multi-Bot</h4><p class="text-[10px] text-[var(--text4)]">Switch antar bot</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-mobile-screen"></i></div><div><h4 class="text-xs font-semibold">PWA</h4><p class="text-[10px] text-[var(--text4)]">Install ke homescreen</p></div></div>
+                    <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-download"></i></div><div><h4 class="text-xs font-semibold">Export / Import</h4><p class="text-[10px] text-[var(--text4)]">Backup metadata JSON</p></div></div>
+                </div></div>
             </div>
         </div>
     </section>
 
-    <!-- ═══ 1. HOW IT WORKS ═══ -->
+    <!-- ═══ MOCKUP ═══ -->
     <section class="hp-section">
         <div class="max-w-6xl mx-auto px-6 md:px-12">
-            <div class="text-center mb-12"><div class="badge bg-[var(--accent)]/10 text-[var(--accent)] mb-3"><span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>Cara Kerja</div><h2 class="text-3xl font-bold">Tiga langkah, langsung jadi</h2><p class="text-[var(--text3)] mt-3 max-w-lg mx-auto">Tidak perlu registrasi. Tidak perlu kartu kredit. Cukup Telegram Bot dan browser.</p></div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="step-card"><div class="step-num">1</div><div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center"><i class="fa-solid fa-robot text-[var(--accent)] text-xl"></i></div><h3 class="font-semibold mb-2">Setup Bot</h3><p class="text-[var(--text3)] text-sm leading-relaxed">Buat Telegram Bot via @BotFather, dapatkan token, lalu masukkan ke pengaturan Ridgebox. Prosesnya kurang dari 2 menit.</p></div>
-                <div class="step-card"><div class="step-num">2</div><div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center"><i class="fa-solid fa-arrow-up-from-bracket text-[var(--accent)] text-xl"></i></div><h3 class="font-semibold mb-2">Upload File</h3><p class="text-[var(--text3)] text-sm leading-relaxed">Seret & lepas berkas, paste dari clipboard, atau upload dari URL. File dikirim langsung ke Telegram — tanpa server perantara.</p></div>
-                <div class="step-card"><div class="step-num">3</div><div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center"><i class="fa-solid fa-share-nodes text-[var(--accent)] text-xl"></i></div><h3 class="font-semibold mb-2">Share & Kelola</h3><p class="text-[var(--text3)] text-sm leading-relaxed">Bagikan link aman dengan password dan self-destruct. Organisir file di folder, tag warna, dan cari dengan filter canggih.</p></div>
+            <div class="text-center mb-14">
+                <div class="hp-badge"><span class="hp-badge-dot"></span>Tampilan</div>
+                <h2 class="hp-title">Dashboard yang bersih dan powerful</h2>
+                <p class="hp-subtitle mx mt-4">Desain minimalis dengan semua fitur yang bisa diakses dengan mudah.</p>
             </div>
-        </div>
-    </section>
-
-    <!-- ═══ 2. FEATURE SHOWCASE GRID ═══ -->
-    <section class="hp-section-alt hp-section">
-        <div class="max-w-6xl mx-auto px-6 md:px-12">
-            <div class="text-center mb-12"><div class="badge bg-[var(--accent)]/10 text-[var(--accent)] mb-3"><span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>45 Fitur</div><h2 class="text-3xl font-bold">Semua yang kamu butuhkan</h2><p class="text-[var(--text3)] mt-3 max-w-lg mx-auto">Dari upload dasar sampai fitur enterprise-grade. Semua gratis, semua di browser.</p></div>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                <div class="feat-card"><i class="fa-solid fa-arrow-up-from-bracket"></i><h4 class="text-xs font-semibold">Upload File</h4><p class="text-[10px] text-[var(--text3)] mt-1">Drag & drop, klik, paste</p></div>
-                <div class="feat-card"><i class="fa-solid fa-link"></i><h4 class="text-xs font-semibold">Upload URL</h4><p class="text-[10px] text-[var(--text3)] mt-1">Dari link langsung</p></div>
-                <div class="feat-card"><i class="fa-solid fa-share-nodes"></i><h4 class="text-xs font-semibold">Share Link</h4><p class="text-[10px] text-[var(--text3)] mt-1">Link aman + QR code</p></div>
-                <div class="feat-card"><i class="fa-solid fa-lock"></i><h4 class="text-xs font-semibold">Enkripsi</h4><p class="text-[10px] text-[var(--text3)] mt-1">AES-256-GCM</p></div>
-                <div class="feat-card"><i class="fa-solid fa-folder"></i><h4 class="text-xs font-semibold">Folder</h4><p class="text-[10px] text-[var(--text3)] mt-1">Organisir file</p></div>
-                <div class="feat-card"><i class="fa-solid fa-palette"></i><h4 class="text-xs font-semibold">Tag Warna</h4><p class="text-[10px] text-[var(--text3)] mt-1">6 warna label</p></div>
-                <div class="feat-card"><i class="fa-solid fa-magnifying-glass"></i><h4 class="text-xs font-semibold">Pencarian</h4><p class="text-[10px] text-[var(--text3)] mt-1">Real-time filter</p></div>
-                <div class="feat-card"><i class="fa-solid fa-sort"></i><h4 class="text-xs font-semibold">Sort & Filter</h4><p class="text-[10px] text-[var(--text3)] mt-1">7 mode pengurutan</p></div>
-                <div class="feat-card"><i class="fa-solid fa-thumbtack"></i><h4 class="text-xs font-semibold">Pin File</h4><p class="text-[10px] text-[var(--text3)] mt-1">Akses cepat</p></div>
-                <div class="feat-card"><i class="fa-regular fa-trash-can"></i><h4 class="text-xs font-semibold">Sampah</h4><p class="text-[10px] text-[var(--text3)] mt-1">Soft delete + restore</p></div>
-                <div class="feat-card"><i class="fa-solid fa-file-zipper"></i><h4 class="text-xs font-semibold">ZIP Download</h4><p class="text-[10px] text-[var(--text3)] mt-1">Batch ke ZIP</p></div>
-                <div class="feat-card"><i class="fa-solid fa-clone"></i><h4 class="text-xs font-semibold">Deteksi Duplikat</h4><p class="text-[10px] text-[var(--text3)] mt-1">Scan otomatis</p></div>
-                <div class="feat-card"><i class="fa-solid fa-clipboard"></i><h4 class="text-xs font-semibold">Paste Upload</h4><p class="text-[10px] text-[var(--text3)] mt-1">Ctrl+V gambar</p></div>
-                <div class="feat-card"><i class="fa-solid fa-clock"></i><h4 class="text-xs font-semibold">File Expiration</h4><p class="text-[10px] text-[var(--text3)] mt-1">Auto-delete timer</p></div>
-                <div class="feat-card"><i class="fa-solid fa-burst"></i><h4 class="text-xs font-semibold">Self-Destruct</h4><p class="text-[10px] text-[var(--text3)] mt-1">1x download link</p></div>
-                <div class="feat-card"><i class="fa-solid fa-sticky-note"></i><h4 class="text-xs font-semibold">Catatan File</h4><p class="text-[10px] text-[var(--text3)] mt-1">Private notes</p></div>
-                <div class="feat-card"><i class="fa-solid fa-clock-rotate-left"></i><h4 class="text-xs font-semibold">Activity Log</h4><p class="text-[10px] text-[var(--text3)] mt-1">Riwayat aktivitas</p></div>
-                <div class="feat-card"><i class="fa-solid fa-shield-halved"></i><h4 class="text-xs font-semibold">PIN Lock</h4><p class="text-[10px] text-[var(--text3)] mt-1">Kunci dashboard</p></div>
-                <div class="feat-card"><i class="fa-solid fa-folder-plus"></i><h4 class="text-xs font-semibold">Pindah Folder</h4><p class="text-[10px] text-[var(--text3)] mt-1">Move / bulk move</p></div>
-                <div class="feat-card"><i class="fa-solid fa-eye"></i><h4 class="text-xs font-semibold">Preview</h4><p class="text-[10px] text-[var(--text3)] mt-1">Img, video, audio, doc</p></div>
-                <div class="feat-card"><i class="fa-solid fa-chart-simple"></i><h4 class="text-xs font-semibold">Statistik</h4><p class="text-[10px] text-[var(--text3)] mt-1">Chart + donut</p></div>
-                <div class="feat-card"><i class="fa-solid fa-moon"></i><h4 class="text-xs font-semibold">Dark Mode</h4><p class="text-[10px] text-[var(--text3)] mt-1">Gelap & terang</p></div>
-                <div class="feat-card"><i class="fa-solid fa-pen"></i><h4 class="text-xs font-semibold">Bulk Rename</h4><p class="text-[10px] text-[var(--text3)] mt-1">Prefix, suffix, nomor</p></div>
-                <div class="feat-card"><i class="fa-solid fa-code-branch"></i><h4 class="text-xs font-semibold">Versioning</h4><p class="text-[10px] text-[var(--text3)] mt-1">Riwayat versi file</p></div>
-                <div class="feat-card"><i class="fa-solid fa-download"></i><h4 class="text-xs font-semibold">Export/Import</h4><p class="text-[10px] text-[var(--text3)] mt-1">Backup metadata JSON</p></div>
-                <div class="feat-card"><i class="fa-solid fa-grip"></i><h4 class="text-xs font-semibold">Grid/List View</h4><p class="text-[10px] text-[var(--text3)] mt-1">Toggle tampilan</p></div>
-                <div class="feat-card"><i class="fa-solid fa-square-check"></i><h4 class="text-xs font-semibold">Multi-Select</h4><p class="text-[10px] text-[var(--text3)] mt-1">Shift+click range</p></div>
-                <div class="feat-card"><i class="fa-solid fa-key"></i><h4 class="text-xs font-semibold">Password Link</h4><p class="text-[10px] text-[var(--text3)] mt-1">Share terproteksi</p></div>
-                <div class="feat-card"><i class="fa-solid fa-qrcode"></i><h4 class="text-xs font-semibold">QR Code</h4><p class="text-[10px] text-[var(--text3)] mt-1">Scan share link</p></div>
-                <div class="feat-card"><i class="fa-solid fa-robot"></i><h4 class="text-xs font-semibold">Multi-Bot</h4><p class="text-[10px] text-[var(--text3)] mt-1">Switch antar bot</p></div>
-                <div class="feat-card"><i class="fa-solid fa-mobile-screen"></i><h4 class="text-xs font-semibold">PWA</h4><p class="text-[10px] text-[var(--text3)] mt-1">Install ke homescreen</p></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══ 9. MOCKUP DASHBOARD ═══ -->
-    <section class="hp-section">
-        <div class="max-w-6xl mx-auto px-6 md:px-12">
-            <div class="text-center mb-12"><div class="badge bg-[var(--accent)]/10 text-[var(--accent)] mb-3"><span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>Tampilan</div><h2 class="text-3xl font-bold">Dashboard yang bersih dan powerful</h2><p class="text-[var(--text3)] mt-3 max-w-lg mx-auto">Desain minimalis dengan semua fitur yang bisa diakses dengan mudah.</p></div>
             <div class="mockup-frame max-w-4xl mx-auto">
-                <div class="mockup-topbar"><div class="mockup-dot" style="background:#ff5f57"></div><div class="mockup-dot" style="background:#febc2e"></div><div class="mockup-dot" style="background:#28c840"></div><span class="ml-3 text-[10px] text-[var(--text4)]">Ridgebox Dashboard</span></div>
-                <div class="p-6 space-y-4" style="min-height:280px">
-                    <div class="flex gap-3 items-center"><div class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-[10px]"></i></div><span class="font-bold tracking-wider text-sm">RIDGEBOX</span><div class="ml-auto flex items-center gap-2"><span class="badge bg-[var(--surface2)] border border-[var(--border)] text-[var(--text3)] text-[10px]"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Cloud Aktif</span></div></div>
-                    <div class="border border-dashed border-[var(--border)] rounded-xl p-6 text-center"><i class="fa-solid fa-arrow-up-from-bracket text-[var(--text3)] text-xl mb-2"></i><p class="text-[var(--text3)] text-xs">Seret & lepas berkas di sini</p></div>
+                <div class="mockup-topbar"><div class="mockup-dot" style="background:#ff5f57"></div><div class="mockup-dot" style="background:#febc2e"></div><div class="mockup-dot" style="background:#28c840"></div><span class="ml-3 text-[10px] text-[var(--text4)] font-medium">Ridgebox Dashboard</span></div>
+                <div class="p-6 md:p-8 space-y-5" style="min-height:300px">
+                    <div class="flex gap-3 items-center"><div class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-[10px]"></i></div><span class="font-bold tracking-wider text-sm">RIDGEBOX</span><div class="ml-auto flex items-center gap-2"><span class="badge bg-[var(--surface2)] border border-[var(--border)] text-[var(--text3)] text-[10px]"><span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>Cloud Aktif</span></div></div>
+                    <div class="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center hover:border-[var(--accent)]/30 transition-colors"><div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-[var(--surface2)] flex items-center justify-center"><i class="fa-solid fa-arrow-up-from-bracket text-[var(--text3)] text-lg"></i></div><p class="text-[var(--text3)] text-xs font-medium">Seret & lepas berkas di sini</p><p class="text-[var(--text4)] text-[10px] mt-1">atau klik untuk memilih file</p></div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)]"><div class="w-8 h-8 rounded-lg bg-[var(--surface2)] flex items-center justify-center"><i class="fa-regular fa-file-image text-[var(--accent)] text-xs"></i></div><div><p class="text-xs font-medium">foto-liburan.jpg</p><p class="text-[10px] text-[var(--text4)]">2.4 MB</p></div></div>
-                        <div class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)]"><div class="w-8 h-8 rounded-lg bg-[var(--surface2)] flex items-center justify-center"><i class="fa-regular fa-file-zipper text-orange-400 text-xs"></i></div><div><p class="text-xs font-medium">project-v2.zip</p><p class="text-[10px] text-[var(--text4)]">15.8 MB</p></div></div>
-                        <div class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)]"><div class="w-8 h-8 rounded-lg bg-[var(--surface2)] flex items-center justify-center"><i class="fa-regular fa-file-video text-purple-400 text-xs"></i></div><div><p class="text-xs font-medium">recording.mp4</p><p class="text-[10px] text-[var(--text4)]">128.5 MB</p></div></div>
+                        <div class="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)]"><div class="w-9 h-9 rounded-lg bg-[var(--surface2)] flex items-center justify-center"><i class="fa-regular fa-file-image text-[var(--accent)] text-xs"></i></div><div class="min-w-0"><p class="text-xs font-medium truncate">foto-liburan.jpg</p><p class="text-[10px] text-[var(--text4)]">2.4 MB</p></div></div>
+                        <div class="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)]"><div class="w-9 h-9 rounded-lg bg-[var(--surface2)] flex items-center justify-center"><i class="fa-regular fa-file-zipper text-orange-400 text-xs"></i></div><div class="min-w-0"><p class="text-xs font-medium truncate">project-v2.zip</p><p class="text-[10px] text-[var(--text4)]">15.8 MB</p></div></div>
+                        <div class="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)]"><div class="w-9 h-9 rounded-lg bg-[var(--surface2)] flex items-center justify-center"><i class="fa-regular fa-file-video text-purple-400 text-xs"></i></div><div class="min-w-0"><p class="text-xs font-medium truncate">recording.mp4</p><p class="text-[10px] text-[var(--text4)]">128.5 MB</p></div></div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ═══ 5. SECURITY & ARCHITECTURE ═══ -->
+    <!-- ═══ SECURITY ═══ -->
     <section class="hp-section-alt hp-section">
-        <div class="max-w-6xl mx-auto px-6 md:px-12">
-            <div class="text-center mb-12"><div class="badge bg-[var(--accent)]/10 text-[var(--accent)] mb-3"><span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>Keamanan</div><h2 class="text-3xl font-bold">Data kamu, kendali kamu</h2><p class="text-[var(--text3)] mt-3 max-w-lg mx-auto">Arsitektur direct-upload memastikan file tidak melewati server perantara manapun.</p></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                <div class="security-card"><div class="w-12 h-12 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-arrow-right-arrow-left text-[var(--accent)] text-lg"></i></div><div><h4 class="font-semibold text-sm mb-1">Upload Langsung</h4><p class="text-[var(--text3)] text-xs leading-relaxed">File dikirim langsung dari browser ke Telegram API. Tidak ada server perantara yang menyimpan atau memindai file kamu. Bandwidth Vercel tidak terpakai untuk upload.</p></div></div>
-                <div class="security-card"><div class="w-12 h-12 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-lock text-[var(--accent)] text-lg"></i></div><div><h4 class="font-semibold text-sm mb-1">AES-256-GCM Encryption</h4><p class="text-[var(--text3)] text-xs leading-relaxed">Enkripsi end-to-end menggunakan Web Crypto API dengan PBKDF2 key derivation 100K iterasi. Password tidak pernah dikirim ke server mana pun.</p></div></div>
-                <div class="security-card"><div class="w-12 h-12 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-key text-[var(--accent)] text-lg"></i></div><div><h4 class="font-semibold text-sm mb-1">Share Link Password</h4><p class="text-[var(--text3)] text-xs leading-relaxed">Lindungi link download dengan password. Penerima harus memasukkan password yang benar sebelum bisa mengunduh file.</p></div></div>
-                <div class="security-card"><div class="w-12 h-12 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-shield-halved text-[var(--accent)] text-lg"></i></div><div><h4 class="font-semibold text-sm mb-1">Self-Destruct Link</h4><p class="text-[var(--text3)] text-xs leading-relaxed">Link yang otomatis expired setelah 1x download atau dalam waktu tertentu. Tidak ada jejak setelah kadaluarsa.</p></div></div>
+        <div class="max-w-5xl mx-auto px-6 md:px-12">
+            <div class="text-center mb-14">
+                <div class="hp-badge"><span class="hp-badge-dot"></span>Keamanan</div>
+                <h2 class="hp-title">Data kamu, kendali kamu</h2>
+                <p class="hp-subtitle mx mt-4">Arsitektur direct-upload memastikan file tidak melewati server perantara manapun.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="security-card"><div class="sec-icon"><i class="fa-solid fa-arrow-right-arrow-left"></i></div><div><h4 class="font-semibold text-sm mb-1.5">Upload Langsung</h4><p class="text-[var(--text3)] text-xs leading-relaxed">File dikirim langsung dari browser ke Telegram API. Tidak ada server perantara yang menyimpan atau memindai file kamu. Bandwidth Vercel tidak terpakai untuk upload.</p></div></div>
+                <div class="security-card"><div class="sec-icon"><i class="fa-solid fa-lock"></i></div><div><h4 class="font-semibold text-sm mb-1.5">AES-256-GCM Encryption</h4><p class="text-[var(--text3)] text-xs leading-relaxed">Enkripsi end-to-end menggunakan Web Crypto API dengan PBKDF2 key derivation 100K iterasi. Password tidak pernah dikirim ke server mana pun.</p></div></div>
+                <div class="security-card"><div class="sec-icon"><i class="fa-solid fa-key"></i></div><div><h4 class="font-semibold text-sm mb-1.5">Share Link Password</h4><p class="text-[var(--text3)] text-xs leading-relaxed">Lindungi link download dengan password. Penerima harus memasukkan password yang benar sebelum bisa mengunduh file.</p></div></div>
+                <div class="security-card"><div class="sec-icon"><i class="fa-solid fa-shield-halved"></i></div><div><h4 class="font-semibold text-sm mb-1.5">Self-Destruct Link</h4><p class="text-[var(--text3)] text-xs leading-relaxed">Link yang otomatis expired setelah 1x download atau dalam waktu tertentu. Tidak ada jejak setelah kadaluarsa.</p></div></div>
             </div>
         </div>
     </section>
 
-    <!-- ═══ 4. COMPARISON TABLE ═══ -->
+    <!-- ═══ COMPARISON ═══ -->
     <section class="hp-section">
-        <div class="max-w-6xl mx-auto px-6 md:px-12">
-            <div class="text-center mb-12"><div class="badge bg-[var(--accent)]/10 text-[var(--accent)] mb-3"><span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>Perbandingan</div><h2 class="text-3xl font-bold">Ridgebox vs Cloud Storage Lain</h2><p class="text-[var(--text3)] mt-3 max-w-lg mx-auto">Lihat mengapa Ridgebox bisa jadi pilihan yang lebih baik untuk kebutuhan personal kamu.</p></div>
-            <div class="max-w-3xl mx-auto rounded-2xl overflow-hidden border border-[var(--border)]">
-                <table class="compare-table">
-                    <thead><tr class="compare-highlight"><th>Fitur</th><th>Ridgebox</th><th>Google Drive</th><th>Dropbox</th></tr></thead>
-                    <tbody>
-                        <tr><td class="font-medium">Harga</td><td class="check-yes">Gratis</td><td>15 GB gratis</td><td>2 GB gratis</td></tr>
-                        <tr><td class="font-medium">Batas Upload</td><td class="check-yes">2 GB / file</td><td>5 TB / file</td><td>2 GB / file</td></tr>
-                        <tr><td class="font-medium">Total Storage</td><td class="check-yes">Unlimited*</td><td>15 GB</td><td>2 GB</td></tr>
-                        <tr><td class="font-medium">Enkripsi E2E</td><td class="check-yes"><i class="fa-solid fa-check"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td></tr>
-                        <tr><td class="font-medium">Self-Destruct Link</td><td class="check-yes"><i class="fa-solid fa-check"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td><td class="check-partial">Pro only</td></tr>
-                        <tr><td class="font-medium">Password Share</td><td class="check-yes"><i class="fa-solid fa-check"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td><td class="check-partial">Pro only</td></tr>
-                        <tr><td class="font-medium">Tanpa Server Perantara</td><td class="check-yes"><i class="fa-solid fa-check"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td></tr>
-                        <tr><td class="font-medium">PWA Install</td><td class="check-yes"><i class="fa-solid fa-check"></i></td><td class="check-yes"><i class="fa-solid fa-check"></i></td><td class="check-yes"><i class="fa-solid fa-check"></i></td></tr>
-                        <tr><td class="font-medium">Open Source</td><td class="check-yes"><i class="fa-solid fa-check"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td></tr>
-                    </tbody>
-                </table>
+        <div class="max-w-5xl mx-auto px-6 md:px-12">
+            <div class="text-center mb-14">
+                <div class="hp-badge"><span class="hp-badge-dot"></span>Perbandingan</div>
+                <h2 class="hp-title">Ridgebox vs Cloud Storage Lain</h2>
+                <p class="hp-subtitle mx mt-4">Lihat mengapa Ridgebox bisa jadi pilihan yang lebih baik untuk kebutuhan personal kamu.</p>
             </div>
-            <p class="text-center text-[var(--text4)] text-[10px] mt-4">* Tergantung batas storage Telegram Bot (masing-masing bot ~2 GB file)</p>
+            <div class="max-w-3xl mx-auto rounded-2xl overflow-hidden border border-[var(--border)] bg-[var(--surface)]">
+                <div class="overflow-x-auto">
+                    <table class="compare-table">
+                        <thead><tr class="compare-highlight"><th>Fitur</th><th>Ridgebox</th><th>Google Drive</th><th>Dropbox</th></tr></thead>
+                        <tbody>
+                            <tr><td class="font-medium">Harga</td><td class="check-yes">Gratis</td><td>15 GB gratis</td><td>2 GB gratis</td></tr>
+                            <tr><td class="font-medium">Batas Upload</td><td class="check-yes">2 GB / file</td><td>5 TB / file</td><td>2 GB / file</td></tr>
+                            <tr><td class="font-medium">Total Storage</td><td class="check-yes">Unlimited*</td><td>15 GB</td><td>2 GB</td></tr>
+                            <tr><td class="font-medium">Enkripsi E2E</td><td class="check-yes"><i class="fa-solid fa-check"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td></tr>
+                            <tr><td class="font-medium">Self-Destruct Link</td><td class="check-yes"><i class="fa-solid fa-check"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td><td class="check-partial">Pro only</td></tr>
+                            <tr><td class="font-medium">Password Share</td><td class="check-yes"><i class="fa-solid fa-check"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td><td class="check-partial">Pro only</td></tr>
+                            <tr><td class="font-medium">Tanpa Server Perantara</td><td class="check-yes"><i class="fa-solid fa-check"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td></tr>
+                            <tr><td class="font-medium">Open Source</td><td class="check-yes"><i class="fa-solid fa-check"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td><td class="check-no"><i class="fa-solid fa-xmark"></i></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p class="text-center text-[var(--text4)] text-[10px] mt-4">* Tergantung batas storage Telegram Bot (masing-masing bot mendukung file hingga 2 GB)</p>
         </div>
     </section>
 
-    <!-- ═══ 6. FAQ ═══ -->
+    <!-- ═══ FAQ ═══ -->
     <section class="hp-section-alt hp-section">
-        <div class="max-w-3xl mx-auto px-6 md:px-12">
-            <div class="text-center mb-12"><div class="badge bg-[var(--accent)]/10 text-[var(--accent)] mb-3"><span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>FAQ</div><h2 class="text-3xl font-bold">Pertanyaan Umum</h2></div>
+        <div class="max-w-2xl mx-auto px-6 md:px-12">
+            <div class="text-center mb-14">
+                <div class="hp-badge"><span class="hp-badge-dot"></span>FAQ</div>
+                <h2 class="hp-title">Pertanyaan Umum</h2>
+            </div>
             <div class="space-y-3" id="faqList">
                 <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Apakah Ridgebox benar-benar gratis? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">Ya, 100% gratis. Ridgebox menggunakan Telegram Bot API sebagai backend storage. Kamu hanya perlu Telegram Bot (gratis dari @BotFather) dan akun Telegram. Tidak ada biaya server, tidak ada subscription, dan tidak ada iklan. Semua 45 fitur bisa digunakan tanpa batas.</div></div>
                 <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Berapa batas ukuran file yang bisa diupload? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">Telegram Bot API mendukung upload hingga 50 MB per file secara default, dan bisa sampai 2 GB menggunakan metode yang sesuai. Ridgebox mendukung keduanya — kamu bisa atur batas upload di pengaturan dashboard. File besar akan di-upload langsung dari browser ke Telegram API tanpa melewati server perantara.</div></div>
@@ -299,39 +399,42 @@
         </div>
     </section>
 
-    <!-- ═══ 7. CHANGELOG ═══ -->
+    <!-- ═══ CHANGELOG ═══ -->
     <section class="hp-section">
-        <div class="max-w-3xl mx-auto px-6 md:px-12">
-            <div class="text-center mb-12"><div class="badge bg-[var(--accent)]/10 text-[var(--accent)] mb-3"><span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>Changelog</div><h2 class="text-3xl font-bold">Yang baru di Ridgebox</h2></div>
-            <div class="space-y-0">
-                <div class="changelog-item"><p class="text-xs text-[var(--text4)] font-mono">v3.0 — Juni 2026</p><h4 class="text-sm font-semibold mt-1">Fitur Lengkap 26-45</h4><p class="text-[var(--text3)] text-xs mt-1">Sort & Filter, Move Folder, Duplikat Detection, Clipboard Paste, File Expiration, Self-Destruct, Notes, Activity Log, PIN Lock, Encrypted Folder, Recent Files, Audio Player, Image Editor, Custom Thumbnail, Multi-Select Range, Versioning, Bulk Rename, Upload Resume, Storage per Bot, Export/Import.</p></div>
-                <div class="changelog-item"><p class="text-xs text-[var(--text4)] font-mono">v2.0 — Mei 2026</p><h4 class="text-sm font-semibold mt-1">Fitur 13-25 + Direct Upload</h4><p class="text-[var(--text3)] text-xs mt-1">Upload langsung ke Telegram API tanpa server perantara, fixing Vercel 4.5MB limit, Tag Warna, Keyboard Shortcuts, PWA, Document Preview, Share Clicks Counter, Donut Chart, Auto-Cleanup.</p></div>
-                <div class="changelog-item"><p class="text-xs text-[var(--text4)] font-mono">v1.0 — April 2026</p><h4 class="text-sm font-semibold mt-1">Rilis Awal</h4><p class="text-[var(--text3)] text-xs mt-1">Upload, Download, Share Link, Enkripsi, Folder, Trash, Pin, Rename, Batch Operations, ZIP Download, Search, Dark Mode, Multi-Bot, URL Upload, Stats.</p></div>
+        <div class="max-w-2xl mx-auto px-6 md:px-12">
+            <div class="text-center mb-14">
+                <div class="hp-badge"><span class="hp-badge-dot"></span>Changelog</div>
+                <h2 class="hp-title">Yang baru di Ridgebox</h2>
+            </div>
+            <div class="space-y-4">
+                <div class="cl-card"><div class="flex items-center gap-3 mb-3"><span class="cl-version cl-v3">v3.0</span><span class="text-xs text-[var(--text4)]">Juni 2026</span></div><h4 class="font-semibold text-sm mb-1.5">Fitur Lengkap 26-45</h4><p class="text-[var(--text3)] text-xs leading-relaxed">Sort & Filter, Move Folder, Duplikat Detection, Clipboard Paste, File Expiration, Self-Destruct, Notes, Activity Log, PIN Lock, Encrypted Folder, Recent Files, Audio Player, Image Editor, Custom Thumbnail, Multi-Select Range, Versioning, Bulk Rename, Upload Resume, Storage per Bot, Export/Import.</p></div>
+                <div class="cl-card"><div class="flex items-center gap-3 mb-3"><span class="cl-version cl-v2">v2.0</span><span class="text-xs text-[var(--text4)]">Mei 2026</span></div><h4 class="font-semibold text-sm mb-1.5">Fitur 13-25 + Direct Upload</h4><p class="text-[var(--text3)] text-xs leading-relaxed">Upload langsung ke Telegram API tanpa server perantara, fixing Vercel 4.5MB limit, Tag Warna, Keyboard Shortcuts, PWA, Document Preview, Share Clicks Counter, Donut Chart, Auto-Cleanup.</p></div>
+                <div class="cl-card"><div class="flex items-center gap-3 mb-3"><span class="cl-version cl-v1">v1.0</span><span class="text-xs text-[var(--text4)]">April 2026</span></div><h4 class="font-semibold text-sm mb-1.5">Rilis Awal</h4><p class="text-[var(--text3)] text-xs leading-relaxed">Upload, Download, Share Link, Enkripsi, Folder, Trash, Pin, Rename, Batch Operations, ZIP Download, Search, Dark Mode, Multi-Bot, URL Upload, Stats.</p></div>
             </div>
         </div>
     </section>
 
-    <!-- ═══ 8. BOTTOM CTA ═══ -->
+    <!-- ═══ BOTTOM CTA ═══ -->
     <section class="hp-section-alt hp-section">
         <div class="max-w-4xl mx-auto px-6 md:px-12">
             <div class="hp-cta-section">
-                <h2 class="text-3xl md:text-4xl font-bold mb-4">Siap simpan file di cloud?</h2>
-                <p class="text-blue-100 text-base mb-8 max-w-md mx-auto">Mulai dalam 2 menit. Tidak perlu registrasi. Tidak perlu kartu kredit. Cukup Telegram Bot dan browser.</p>
-                <div class="flex items-center justify-center gap-4 flex-wrap">
-                    <a href="#/dashboard" class="inline-flex items-center gap-2 bg-white text-[var(--accent-dim)] font-bold py-3 px-8 rounded-xl hover:bg-blue-50 transition-colors">Buka Dashboard <i class="fa-solid fa-arrow-right text-xs"></i></a>
-                    <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" class="inline-flex items-center gap-2 border border-white/30 text-white font-semibold py-3 px-8 rounded-xl hover:bg-white/10 transition-colors"><i class="fa-brands fa-github"></i> GitHub</a>
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 relative z-10">Siap simpan file di cloud?</h2>
+                <p class="text-blue-100 text-base mb-8 max-w-md mx-auto relative z-10">Mulai dalam 2 menit. Tidak perlu registrasi. Tidak perlu kartu kredit. Cukup Telegram Bot dan browser.</p>
+                <div class="flex items-center justify-center gap-4 flex-wrap relative z-10">
+                    <a href="#/dashboard" class="inline-flex items-center gap-2 bg-white text-[var(--accent-dim)] font-bold py-3.5 px-8 rounded-xl hover:bg-blue-50 transition-colors shadow-lg">Buka Dashboard <i class="fa-solid fa-arrow-right text-xs"></i></a>
+                    <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" class="inline-flex items-center gap-2 border border-white/30 text-white font-semibold py-3.5 px-8 rounded-xl hover:bg-white/10 transition-colors"><i class="fa-brands fa-github"></i> GitHub</a>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="text-center py-8 text-[var(--text4)] text-xs border-t border-[var(--border)]">
+    <footer class="py-10 text-[var(--text4)] text-xs border-t border-[var(--border)]">
         <div class="max-w-6xl mx-auto px-6 md:px-12">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3"><div class="w-6 h-6 rounded-md bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-[8px]"></i></div><span class="font-bold tracking-wider text-[var(--text3)]">RIDGEBOX</span></div>
-                <p>&copy; 2026 Ridgebox. Built with Telegram Bot API. Open Source.</p>
-                <div class="flex items-center gap-4"><a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" class="hover:text-[var(--accent)] transition-colors"><i class="fa-brands fa-github text-sm"></i></a><a href="#/dashboard" class="hover:text-[var(--accent)] transition-colors">Dashboard</a></div>
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-[9px]"></i></div><div><span class="font-bold tracking-wider text-[var(--text2)] text-sm">RIDGEBOX</span><p class="text-[10px] text-[var(--text4)] mt-0.5">Cloud Storage via Telegram</p></div></div>
+                <div class="flex flex-wrap items-center justify-center gap-6 text-[var(--text3)]"><a href="#/dashboard" class="hover:text-[var(--accent)] transition-colors font-medium">Dashboard</a><a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" class="hover:text-[var(--accent)] transition-colors font-medium">GitHub</a><a href="#faqList" class="hover:text-[var(--accent)] transition-colors font-medium">FAQ</a></div>
+                <p class="text-[var(--text4)]">&copy; 2026 Ridgebox &middot; Open Source</p>
             </div>
         </div>
     </footer>
