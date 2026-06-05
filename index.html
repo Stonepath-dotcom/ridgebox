@@ -257,6 +257,114 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 /* Fallback: auto-detect */
 @media(max-width:768px){body:not(.view-mobile):not(.view-desktop) .sidebar-desktop{display:none!important}body:not(.view-mobile):not(.view-desktop) .detail-panel{width:100%}}
 @media(min-width:769px){body:not(.view-mobile):not(.view-desktop) .sidebar-mobile-toggle{display:none!important}}
+
+/* ===== PREMIUM DASHBOARD UPGRADES ===== */
+/* Glassmorphism Header */
+.header-glass{backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(255,255,255,.82);border-bottom:1px solid transparent;border-image:linear-gradient(90deg,transparent,rgba(59,130,246,.3),rgba(139,92,246,.3),transparent) 1}
+.dark .header-glass{background:rgba(15,23,42,.88)}
+.header-logo-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#8b5cf6);display:flex;align-items:center;justify-content:center;animation:logoPulse 2.5s ease infinite;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.header-pill-btn{padding:6px 14px;border-radius:99px;font-size:13px;cursor:pointer;border:none;background:rgba(59,130,246,.08);color:var(--text-secondary);transition:all .25s ease;font-family:inherit;font-weight:500;display:inline-flex;align-items:center;gap:6px}
+.header-pill-btn:hover{background:rgba(59,130,246,.15);color:var(--accent)}
+.dark .header-pill-btn{background:rgba(255,255,255,.06)}
+.dark .header-pill-btn:hover{background:rgba(59,130,246,.2);color:var(--accent)}
+.header-pill-btn.active-pill{background:rgba(59,130,246,.15);color:var(--accent)}
+
+/* Premium Sidebar */
+.sidebar-premium{background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sidebar-premium .sidebar-item{border-radius:10px;padding:10px 12px;margin-bottom:2px;position:relative;transition:all .25s cubic-bezier(.4,0,.2,1)}
+.sidebar-premium .sidebar-item:hover{background:rgba(59,130,246,.06);transform:translateX(3px)}
+.sidebar-premium .sidebar-item.active{background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(139,92,246,.08));border-left:3px solid var(--accent);padding-left:9px}
+.sidebar-premium .sidebar-item.active i{color:var(--accent)}
+.sidebar-section-divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:12px 8px}
+.sidebar-section-label{font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;padding:4px 12px;margin-top:4px}
+
+/* Sidebar Upload Button Gradient */
+.sidebar-upload-btn{background:linear-gradient(135deg,var(--accent),#8b5cf6);border:none;color:#fff;font-weight:600;border-radius:10px;padding:10px 16px;width:100%;cursor:pointer;font-family:inherit;font-size:13px;transition:all .3s ease;box-shadow:0 4px 15px rgba(59,130,246,.3);display:flex;align-items:center;justify-content:center;gap:8px}
+.sidebar-upload-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(59,130,246,.4)}
+.sidebar-action-btn{padding:8px 14px;border-radius:10px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);transition:all .25s ease;font-family:inherit;font-weight:500;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.sidebar-action-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(59,130,246,.04)}
+
+/* Storage Widget */
+.storage-widget{margin-top:auto;padding:16px 12px;border-top:1px solid var(--border)}
+.storage-widget-title{font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.storage-bar-track{height:6px;background:var(--bg-secondary);border-radius:3px;overflow:hidden}
+.storage-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),#8b5cf6);transition:width .6s cubic-bezier(.4,0,.2,1)}
+.storage-info{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text-secondary)}
+
+/* Premium File Grid Card */
+.file-card-premium{border:1px solid var(--border);border-radius:14px;background:var(--bg-card);padding:20px 16px;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
+.file-card-premium::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),#8b5cf6);opacity:0;transition:opacity .3s ease}
+.file-card-premium:hover{border-color:rgba(59,130,246,.3);transform:translateY(-4px);box-shadow:0 12px 40px rgba(59,130,246,.1)}
+.file-card-premium:hover::before{opacity:1}
+.file-card-premium.selected{border-color:var(--accent);background:rgba(59,130,246,.06);box-shadow:0 0 0 2px rgba(59,130,246,.15)}
+.file-card-premium .file-icon-circle{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;position:relative}
+.file-card-premium .file-icon-circle::after{content:'';position:absolute;inset:0;border-radius:14px;background:inherit;filter:blur(12px);opacity:.3;z-index:-1}
+@keyframes shimmerHover{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.file-card-premium:hover .file-icon-circle::before{content:'';position:absolute;top:0;left:-100%;width:200%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:shimmerHover 1.5s ease forwards}
+
+/* Premium File List Row */
+.file-row-premium{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:all .2s ease;position:relative}
+.file-row-premium:hover{background:rgba(59,130,246,.03)}
+.file-row-premium:hover .row-actions{opacity:1;transform:translateX(0)}
+.file-row-premium .row-actions{opacity:0;transform:translateX(8px);transition:all .2s ease;display:flex;gap:4px;flex-shrink:0}
+.file-row-premium:nth-child(even){background:rgba(0,0,0,.01)}
+.dark .file-row-premium:nth-child(even){background:rgba(255,255,255,.01)}
+.file-row-premium.selected{background:rgba(59,130,246,.06)!important}
+
+/* Premium Search */
+.search-premium{position:relative;flex:1;min-width:200px}
+.search-premium input{padding-left:36px;border:1px solid var(--border);border-radius:10px;background:var(--bg-secondary);transition:all .3s ease;width:100%;font-size:13px;padding-top:8px;padding-bottom:8px;color:var(--text);font-family:inherit}
+.search-premium input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.12);background:var(--bg)}
+.search-premium i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:13px}
+
+/* Premium Filter Pills */
+.filter-pill{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);transition:all .25s ease;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.filter-pill:hover{border-color:var(--accent);background:rgba(59,130,246,.05)}
+.filter-pill.active{background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;border-color:transparent;box-shadow:0 2px 10px rgba(59,130,246,.3)}
+
+/* Premium Breadcrumb */
+.breadcrumb-premium{padding:10px 20px;font-size:13px;display:flex;align-items:center;gap:6px}
+.breadcrumb-premium .crumb-active{background:rgba(59,130,246,.08);padding:3px 10px;border-radius:6px;color:var(--accent);font-weight:500}
+.breadcrumb-premium .crumb-sep{color:var(--text-secondary);opacity:.4}
+.breadcrumb-premium .crumb-home{color:var(--accent)}
+
+/* Premium Empty State */
+.empty-premium{text-align:center;padding:80px 20px}
+.empty-premium .empty-svg-wrap{margin-bottom:20px;animation:emptyFloat 4s ease-in-out infinite}
+@keyframes emptyFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.empty-premium h3{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--accent),#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.empty-premium p{color:var(--text-secondary);font-size:14px;line-height:1.6}
+.empty-premium .empty-action-btn{margin-top:20px;display:inline-flex;align-items:center;gap:8px;padding:10px 24px;border-radius:99px;background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;font-weight:600;font-size:14px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 4px 15px rgba(59,130,246,.3);transition:all .3s ease}
+.empty-premium .empty-action-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(59,130,246,.4)}
+
+/* Detail Panel Premium */
+.detail-premium .detail-header{padding:20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(59,130,246,.04),rgba(139,92,246,.04));position:relative}
+.detail-premium .detail-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),#8b5cf6)}
+.detail-premium .detail-body{padding:20px}
+.detail-premium .detail-stat{padding:10px 12px;background:var(--bg-secondary);border-radius:10px;font-size:13px;transition:all .2s ease}
+.detail-premium .detail-stat:hover{background:rgba(59,130,246,.05)}
+.detail-premium .detail-action{padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .25s ease;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.detail-premium .detail-action-primary{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;box-shadow:0 2px 10px rgba(59,130,246,.3)}
+.detail-premium .detail-action-primary:hover{box-shadow:0 4px 15px rgba(59,130,246,.4);transform:translateY(-1px)}
+.detail-premium .detail-action-secondary{background:var(--bg-secondary);color:var(--text);border:1px solid var(--border)}
+.detail-premium .detail-action-secondary:hover{border-color:var(--accent);background:rgba(59,130,246,.04)}
+.detail-premium .detail-action-danger{background:rgba(239,68,68,.08);color:#ef4444;border:1px solid rgba(239,68,68,.15)}
+.detail-premium .detail-action-danger:hover{background:rgba(239,68,68,.12)}
+.detail-premium .detail-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600}
+
+/* Toolbar Premium */
+.toolbar-premium{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%)}
+.toolbar-premium .toolbar-group{display:flex;align-items:center;gap:6px}
+.toolbar-premium .toolbar-sort{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);font-size:12px;color:var(--text);font-family:inherit;cursor:pointer;transition:all .2s ease;-webkit-appearance:none;appearance:none;padding-right:24px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+.toolbar-premium .toolbar-sort:hover{border-color:var(--accent)}
+.toolbar-premium .toolbar-sort:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,130,246,.1)}
+.toolbar-premium .toolbar-view-btn{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;transition:all .2s ease;font-size:13px}
+.toolbar-premium .toolbar-view-btn:hover{border-color:var(--accent);color:var(--accent)}
+.toolbar-premium .toolbar-action-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;transition:all .2s ease;font-size:12px;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
+.toolbar-premium .toolbar-action-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(59,130,246,.04)}
+.toolbar-premium .toolbar-action-btn.active-action{background:rgba(59,130,246,.1);color:var(--accent);border-color:rgba(59,130,246,.2)}
+.toolbar-premium .toolbar-upload-btn{padding:7px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(59,130,246,.3);transition:all .25s ease}
+.toolbar-premium .toolbar-upload-btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(59,130,246,.4)}
 </style>
 </head>
 <body>
@@ -1038,30 +1146,30 @@ function renderHeader() {
     const isDashboard = hash.startsWith('#/dashboard') || hash.startsWith('#/file/');
     const vm = APP.viewMode;
     header.innerHTML = `
-        <header style="position:sticky;top:0;z-index:60;background:var(--bg);border-bottom:1px solid var(--border);height:var(--header-h);display:flex;align-items:center;padding:0 12px;gap:8px">
-            ${isDashboard ? `<button class="btn btn-ghost sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)" style="padding:8px"><i class="fas fa-bars"></i></button>` : ''}
-            <a href="#/" style="display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--text);font-weight:700;font-size:16px">
-                <div style="width:28px;height:28px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center">
-                    <i class="fas fa-cloud" style="color:#fff;font-size:12px"></i>
+        <header class="header-glass" style="position:sticky;top:0;z-index:60;height:var(--header-h);display:flex;align-items:center;padding:0 16px;gap:8px">
+            ${isDashboard ? `<button class="header-pill-btn sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)"><i class="fas fa-bars"></i></button>` : ''}
+            <a href="#/" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-weight:700;font-size:16px">
+                <div class="header-logo-icon">
+                    <i class="fas fa-cloud" style="color:#fff;font-size:14px"></i>
                 </div>
-                <span class="hide-mobile-small">Ridgebox</span>
+                <span class="hide-mobile-small" style="letter-spacing:-.3px">Ridgebox</span>
             </a>
             <div style="flex:1"></div>
-            <button class="btn btn-ghost" onclick="toggleViewMode()" title="${vm === 'mobile' ? 'Desktop Mode' : 'Mobile Mode'}" style="padding:6px 8px;${vm==='mobile'?'background:rgba(59,130,246,.1);color:var(--accent)':''}">
+            <button class="header-pill-btn ${vm==='mobile'?'active-pill':''}" onclick="toggleViewMode()" title="${vm === 'mobile' ? 'Desktop Mode' : 'Mobile Mode'}">
                 <i class="fas fa-${vm === 'mobile' ? 'mobile-screen' : 'display'}"></i>
             </button>
             <div id="conn-status" style="cursor:pointer;padding:0 4px" onclick="updateConnectionStatus()">
                 <i class="fas fa-wifi" style="color:${APP.connected ? '#10b981' : '#ef4444'}"></i>
             </div>
             ${APP.activeUploads > 0 ? `<span style="font-size:11px;color:var(--accent)"><i class="fas fa-spinner fa-spin"></i></span>` : ''}
-            <button class="btn btn-ghost" onclick="toggleTheme()" title="${t('theme')}" style="padding:6px 8px">
+            <button class="header-pill-btn" onclick="toggleTheme()" title="${t('theme')}">
                 <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'}"></i>
             </button>
-            <button class="btn btn-ghost" onclick="toggleLang()" title="${t('language')}" style="padding:6px 8px">
+            <button class="header-pill-btn" onclick="toggleLang()" title="${t('language')}">
                 <span style="font-size:11px;font-weight:600">${APP.lang === 'id' ? 'ID' : 'EN'}</span>
             </button>
-            ${!isHome ? `<a href="#/" class="btn btn-ghost" style="padding:6px 8px"><i class="fas fa-home"></i></a>` : ''}
-            ${isHome ? `<a href="#/dashboard" class="btn btn-primary btn-sm" style="font-size:12px"><i class="fas fa-rocket"></i> <span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
+            ${!isHome ? `<a href="#/" class="header-pill-btn"><i class="fas fa-home"></i></a>` : ''}
+            ${isHome ? `<a href="#/dashboard" class="header-pill-btn" style="background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;border:none;box-shadow:0 2px 10px rgba(59,130,246,.3)"><i class="fas fa-rocket"></i> <span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
         </header>`;
 }
 
@@ -1103,11 +1211,11 @@ function applyViewMode() {
         if (APP.viewMode === 'desktop') {
             sidebar.classList.remove('sidebar-mobile');
             sidebar.classList.add('sidebar-desktop');
-            sidebar.style.cssText = 'width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:var(--bg);overflow-y:auto;padding:12px;transition:transform .3s ease;z-index:50';
+            sidebar.style.cssText = 'width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);overflow-y:auto;padding:16px 12px;transition:transform .3s ease;z-index:50';
         } else {
             sidebar.classList.remove('sidebar-desktop');
             sidebar.classList.add('sidebar-mobile');
-            sidebar.style.cssText = 'position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;background:var(--bg);overflow-y:auto;padding:12px;transform:translateX(-100%);transition:transform .3s ease;box-shadow:var(--shadow-lg)';
+            sidebar.style.cssText = 'position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);overflow-y:auto;padding:16px 12px;transform:translateX(-100%);transition:transform .3s ease;box-shadow:var(--shadow-lg)';
         }
     }
 }
@@ -1176,7 +1284,7 @@ function closeContextMenu() {
     if (menu) menu.classList.remove('open');
 }
 document.addEventListener('click', closeContextMenu);
-document.addEventListener('contextmenu', (e) => { if (!e.target.closest('.file-grid-item,.file-list-row')) closeContextMenu(); });
+document.addEventListener('contextmenu', (e) => { if (!e.target.closest('.file-grid-item,.file-list-row,.file-card-premium,.file-row-premium')) closeContextMenu(); });
 
 // ===== DETAIL PANEL (F47) =====
 function openDetailPanel(fileId) {
@@ -1188,31 +1296,35 @@ function openDetailPanel(fileId) {
     const icon = getFileIcon(type);
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
     panel.innerHTML = `
-        <div style="padding:20px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-                <h3 style="font-size:16px;font-weight:600">${t('preview')}</h3>
-                <button class="btn btn-ghost btn-sm" onclick="closeDetailPanel()"><i class="fas fa-times"></i></button>
-            </div>
-            <div style="text-align:center;margin-bottom:20px">
-                <div style="width:80px;height:80px;border-radius:16px;background:${icon.color}15;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
-                    <i class="fas ${icon.icon}" style="font-size:32px;color:${icon.color}"></i>
+        <div class="detail-premium">
+            <div class="detail-header">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <h3 style="font-size:16px;font-weight:600">${t('preview')}</h3>
+                    <button class="header-pill-btn" onclick="closeDetailPanel()" style="padding:4px 10px"><i class="fas fa-times"></i></button>
                 </div>
-                <h4 style="font-size:14px;word-break:break-all">${file.name}</h4>
-                ${file.caption ? `<p style="font-size:12px;color:var(--text-secondary);margin-top:4px">${file.caption}</p>` : ''}
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:16px">
-                <div style="padding:8px;background:var(--bg-secondary);border-radius:8px"><span style="color:var(--text-secondary)">Ukuran</span><br><strong>${formatSize(file.size)}</strong></div>
-                <div style="padding:8px;background:var(--bg-secondary);border-radius:8px"><span style="color:var(--text-secondary)">Tipe</span><br><strong>${type}</strong></div>
-                <div style="padding:8px;background:var(--bg-secondary);border-radius:8px"><span style="color:var(--text-secondary)">Tanggal</span><br><strong>${formatDate(file.uploadedAt)}</strong></div>
-                <div style="padding:8px;background:var(--bg-secondary);border-radius:8px"><span style="color:var(--text-secondary)">${t('version')}</span><br><strong>v${file.version || 1} (${versions.length} ${t('versions')})</strong></div>
-            </div>
-            ${file.tag ? `<div style="margin-bottom:12px"><span class="badge" style="background:${file.tag}20;color:${file.tag}"><span class="tag-dot" style="background:${file.tag};margin-right:4px;width:8px;height:8px"></span>${type}</span></div>` : ''}
-            ${file.encrypted ? `<div style="margin-bottom:12px"><span class="badge" style="background:#3b82f620;color:#3b82f6"><i class="fas fa-lock" style="margin-right:4px"></i>${t('encrypted')}</span></div>` : ''}
-            <div style="display:flex;flex-direction:column;gap:6px">
-                <button class="btn btn-primary" onclick="openPreview('${fileId}');closeDetailPanel()"><i class="fas fa-eye"></i> ${t('preview')}</button>
-                <button class="btn btn-secondary" onclick="openShareModal('${fileId}');closeDetailPanel()"><i class="fas fa-share-alt"></i> ${t('share')}</button>
-                <button class="btn btn-secondary" onclick="downloadFile('${fileId}');closeDetailPanel()"><i class="fas fa-download"></i> ${t('download')}</button>
-                ${!file.trashed ? `<button class="btn btn-danger btn-sm" onclick="moveToTrash('${fileId}')"><i class="fas fa-trash"></i> ${t('delete')}</button>` : `<button class="btn btn-secondary btn-sm" onclick="restoreFile('${fileId}')"><i class="fas fa-undo"></i> ${t('restore')}</button> <button class="btn btn-danger btn-sm" onclick="deletePermanently('${fileId}')"><i class="fas fa-times-circle"></i> ${t('delete')}</button>`}
+            <div class="detail-body">
+                <div style="text-align:center;margin-bottom:24px">
+                    <div style="width:80px;height:80px;border-radius:18px;background:${icon.color}12;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 8px 24px ${icon.color}15">
+                        <i class="fas ${icon.icon}" style="font-size:32px;color:${icon.color}"></i>
+                    </div>
+                    <h4 style="font-size:15px;font-weight:600;word-break:break-all">${file.name}</h4>
+                    ${file.caption ? `<p style="font-size:12px;color:var(--text-secondary);margin-top:4px">${file.caption}</p>` : ''}
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:20px">
+                    <div class="detail-stat"><span style="color:var(--text-secondary);font-size:11px">${APP.lang==='id'?'Ukuran':'Size'}</span><br><strong>${formatSize(file.size)}</strong></div>
+                    <div class="detail-stat"><span style="color:var(--text-secondary);font-size:11px">${APP.lang==='id'?'Tipe':'Type'}</span><br><strong>${type}</strong></div>
+                    <div class="detail-stat"><span style="color:var(--text-secondary);font-size:11px">${APP.lang==='id'?'Tanggal':'Date'}</span><br><strong>${formatDate(file.uploadedAt)}</strong></div>
+                    <div class="detail-stat"><span style="color:var(--text-secondary);font-size:11px">${t('version')}</span><br><strong>v${file.version || 1} (${versions.length} ${t('versions')})</strong></div>
+                </div>
+                ${file.tag ? `<div style="margin-bottom:14px"><span class="detail-badge" style="background:${file.tag}15;color:${file.tag}"><span class="tag-dot" style="background:${file.tag};margin-right:4px;width:8px;height:8px"></span>${type}</span></div>` : ''}
+                ${file.encrypted ? `<div style="margin-bottom:14px"><span class="detail-badge" style="background:rgba(59,130,246,.1);color:#3b82f6"><i class="fas fa-lock" style="margin-right:4px"></i>${t('encrypted')}</span></div>` : ''}
+                <div style="display:flex;flex-direction:column;gap:8px">
+                    <button class="detail-action detail-action-primary" onclick="openPreview('${fileId}');closeDetailPanel()"><i class="fas fa-eye"></i> ${t('preview')}</button>
+                    <button class="detail-action detail-action-secondary" onclick="openShareModal('${fileId}');closeDetailPanel()"><i class="fas fa-share-alt"></i> ${t('share')}</button>
+                    <button class="detail-action detail-action-secondary" onclick="downloadFile('${fileId}');closeDetailPanel()"><i class="fas fa-download"></i> ${t('download')}</button>
+                    ${!file.trashed ? `<button class="detail-action detail-action-danger" onclick="moveToTrash('${fileId}')"><i class="fas fa-trash"></i> ${t('delete')}</button>` : `<button class="detail-action detail-action-secondary" onclick="restoreFile('${fileId}')"><i class="fas fa-undo"></i> ${t('restore')}</button> <button class="detail-action detail-action-danger" onclick="deletePermanently('${fileId}')"><i class="fas fa-times-circle"></i> ${t('delete')}</button>`}
+                </div>
             </div>
         </div>`;
     panel.classList.add('open');
@@ -1801,39 +1913,41 @@ function renderDashboard() {
     main.innerHTML = `
     <div class="page-transition" style="display:flex;min-height:calc(100vh - var(--header-h))">
         <!-- Sidebar Desktop (F98) -->
-        <aside id="sidebar-panel" class="${APP.viewMode === 'mobile' ? 'sidebar-mobile' : 'sidebar-desktop'}" style="${APP.viewMode === 'mobile' ? 'position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;background:var(--bg);overflow-y:auto;padding:12px;transform:translateX(-100%);transition:transform .3s ease;box-shadow:var(--shadow-lg)' : 'width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:var(--bg);overflow-y:auto;padding:12px;transition:transform .3s ease;z-index:50'}">
+        <aside id="sidebar-panel" class="sidebar-premium ${APP.viewMode === 'mobile' ? 'sidebar-mobile' : 'sidebar-desktop'}" style="${APP.viewMode === 'mobile' ? 'position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);overflow-y:auto;padding:16px 12px;transform:translateX(-100%);transition:transform .3s ease;box-shadow:var(--shadow-lg)' : 'width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);overflow-y:auto;padding:16px 12px;transition:transform .3s ease;z-index:50'}">
             ${renderSidebarHTML()}
         </aside>
         <!-- Main Content -->
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
             <!-- Toolbar -->
-            <div class="toolbar-wrap" style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <div class="search-box" style="flex:1;min-width:200px;position:relative">
-                    <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:13px"></i>
-                    <input type="text" class="input" placeholder="${t('search')}" style="padding-left:32px;font-size:13px" value="${APP.searchQuery}" oninput="APP.searchQuery=this.value;renderFileList()">
+            <div class="toolbar-premium toolbar-wrap" style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <div class="search-premium" style="flex:1;min-width:200px">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="${t('search')}" value="${APP.searchQuery}" oninput="APP.searchQuery=this.value;renderFileList()">
                 </div>
-                <button class="btn btn-primary btn-sm" onclick="triggerUpload()"><i class="fas fa-plus"></i> ${t('upload')}</button>
-                <button class="btn btn-secondary btn-sm" onclick="openUrlUpload()"><i class="fas fa-link"></i></button>
-                <button class="btn btn-secondary btn-sm" onclick="openCameraUpload()"><i class="fas fa-camera"></i></button>
-                <button class="btn btn-ghost btn-sm" onclick="APP.batchMode=!APP.batchMode;renderFileList()" style="${APP.batchMode?'background:rgba(59,130,246,.1);color:var(--accent)':''}"><i class="fas fa-check-double"></i></button>
-                <select class="input" style="width:auto;font-size:12px;padding:6px 8px" onchange="APP.sortBy=this.value;renderFileList()">
+                <button class="toolbar-upload-btn" onclick="triggerUpload()"><i class="fas fa-plus"></i> ${t('upload')}</button>
+                <div class="toolbar-group">
+                    <button class="toolbar-action-btn" onclick="openUrlUpload()" title="URL Upload"><i class="fas fa-link"></i></button>
+                    <button class="toolbar-action-btn" onclick="openCameraUpload()" title="Camera"><i class="fas fa-camera"></i></button>
+                    <button class="toolbar-action-btn ${APP.batchMode?'active-action':''}" onclick="APP.batchMode=!APP.batchMode;renderFileList()" title="${t('batchMode')}"><i class="fas fa-check-double"></i></button>
+                </div>
+                <select class="toolbar-sort" onchange="APP.sortBy=this.value;renderFileList()">
                     <option value="date" ${APP.sortBy==='date'?'selected':''}>${t('sortByDate')}</option>
                     <option value="name" ${APP.sortBy==='name'?'selected':''}>${t('sortByName')}</option>
                     <option value="size" ${APP.sortBy==='size'?'selected':''}>${t('sortBySize')}</option>
                 </select>
-                <button class="btn btn-ghost btn-sm" onclick="APP.currentView=APP.currentView==='list'?'grid':'list';renderFileList()"><i class="fas fa-${APP.currentView==='list'?'grip':'list'}"></i></button>
+                <button class="toolbar-view-btn" onclick="APP.currentView=APP.currentView==='list'?'grid':'list';renderFileList()" title="${APP.currentView==='list'?t('gridView'):t('listView')}"><i class="fas fa-${APP.currentView==='list'?'grip':'list'}"></i></button>
             </div>
             <!-- Breadcrumb (F74) -->
-            <div id="breadcrumb-bar" style="padding:8px 16px;font-size:13px;color:var(--text-secondary);display:flex;align-items:center;gap:4px"></div>
+            <div id="breadcrumb-bar" class="breadcrumb-premium"></div>
             <!-- Quick Filter (F65) -->
-            <div id="quick-filter-bar" style="padding:4px 16px 8px;display:flex;gap:6px;flex-wrap:wrap"></div>
+            <div id="quick-filter-bar" style="padding:4px 20px 8px;display:flex;gap:6px;flex-wrap:wrap"></div>
             <!-- Upload Drop Zone -->
-            <div id="drop-zone" class="drop-zone" style="margin:0 16px 8px;padding:24px;text-align:center;display:none">
-                <i class="fas fa-cloud-arrow-up" style="font-size:24px;color:var(--accent)"></i>
-                <p style="font-size:13px;margin-top:4px">${t('uploadDrop')}</p>
+            <div id="drop-zone" class="drop-zone" style="margin:0 20px 8px;padding:24px;text-align:center;display:none;border-radius:14px">
+                <i class="fas fa-cloud-arrow-up" style="font-size:28px;color:var(--accent)"></i>
+                <p style="font-size:13px;margin-top:4px;color:var(--text-secondary)">${t('uploadDrop')}</p>
             </div>
             <!-- File List -->
-            <div id="file-list-container" style="flex:1;overflow-y:auto;padding:0 16px 16px"></div>
+            <div id="file-list-container" style="flex:1;overflow-y:auto;padding:0 20px 20px"></div>
         </div>
     </div>
     <input type="file" id="file-upload-input" multiple style="display:none" onchange="handleFileSelect(this.files)">`;
@@ -1862,20 +1976,35 @@ function renderSidebarHTML() {
         </div>`;
     }).join('');
 
+    // Storage calculation
+    const totalUsed = APP.files.filter(f => !f.trashed).reduce((sum, f) => sum + (f.size || 0), 0);
+    const maxStorage = APP.settings.maxUploadSize * 1024 * 1024 * 100; // Approximate
+    const usedPercent = maxStorage > 0 ? Math.min((totalUsed / maxStorage) * 100, 100) : 0;
+
     return `
-        <div style="margin-bottom:12px">
-            <button class="btn btn-primary" style="width:100%;font-size:13px" onclick="triggerUpload()"><i class="fas fa-plus"></i> ${t('upload')}</button>
+        <div style="margin-bottom:16px">
+            <button class="sidebar-upload-btn" onclick="triggerUpload()"><i class="fas fa-cloud-arrow-up"></i> ${t('upload')}</button>
         </div>
-        <div style="margin-bottom:8px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;padding:4px 8px">${APP.lang==='id'?'Navigasi':'Navigation'}</div>
+        <div class="sidebar-section-label">${APP.lang==='id'?'Navigasi':'Navigation'}</div>
         ${folderItems}
-        <div style="margin-top:16px">
-            <button class="btn btn-secondary btn-sm" style="width:100%" onclick="createFolderDialog()"><i class="fas fa-folder-plus"></i> ${t('newFolder')}</button>
+        <div class="sidebar-section-divider"></div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="sidebar-action-btn" onclick="createFolderDialog()"><i class="fas fa-folder-plus"></i> ${t('newFolder')}</button>
         </div>
-        <div style="margin-top:16px">
-            <button class="btn btn-secondary btn-sm" style="width:100%" onclick="openSettings()"><i class="fas fa-cog"></i> ${t('settings')}</button>
+        <div class="sidebar-section-divider"></div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="sidebar-action-btn" onclick="openSettings()"><i class="fas fa-cog"></i> ${t('settings')}</button>
+            <button class="sidebar-action-btn" onclick="openStorageAnalytics()"><i class="fas fa-chart-pie"></i> ${t('storageAnalytics')}</button>
         </div>
-        <div style="margin-top:8px">
-            <button class="btn btn-secondary btn-sm" style="width:100%" onclick="openStorageAnalytics()"><i class="fas fa-chart-pie"></i> ${t('storageAnalytics')}</button>
+        <div class="storage-widget">
+            <div class="storage-widget-title"><i class="fas fa-hard-drive" style="font-size:10px"></i> ${APP.lang==='id'?'Penyimpanan':'Storage'}</div>
+            <div class="storage-bar-track">
+                <div class="storage-bar-fill" style="width:${usedPercent}%"></div>
+            </div>
+            <div class="storage-info">
+                <span>${formatSize(totalUsed)} ${APP.lang==='id'?'digunakan':'used'}</span>
+                <span>${usedPercent.toFixed(1)}%</span>
+            </div>
         </div>`;
 }
 
@@ -1899,16 +2028,16 @@ function selectFolder(folderId) {
 function renderBreadcrumb() {
     const bar = document.getElementById('breadcrumb-bar');
     if (!bar) return;
-    let crumbs = [`<a href="#/dashboard" style="color:var(--accent);text-decoration:none"><i class="fas fa-home" style="font-size:12px"></i></a>`];
+    let crumbs = [`<a href="#/dashboard" class="crumb-home" style="text-decoration:none;display:flex;align-items:center;gap:4px"><i class="fas fa-home" style="font-size:12px"></i></a>`];
     const folder = APP.folders.find(f => f.id === APP.currentFolder);
     if (folder) {
-        crumbs.push(`<span style="color:var(--text-secondary)">/</span> <span>${folder.name}</span>`);
+        crumbs.push(`<span class="crumb-sep">/</span> <span class="crumb-active">${folder.name}</span>`);
     }
     if (APP.quickFilter) {
-        crumbs.push(`<span style="color:var(--text-secondary)">/</span> <span style="color:var(--accent)">${t(APP.quickFilter)}</span>`);
+        crumbs.push(`<span class="crumb-sep">/</span> <span class="crumb-active">${t(APP.quickFilter)}</span>`);
     }
     if (APP.searchQuery) {
-        crumbs.push(`<span style="color:var(--text-secondary)">/</span> <span style="color:var(--accent)">"${APP.searchQuery}"</span>`);
+        crumbs.push(`<span class="crumb-sep">/</span> <span class="crumb-active">"${APP.searchQuery}"</span>`);
     }
     bar.innerHTML = crumbs.join(' ');
 }
@@ -1925,8 +2054,8 @@ function renderQuickFilter() {
         { key: 'encrypted', label: t('encrypted'), icon: 'fa-lock' }
     ];
     bar.innerHTML = filters.map(f => `
-        <button class="btn btn-sm ${APP.quickFilter === f.key ? 'btn-primary' : 'btn-secondary'}" style="font-size:11px" onclick="setQuickFilter('${f.key}')">
-            <i class="fas ${f.icon}"></i> ${f.label}
+        <button class="filter-pill ${APP.quickFilter === f.key ? 'active' : ''}" onclick="setQuickFilter('${f.key}')">
+            <i class="fas ${f.icon}" style="font-size:10px"></i> ${f.label}
         </button>
     `).join('');
 }
@@ -1967,12 +2096,12 @@ function renderFileList() {
     }
 
     if (APP.currentView === 'grid') {
-        container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+        container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">
             ${files.map((f, i) => renderFileGridItem(f, i)).join('')}
         </div>`;
     } else {
         container.innerHTML = `
-            <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+            <div style="border:1px solid var(--border);border-radius:14px;overflow:hidden">
                 ${files.map((f, i) => renderFileListRow(f, i)).join('')}
             </div>`;
     }
@@ -2028,7 +2157,7 @@ function renderFileGridItem(file, index) {
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
     const trashDays = file.trashed ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : 0;
 
-    return `<div class="file-grid-item file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''}" 
+    return `<div class="file-card-premium file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''}" 
         onclick="handleFileClick(event, '${file.id}', ${index})"
         oncontextmenu="showContextMenu(event, '${file.id}')"
         draggable="true"
@@ -2040,12 +2169,12 @@ function renderFileGridItem(file, index) {
         ${file.starred ? '<i class="fas fa-star" style="position:absolute;top:8px;right:24px;font-size:10px;color:#f59e0b"></i>' : ''}
         ${file.encrypted ? '<i class="fas fa-lock" style="position:absolute;top:8px;right:' + (file.pinned && file.starred ? '40px' : file.pinned || file.starred ? '24px' : '8px') + ';font-size:10px;color:#3b82f6"></i>' : ''}
         <div style="text-align:center;padding:8px 0">
-            <div style="width:48px;height:48px;border-radius:12px;background:${icon.color}15;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">
-                <i class="fas ${icon.icon}" style="font-size:20px;color:${icon.color}"></i>
+            <div class="file-icon-circle" style="background:${icon.color}15">
+                <i class="fas ${icon.icon}" style="font-size:22px;color:${icon.color}"></i>
             </div>
-            <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${file.name}">${file.name}</div>
-            <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">${formatSize(file.size)} · ${formatDate(file.uploadedAt)}</div>
-            ${versions.length > 1 ? `<span class="badge" style="background:#8b5cf620;color:#8b5cf6;margin-top:4px">v${file.version || 1}/${versions.length}</span>` : ''}
+            <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px" title="${file.name}">${file.name}</div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:3px">${formatSize(file.size)} · ${formatDate(file.uploadedAt)}</div>
+            ${versions.length > 1 ? `<span class="badge" style="background:#8b5cf620;color:#8b5cf6;margin-top:6px">v${file.version || 1}/${versions.length}</span>` : ''}
             ${file.tag ? `<span class="tag-dot" style="background:${file.tag};margin-top:4px"></span>` : ''}
             ${file.trashed && trashDays > 0 ? `<div style="font-size:10px;color:#ef4444;margin-top:4px"><i class="fas fa-clock"></i> ${trashDays}d</div>` : ''}
         </div>
@@ -2060,7 +2189,7 @@ function renderFileListRow(file, index) {
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
     const trashDays = file.trashed ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : 0;
 
-    return `<div class="file-list-row file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''}"
+    return `<div class="file-row-premium file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''}"
         onclick="handleFileClick(event, '${file.id}', ${index})"
         oncontextmenu="showContextMenu(event, '${file.id}')"
         draggable="true"
@@ -2068,8 +2197,8 @@ function renderFileListRow(file, index) {
         ondragover="handleDragReorder(event, ${index})"
         ondrop="handleDropReorder(event, '${file.id}')">
         ${APP.batchMode ? `<div style="width:20px;height:20px;border-radius:4px;border:2px solid ${selected ? 'var(--accent)' : 'var(--border)'};background:${selected ? 'var(--accent)' : 'transparent'};display:flex;align-items:center;justify-content:center;margin-right:8px;flex-shrink:0">${selected ? '<i class="fas fa-check" style="color:#fff;font-size:10px"></i>' : ''}</div>` : ''}
-        <div style="width:36px;height:36px;border-radius:8px;background:${icon.color}15;display:flex;align-items:center;justify-content:center;margin-right:12px;flex-shrink:0">
-            <i class="fas ${icon.icon}" style="font-size:14px;color:${icon.color}"></i>
+        <div style="width:40px;height:40px;border-radius:10px;background:${icon.color}12;display:flex;align-items:center;justify-content:center;margin-right:14px;flex-shrink:0">
+            <i class="fas ${icon.icon}" style="font-size:16px;color:${icon.color}"></i>
         </div>
         <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:6px">
@@ -2081,12 +2210,12 @@ function renderFileListRow(file, index) {
                 ${versions.length > 1 ? `<span class="badge" style="background:#8b5cf620;color:#8b5cf6;font-size:10px">v${file.version || 1}</span>` : ''}
                 ${trashDays > 0 ? `<span style="font-size:10px;color:#ef4444"><i class="fas fa-clock"></i>${trashDays}d</span>` : ''}
             </div>
-            <div style="font-size:12px;color:var(--text-secondary)">${formatSize(file.size)} · ${formatDate(file.uploadedAt)}${file.caption ? ' · ' + file.caption.substring(0, 30) : ''}</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">${formatSize(file.size)} · ${formatDate(file.uploadedAt)}${file.caption ? ' · ' + file.caption.substring(0, 30) : ''}</div>
         </div>
-        <div class="action-btns" style="display:flex;gap:4px;flex-shrink:0">
-            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openPreview('${file.id}')" title="${t('preview')}"><i class="fas fa-eye"></i></button>
-            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openShareModal('${file.id}')" title="${t('share')}"><i class="fas fa-share-alt"></i></button>
-            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();downloadFile('${file.id}')" title="${t('download')}"><i class="fas fa-download"></i></button>
+        <div class="row-actions action-btns">
+            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openPreview('${file.id}')" title="${t('preview')}"><i class="fas fa-eye"></i></button>
+            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openShareModal('${file.id}')" title="${t('share')}"><i class="fas fa-share-alt"></i></button>
+            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();downloadFile('${file.id}')" title="${t('download')}"><i class="fas fa-download"></i></button>
         </div>
     </div>`;
 }
@@ -2096,27 +2225,27 @@ function renderEmptyState() {
     const folder = APP.folders.find(f => f.id === APP.currentFolder);
     let svg, title, desc;
     if (APP.searchQuery) {
-        svg = '<svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="50" r="30" fill="none" stroke="var(--border)" stroke-width="3"/><line x1="82" y1="72" x2="100" y2="90" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/><text x="60" y="55" text-anchor="middle" fill="var(--text-secondary)" font-size="20">?</text></svg>';
+        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><circle cx="70" cy="55" r="32" fill="none" stroke="url(#grad1)" stroke-width="2.5"/><line x1="93" y1="78" x2="115" y2="100" stroke="url(#grad1)" stroke-width="2.5" stroke-linecap="round"/><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs><text x="70" y="60" text-anchor="middle" fill="var(--text-secondary)" font-size="22" font-family="Space Grotesk">?</text></svg>';
         title = t('noSearch');
-        desc = APP.lang === 'id' ? 'Coba kata kunci lain' : 'Try different keywords';
+        desc = APP.lang === 'id' ? 'Coba kata kunci lain untuk menemukan file Anda' : 'Try different keywords to find your files';
     } else if (APP.currentFolder === 'trash') {
-        svg = '<svg width="120" height="120" viewBox="0 0 120 120"><path d="M40 45h40v50a10 10 0 01-10 10H50a10 10 0 01-10-10V45z" fill="none" stroke="var(--border)" stroke-width="3"/><line x1="35" y1="45" x2="85" y2="45" stroke="var(--border)" stroke-width="3"/><line x1="50" y1="35" x2="70" y2="35" stroke="var(--border)" stroke-width="3"/></svg>';
+        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><path d="M45 50h50v55a12 12 0 01-12 12H57a12 12 0 01-12-12V50z" fill="none" stroke="url(#grad2)" stroke-width="2.5"/><line x1="38" y1="50" x2="102" y2="50" stroke="url(#grad2)" stroke-width="2.5"/><path d="M55 40h30v10" fill="none" stroke="url(#grad2)" stroke-width="2.5"/><defs><linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg>';
         title = t('noTrash');
         desc = APP.lang === 'id' ? 'File yang dihapus akan muncul di sini' : 'Deleted files will appear here';
     } else if (APP.currentFolder === 'favorites') {
-        svg = '<svg width="120" height="120" viewBox="0 0 120 120"><path d="M60 30l12 24 26 4-19 18 5 26-24-12-24 12 5-26-19-18 26-4z" fill="none" stroke="var(--border)" stroke-width="3"/></svg>';
+        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><path d="M70 30l14 28 30 5-22 21 5 30-27-14-27 14 5-30-22-21 30-5z" fill="none" stroke="url(#grad3)" stroke-width="2.5"/><defs><linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg>';
         title = t('noFavorites');
         desc = APP.lang === 'id' ? 'Bintangi file untuk menambahkan ke favorit' : 'Star files to add to favorites';
     } else {
-        svg = '<svg width="120" height="120" viewBox="0 0 120 120"><rect x="30" y="25" width="60" height="70" rx="4" fill="none" stroke="var(--border)" stroke-width="3"/><path d="M50 25V15h20v10" fill="none" stroke="var(--border)" stroke-width="3"/><path d="M55 55h20M55 65h20M55 75h10" stroke="var(--border)" stroke-width="2" stroke-linecap="round"/><circle cx="45" cy="55" r="3" fill="var(--border)"/><circle cx="45" cy="65" r="3" fill="var(--border)"/><circle cx="45" cy="75" r="3" fill="var(--border)"/></svg>';
+        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><rect x="35" y="28" width="70" height="80" rx="6" fill="none" stroke="url(#grad4)" stroke-width="2.5"/><path d="M58 28V18h24v10" fill="none" stroke="url(#grad4)" stroke-width="2.5"/><path d="M63 60h24M63 72h24M63 84h14" stroke="url(#grad4)" stroke-width="2" stroke-linecap="round"/><circle cx="52" cy="60" r="3" fill="url(#grad4)"/><circle cx="52" cy="72" r="3" fill="url(#grad4)"/><circle cx="52" cy="84" r="3" fill="url(#grad4)"/><defs><linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg>';
         title = t('noFiles');
         desc = t('noFilesDesc');
     }
-    return `<div style="text-align:center;padding:60px 20px">
-        <div class="empty-svg">${svg}</div>
-        <h3 style="font-size:18px;font-weight:600;margin-top:16px">${title}</h3>
-        <p style="color:var(--text-secondary);font-size:14px;margin-top:4px">${desc}</p>
-        ${APP.currentFolder === 'all' ? `<button class="btn btn-primary" style="margin-top:16px" onclick="triggerUpload()"><i class="fas fa-cloud-arrow-up"></i> ${t('upload')}</button>` : ''}
+    return `<div class="empty-premium">
+        <div class="empty-svg-wrap">${svg}</div>
+        <h3>${title}</h3>
+        <p>${desc}</p>
+        ${APP.currentFolder === 'all' ? `<button class="empty-action-btn" onclick="triggerUpload()"><i class="fas fa-cloud-arrow-up"></i> ${t('upload')}</button>` : ''}
     </div>`;
 }
 
