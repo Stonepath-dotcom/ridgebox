@@ -35,38 +35,58 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 .skeleton{background:linear-gradient(90deg,var(--bg-secondary) 25%,var(--border) 50%,var(--bg-secondary) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
 .page-transition{animation:fadeIn .25s ease}
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center}
-.modal-content{background:var(--bg-card);border-radius:var(--radius);max-width:560px;width:92%;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:fadeIn .2s ease}
-.detail-panel{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:100%;background:var(--bg-card);box-shadow:var(--shadow-lg);z-index:90;transform:translateX(100%);transition:transform .3s ease;overflow-y:auto}
-.detail-panel.open{transform:translateX(0)}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0);backdrop-filter:blur(0px);z-index:100;display:flex;align-items:center;justify-content:center;transition:background .35s ease,backdrop-filter .35s ease;pointer-events:none}
+.modal-backdrop.active{background:rgba(0,0,0,.5);backdrop-filter:blur(8px);pointer-events:auto}
+.modal-content{background:var(--bg-card);border-radius:16px;max-width:560px;width:92%;max-height:85vh;overflow-y:auto;box-shadow:0 25px 80px rgba(0,0,0,.2),0 0 0 1px rgba(59,130,246,.08);transform:translateY(30px) scale(.96);opacity:0;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .3s ease}
+.modal-backdrop.active .modal-content{transform:translateY(0) scale(1);opacity:1}
+.detail-panel{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:100%;background:var(--bg-card);box-shadow:-8px 0 40px rgba(0,0,0,0),0 0 0 1px rgba(59,130,246,0);z-index:90;transform:translateX(100%);transition:transform .4s cubic-bezier(.4,0,.2,1),box-shadow .4s ease;overflow-y:auto}
+.detail-panel.open{transform:translateX(0);box-shadow:-8px 0 40px rgba(0,0,0,.1),0 0 0 1px rgba(59,130,246,.08)}
 .sidebar-mobile-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:49;display:none}
 .sidebar-mobile-overlay.open{display:block}
-.context-menu{position:fixed;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-lg);z-index:200;min-width:200px;padding:4px;display:none}
-.context-menu.open{display:block}
-.context-menu-item{padding:8px 12px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text);transition:var(--transition)}
-.context-menu-item:hover{background:var(--bg-secondary)}
-.context-menu-item.danger{color:#ef4444}
+.context-menu{position:fixed;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.15),0 0 0 1px rgba(59,130,246,.05);z-index:200;min-width:200px;padding:6px;transform-origin:top left;transform:scale(.9);opacity:0;pointer-events:none;transition:transform .2s cubic-bezier(.4,0,.2,1),opacity .15s ease}
+.context-menu.open{transform:scale(1);opacity:1;pointer-events:auto}
+.context-menu-item{padding:9px 14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text);transition:all .2s ease}
+.context-menu-item:hover{background:rgba(59,130,246,.06);color:var(--accent);transform:translateX(2px)}
+.context-menu-item.danger{color:#ef4444}.context-menu-item.danger:hover{background:rgba(239,68,68,.06)}
 .toast-container{position:fixed;bottom:20px;right:20px;z-index:300;display:flex;flex-direction:column;gap:8px;max-width:360px}
-.toast{padding:12px 16px;border-radius:8px;display:flex;align-items:center;gap:10px;font-size:14px;box-shadow:var(--shadow);animation:fadeIn .2s ease;cursor:pointer}
-.toast.success{background:#10b981;color:#fff}
-.toast.error{background:#ef4444;color:#fff}
-.toast.info{background:var(--accent);color:#fff}
-.toast.warning{background:#f59e0b;color:#fff}
+.toast{padding:12px 16px;border-radius:10px;display:flex;align-items:center;gap:10px;font-size:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);cursor:pointer;position:relative;overflow:hidden;transform:translateX(120%);opacity:0;animation:toastSlideIn .4s cubic-bezier(.4,0,.2,1) forwards}
+.toast.removing{animation:toastSlideOut .3s cubic-bezier(.4,0,.2,1) forwards}
+.toast-progress{position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 10px 10px;animation:toastProgress linear forwards}
+.toast.success{background:#10b981;color:#fff}.toast.success .toast-progress{background:rgba(255,255,255,.4)}
+.toast.error{background:#ef4444;color:#fff}.toast.error .toast-progress{background:rgba(255,255,255,.4)}
+.toast.info{background:var(--accent);color:#fff}.toast.info .toast-progress{background:rgba(255,255,255,.4)}
+.toast.warning{background:#f59e0b;color:#fff}.toast.warning .toast-progress{background:rgba(255,255,255,.4)}
+@keyframes toastSlideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes toastSlideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}
+@keyframes toastProgress{from{width:100%}to{width:0%}}
 .upload-progress-global{position:fixed;top:0;left:0;right:0;height:3px;z-index:400;background:transparent}
-.upload-progress-global .bar{height:100%;background:var(--accent);transition:width .3s ease;border-radius:0 2px 2px 0}
-.quick-actions-bar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:8px 16px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-lg);z-index:80;display:none}
-.quick-actions-bar.visible{display:flex}
+.upload-progress-global .bar{height:100%;background:linear-gradient(90deg,var(--accent),#8b5cf6,var(--accent));background-size:200% 100%;transition:width .3s ease;border-radius:0 2px 2px 0;animation:progressShimmer 2s ease infinite}
+@keyframes progressShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.quick-actions-bar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:10px 18px;display:flex;align-items:center;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,.12),0 0 0 1px rgba(59,130,246,.05);z-index:80;opacity:0;pointer-events:none;transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s ease}
+.quick-actions-bar.visible{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
 .scroll-progress{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:500;transition:width .1s linear}
 .back-to-top{position:fixed;bottom:20px;left:20px;width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);z-index:80;border:none;font-size:16px;transition:var(--transition)}
 .back-to-top.visible{display:flex}
 .back-to-top:hover{background:var(--accent-hover);transform:scale(1.1)}
+@keyframes fileItemIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+/* Staggered file item delays */
+.file-stagger-1{animation-delay:.03s!important}.file-stagger-2{animation-delay:.06s!important}.file-stagger-3{animation-delay:.09s!important}.file-stagger-4{animation-delay:.12s!important}.file-stagger-5{animation-delay:.15s!important}.file-stagger-6{animation-delay:.18s!important}.file-stagger-7{animation-delay:.21s!important}.file-stagger-8{animation-delay:.24s!important}.file-stagger-9{animation-delay:.27s!important}.file-stagger-10{animation-delay:.3s!important}
+/* Empty state SVG breathing */
+@keyframes emptyBreathe{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.03);opacity:.8}}
+.empty-svg{animation:emptyBreathe 3s ease-in-out infinite}
+/* Onboarding step transition */
+@keyframes onbStepIn{from{opacity:0;transform:translateX(30px) scale(.95)}to{opacity:1;transform:translateX(0) scale(1)}}
+.onb-step{animation:onbStepIn .4s cubic-bezier(.4,0,.2,1) forwards}
+/* Storage analytics animated bar */
+@keyframes barFill{from{width:0}to{width:var(--bar-w)}}
+.analytics-bar{animation:barFill .8s cubic-bezier(.4,0,.2,1) forwards}
 .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
 .tag-dot{width:10px;height:10px;border-radius:50%;display:inline-block;cursor:pointer}
-.file-grid-item{position:relative;border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:var(--transition);background:var(--bg-card)}
-.file-grid-item:hover{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.file-grid-item.selected{border-color:var(--accent);background:rgba(59,130,246,.08)}
-.file-list-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:var(--transition)}
-.file-list-row:hover{background:var(--bg-secondary)}
+.file-grid-item{position:relative;border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);background:var(--bg-card);opacity:0;transform:translateY(12px);animation:fileItemIn .4s cubic-bezier(.4,0,.2,1) forwards}
+.file-grid-item:hover{border-color:var(--accent);box-shadow:0 4px 20px rgba(59,130,246,.1);transform:translateY(-2px)}
+.file-grid-item.selected{border-color:var(--accent);background:rgba(59,130,246,.08);box-shadow:0 0 0 2px rgba(59,130,246,.2)}
+.file-list-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:all .2s ease;opacity:0;transform:translateX(-8px);animation:fileItemIn .35s cubic-bezier(.4,0,.2,1) forwards}
+.file-list-row:hover{background:rgba(59,130,246,.04)}
 .file-list-row.selected{background:rgba(59,130,246,.08)}
 .sidebar-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;transition:var(--transition);font-size:14px;color:var(--text-secondary)}
 .sidebar-item:hover,.sidebar-item.active{background:var(--bg-secondary);color:var(--text)}
@@ -250,8 +270,7 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 <div id="modal-backdrop" class="modal-backdrop" style="display:none" onclick="closeModal()"><div id="modal-content" class="modal-content" onclick="event.stopPropagation()"></div></div>
 <div id="context-menu" class="context-menu"></div>
 <div id="toast-container" class="toast-container"></div>
-<div id="quick-actions-bar" class="quick-actions-bar"></div>
-<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:110"></div>
+<div id="quick-actions-bar" class="quick-actions-bar"></div><div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:110"></div>
 <div id="pin-lock-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:var(--bg);align-items:center;justify-content:center"></div>
 
 <script>
@@ -862,18 +881,32 @@ function showToast(msg, type = 'info', duration = 4000) {
         existing.dataset.count = count;
         existing.querySelector('.toast-msg').textContent = msg + (count > 1 ? ` (${count}x)` : '');
         clearTimeout(existing._timer);
-        existing._timer = setTimeout(() => { existing.remove(); delete toastGroups[groupKey]; }, duration);
+        // Reset progress bar
+        const prog = existing.querySelector('.toast-progress');
+        if (prog) { prog.style.animation = 'none'; prog.offsetHeight; prog.style.animation = `toastProgress ${duration}ms linear forwards`; }
+        existing._timer = setTimeout(() => { removeToast(existing, groupKey); }, duration);
         return;
     }
     const el = document.createElement('div');
     el.className = `toast ${type}`;
     el.dataset.count = '1';
-    const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle', warning: 'fa-exclamation-triangle' };
-    el.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span class="toast-msg">${msg}</span>`;
-    el._timer = setTimeout(() => { el.remove(); delete toastGroups[groupKey]; }, duration);
-    el.onclick = () => { el.remove(); delete toastGroups[groupKey]; };
+    const svgIcons = {
+        success: '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 9.5L7.5 11.5L12.5 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        error: '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 6.5L11.5 11.5M11.5 6.5L6.5 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+        info: '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M9 7V7.5M9 10V12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+        warning: '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L16.5 14.5H1.5L9 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 7V9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="12" r="0.75" fill="currentColor"/></svg>'
+    };
+    el.innerHTML = `${svgIcons[type] || svgIcons.info}<span class="toast-msg">${msg}</span><div class="toast-progress" style="animation-duration:${duration}ms"></div>`;
+    el._timer = setTimeout(() => { removeToast(el, groupKey); }, duration);
+    el.onclick = () => { removeToast(el, groupKey); };
     container.appendChild(el);
     toastGroups[groupKey] = el;
+}
+function removeToast(el, groupKey) {
+    if (!el || el.classList.contains('removing')) return;
+    el.classList.add('removing');
+    clearTimeout(el._timer);
+    setTimeout(() => { el.remove(); delete toastGroups[groupKey]; }, 300);
 }
 
 // ===== THEME (F12) =====
@@ -961,13 +994,15 @@ function checkPinThenRender(callback) {
 function showPinLock(callback) {
     const overlay = document.getElementById('pin-lock-overlay');
     overlay.style.display = 'flex';
+    overlay.style.opacity = '0';
+    requestAnimationFrame(() => { overlay.style.transition = 'opacity .3s ease'; overlay.style.opacity = '1'; });
     overlay.innerHTML = `
         <div style="text-align:center;max-width:320px;padding:24px">
             <div style="width:64px;height:64px;border-radius:16px;background:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
-                <i class="fas fa-lock" style="color:#fff;font-size:28px"></i>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
             </div>
             <h2 style="margin-bottom:8px">${t('enterPin')}</h2>
-            <input type="password" id="pin-input" class="input" maxlength="6" placeholder="••••" style="text-align:center;font-size:24px;letter-spacing:8px" onkeydown="if(event.key==='Enter')verifyPin()">
+            <input type="password" id="pin-input" class="input" maxlength="6" placeholder="......" style="text-align:center;font-size:24px;letter-spacing:8px" onkeydown="if(event.key==='Enter')verifyPin()">
             <p id="pin-error" style="color:#ef4444;font-size:13px;margin-top:8px;display:none">${t('wrongPin')}</p>
             <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="verifyPin()">${t('confirm')}</button>
         </div>`;
@@ -981,7 +1016,9 @@ async function verifyPin() {
     if (!inp) return;
     const hashed = await hashPin(inp.value);
     if (hashed === APP.settings.pinLock) {
-        document.getElementById('pin-lock-overlay').style.display = 'none';
+        const ov = document.getElementById('pin-lock-overlay');
+        ov.style.opacity = '0';
+        setTimeout(() => { ov.style.display = 'none'; }, 300);
         if (document.getElementById('pin-lock-overlay')._callback) {
             document.getElementById('pin-lock-overlay')._callback();
         }
@@ -1087,12 +1124,17 @@ function toggleMobileSidebar(open) {
 function openModal(html) {
     const backdrop = document.getElementById('modal-backdrop');
     const content = document.getElementById('modal-content');
-    if (backdrop) backdrop.style.display = 'flex';
-    if (content) content.innerHTML = html;
+    if (!backdrop || !content) return;
+    content.innerHTML = html;
+    backdrop.style.display = 'flex';
+    // Trigger transition on next frame
+    requestAnimationFrame(() => { backdrop.classList.add('active'); });
 }
 function closeModal() {
     const backdrop = document.getElementById('modal-backdrop');
-    if (backdrop) backdrop.style.display = 'none';
+    if (!backdrop) return;
+    backdrop.classList.remove('active');
+    setTimeout(() => { backdrop.style.display = 'none'; }, 350);
 }
 
 // ===== CONTEXT MENU (F53) =====
@@ -1126,6 +1168,7 @@ function showContextMenu(e, fileId) {
     const y = Math.min(e.clientY, window.innerHeight - 300);
     menu.style.left = x + 'px';
     menu.style.top = y + 'px';
+    menu.style.transformOrigin = `${e.clientX - x}px ${e.clientY - y}px`;
     menu.classList.add('open');
 }
 function closeContextMenu() {
@@ -1176,7 +1219,10 @@ function openDetailPanel(fileId) {
 }
 function closeDetailPanel() {
     const panel = document.getElementById('detail-panel');
-    if (panel) { panel.classList.remove('open'); panel.innerHTML = ''; }
+    if (panel && panel.classList.contains('open')) {
+        panel.classList.remove('open');
+        setTimeout(() => { panel.innerHTML = ''; }, 400);
+    }
 }
 
 // ===== REFRESH UI - Complete refresh after file changes =====
@@ -1982,7 +2028,7 @@ function renderFileGridItem(file, index) {
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
     const trashDays = file.trashed ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : 0;
 
-    return `<div class="file-grid-item ${selected ? 'selected' : ''}" 
+    return `<div class="file-grid-item file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''}" 
         onclick="handleFileClick(event, '${file.id}', ${index})"
         oncontextmenu="showContextMenu(event, '${file.id}')"
         draggable="true"
@@ -2014,7 +2060,7 @@ function renderFileListRow(file, index) {
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
     const trashDays = file.trashed ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : 0;
 
-    return `<div class="file-list-row ${selected ? 'selected' : ''}"
+    return `<div class="file-list-row file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''}"
         onclick="handleFileClick(event, '${file.id}', ${index})"
         oncontextmenu="showContextMenu(event, '${file.id}')"
         draggable="true"
@@ -2067,7 +2113,7 @@ function renderEmptyState() {
         desc = t('noFilesDesc');
     }
     return `<div style="text-align:center;padding:60px 20px">
-        ${svg}
+        <div class="empty-svg">${svg}</div>
         <h3 style="font-size:18px;font-weight:600;margin-top:16px">${title}</h3>
         <p style="color:var(--text-secondary);font-size:14px;margin-top:4px">${desc}</p>
         ${APP.currentFolder === 'all' ? `<button class="btn btn-primary" style="margin-top:16px" onclick="triggerUpload()"><i class="fas fa-cloud-arrow-up"></i> ${t('upload')}</button>` : ''}
@@ -3400,7 +3446,7 @@ function openStorageAnalytics() {
                             <i class="fas ${icon.icon}" style="color:${icon.color}"></i>
                             <span>${type}</span>
                             <span style="color:var(--text-secondary)">${pct}%</span>
-                            <div style="width:40px;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${icon.color};border-radius:2px"></div></div>
+                            <div style="width:40px;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div class="analytics-bar" style="height:100%;width:0;--bar-w:${pct}%;background:${icon.color};border-radius:2px"></div></div>
                         </div>`;
                     }).join('')}
                 </div>
@@ -3485,8 +3531,8 @@ function showOnboardingStep() {
     const isLast = onboardingStep === onboardingSteps.length - 1;
     overlay.style.display = 'block';
     overlay.innerHTML = `
-        <div style="position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:110" onclick="if(event.target===this)skipOnboarding()">
-            <div class="onboarding-tooltip" style="text-align:center">
+        <div style="position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:110" onclick="if(event.target===this)skipOnboarding()">
+            <div class="onboarding-tooltip onb-step" style="text-align:center">
                 <div style="width:64px;height:64px;border-radius:16px;background:rgba(59,130,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
                     <i class="fas ${step.icon}" style="font-size:28px;color:var(--accent)"></i>
                 </div>
