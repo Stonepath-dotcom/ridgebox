@@ -2777,7 +2777,23 @@ function openShareModal(fileId) {
     if (!file) return;
     closeContextMenu();
     const existingShares = APP.shares.filter(s => s.fileId === fileId);
-    const shareUrl = existingShares.length > 0 ? `${location.origin}${location.pathname}#/s/${existingShares[0].alias || existingShares[0].id}` : '';
+    // Generate cross-device share URL with encoded file info
+    let shareUrl = '';
+    if (existingShares.length > 0) {
+        const s = existingShares[0];
+        const payload = {
+            fn: file.name, fs: file.size, fm: file.mime || '',
+            fp: file.filePath || '', bi: file.botIndex || '0',
+            ci: file.chatId || '', pw: s.password || '',
+            ex: s.expiry || 0, sd: s.selfDestruct ? 1 : 0,
+            sid: s.id, enc: file.encrypted ? 1 : 0,
+            ca: file.caption || '', al: s.alias || ''
+        };
+        const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+        shareUrl = `${location.origin}${location.pathname}#/s/${encoded}`;
+    }
+    // Store share URL in a global for safe copy
+    window._currentShareUrl = shareUrl;
     openModal(`
         <div style="padding:24px">
             <h3 style="font-size:18px;font-weight:600;margin-bottom:4px"><i class="fas fa-share-alt" style="color:var(--accent)"></i> ${t('share')}</h3>
@@ -2786,8 +2802,8 @@ function openShareModal(fileId) {
                 <div style="margin-bottom:16px">
                     <label style="font-size:12px;font-weight:500;margin-bottom:4px;display:block">${t('shareLink')}</label>
                     <div style="display:flex;gap:6px">
-                        <input type="text" class="input" value="${shareUrl}" readonly style="font-size:12px;font-family:'JetBrains Mono',monospace">
-                        <button class="btn btn-primary btn-sm" onclick="copyShareLink('${shareUrl}')"><i class="fas fa-copy"></i></button>
+                        <input type="text" class="input" id="share-url-input" readonly style="font-size:12px;font-family:'JetBrains Mono',monospace">
+                        <button class="btn btn-primary btn-sm" onclick="copyShareLink(window._currentShareUrl)"><i class="fas fa-copy"></i></button>
                     </div>
                 </div>
             ` : ''}
@@ -2831,6 +2847,13 @@ function openShareModal(fileId) {
                 </div>
             ` : ''}
         </div>`);
+    // Set share URL input value safely (base64 chars can break HTML attributes)
+    if (shareUrl) {
+        setTimeout(() => {
+            const urlInput = document.getElementById('share-url-input');
+            if (urlInput) urlInput.value = shareUrl;
+        }, 50);
+    }
 }
 
 async function createShareLink(fileId) {
@@ -2838,6 +2861,8 @@ async function createShareLink(fileId) {
     const expiry = parseInt(document.getElementById('share-expiry')?.value || '0');
     const selfDestruct = document.getElementById('share-selfdestruct')?.checked || false;
     const alias = document.getElementById('share-alias')?.value.trim() || genId().substring(0, 8);
+    const file = APP.files.find(f => f.id === fileId);
+    if (!file) { showToast('File not found', 'error'); return; }
     const share = {
         id: genId(),
         fileId: fileId,
@@ -2851,9 +2876,25 @@ async function createShareLink(fileId) {
     };
     await saveShare(share);
     APP.shares.push(share);
-    const file = APP.files.find(f => f.id === fileId);
     if (file) { file.shareCount = (file.shareCount || 0) + 1; await saveFile(file); }
-    const url = `${location.origin}${location.pathname}#/s/${alias}`;
+    // Encode file info into the share URL so it works cross-device
+    const payload = {
+        fn: file.name,
+        fs: file.size,
+        fm: file.mime || '',
+        fp: file.filePath || '',
+        bi: file.botIndex || '0',
+        ci: file.chatId || '',
+        pw: share.password,
+        ex: share.expiry,
+        sd: selfDestruct ? 1 : 0,
+        sid: share.id,
+        enc: file.encrypted ? 1 : 0,
+        ca: file.caption || '',
+        al: alias
+    };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    const url = `${location.origin}${location.pathname}#/s/${encoded}`;
     closeModal();
     openShareModal(fileId);
     copyShareLink(url);
@@ -2865,17 +2906,71 @@ function copyShareLink(url) {
 }
 
 // ===== SHARE PORTAL (F5, F6, F78, F88) =====
-function renderSharePortal(alias) {
+function decodeSharePayload(raw) {
+    try {
+        const json = decodeURIComponent(escape(atob(raw)));
+        const p = JSON.parse(json);
+        return {
+            isEncoded: true,
+            name: p.fn || 'Unknown',
+            size: p.fs || 0,
+            mime: p.fm || '',
+            filePath: p.fp || '',
+            botIndex: p.bi || '0',
+            chatId: p.ci || '',
+            password: p.pw || '',
+            expiry: p.ex || 0,
+            selfDestruct: p.sd === 1,
+            id: p.sid || raw.substring(0, 8),
+            encrypted: p.enc === 1,
+            caption: p.ca || '',
+            alias: p.al || ''
+        };
+    } catch (e) {
+        return null;
+    }
+}
+
+function renderSharePortal(rawAlias) {
     const main = document.getElementById('app-main');
     if (!main) return;
     renderHeader();
-    const share = APP.shares.find(s => s.alias === alias || s.id === alias);
-    if (!share) {
-        main.innerHTML = render404Content();
-        return;
+
+    // Try decoding base64 payload first (new cross-device format)
+    let shareData = decodeSharePayload(rawAlias);
+    let share = null;
+    let file = null;
+
+    if (shareData && shareData.isEncoded) {
+        // New format: data is embedded in URL
+        share = shareData;
+        file = {
+            name: shareData.name,
+            size: shareData.size,
+            mime: shareData.mime,
+            filePath: shareData.filePath,
+            botIndex: shareData.botIndex,
+            chatId: shareData.chatId,
+            encrypted: shareData.encrypted,
+            caption: shareData.caption
+        };
+    } else {
+        // Legacy format: look up alias in local IndexedDB
+        share = APP.shares.find(s => s.alias === rawAlias || s.id === rawAlias);
+        if (!share) {
+            main.innerHTML = render404Content();
+            return;
+        }
+        const f = APP.files.find(f => f.id === share.fileId);
+        if (!f) {
+            main.innerHTML = render404Content();
+            return;
+        }
+        file = f;
     }
+
     // F78: Check self-destruct
-    if (share.selfDestruct && APP.usedSelfDestructLinks.has(share.id)) {
+    if (share.selfDestruct && APP.usedSelfDestructLinks.has(share.id || '')) {
         main.innerHTML = `<div class="page-transition" style="display:flex;align-items:center;justify-content:center;min-height:80vh">
             <div style="text-align:center;padding:40px">
                 <i class="fas fa-link-slash" style="font-size:48px;color:var(--text-secondary);margin-bottom:16px"></i>
@@ -2898,11 +2993,6 @@ function renderSharePortal(alias) {
         </div>`;
         return;
     }
-    const file = APP.files.find(f => f.id === share.fileId);
-    if (!file) {
-        main.innerHTML = render404Content();
-        return;
-    }
     const type = getFileType(file.name, file.mime);
     const icon = getFileIcon(type);
     // Check if password protected
@@ -2914,25 +3004,46 @@ function renderSharePortal(alias) {
                 </div>
                 <h2>${t('protectedFile')}</h2>
                 <p style="color:var(--text-secondary);margin-bottom:16px">${file.name}</p>
-                <input type="password" id="share-pw-input" class="input" placeholder="${t('enterPassword')}" onkeydown="if(event.key==='Enter')verifySharePassword('${share.id}')">
+                <input type="password" id="share-pw-input" class="input" placeholder="${t('enterPassword')}" onkeydown="if(event.key==='Enter')verifySharePassword('${share.id || ''}')">
                 <p id="share-pw-error" style="color:#ef4444;font-size:12px;margin-top:4px;display:none">${t('wrongPassword')}</p>
-                <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="verifySharePassword('${share.id}')">${t('confirm')}</button>
+                <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="verifySharePassword('${share.id || ''}')">${t('confirm')}</button>
             </div>
         </div>`;
+        // Store share data for password verification
+        window._shareVerifyData = share;
         return;
     }
     renderShareDownload(share, file);
 }
 
 async function verifySharePassword(shareId) {
-    const share = APP.shares.find(s => s.id === shareId);
+    // Support both local IndexedDB shares and cross-device encoded shares
+    let share = APP.shares.find(s => s.id === shareId);
+    if (!share && window._shareVerifyData) {
+        share = window._shareVerifyData;
+    }
     if (!share) return;
     const input = document.getElementById('share-pw-input');
     const errEl = document.getElementById('share-pw-error');
     if (!input) return;
     const hashed = await hashPin(input.value);
     if (hashed === share.password) {
-        const file = APP.files.find(f => f.id === share.fileId);
+        // Build file object from encoded share data or find in local files
+        let file;
+        if (share.isEncoded || window._shareVerifyData) {
+            file = {
+                name: share.name || 'Unknown',
+                size: share.size || 0,
+                mime: share.mime || '',
+                filePath: share.filePath || '',
+                botIndex: share.botIndex || '0',
+                chatId: share.chatId || '',
+                encrypted: share.encrypted || false,
+                caption: share.caption || ''
+            };
+        } else {
+            file = APP.files.find(f => f.id === share.fileId);
+        }
         if (file) renderShareDownload(share, file);
     } else {
         if (errEl) errEl.style.display = 'block';
@@ -2945,15 +3056,26 @@ function renderShareDownload(share, file) {
     if (!main) return;
     const type = getFileType(file.name, file.mime);
     const icon = getFileIcon(type);
-    // Update share analytics
-    share.clicks = (share.clicks || 0) + 1;
-    share.lastAccess = Date.now();
-    saveShare(share);
+    // Update share analytics (only for local shares stored in IndexedDB)
+    const localShare = APP.shares.find(s => s.id === (share.id || ''));
+    if (localShare) {
+        localShare.clicks = (localShare.clicks || 0) + 1;
+        localShare.lastAccess = Date.now();
+        saveShare(localShare);
+        share.clicks = localShare.clicks;
+    } else {
+        share.clicks = (share.clicks || 0) + 1;
+    }
     // F78: Mark self-destruct as used
     if (share.selfDestruct) {
-        APP.usedSelfDestructLinks.add(share.id);
+        APP.usedSelfDestructLinks.add(share.id || '');
         localStorage.setItem('rb_used_links', JSON.stringify([...APP.usedSelfDestructLinks]));
     }
+    // Build download function: use fileId for local files, or filePath for cross-device shares
+    const isLocalFile = file.id && APP.files.find(f => f.id === file.id);
+    const downloadFn = isLocalFile
+        ? `downloadFile('${file.id}')`
+        : `downloadSharedFile('${encodeURIComponent(file.filePath || '')}','${file.botIndex || '0'}','${encodeURIComponent(file.name)}',${file.encrypted ? 1 : 0},'${file.chatId || ''}')`;
     main.innerHTML = `<div class="page-transition" style="display:flex;align-items:center;justify-content:center;min-height:80vh">
         <div style="text-align:center;max-width:400px;padding:40px">
             <div style="width:80px;height:80px;border-radius:20px;background:${icon.color}15;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
@@ -2964,10 +3086,37 @@ function renderShareDownload(share, file) {
             <p style="color:var(--text-secondary);font-size:13px;margin-bottom:4px">${formatSize(file.size)} · ${type}</p>
             ${file.caption ? `<p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;font-style:italic">"${file.caption}"</p>` : ''}
             ${share.selfDestruct ? `<p style="color:#ef4444;font-size:12px;margin-bottom:16px"><i class="fas fa-fire"></i> ${APP.lang==='id'?'Link ini hanya bisa digunakan sekali':'This link can only be used once'}</p>` : ''}
-            <button class="btn btn-primary" style="width:100%;padding:14px" onclick="downloadFile('${file.id}')"><i class="fas fa-download"></i> ${t('downloadFile')}</button>
-            <div style="margin-top:16px;font-size:11px;color:var(--text-secondary)">${share.clicks} ${APP.lang==='id'?'klik':'clicks'} · ${formatDate(share.createdAt)}</div>
+            <button class="btn btn-primary" style="width:100%;padding:14px" onclick="${downloadFn}"><i class="fas fa-download"></i> ${t('downloadFile')}</button>
+            <div style="margin-top:16px;font-size:11px;color:var(--text-secondary)">${share.clicks || 0} ${APP.lang==='id'?'klik':'clicks'} · ${formatDate(share.createdAt || Date.now())}</div>
         </div>
     </div>`;
+}
+
+// Download file from share portal (cross-device, uses filePath directly)
+async function downloadSharedFile(encodedPath, botIndex, encodedName, encrypted, chatId) {
+    const filePath = decodeURIComponent(encodedPath);
+    const fileName = decodeURIComponent(encodedName);
+    try {
+        const url = `/api/download?path=${encodeURIComponent(filePath)}&bot_index=${botIndex}`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('Download failed');
+        let blob = await resp.blob();
+        if (encrypted) {
+            try {
+                const encData = new Uint8Array(await blob.arrayBuffer());
+                const decData = await decryptData(encData, 'ridgebox_' + chatId);
+                blob = new Blob([decData]);
+            } catch(e) { console.warn('Decrypt failed, returning raw file'); }
+        }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast(t('download') + ' ✓', 'success');
+    } catch (err) {
+        showToast('Download error: ' + err.message, 'error');
+    }
 }
 
 // ===== UPLOAD PORTAL (F79, F104) =====
