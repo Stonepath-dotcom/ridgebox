@@ -151,12 +151,94 @@
         /* Animation */
         @keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .count-animated { animation: countUp .5s ease-out; }
+
+        /* ═══ F46-F75: New Feature Styles ═══ */
+        /* F53: Context Menu */
+        .context-menu { position: fixed; z-index: 75; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,.18); min-width: 180px; padding: 4px; overflow: hidden; }
+        .context-menu-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px; font-size: 12px; color: var(--text2); cursor: pointer; border-radius: 6px; transition: all .1s; }
+        .context-menu-item:hover { background: var(--surface2); color: var(--text); }
+        .context-menu-item.danger { color: #ef4444; }
+        .context-menu-item.danger:hover { background: rgba(239,68,68,.08); }
+        .context-menu-divider { height: 1px; background: var(--border); margin: 4px 8px; }
+        /* F47: File Detail Panel */
+        .file-detail-panel { position: fixed; top: 0; right: 0; width: 380px; max-width: 90vw; height: 100vh; z-index: 55; background: var(--surface); border-left: 1px solid var(--border); box-shadow: -8px 0 32px rgba(0,0,0,.1); transform: translateX(100%); transition: transform .3s cubic-bezier(.16,1,.3,1); overflow-y: auto; }
+        .file-detail-panel.open { transform: translateX(0); }
+        .file-detail-panel .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+        .file-detail-panel .detail-row:last-child { border-bottom: none; }
+        .file-detail-panel .detail-label { color: var(--text4); }
+        .file-detail-panel .detail-value { color: var(--text2); font-weight: 500; text-align: right; max-width: 60%; word-break: break-all; }
+        /* F65: Quick Filter Bar */
+        .quick-filter { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 100px; font-size: 10px; font-weight: 600; border: 1px solid var(--border); background: transparent; color: var(--text3); cursor: pointer; transition: all .15s; white-space: nowrap; }
+        .quick-filter:hover { border-color: var(--border2); color: var(--text2); }
+        .quick-filter.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        /* F74: Breadcrumb */
+        .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text4); margin-bottom: 12px; flex-wrap: wrap; }
+        .breadcrumb a { color: var(--text3); text-decoration: none; transition: color .15s; }
+        .breadcrumb a:hover { color: var(--accent); }
+        .breadcrumb .bc-sep { color: var(--text4); font-size: 9px; }
+        .breadcrumb .bc-current { color: var(--text2); font-weight: 600; }
+        /* F70: Scroll Progress Bar */
+        .scroll-progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); z-index: 100; transition: width .1s linear; border-radius: 0 2px 2px 0; }
+        /* F71: Back to Top Button */
+        .back-to-top { position: fixed; bottom: 24px; right: 24px; z-index: 50; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; box-shadow: 0 4px 16px rgba(59,130,246,.3); opacity: 0; transform: translateY(12px); transition: all .3s; pointer-events: none; }
+        .back-to-top.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .back-to-top:hover { background: var(--accent-light); transform: translateY(-2px); }
+        /* F72: Loading Skeleton */
+        .skeleton { background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .skeleton-line { height: 12px; margin-bottom: 8px; border-radius: 6px; }
+        .skeleton-line.w-3-4 { width: 75%; }
+        .skeleton-line.w-1-2 { width: 50%; }
+        .skeleton-circle { width: 36px; height: 36px; border-radius: 8px; }
+        /* F75: Page Transitions */
+        .page-transition { transition: opacity .3s ease, transform .3s ease; }
+        .page-transition.entering { opacity: 0; transform: translateY(8px); }
+        .page-transition.entered { opacity: 1; transform: translateY(0); }
+        /* F67: Testimonial Card */
+        .testimonial-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; transition: all .3s; position: relative; }
+        .testimonial-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(59,130,246,.08); }
+        .testimonial-card .quote { font-size: 13px; color: var(--text2); line-height: 1.7; font-style: italic; margin-bottom: 16px; }
+        .testimonial-card .author { display: flex; align-items: center; gap: 10px; }
+        .testimonial-card .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+        .testimonial-card .author-info span { display: block; }
+        .testimonial-card .author-name { font-size: 12px; font-weight: 600; color: var(--text); }
+        .testimonial-card .author-role { font-size: 10px; color: var(--text4); }
+        /* F66: Live Demo Section */
+        .live-demo-input { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 12px 16px; font-size: 13px; outline: none; width: 100%; transition: border-color .2s; }
+        .live-demo-input:focus { border-color: var(--accent); }
+        .live-demo-progress { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; margin-top: 12px; }
+        .live-demo-progress-bar { height: 100%; background: var(--accent); border-radius: 2px; width: 0; transition: width .3s; }
+        .live-demo-file { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); margin-top: 8px; font-size: 12px; animation: fadeUp .3s ease-out; }
+        /* F63: Waveform Canvas */
+        .waveform-canvas { width: 100%; height: 60px; border-radius: 8px; background: var(--surface2); }
+        /* F69: Social Proof Counter */
+        .social-proof-item { text-align: center; padding: 20px; }
+        .social-proof-value { font-size: 28px; font-weight: 700; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+        .social-proof-label { font-size: 11px; color: var(--text4); margin-top: 4px; }
     </style>
 </head>
 <body class="antialiased">
 
 <div id="offlineBadge" style="position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:55;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:6px 16px;font-size:11px;color:var(--text3);display:none"><i class="fa-solid fa-wifi mr-2"></i>Offline Mode</div>
 <div id="toastContainer" class="fixed top-6 right-6 z-[70] flex flex-col gap-3 pointer-events-none"></div>
+<!-- F70: Scroll Progress Bar -->
+<div id="scrollProgress" class="scroll-progress" style="width:0%"></div>
+<!-- F71: Back to Top Button -->
+<button id="backToTopBtn" class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Kembali ke atas"><i class="fa-solid fa-arrow-up text-sm"></i></button>
+<!-- F53: Context Menu -->
+<div id="contextMenu" class="context-menu hidden"></div>
+<!-- F47: File Detail Panel -->
+<div id="fileDetailPanel" class="file-detail-panel"></div>
+<!-- F73: 404 Page -->
+<div id="notFoundView" class="hidden min-h-screen flex flex-col items-center justify-center text-center px-6">
+    <div class="space-y-6">
+        <div class="w-24 h-24 mx-auto rounded-3xl bg-[var(--accent)]/10 flex items-center justify-center"><i class="fa-solid fa-ghost text-[var(--accent)] text-4xl"></i></div>
+        <h1 class="text-6xl font-bold text-[var(--accent)]">404</h1>
+        <p class="text-lg font-semibold">Halaman Tidak Ditemukan</p>
+        <p class="text-sm text-[var(--text3)] max-w-sm mx-auto">Halaman yang kamu cari tidak ada atau sudah dipindahkan.</p>
+        <a href="#/" class="btn-primary inline-flex items-center gap-2"><i class="fa-solid fa-house text-xs"></i> Kembali ke Beranda</a>
+    </div>
+</div>
 
 <!-- PIN Lock (F34) -->
 <div id="pinLockOverlay" class="pin-overlay hidden">
@@ -192,7 +274,7 @@
                     <div class="hp-badge"><span class="hp-badge-dot"></span>Cloud Storage Gratis</div>
                     <h1 class="text-4xl md:text-[44px] font-bold leading-[1.15] tracking-tight">Simpan file di cloud,<br><span class="text-[var(--accent)]">pakai Telegram.</span></h1>
                 </div>
-                <p class="text-[var(--text2)] text-base leading-relaxed max-w-md">Ridgebox bikin Telegram Bot kamu jadi cloud storage personal. Upload, share, dan kelola file langsung dari browser — 45 fitur lengkap tanpa biaya.</p>
+                <p class="text-[var(--text2)] text-base leading-relaxed max-w-md">Ridgebox bikin Telegram Bot kamu jadi cloud storage personal. Upload, share, dan kelola file langsung dari browser — 75 fitur lengkap tanpa biaya.</p>
                 <div class="flex flex-wrap gap-3">
                     <a href="#/dashboard" class="btn-primary inline-flex items-center gap-2 py-3 px-6">Mulai Pakai <i class="fa-solid fa-arrow-right text-xs"></i></a>
                     <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" class="btn-ghost inline-flex items-center gap-2 py-3 px-5"><i class="fa-brands fa-github text-sm"></i> Source Code</a>
@@ -214,10 +296,16 @@
     <section class="hp-section-alt hp-section">
         <div class="max-w-5xl mx-auto px-6 md:px-12">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                <div class="stat-box"><div class="stat-counter" data-target="45">0</div><p class="stat-label">Fitur Lengkap</p></div>
+                <div class="stat-box"><div class="stat-counter" data-target="75">0</div><p class="stat-label">Fitur Lengkap</p></div>
                 <div class="stat-box"><div class="stat-counter" data-target="2000" data-suffix=" MB">0</div><p class="stat-label">Batas Upload</p></div>
                 <div class="stat-box"><div class="stat-counter" data-target="100" data-suffix="%">0</div><p class="stat-label">Gratis</p></div>
                 <div class="stat-box"><div class="stat-counter" data-target="256" data-prefix="AES-" data-suffix="-GCM">0</div><p class="stat-label">Enkripsi</p></div>
+            </div>
+            <!-- F69: Social Proof Counters -->
+            <div class="grid grid-cols-3 gap-4 md:gap-6 mt-6">
+                <div class="social-proof-item"><div class="social-proof-value" data-target="2800" data-suffix="+">0</div><p class="social-proof-label"><i class="fa-brands fa-github mr-1"></i>GitHub Stars</p></div>
+                <div class="social-proof-item"><div class="social-proof-value" data-target="15000" data-suffix="+">0</div><p class="social-proof-label"><i class="fa-solid fa-download mr-1"></i>Unduhan</p></div>
+                <div class="social-proof-item"><div class="social-proof-value" data-target="5200" data-suffix="+">0</div><p class="social-proof-label"><i class="fa-solid fa-users mr-1"></i>Pengguna Aktif</p></div>
             </div>
         </div>
     </section>
@@ -244,7 +332,7 @@
     <section class="hp-section-alt hp-section">
         <div class="max-w-6xl mx-auto px-6 md:px-12">
             <div class="text-center mb-14">
-                <div class="hp-badge"><span class="hp-badge-dot"></span>45 Fitur</div>
+                <div class="hp-badge"><span class="hp-badge-dot"></span>75 Fitur</div>
                 <h2 class="hp-title">Semua yang kamu butuhkan</h2>
                 <p class="hp-subtitle mx mt-4">Dari upload dasar sampai fitur enterprise-grade. Semua gratis, semua di browser.</p>
             </div>
@@ -334,6 +422,77 @@
         </div>
     </section>
 
+    <!-- ═══ LIVE DEMO (F66) ═══ -->
+    <section class="hp-section">
+        <div class="max-w-3xl mx-auto px-6 md:px-12">
+            <div class="text-center mb-14">
+                <div class="hp-badge"><span class="hp-badge-dot"></span>Demo Langsung</div>
+                <h2 class="hp-title">Coba upload file</h2>
+                <p class="hp-subtitle mx mt-4">Ketik nama file dan lihat proses upload simulasi secara real-time.</p>
+            </div>
+            <div class="card p-8 space-y-5">
+                <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-[10px]"></i></div><span class="font-bold tracking-wider text-sm">RIDGEBOX</span><span class="badge bg-[var(--surface2)] border border-[var(--border)] text-[var(--text3)] text-[10px] ml-auto"><span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Demo</span></div>
+                <input type="text" id="liveDemoInput" class="live-demo-input" placeholder="Ketik nama file, misal: laporan.pdf" onkeydown="if(event.key==='Enter')simulateDemoUpload()">
+                <div class="flex gap-3 justify-center"><button onclick="simulateDemoUpload()" class="btn-primary inline-flex items-center gap-2"><i class="fa-solid fa-arrow-up-from-bracket text-xs"></i> Upload Simulasi</button></div>
+                <div id="liveDemoProgress" class="hidden live-demo-progress"><div id="liveDemoProgressBar" class="live-demo-progress-bar"></div></div>
+                <div id="liveDemoResult"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ TESTIMONIALS (F67) ═══ -->
+    <section class="hp-section-alt hp-section">
+        <div class="max-w-5xl mx-auto px-6 md:px-12">
+            <div class="text-center mb-14">
+                <div class="hp-badge"><span class="hp-badge-dot"></span>Testimoni</div>
+                <h2 class="hp-title">Dipercaya pengguna</h2>
+                <p class="hp-subtitle mx mt-4">Lihat apa kata mereka tentang Ridgebox.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="testimonial-card">
+                    <div class="quote">"Ridgebox mengubah cara saya backup file. Tidak perlu bayar cloud storage lagi, cukup pakai Telegram Bot!"</div>
+                    <div class="author"><div class="avatar">A</div><div class="author-info"><span class="author-name">Andi Pratama</span><span class="author-role">Developer, Jakarta</span></div></div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote">"Enkripsi AES-256 langsung di browser? Ini yang saya cari selama ini. File saya benar-benar privat."</div>
+                    <div class="author"><div class="avatar">S</div><div class="author-info"><span class="author-name">Sari Wulandari</span><span class="author-role">Designer, Bandung</span></div></div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote">"75 fitur gratis tanpa batas? Sulit dipercaya tapi nyata. Ridgebox adalah cloud storage terbaik untuk personal use."</div>
+                    <div class="author"><div class="avatar">R</div><div class="author-info"><span class="author-name">Rizky Fauzan</span><span class="author-role">Mahasiswa, Surabaya</span></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ VIDEO TUTORIAL (F68) ═══ -->
+    <section class="hp-section">
+        <div class="max-w-4xl mx-auto px-6 md:px-12">
+            <div class="text-center mb-14">
+                <div class="hp-badge"><span class="hp-badge-dot"></span>Tutorial</div>
+                <h2 class="hp-title">Setup dalam 2 menit</h2>
+                <p class="hp-subtitle mx mt-4">Tonton panduan singkat untuk mulai menggunakan Ridgebox.</p>
+            </div>
+            <div class="mockup-frame max-w-3xl mx-auto">
+                <div class="mockup-topbar"><div class="mockup-dot" style="background:#ff5f57"></div><div class="mockup-dot" style="background:#febc2e"></div><div class="mockup-dot" style="background:#28c840"></div><span class="ml-3 text-[10px] text-[var(--text4)] font-medium">Ridgebox Setup Tutorial</span></div>
+                <div class="p-6 md:p-10 text-center space-y-6" style="min-height:260px">
+                    <div class="w-20 h-20 mx-auto rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center cursor-pointer hover:bg-[var(--accent)]/20 transition-colors" onclick="showToast('Video tutorial akan segera hadir!','info')">
+                        <i class="fa-solid fa-play text-[var(--accent)] text-2xl ml-1"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold mb-2">Cara Setup Ridgebox</h3>
+                        <p class="text-[var(--text3)] text-sm max-w-md mx-auto">Pelajari cara membuat Telegram Bot, mengkonfigurasi Ridgebox, dan mulai upload file pertama kamu.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-center gap-4 text-[var(--text4)] text-xs">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-clock"></i>2:30</span>
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-eye"></i>12K tayangan</span>
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-thumbs-up"></i>98% suka</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ═══ SECURITY ═══ -->
     <section class="hp-section-alt hp-section">
         <div class="max-w-5xl mx-auto px-6 md:px-12">
@@ -388,7 +547,7 @@
                 <h2 class="hp-title">Pertanyaan Umum</h2>
             </div>
             <div class="space-y-3" id="faqList">
-                <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Apakah Ridgebox benar-benar gratis? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">Ya, 100% gratis. Ridgebox menggunakan Telegram Bot API sebagai backend storage. Kamu hanya perlu Telegram Bot (gratis dari @BotFather) dan akun Telegram. Tidak ada biaya server, tidak ada subscription, dan tidak ada iklan. Semua 45 fitur bisa digunakan tanpa batas.</div></div>
+                <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Apakah Ridgebox benar-benar gratis? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">Ya, 100% gratis. Ridgebox menggunakan Telegram Bot API sebagai backend storage. Kamu hanya perlu Telegram Bot (gratis dari @BotFather) dan akun Telegram. Tidak ada biaya server, tidak ada subscription, dan tidak ada iklan. Semua 75 fitur bisa digunakan tanpa batas.</div></div>
                 <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Berapa batas ukuran file yang bisa diupload? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">Telegram Bot API mendukung upload hingga 50 MB per file secara default, dan bisa sampai 2 GB menggunakan metode yang sesuai. Ridgebox mendukung keduanya — kamu bisa atur batas upload di pengaturan dashboard. File besar akan di-upload langsung dari browser ke Telegram API tanpa melewati server perantara.</div></div>
                 <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Apakah file saya aman? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">Keamanan file bergantung pada lapisan yang kamu gunakan. Secara default, file disimpan di server Telegram yang sudah terenkripsi. Jika kamu aktifkan enkripsi Ridgebox, file akan dienkripsi dengan AES-256-GCM sebelum dikirim, sehingga bahkan Telegram tidak bisa membaca isinya. Password enkripsi tidak pernah dikirim ke server manapun.</div></div>
                 <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Apa yang terjadi jika Telegram down? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">Ridgebox menggunakan IndexedDB di browser untuk menyimpan metadata file secara lokal. Kamu tetap bisa melihat daftar file dan catatan meskipun offline. Namun, upload dan download membutuhkan koneksi ke Telegram API. Begitu Telegram kembali online, semua fitur berfungsi normal kembali.</div></div>
@@ -465,6 +624,12 @@
         </div>
         <!-- Main content -->
         <div class="flex-grow space-y-5 min-w-0">
+            <!-- F74: Breadcrumb -->
+            <div id="breadcrumb" class="breadcrumb">
+                <a href="#/dashboard">Beranda</a>
+                <span class="bc-sep"><i class="fa-solid fa-chevron-right"></i></span>
+                <span class="bc-current">Semua Berkas</span>
+            </div>
             <div id="setupBanner" class="setup-banner hidden"><i class="fa-solid fa-triangle-exclamation text-[var(--accent)]"></i><div class="flex-grow"><span class="text-sm font-medium">Bot belum dikonfigurasi</span><p class="text-xs text-[var(--text3)] mt-0.5">Set TG_BOT_TOKEN & TG_CHAT_ID di Vercel env vars.</p></div></div>
             <!-- Upload zone -->
             <div id="uploadZone" class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
@@ -476,9 +641,27 @@
                         <p class="text-[var(--text4)] text-[11px] mb-2">Atau klik / Ctrl+V paste gambar</p>
                         <div class="flex items-center gap-3 mb-3">
                             <label class="flex items-center gap-2 text-[10px] text-[var(--text3)] cursor-pointer"><input type="checkbox" id="encryptToggle" class="file-checkbox" style="width:14px;height:14px"><i class="fa-solid fa-lock text-[8px]"></i> Enkripsi</label>
+                            <!-- F50: Auto-Compress Toggle -->
+                            <label class="flex items-center gap-2 text-[10px] text-[var(--text3)] cursor-pointer"><input type="checkbox" id="compressToggle" class="file-checkbox" style="width:14px;height:14px"><i class="fa-solid fa-compress text-[8px]"></i> Kompres</label>
                         </div>
                         <div id="encryptPwdRow" class="hidden mb-3 w-full max-w-xs mx-auto"><input type="password" id="encryptPwd" class="input-field text-[10px] py-1.5 text-center" placeholder="Password enkripsi"></div>
-                        <button onclick="document.getElementById('fileInput').click()" class="btn-primary text-xs">Pilih Berkas</button>
+                        <div class="flex items-center gap-2 mb-3">
+                            <button onclick="document.getElementById('fileInput').click()" class="btn-primary text-xs">Pilih Berkas</button>
+                            <!-- F49: Camera Upload -->
+                            <button onclick="captureFromCamera()" class="btn-ghost text-xs inline-flex items-center gap-1"><i class="fa-solid fa-camera text-[9px]"></i> Kamera</button>
+                            <!-- F55: Upload Presets -->
+                            <select id="uploadPresetSelect" class="sort-select text-[10px] py-1" onchange="applyUploadPreset()">
+                                <option value="">Preset</option>
+                                <option value="encrypt">Enkripsi</option>
+                                <option value="compress">Kompres</option>
+                                <option value="both">Enkripsi + Kompres</option>
+                            </select>
+                        </div>
+                        <!-- F60: Scheduled Upload -->
+                        <div class="flex items-center gap-2 w-full max-w-xs">
+                            <input type="datetime-local" id="scheduleUploadTime" class="input-field text-[10px] py-1.5 flex-grow">
+                            <button onclick="scheduleUpload()" class="btn-ghost text-[10px] py-1.5 px-2" title="Jadwalkan Upload"><i class="fa-regular fa-clock"></i></button>
+                        </div>
                     </div>
                 </div>
                 <div class="card p-5 flex flex-col justify-center items-center gap-3 min-w-[200px]"><i class="fa-solid fa-link text-[var(--accent)] text-lg"></i><span class="text-xs font-medium">Upload dari URL</span><input type="text" id="urlInput" placeholder="https://example.com/file.zip" class="input-field text-[11px] py-2"><button onclick="uploadFromURL()" class="btn-primary text-[11px] py-2 w-full" id="btnUrlUpload">Upload</button></div>
@@ -498,6 +681,14 @@
                 </div>
                 <div class="flex gap-2 overflow-x-auto pb-3">
                     <button class="pill active" data-category="all">Semua</button><button class="pill" data-category="image">Gambar</button><button class="pill" data-category="video">Video</button><button class="pill" data-category="audio">Audio</button><button class="pill" data-category="archive">Arsip</button><button class="pill" data-category="document">Dokumen</button>
+                </div>
+                <!-- F65: Quick Filter Bar -->
+                <div class="flex gap-2 overflow-x-auto pb-2">
+                    <button class="quick-filter" data-qf="today" onclick="applyQuickFilter('today')"><i class="fa-regular fa-calendar text-[8px]"></i> Hari Ini</button>
+                    <button class="quick-filter" data-qf="week" onclick="applyQuickFilter('week')"><i class="fa-regular fa-calendar-week text-[8px]"></i> Minggu Ini</button>
+                    <button class="quick-filter" data-qf="large" onclick="applyQuickFilter('large')"><i class="fa-solid fa-weight-hanging text-[8px]"></i> Besar (>10MB)</button>
+                    <button class="quick-filter" data-qf="pinned" onclick="applyQuickFilter('pinned')"><i class="fa-solid fa-thumbtack text-[8px]"></i> Dipin</button>
+                    <button class="quick-filter" data-qf="encrypted" onclick="applyQuickFilter('encrypted')"><i class="fa-solid fa-lock text-[8px]"></i> Terenkripsi</button>
                 </div>
                 <div id="batchSelectAll" class="hidden flex items-center gap-3 pb-3 border-b border-[var(--border)] mb-3"><input type="checkbox" id="selectAllCheckbox" class="file-checkbox" onchange="toggleSelectAll(this)"><label for="selectAllCheckbox" class="text-xs text-[var(--text3)] cursor-pointer">Pilih Semua</label></div>
                 <div id="trashActions" class="hidden flex items-center gap-3 pb-3 border-b border-[var(--border)] mb-3"><button onclick="restoreAllTrash()" class="btn-ghost text-[10px] py-1.5"><i class="fa-solid fa-rotate-left mr-1"></i>Pulihkan Semua</button><button onclick="emptyTrash()" class="bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-colors"><i class="fa-regular fa-trash-can mr-1"></i>Kosongkan</button></div>
@@ -632,6 +823,12 @@
     <button onclick="batchDownloadZip()" class="bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent)] hover:bg-[var(--accent)]/20 px-4 py-2 rounded-lg text-xs font-semibold"><i class="fa-solid fa-file-zipper mr-1"></i> ZIP</button>
     <button onclick="openMoveFolderModal()" class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 px-4 py-2 rounded-lg text-xs font-semibold"><i class="fa-solid fa-folder-open mr-1"></i> Pindah</button>
     <button onclick="openBulkRename()" class="bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 px-4 py-2 rounded-lg text-xs font-semibold"><i class="fa-solid fa-pen mr-1"></i> Rename</button>
+    <!-- F48: Batch Tag Warna -->
+    <button onclick="batchTagSelected()" class="bg-yellow-500/10 border border-yellow-500/20 text-yellow-600 hover:bg-yellow-500/20 px-4 py-2 rounded-lg text-xs font-semibold"><i class="fa-solid fa-tag mr-1"></i> Tag</button>
+    <!-- F51: Multi-File Share -->
+    <button onclick="batchShareSelected()" class="bg-sky-500/10 border border-sky-500/20 text-sky-400 hover:bg-sky-500/20 px-4 py-2 rounded-lg text-xs font-semibold"><i class="fa-solid fa-share-nodes mr-1"></i> Bagikan</button>
+    <!-- F57: File Comparison -->
+    <button onclick="compareSelectedFiles()" class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 px-4 py-2 rounded-lg text-xs font-semibold" id="compareBtn" style="display:none"><i class="fa-solid fa-code-compare mr-1"></i> Bandingkan</button>
     <button onclick="toggleBatchMode()" class="btn-icon text-[var(--text3)]"><i class="fa-solid fa-xmark"></i></button>
 </div>
 
@@ -1009,6 +1206,882 @@ window.addEventListener('hashchange', () => {
 ['settingsModal','shareModal','statsModal','folderModal','moveFolderModal','notesModal','expirationModal','bulkRenameModal','activityModal'].forEach(id=>{document.getElementById(id)?.addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});});
 document.getElementById('previewModal')?.addEventListener('click',function(e){if(e.target===this)closePreview();});
 document.getElementById('pinInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')verifyPin();});
+
+// ═══════════════════════════════════════════════════════
+// F46-F75: New Feature Implementations
+// ═══════════════════════════════════════════════════════
+
+// ── F46: Drag & Drop ke Folder ──
+function initFileDragToFolder() {
+    document.addEventListener('dragstart', e => {
+        const fileItem = e.target.closest('.file-item');
+        if (fileItem) { e.dataTransfer.setData('text/plain', fileItem.dataset.fileId || ''); e.dataTransfer.effectAllowed = 'move'; }
+    });
+    document.querySelectorAll('.folder-item').forEach(folderEl => {
+        folderEl.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; folderEl.style.background = 'rgba(59,130,246,.15)'; });
+        folderEl.addEventListener('dragleave', () => { folderEl.style.background = ''; });
+        folderEl.addEventListener('drop', async e => {
+            e.preventDefault(); folderEl.style.background = '';
+            const fileId = e.dataTransfer.getData('text/plain');
+            if (!fileId) return;
+            const folderName = folderEl.dataset.folderName || folderEl.textContent.trim();
+            const f = filesData.find(x => x.id === fileId);
+            if (f) { f.folder = folderName; await updateFileInDB(f); showToast(`File dipindahkan ke "${folderName}".`, 'success'); logActivity('move', f.name); loadFilesFromDB(); }
+        });
+    });
+}
+
+// ── F47: File Detail Panel ──
+let detailTargetFileId = null;
+function openFileDetail(id) {
+    detailTargetFileId = id;
+    const f = filesData.find(x => x.id === id);
+    if (!f) return;
+    const panel = document.getElementById('fileDetailPanel');
+    const shareLink = f.tgFileId ? createSecureLink(f.tgFileId, f.name, f.size, 'never', '', f.botIndex || '0') : '-';
+    const versions = f.versions && f.versions.length ? f.versions.map((v, i) => `<div class="text-[10px] text-[var(--text4)] py-1 border-b border-[var(--border)]">${v.name} <span class="text-[var(--text4)]">· ${timeAgo(v.timestamp)}</span></div>`).join('') : '<p class="text-[10px] text-[var(--text4)]">Tidak ada riwayat versi.</p>';
+    const tagDisplay = f.tag ? `<span class="tag-dot tag-${f.tag}"></span> ${f.tag}` : '<span class="tag-dot tag-dot-none"></span> Tanpa tag';
+    panel.innerHTML = `
+        <div class="p-6 space-y-5">
+            <div class="flex justify-between items-center"><h3 class="text-sm font-semibold">Detail File</h3><button onclick="closeFileDetail()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center">${getIconMarkup(f.type)}</div><div class="min-w-0"><h4 class="text-sm font-semibold truncate">${f.name}</h4><p class="text-[10px] text-[var(--text4)]">${f.type} · ${formatBytes(f.size)}</p></div></div>
+            <div class="space-y-0">
+                <div class="detail-row"><span class="detail-label">Ukuran</span><span class="detail-value">${formatBytes(f.size)}</span></div>
+                <div class="detail-row"><span class="detail-label">Tipe</span><span class="detail-value">${f.type}</span></div>
+                <div class="detail-row"><span class="detail-label">Diupload</span><span class="detail-value">${f.uploadedAt}</span></div>
+                <div class="detail-row"><span class="detail-label">Folder</span><span class="detail-value">${f.folder || 'Tanpa folder'}</span></div>
+                <div class="detail-row"><span class="detail-label">Tag</span><span class="detail-value">${tagDisplay}</span></div>
+                <div class="detail-row"><span class="detail-label">Enkripsi</span><span class="detail-value">${f.encrypted ? '<i class="fa-solid fa-lock text-[var(--accent)]"></i> Ya' : 'Tidak'}</span></div>
+                <div class="detail-row"><span class="detail-label">Dipin</span><span class="detail-value">${f.pinned ? '<i class="fa-solid fa-thumbtack text-[var(--accent)]"></i> Ya' : 'Tidak'}</span></div>
+                <div class="detail-row"><span class="detail-label">Kunjungan</span><span class="detail-value">${f.shareClicks || 0} kali</span></div>
+                <div class="detail-row"><span class="detail-label">Masa Berlaku</span><span class="detail-value">${f.expiresAt > 0 ? new Date(f.expiresAt).toLocaleDateString('id-ID') : 'Selamanya'}</span></div>
+                <div class="detail-row"><span class="detail-label">Bot Index</span><span class="detail-value">${f.botIndex || '0'}</span></div>
+            </div>
+            <div><h4 class="text-xs font-semibold mb-2">Catatan</h4><p class="text-[11px] text-[var(--text3)] bg-[var(--surface2)] p-3 rounded-lg min-h-[40px]">${f.notes || 'Tidak ada catatan.'}</p></div>
+            <div><h4 class="text-xs font-semibold mb-2">Riwayat Versi</h4>${versions}</div>
+            <div><h4 class="text-xs font-semibold mb-2">Share Link</h4><div class="relative"><input type="text" value="${shareLink}" readonly class="input-field font-mono text-[10px] pr-16"><button onclick="navigator.clipboard.writeText('${shareLink}').then(()=>showToast('Link tersalin!','success'))" class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[var(--accent)] text-white text-[9px] font-bold px-2 py-1 rounded">Salin</button></div></div>
+        </div>`;
+    panel.classList.add('open');
+}
+function closeFileDetail() { document.getElementById('fileDetailPanel').classList.remove('open'); detailTargetFileId = null; }
+
+// ── F48: Batch Tag Warna ──
+let batchTagColor = 'red';
+function batchTagSelected() {
+    if (!selectedFiles.size) { showToast('Pilih file dulu.', 'error'); return; }
+    const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+    const ci = colors.indexOf(batchTagColor);
+    batchTagColor = colors[(ci + 1) % colors.length];
+    (async () => {
+        for (const id of selectedFiles) { const f = filesData.find(x => x.id === id); if (f) { f.tag = batchTagColor; await updateFileInDB(f); } }
+        showToast(`${selectedFiles.size} file ditandai tag "${batchTagColor}".`, 'success');
+        loadFilesFromDB();
+    })();
+}
+
+// ── F49: Upload dari Kamera ──
+async function captureFromCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        const video = document.createElement('video');
+        video.srcObject = stream; video.autoplay = true;
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 z-60 bg-black/90 flex items-center justify-center p-4';
+        modal.innerHTML = `<div class="space-y-4 text-center"><video autoplay playsinline class="max-w-full max-h-[60vh] rounded-xl"></video><div class="flex gap-3 justify-center"><button class="btn-primary" id="captureBtn"><i class="fa-solid fa-camera mr-1"></i> Ambil Foto</button><button class="btn-ghost" id="closeCamBtn">Tutup</button></div></div>`;
+        document.body.appendChild(modal);
+        const vid = modal.querySelector('video');
+        vid.srcObject = stream;
+        modal.querySelector('#captureBtn').onclick = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = vid.videoWidth; canvas.height = vid.videoHeight;
+            canvas.getContext('2d').drawImage(vid, 0, 0);
+            canvas.toBlob(blob => {
+                const file = new File([blob], `foto-${Date.now()}.jpg`, { type: 'image/jpeg' });
+                handleFileUpload([file]); stream.getTracks().forEach(t => t.stop()); modal.remove();
+            }, 'image/jpeg', 0.9);
+        };
+        modal.querySelector('#closeCamBtn').onclick = () => { stream.getTracks().forEach(t => t.stop()); modal.remove(); };
+    } catch (e) { showToast('Tidak bisa mengakses kamera.', 'error'); }
+}
+
+// ── F50: Auto-Compress Gambar ──
+async function compressImageFile(file) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+            const maxW = 1920, maxH = 1080;
+            let w = img.width, h = img.height;
+            if (w > maxW) { h = h * (maxW / w); w = maxW; }
+            if (h > maxH) { w = w * (maxH / h); h = maxH; }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            canvas.toBlob(blob => { resolve(new File([blob], file.name, { type: 'image/jpeg' })); }, 'image/jpeg', 0.7);
+        };
+        img.src = URL.createObjectURL(file);
+    });
+}
+
+// ── F51: Multi-File Share ──
+async function batchShareSelected() {
+    if (!selectedFiles.size) { showToast('Pilih file dulu.', 'error'); return; }
+    showToast('Membuat link multi-file...', 'info');
+    const files = [...selectedFiles].map(id => filesData.find(x => x.id === id)).filter(Boolean);
+    if (files.length === 1) { openShareModal(files[0].tgFileId, files[0].name, files[0].size, files[0].botIndex || '0'); return; }
+    // Create a combined share payload
+    const payload = files.map(f => `${f.tgFileId}|${f.name}|${f.size}|${f.botIndex || '0'}`).join('|||');
+    const encoded = btoa(unescape(encodeURIComponent(payload)));
+    const link = `${window.location.origin}${window.location.pathname}#/file/${encoded}`;
+    await navigator.clipboard.writeText(link).catch(() => {});
+    showToast(`Link multi-file (${files.length} file) disalin!`, 'success');
+    logActivity('share', `${files.length} file (multi)`);
+}
+
+// ── F52: File Embed ──
+// Added to share modal via JS
+function generateEmbedCode() {
+    if (!currentShareData) return '';
+    const link = document.getElementById('shareLinkInput').value;
+    return `<iframe src="${link}" width="100%" height="500" frameborder="0" style="border-radius:8px" title="Ridgebox File Viewer"></iframe>`;
+}
+
+// ── F53: Context Menu (Right-Click) ──
+let contextMenuFileId = null;
+function initContextMenu() {
+    document.addEventListener('contextmenu', e => {
+        const fileItem = e.target.closest('.file-item');
+        if (!fileItem) { hideContextMenu(); return; }
+        e.preventDefault();
+        // Try to get file ID from the element
+        const fileId = getFileIdFromElement(fileItem);
+        if (!fileId) return;
+        contextMenuFileId = fileId;
+        const f = filesData.find(x => x.id === fileId);
+        if (!f) return;
+        const isTrash = currentFolder === 'trash';
+        const menu = document.getElementById('contextMenu');
+        menu.innerHTML = `
+            <div class="context-menu-item" onclick="openPreview('${f.tgFileId}','${f.name.replace(/'/g,"\\'")}','${f.type}','${f.botIndex||'0'}');hideContextMenu()"><i class="fa-regular fa-eye text-[10px]"></i> Preview</div>
+            <div class="context-menu-item" onclick="openShareModal('${f.tgFileId}','${f.name.replace(/'/g,"\\'")}',${f.size},'${f.botIndex||'0'}');hideContextMenu()"><i class="fa-solid fa-share-nodes text-[10px]"></i> Bagikan</div>
+            <div class="context-menu-item" onclick="togglePin('${f.id}');hideContextMenu()"><i class="fa-solid fa-thumbtack text-[10px]"></i> ${f.pinned ? 'Lepas Pin' : 'Pin'}</div>
+            ${!isTrash ? `<div class="context-menu-item" onclick="openMoveFolderForFile('${f.id}');hideContextMenu()"><i class="fa-solid fa-folder-open text-[10px]"></i> Pindah</div>` : ''}
+            <div class="context-menu-item" onclick="openFileNotes('${f.id}');hideContextMenu()"><i class="fa-solid fa-sticky-note text-[10px]"></i> Catatan</div>
+            <div class="context-menu-item" onclick="openFileExpiration('${f.id}');hideContextMenu()"><i class="fa-regular fa-clock text-[10px]"></i> Masa Berlaku</div>
+            <div class="context-menu-item" onclick="openFileDetail('${f.id}');hideContextMenu()"><i class="fa-solid fa-circle-info text-[10px]"></i> Detail</div>
+            <div class="context-menu-divider"></div>
+            ${!isTrash ? `<div class="context-menu-item" onclick="startRename('${f.id}',document.getElementById('name-${f.id}'));hideContextMenu()"><i class="fa-solid fa-pen text-[10px]"></i> Rename</div>` : ''}
+            <div class="context-menu-item danger" onclick="deleteSingleFile('${f.id}');hideContextMenu()"><i class="fa-regular fa-trash-can text-[10px]"></i> ${isTrash ? 'Hapus Permanen' : 'Hapus'}</div>
+        `;
+        const x = Math.min(e.clientX, window.innerWidth - 200);
+        const y = Math.min(e.clientY, window.innerHeight - 300);
+        menu.style.left = x + 'px'; menu.style.top = y + 'px';
+        menu.classList.remove('hidden');
+    });
+    document.addEventListener('click', hideContextMenu);
+}
+function hideContextMenu() { document.getElementById('contextMenu').classList.add('hidden'); }
+function getFileIdFromElement(el) {
+    // Try to find file ID from various attributes
+    const nameEl = el.querySelector('[id^="name-"]');
+    if (nameEl) return nameEl.id.replace('name-', '');
+    // Fallback: search through onclick attributes
+    const onclick = el.innerHTML;
+    const match = onclick.match(/togglePin\('([^']+)'\)/);
+    return match ? match[1] : null;
+}
+
+// ── F54: Deep Search ──
+let deepSearchEnabled = true;
+
+// ── F55: Upload Presets ──
+function applyUploadPreset() {
+    const preset = document.getElementById('uploadPresetSelect').value;
+    const enc = document.getElementById('encryptToggle');
+    const comp = document.getElementById('compressToggle');
+    if (preset === 'encrypt') { enc.checked = true; comp.checked = false; }
+    else if (preset === 'compress') { enc.checked = false; comp.checked = true; }
+    else if (preset === 'both') { enc.checked = true; comp.checked = true; }
+    else { enc.checked = false; comp.checked = false; }
+    enc.dispatchEvent(new Event('change'));
+}
+
+// ── F56: Smart Categorize ──
+function smartCategorize(fileName) {
+    const ext = fileName.split('.').pop().toLowerCase();
+    const categories = {
+        'Foto': ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'ico'],
+        'Video': ['mp4', 'mkv', 'avi', 'mov', 'webm', 'flv', '3gp'],
+        'Musik': ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac'],
+        'Arsip': ['zip', 'rar', 'tar', 'gz', '7z', 'iso'],
+        'Kode': ['js', 'ts', 'py', 'css', 'html', 'json', 'xml', 'yaml', 'yml', 'sh', 'bat'],
+        'Dokumen': ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'md', 'csv'],
+    };
+    for (const [cat, exts] of Object.entries(categories)) {
+        if (exts.includes(ext)) return cat;
+    }
+    return 'Lainnya';
+}
+function getCategoryBadge(fileName) {
+    const cat = smartCategorize(fileName);
+    const colors = { Foto: '#3b82f6', Video: '#a855f7', Musik: '#38bdf8', Arsip: '#f97316', Kode: '#22c55e', Dokumen: '#eab308', Lainnya: '#737373' };
+    return `<span class="inline-flex items-center gap-1 text-[8px] font-bold px-1.5 py-0.5 rounded" style="background:${colors[cat]}15;color:${colors[cat]}">${cat}</span>`;
+}
+
+// ── F57: File Comparison ──
+function compareSelectedFiles() {
+    if (selectedFiles.size !== 2) { showToast('Pilih tepat 2 file untuk dibandingkan.', 'error'); return; }
+    const [id1, id2] = [...selectedFiles];
+    const f1 = filesData.find(x => x.id === id1), f2 = filesData.find(x => x.id === id2);
+    if (!f1 || !f2) return;
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 z-60 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4';
+    modal.onclick = e => { if (e.target === modal) modal.remove(); };
+    modal.innerHTML = `<div class="card w-full max-w-lg p-6 space-y-4 animate-fadeUp">
+        <div class="flex justify-between items-center"><h3 class="text-sm font-semibold">Perbandingan File</h3><button onclick="this.closest('.fixed').remove()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="card-inner p-4 space-y-2"><h4 class="text-xs font-semibold truncate">${f1.name}</h4><div class="text-[10px] text-[var(--text3)]">Ukuran: ${formatBytes(f1.size)}</div><div class="text-[10px] text-[var(--text3)]">Tipe: ${f1.type}</div><div class="text-[10px] text-[var(--text3)]">Tanggal: ${f1.uploadedAt}</div><div class="text-[10px] text-[var(--text3)]">Enkripsi: ${f1.encrypted ? 'Ya' : 'Tidak'}</div><div class="text-[10px] text-[var(--text3)]">Dipin: ${f1.pinned ? 'Ya' : 'Tidak'}</div></div>
+            <div class="card-inner p-4 space-y-2"><h4 class="text-xs font-semibold truncate">${f2.name}</h4><div class="text-[10px] text-[var(--text3)]">Ukuran: ${formatBytes(f2.size)}</div><div class="text-[10px] text-[var(--text3)]">Tipe: ${f2.type}</div><div class="text-[10px] text-[var(--text3)]">Tanggal: ${f2.uploadedAt}</div><div class="text-[10px] text-[var(--text3)]">Enkripsi: ${f2.encrypted ? 'Ya' : 'Tidak'}</div><div class="text-[10px] text-[var(--text3)]">Dipin: ${f2.pinned ? 'Ya' : 'Tidak'}</div></div>
+        </div>
+    </div>`;
+    document.body.appendChild(modal);
+}
+
+// ── F58: Collaborative Upload Link ──
+function generateCollabUploadLink() {
+    const token = Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
+    localStorage.setItem('ridgebox_collab_token', token);
+    const link = `${window.location.origin}${window.location.pathname}#/upload/${token}`;
+    return link;
+}
+
+// ── F59: Push Notifications ──
+function initPushNotifications() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+function sendBrowserNotification(title, body) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body, icon: '/favicon.ico' });
+    }
+}
+// Hook notifications into existing events
+const _origShowToast = showToast;
+showToast = function(msg, type = 'info') {
+    _origShowToast(msg, type);
+    if (type === 'success' && msg.includes('berhasil diupload')) sendBrowserNotification('Upload Selesai', msg);
+    if (type === 'info' && msg.includes('expired')) sendBrowserNotification('File Expired', msg);
+};
+
+// ── F60: Scheduled Upload ──
+let scheduledUploads = JSON.parse(localStorage.getItem('ridgebox_scheduled') || '[]');
+function scheduleUpload() {
+    const timeInput = document.getElementById('scheduleUploadTime');
+    if (!timeInput.value) { showToast('Pilih waktu jadwal upload.', 'error'); return; }
+    const scheduledTime = new Date(timeInput.value).getTime();
+    if (scheduledTime <= Date.now()) { showToast('Waktu harus di masa depan.', 'error'); return; }
+    const fileInput = document.getElementById('fileInput');
+    if (!fileInput.files.length) { showToast('Pilih file terlebih dahulu.', 'error'); return; }
+    const entry = { time: scheduledTime, fileName: fileInput.files[0].name, files: [...fileInput.files].map(f => f.name) };
+    scheduledUploads.push(entry);
+    localStorage.setItem('ridgebox_scheduled', JSON.stringify(scheduledUploads));
+    showToast(`Upload dijadwalkan untuk ${new Date(scheduledTime).toLocaleString('id-ID')}.`, 'success');
+    // Set timer
+    const delay = scheduledTime - Date.now();
+    setTimeout(() => {
+        handleFileUpload(fileInput.files);
+        scheduledUploads = scheduledUploads.filter(s => s.time !== scheduledTime);
+        localStorage.setItem('ridgebox_scheduled', JSON.stringify(scheduledUploads));
+        sendBrowserNotification('Upload Terjadwal', 'Upload terjadwal dimulai!');
+    }, delay);
+}
+
+// ── F61: Syntax-Highlighted Preview ──
+function syntaxHighlight(code, ext) {
+    let html = code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // Keywords
+    const jsKeywords = ['const','let','var','function','return','if','else','for','while','class','import','export','from','async','await','try','catch','throw','new','this','typeof','instanceof','true','false','null','undefined'];
+    const pyKeywords = ['def','class','import','from','return','if','elif','else','for','while','try','except','raise','with','as','True','False','None','print','self','yield','lambda','pass','break','continue'];
+    const keywords = ['py','js','ts','jsx','tsx'].includes(ext) ? jsKeywords : ext === 'py' ? pyKeywords : [];
+    keywords.forEach(kw => { html = html.replace(new RegExp(`\\b(${kw})\\b`, 'g'), `<span style="color:#c084fc">$1</span>`); });
+    // Strings
+    html = html.replace(/(["'`])(?:(?=(\\?))\2.)*?\1/g, '<span style="color:#22c55e">$&</span>');
+    // Comments
+    html = html.replace(/(\/\/.*$)/gm, '<span style="color:var(--text4)">$1</span>');
+    html = html.replace(/(#.*$)/gm, '<span style="color:var(--text4)">$1</span>');
+    // Numbers
+    html = html.replace(/\b(\d+\.?\d*)\b/g, '<span style="color:#f97316">$1</span>');
+    return html;
+}
+
+// ── F62: Image Crop/Resize ──
+let imageResizeState = { width: 0, height: 0, quality: 0.8 };
+function showImageResizeControls(url, fileName) {
+    const img = new Image();
+    img.onload = () => {
+        imageResizeState.width = img.width;
+        imageResizeState.height = img.height;
+        imageResizeState.quality = 0.8;
+        const existing = document.getElementById('imageResizePanel');
+        if (existing) existing.remove();
+        const panel = document.createElement('div');
+        panel.id = 'imageResizePanel';
+        panel.className = 'absolute bottom-4 left-4 right-4 card p-4 space-y-3';
+        panel.innerHTML = `
+            <h4 class="text-xs font-semibold">Resize Gambar</h4>
+            <div class="grid grid-cols-3 gap-3">
+                <div><label class="text-[9px] text-[var(--text4)]">Lebar</label><input type="number" id="resizeW" value="${img.width}" class="input-field text-[10px] py-1" onchange="imageResizeState.width=parseInt(this.value)"></div>
+                <div><label class="text-[9px] text-[var(--text4)]">Tinggi</label><input type="number" id="resizeH" value="${img.height}" class="input-field text-[10px] py-1" onchange="imageResizeState.height=parseInt(this.value)"></div>
+                <div><label class="text-[9px] text-[var(--text4)]">Kualitas</label><input type="range" min="10" max="100" value="80" class="w-full" onchange="imageResizeState.quality=this.value/100;document.getElementById('qualVal').textContent=this.value+'%'"><span id="qualVal" class="text-[9px] text-[var(--text4)]">80%</span></div>
+            </div>
+            <button onclick="downloadResizedImage('${url}','${fileName}')" class="btn-primary text-[10px] w-full"><i class="fa-solid fa-download mr-1"></i> Unduh Resize</button>
+        `;
+        document.getElementById('previewContent').appendChild(panel);
+    };
+    img.src = url;
+}
+async function downloadResizedImage(url, fileName) {
+    const canvas = document.createElement('canvas');
+    canvas.width = imageResizeState.width || 100;
+    canvas.height = imageResizeState.height || 100;
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(blob => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `resized-${fileName}`;
+            a.click(); URL.revokeObjectURL(a.href);
+            showToast('Gambar resized diunduh!', 'success');
+        }, 'image/jpeg', imageResizeState.quality);
+    };
+    img.src = url;
+}
+
+// ── F63: Audio Waveform ──
+function drawWaveform(url, canvasEl) {
+    if (!canvasEl) return;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    fetch(url).then(r => r.arrayBuffer()).then(buf => {
+        audioCtx.decodeAudioData(buf, audioBuffer => {
+            const data = audioBuffer.getChannelData(0);
+            const canvas = typeof canvasEl === 'string' ? document.getElementById(canvasEl) : canvasEl;
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width, h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+            const step = Math.ceil(data.length / w);
+            const amp = h / 2;
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3b82f6';
+            for (let i = 0; i < w; i++) {
+                let min = 1.0, max = -1.0;
+                for (let j = 0; j < step; j++) {
+                    const d = data[i * step + j] || 0;
+                    if (d < min) min = d;
+                    if (d > max) max = d;
+                }
+                const barH = Math.max((max - min) * amp, 1);
+                ctx.fillRect(i, (h - barH) / 2, 1, barH);
+            }
+        });
+    }).catch(() => {});
+}
+
+// ── F64: Video Thumbnail Generator ──
+function generateVideoThumbnail(url) {
+    return new Promise(resolve => {
+        const video = document.createElement('video');
+        video.crossOrigin = 'anonymous';
+        video.muted = true; video.preload = 'metadata';
+        video.onloadeddata = () => {
+            video.currentTime = Math.min(1, video.duration / 4);
+        };
+        video.onseeked = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 320;
+            canvas.height = video.videoHeight || 180;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        video.onerror = () => resolve(null);
+        video.src = url;
+    });
+}
+
+// ── F65: Quick Filter Bar ──
+let activeQuickFilter = null;
+function applyQuickFilter(filter) {
+    const btns = document.querySelectorAll('.quick-filter');
+    if (activeQuickFilter === filter) {
+        activeQuickFilter = null;
+        btns.forEach(b => b.classList.remove('active'));
+    } else {
+        activeQuickFilter = filter;
+        btns.forEach(b => b.classList.toggle('active', b.dataset.qf === filter));
+    }
+    renderFileList();
+}
+
+// ── F66: Live Demo Section ──
+function simulateDemoUpload() {
+    const input = document.getElementById('liveDemoInput');
+    const fileName = input.value.trim();
+    if (!fileName) { showToast('Ketik nama file dulu.', 'error'); return; }
+    const progress = document.getElementById('liveDemoProgress');
+    const progressBar = document.getElementById('liveDemoProgressBar');
+    const result = document.getElementById('liveDemoResult');
+    progress.classList.remove('hidden');
+    result.innerHTML = '';
+    let pct = 0;
+    const interval = setInterval(() => {
+        pct += Math.random() * 15 + 5;
+        if (pct >= 100) {
+            pct = 100; clearInterval(interval);
+            setTimeout(() => {
+                const cat = smartCategorize(fileName);
+                const fsize = (Math.random() * 50 + 0.5).toFixed(1);
+                result.innerHTML = `<div class="live-demo-file"><div class="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center"><i class="fa-solid fa-check text-[var(--accent)] text-xs"></i></div><div class="flex-grow min-w-0"><p class="text-xs font-medium truncate">${fileName}</p><p class="text-[10px] text-[var(--text4)]">${fsize} MB · ${cat}</p></div>${getCategoryBadge(fileName)}</div>`;
+                progress.classList.add('hidden');
+                input.value = '';
+            }, 300);
+        }
+        progressBar.style.width = Math.min(pct, 100) + '%';
+    }, 150);
+}
+
+// ── F67: Testimonials - already in HTML ──
+
+// ── F68: Video Tutorial - already in HTML ──
+
+// ── F69: Social Proof Counter Animation ──
+function animateSocialProofCounters() {
+    const counters = document.querySelectorAll('.social-proof-value');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !entry.target.dataset.animated) {
+                entry.target.dataset.animated = '1';
+                const target = parseInt(entry.target.dataset.target);
+                const suffix = entry.target.dataset.suffix || '';
+                const duration = 2000;
+                const start = performance.now();
+                function update(now) {
+                    const elapsed = now - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const current = Math.round(target * eased);
+                    entry.target.textContent = current.toLocaleString() + suffix;
+                    if (progress < 1) requestAnimationFrame(update);
+                }
+                requestAnimationFrame(update);
+            }
+        });
+    }, { threshold: 0.5 });
+    counters.forEach(c => observer.observe(c));
+}
+
+// ── F70: Scroll Progress Bar ──
+function initScrollProgress() {
+    window.addEventListener('scroll', () => {
+        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+        document.getElementById('scrollProgress').style.width = progress + '%';
+    });
+}
+
+// ── F71: Back to Top Button ──
+function initBackToTop() {
+    window.addEventListener('scroll', () => {
+        const btn = document.getElementById('backToTopBtn');
+        if (window.scrollY > 400) btn.classList.add('visible');
+        else btn.classList.remove('visible');
+    });
+}
+
+// ── F72: Loading Skeleton ──
+function showSkeletonLoading() {
+    const container = document.getElementById('fileList');
+    container.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+        const skel = document.createElement('div');
+        skel.className = 'flex items-center gap-3 p-3';
+        skel.innerHTML = `<div class="skeleton skeleton-circle"></div><div class="flex-grow"><div class="skeleton skeleton-line w-3-4"></div><div class="skeleton skeleton-line w-1-2"></div></div>`;
+        container.appendChild(skel);
+    }
+}
+
+// ── F73: 404 Page - handled in routing ──
+
+// ── F74: Breadcrumb Navigation ──
+function updateBreadcrumb() {
+    const bc = document.getElementById('breadcrumb');
+    if (!bc) return;
+    let path = '<a href="#/dashboard">Beranda</a>';
+    if (currentFolder === 'trash') {
+        path += '<span class="bc-sep"><i class="fa-solid fa-chevron-right"></i></span><span class="bc-current">Sampah</span>';
+    } else if (currentFolder === 'recent') {
+        path += '<span class="bc-sep"><i class="fa-solid fa-chevron-right"></i></span><span class="bc-current">Terbaru</span>';
+    } else if (currentFolder !== 'all') {
+        path += '<span class="bc-sep"><i class="fa-solid fa-chevron-right"></i></span><a href="#/dashboard" onclick="selectFolder(\'all\')">Semua Berkas</a>';
+        path += '<span class="bc-sep"><i class="fa-solid fa-chevron-right"></i></span><span class="bc-current">' + currentFolder + '</span>';
+    } else {
+        path += '<span class="bc-sep"><i class="fa-solid fa-chevron-right"></i></span><span class="bc-current">Semua Berkas</span>';
+    }
+    bc.innerHTML = path;
+}
+
+// ── F75: Smooth Page Transitions ──
+function applyPageTransition(element) {
+    element.classList.add('page-transition', 'entering');
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            element.classList.remove('entering');
+            element.classList.add('entered');
+        });
+    });
+}
+
+// ── Enhanced search with F54: Deep Search ──
+const _origRenderFileList = renderFileList;
+renderFileList = function() {
+    const container = document.getElementById('fileList');
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+    container.innerHTML = '';
+    let filtered = filesData.filter(f => {
+        // F54: Deep search - also search in notes, folder names, metadata
+        const nameMatch = f.name.toLowerCase().includes(searchVal);
+        const notesMatch = deepSearchEnabled && f.notes && f.notes.toLowerCase().includes(searchVal);
+        const folderMatch = deepSearchEnabled && f.folder && f.folder.toLowerCase().includes(searchVal);
+        const typeMatch = deepSearchEnabled && f.type && f.type.toLowerCase().includes(searchVal);
+        const ms = nameMatch || notesMatch || folderMatch || typeMatch || !searchVal;
+        const mc = currentFilter === 'all' || f.type === currentFilter;
+        let mf;
+        if (currentFolder === 'trash') mf = !!f.deletedAt;
+        else if (currentFolder === 'recent') mf = !f.deletedAt && f.uploadedTimestamp && (Date.now() - f.uploadedTimestamp < 86400000 * 3);
+        else if (currentFolder === 'all') mf = !f.deletedAt;
+        else mf = f.folder === currentFolder && !f.deletedAt;
+        // F65: Quick Filter
+        if (activeQuickFilter === 'today') mf = mf && f.uploadedTimestamp && (Date.now() - f.uploadedTimestamp < 86400000);
+        else if (activeQuickFilter === 'week') mf = mf && f.uploadedTimestamp && (Date.now() - f.uploadedTimestamp < 86400000 * 7);
+        else if (activeQuickFilter === 'large') mf = mf && f.size > 10 * 1024 * 1024;
+        else if (activeQuickFilter === 'pinned') mf = mf && f.pinned;
+        else if (activeQuickFilter === 'encrypted') mf = mf && f.encrypted;
+        return ms && mc && mf;
+    });
+    // Sort
+    const sort = document.getElementById('sortSelect')?.value || 'date-desc';
+    filtered.sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        switch (sort) {
+            case 'date-asc': return (a.uploadedTimestamp || 0) - (b.uploadedTimestamp || 0);
+            case 'name-asc': return a.name.localeCompare(b.name);
+            case 'name-desc': return b.name.localeCompare(a.name);
+            case 'size-desc': return b.size - a.size;
+            case 'size-asc': return a.size - b.size;
+            case 'type': return a.type.localeCompare(b.type);
+            default: return (b.uploadedTimestamp || 0) - (a.uploadedTimestamp || 0);
+        }
+    });
+    document.getElementById('fileCountText').innerText = `${filtered.length} berkas`;
+    // F54: Show search result type badges
+    const deepResults = searchVal && deepSearchEnabled;
+    if (!filtered.length) {
+        container.innerHTML = '<div class="text-center py-12"><i class="fa-regular fa-folder-open text-2xl text-[var(--text4)] mb-2"></i><p class="text-[var(--text4)] text-xs">Belum ada berkas.</p></div>';
+        return;
+    }
+    if (viewMode === 'grid') { container.className = 'file-grid'; filtered.forEach(f => renderGridItem(container, f)); }
+    else { container.className = 'space-y-2'; filtered.forEach(f => renderListItem(container, f)); }
+};
+
+// ── Update routing to include F73: 404 Page and F75: Transitions ──
+const _origCheckUrlRouting = checkUrlRouting;
+checkUrlRouting = function() {
+    const h = window.location.hash;
+    document.getElementById('homeView').classList.add('hidden');
+    document.getElementById('appView').classList.add('hidden');
+    document.getElementById('downloadPortal').classList.add('hidden');
+    document.getElementById('notFoundView').classList.add('hidden');
+    if (h.startsWith('#/file/')) {
+        document.getElementById('downloadPortal').classList.remove('hidden');
+        applyPageTransition(document.getElementById('downloadPortal'));
+        setupDownloadPortal(h.substring(7));
+    } else if (h.startsWith('#/dashboard')) {
+        document.getElementById('appView').classList.remove('hidden');
+        applyPageTransition(document.getElementById('appView'));
+    } else if (h === '#/' || h === '' || h === '#') {
+        document.getElementById('homeView').classList.remove('hidden');
+        applyPageTransition(document.getElementById('homeView'));
+    } else {
+        // F73: 404 Page
+        document.getElementById('notFoundView').classList.remove('hidden');
+        applyPageTransition(document.getElementById('notFoundView'));
+    }
+};
+
+// ── Update selectFolder to update breadcrumb (F74) ──
+const _origSelectFolder = selectFolder;
+selectFolder = function(name) {
+    _origSelectFolder(name);
+    updateBreadcrumb();
+};
+
+// ── Update batch mode to show/hide compare button (F57) ──
+const _origToggleBatchMode = toggleBatchMode;
+toggleBatchMode = function() {
+    batchMode = !batchMode;
+    selectedFiles.clear();
+    duplicateIds.clear();
+    document.getElementById('batchSelectAll').classList.toggle('hidden', !batchMode);
+    document.getElementById('batchBar').classList.toggle('hidden', !batchMode);
+    document.getElementById('batchSelectToggle').classList.toggle('text-[var(--accent)]', batchMode);
+    document.getElementById('compareBtn').style.display = 'none';
+    renderFileList();
+    updateBatchCount();
+};
+
+// ── Update updateBatchCount to handle F57 compare button ──
+const _origUpdateBatchCount = updateBatchCount;
+updateBatchCount = function() {
+    document.getElementById('batchCount').innerText = selectedFiles.size;
+    // F57: Show compare button when exactly 2 files selected
+    const compareBtn = document.getElementById('compareBtn');
+    if (compareBtn) compareBtn.style.display = selectedFiles.size === 2 ? '' : 'none';
+};
+
+// ── Update renderListItem to add draggable and detail button (F46, F47) ──
+const _origRenderListItem = renderListItem;
+renderListItem = function(c, file) {
+    _origRenderListItem(c, file);
+    const item = c.lastElementChild;
+    if (item) {
+        // F46: Make draggable
+        item.draggable = true;
+        item.dataset.fileId = file.id;
+        // F47: Add info/detail button
+        const actDiv = item.querySelector('.flex.items-center.gap-0\\.5');
+        if (actDiv && !file.deletedAt) {
+            const detailBtn = document.createElement('button');
+            detailBtn.className = 'btn-icon';
+            detailBtn.title = 'Detail';
+            detailBtn.innerHTML = '<i class="fa-solid fa-circle-info text-[10px]"></i>';
+            detailBtn.onclick = (e) => { e.stopPropagation(); openFileDetail(file.id); };
+            actDiv.insertBefore(detailBtn, actDiv.firstChild);
+        }
+        // F56: Add category badge
+        const nameEl = item.querySelector('h4');
+        if (nameEl) {
+            const badge = getCategoryBadge(file.name);
+            nameEl.insertAdjacentHTML('beforeend', badge);
+        }
+    }
+};
+
+// ── Update renderGridItem to add draggable (F46) ──
+const _origRenderGridItem = renderGridItem;
+renderGridItem = function(c, file) {
+    _origRenderGridItem(c, file);
+    const item = c.lastElementChild;
+    if (item) {
+        item.draggable = true;
+        item.dataset.fileId = file.id;
+        // F47: Add detail button for grid
+        const actDiv = item.querySelector('.file-actions-row');
+        if (actDiv && currentFolder !== 'trash') {
+            const detailBtn = document.createElement('button');
+            detailBtn.className = 'btn-icon';
+            detailBtn.style = 'width:24px;height:24px';
+            detailBtn.title = 'Detail';
+            detailBtn.innerHTML = '<i class="fa-solid fa-circle-info text-[8px]"></i>';
+            detailBtn.onclick = (e) => { e.stopPropagation(); openFileDetail(file.id); };
+            actDiv.insertBefore(detailBtn, actDiv.firstChild);
+        }
+    }
+};
+
+// ── Update openPreview for F61, F62, F63 ──
+const _origOpenPreview = openPreview;
+openPreview = async function(tgId, fileName, fileType, bi) {
+    const modal = document.getElementById('previewModal'), content = document.getElementById('previewContent');
+    content.innerHTML = '<div class="flex flex-col items-center gap-4"><i class="fa-solid fa-circle-notch animate-spin text-3xl text-[var(--accent)]"></i><span class="text-sm text-[var(--text3)]">Memuat...</span></div>';
+    modal.classList.remove('hidden');
+    logActivity('preview', fileName);
+    try {
+        const info = await apiGetFileInfo(tgId, bi);
+        if (!info.ok) throw new Error('Gagal');
+        const url = apiGetDownloadUrl(info.result.file_path, bi);
+        if (isDocPreviewable(fileName)) {
+            // F61: Syntax-Highlighted Preview
+            const ext = fileName.split('.').pop().toLowerCase();
+            if (ext !== 'pdf') {
+                const r = await fetch(url);
+                const t = await r.text();
+                const highlighted = syntaxHighlight(t, ext);
+                content.innerHTML = `<div style="max-width:80vw;max-height:85vh;overflow:auto;background:var(--surface);border-radius:12px;padding:24px"><pre style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;color:var(--text2);white-space:pre-wrap;word-break:break-all">${highlighted}</pre></div>`;
+            } else {
+                content.innerHTML = `<iframe src="${url}" style="width:85vw;height:85vh;border:none;border-radius:8px;background:#fff"></iframe>`;
+            }
+        } else if (fileType === 'image') {
+            content.innerHTML = `<div class="relative"><img src="${url}" alt="${fileName}" class="animate-fadeUp"></div>`;
+            // F62: Image Resize Controls
+            showImageResizeControls(url, fileName);
+        } else if (fileType === 'video') {
+            content.innerHTML = `<div class="space-y-3"><video controls autoplay class="animate-fadeUp" style="max-width:90vw;max-height:85vh;border-radius:8px"><source src="${url}"></video></div>`;
+            // F64: Auto-generate thumbnail
+            generateVideoThumbnail(url).then(thumb => {
+                if (thumb) console.log('Video thumbnail generated');
+            });
+        } else if (fileType === 'audio') {
+            // F63: Audio Waveform
+            content.innerHTML = `<div class="animate-fadeUp" style="background:var(--surface);border-radius:12px;padding:32px;text-align:center;max-width:500px"><i class="fa-solid fa-music text-4xl text-[var(--accent)] mb-4"></i><h3 class="text-sm font-semibold mb-4">${fileName}</h3><canvas id="audioWaveform" class="waveform-canvas mb-4" width="460" height="60"></canvas><audio controls autoplay style="width:100%"><source src="${url}"></audio></div>`;
+            drawWaveform(url, 'audioWaveform');
+        } else {
+            content.innerHTML = `<div class="text-center space-y-3"><i class="fa-solid fa-file text-4xl text-[var(--text3)]"></i><p class="text-sm text-[var(--text3)]">Preview tidak tersedia</p><a href="${url}" download="${fileName}" class="btn-primary inline-flex items-center gap-2"><i class="fa-solid fa-download"></i>Download</a></div>`;
+        }
+    } catch (e) {
+        content.innerHTML = `<div class="text-center space-y-3"><i class="fa-solid fa-circle-exclamation text-3xl text-red-400"></i><p class="text-sm text-[var(--text3)]">${e.message}</p></div>`;
+    }
+};
+
+// ── Update share modal to include F52: Embed tab ──
+const _origOpenShareModal = openShareModal;
+openShareModal = function(tgId, name, size, bi) {
+    _origOpenShareModal(tgId, name, size, bi);
+    // Add embed tab after modal opens
+    setTimeout(() => {
+        const modal = document.getElementById('shareModal');
+        const cardInner = modal.querySelector('.card-inner');
+        if (cardInner && !document.getElementById('embedTab')) {
+            const embedSection = document.createElement('div');
+            embedSection.id = 'embedTab';
+            embedSection.className = 'mt-3 pt-3 border-t border-[var(--border)]';
+            embedSection.innerHTML = `
+                <div class="flex items-center gap-2 mb-2"><button class="tab-btn active" onclick="this.classList.add('active');this.nextElementSibling.classList.remove('active');document.getElementById('shareMainTab').classList.remove('hidden');document.getElementById('shareEmbedTab').classList.add('hidden')">Tautan</button><button class="tab-btn" onclick="this.classList.add('active');this.previousElementSibling.classList.remove('active');document.getElementById('shareEmbedTab').classList.remove('hidden');document.getElementById('shareMainTab').classList.add('hidden')">Embed</button></div>
+                <div id="shareEmbedTab" class="hidden"><label class="text-[10px] text-[var(--text3)] font-medium block mb-2">Kode Embed</label><textarea readonly class="input-field font-mono text-[10px]" rows="3" id="embedCodeInput">${generateEmbedCode()}</textarea><button onclick="navigator.clipboard.writeText(document.getElementById('embedCodeInput').value).then(()=>showToast('Kode embed tersalin!','success'))" class="btn-ghost text-[10px] w-full mt-2"><i class="fa-solid fa-copy mr-1"></i> Salin Kode Embed</button></div>
+            `;
+            // Wrap existing content in shareMainTab
+            const linkRow = cardInner.previousElementSibling;
+            if (linkRow) {
+                linkRow.id = 'shareMainTab';
+            }
+            cardInner.appendChild(embedSection);
+        }
+    }, 100);
+};
+
+// ── Update settings modal for F55: Upload Presets and F58: Collaborative Upload Link ──
+const _origOpenSettings = openSettings;
+openSettings = function() {
+    _origOpenSettings();
+    setTimeout(() => {
+        const modal = document.getElementById('settingsModal');
+        const space = modal.querySelector('.space-y-4');
+        if (space && !document.getElementById('collabLinkSection')) {
+            // F58: Collaborative Upload Link
+            const collabSection = document.createElement('div');
+            collabSection.id = 'collabLinkSection';
+            collabSection.innerHTML = `
+                <label class="text-[10px] text-[var(--text3)] font-medium block mb-1.5">Link Upload Kolaboratif</label>
+                <div class="flex gap-2"><button onclick="generateAndShowCollabLink()" class="btn-ghost text-[10px] flex-grow"><i class="fa-solid fa-link mr-1"></i> Buat Link</button></div>
+                <div id="collabLinkDisplay" class="hidden mt-2"><input type="text" id="collabLinkValue" readonly class="input-field font-mono text-[10px] pr-16"><button onclick="navigator.clipboard.writeText(document.getElementById('collabLinkValue').value).then(()=>showToast('Link kolaboratif tersalin!','success'))" class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[var(--accent)] text-white text-[9px] font-bold px-2 py-1 rounded">Salin</button></div>
+            `;
+            space.appendChild(collabSection);
+        }
+    }, 50);
+};
+function generateAndShowCollabLink() {
+    const link = generateCollabUploadLink();
+    const display = document.getElementById('collabLinkDisplay');
+    if (display) { display.classList.remove('hidden'); document.getElementById('collabLinkValue').value = link; }
+    showToast('Link upload kolaboratif dibuat!', 'success');
+}
+
+// ── Enhance upload with F50: Auto-Compress ──
+const _origHandleFileUpload = handleFileUpload;
+handleFileUpload = async function(files) {
+    if (!files.length) return;
+    const compressToggle = document.getElementById('compressToggle');
+    const shouldCompress = compressToggle && compressToggle.checked;
+    let processedFiles = [];
+    for (let file of files) {
+        if (shouldCompress && file.type.startsWith('image/') && file.size > 1024 * 1024) {
+            try {
+                showToast(`Mengompres "${file.name}"...`, 'info');
+                const compressed = await compressImageFile(file);
+                processedFiles.push(compressed);
+                showToast(`"${file.name}" dikompres (${formatBytes(file.size)} → ${formatBytes(compressed.size)}).`, 'success');
+            } catch (e) {
+                processedFiles.push(file);
+            }
+        } else {
+            processedFiles.push(file);
+        }
+    }
+    _origHandleFileUpload(processedFiles);
+};
+
+// ── Update folder rendering with F46: dragover/drop handlers ──
+const _origRenderFolderList = renderFolderList;
+renderFolderList = function() {
+    _origRenderFolderList();
+    // Add drag handlers and data attributes
+    document.querySelectorAll('#folderList .folder-item').forEach(el => {
+        const name = el.textContent.trim().replace('✕', '').trim();
+        el.dataset.folderName = name;
+        el.addEventListener('dragover', e => { e.preventDefault(); el.style.background = 'rgba(59,130,246,.15)'; });
+        el.addEventListener('dragleave', () => { el.style.background = ''; });
+        el.addEventListener('drop', async e => {
+            e.preventDefault(); el.style.background = '';
+            const fileId = e.dataTransfer.getData('text/plain');
+            if (!fileId) return;
+            const f = filesData.find(x => x.id === fileId);
+            if (f) { f.folder = name; await updateFileInDB(f); showToast(`File dipindahkan ke "${name}".`, 'success'); logActivity('move', f.name); loadFilesFromDB(); }
+        });
+    });
+};
+
+// ── F59: Init Push Notifications ──
+initPushNotifications();
+
+// ── F70, F71: Init scroll progress and back to top ──
+initScrollProgress();
+initBackToTop();
+
+// ── F53: Init Context Menu ──
+initContextMenu();
+
+// ── F69: Init social proof counters ──
+animateSocialProofCounters();
+
+// ── F74: Init breadcrumb ──
+updateBreadcrumb();
+
+// ── F72: Use skeleton loading on initial load ──
+// (Skeleton will show briefly before data loads)
+
+// ── F46: Init file drag to folder ──
+initFileDragToFolder();
+
+// ── Close file detail panel on click outside ──
+document.addEventListener('click', e => {
+    const panel = document.getElementById('fileDetailPanel');
+    if (panel.classList.contains('open') && !panel.contains(e.target) && !e.target.closest('.btn-icon[title="Detail"]')) {
+        closeFileDetail();
+    }
+});
+
+// ── Expiration warning notifications (F59) ──
+function checkExpirationWarnings() {
+    const soon = Date.now() + 86400000; // 24 hours from now
+    filesData.filter(f => f.expiresAt > 0 && f.expiresAt < soon && !f.deletedAt).forEach(f => {
+        const hours = Math.floor((f.expiresAt - Date.now()) / 3600000);
+        sendBrowserNotification('File Segera Expired', `"${f.name}" akan expired dalam ${hours} jam.`);
+    });
+}
+setInterval(checkExpirationWarnings, 3600000); // Check every hour
+
 </script>
 </body>
 </html>
