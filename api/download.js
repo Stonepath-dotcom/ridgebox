@@ -23,6 +23,7 @@ export default async function (request) {
     let filePath = searchParams.get('path');
     const fileId = searchParams.get('file_id');
     const botIndex = searchParams.get('bot_index') || '0';
+    const fileName = searchParams.get('name') || '';
 
     const token = botIndex === '0'
       ? process.env.TG_BOT_TOKEN
@@ -68,12 +69,25 @@ export default async function (request) {
       });
     }
 
-    // Stream the file through
+    // Stream the file through with Content-Disposition for proper phone storage saving
     const headers = new Headers(CORS);
     const contentType = response.headers.get('Content-Type');
     const contentLength = response.headers.get('Content-Length');
     if (contentType) headers.set('Content-Type', contentType);
     if (contentLength) headers.set('Content-Length', contentLength);
+
+    // Determine filename: use provided name, or extract from filePath
+    let downloadName = fileName;
+    if (!downloadName && filePath) {
+      // Extract filename from path like "photos/file_123.jpg"
+      const parts = filePath.split('/');
+      downloadName = parts[parts.length - 1] || 'download';
+    }
+    if (!downloadName) downloadName = 'download';
+
+    // Content-Disposition: attachment forces browser to SAVE the file to phone storage
+    // instead of opening/playing it in the browser
+    headers.set('Content-Disposition', `attachment; filename="${downloadName.replace(/"/g, '\\"')}"`);
 
     return new Response(response.body, {
       status: 200,

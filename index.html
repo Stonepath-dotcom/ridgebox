@@ -2957,6 +2957,48 @@ async function emptyTrash() {
 }
 
 // ===== DOWNLOAD =====
+// Helper: Save blob to device storage (Downloads folder on phone)
+async function saveToDevice(blob, fileName) {
+    // Method 1: File System Access API (Chrome/Edge Android & desktop) — saves directly to Downloads
+    if (window.showSaveFilePicker) {
+        try {
+            const handle = await window.showSaveFilePicker({
+                suggestedName: fileName,
+                types: blob.type ? [{ description: 'File', accept: { [blob.type]: ['.' + fileName.split('.').pop()] } }] : []
+            });
+            const writable = await handle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+            return true;
+        } catch (e) {
+            // User cancelled the picker or not supported — fall through
+            if (e.name === 'AbortError') return false;
+            console.warn('showSaveFilePicker failed, falling back:', e);
+        }
+    }
+    // Method 2: Navigator msSaveBlob (IE/Edge legacy)
+    if (navigator.msSaveBlob) {
+        try {
+            navigator.msSaveBlob(blob, fileName);
+            return true;
+        } catch(e) { console.warn('msSaveBlob failed:', e); }
+    }
+    // Method 3: <a download> with blob URL (works on most browsers)
+    // On iOS Safari, this opens the file — user must use share sheet to save
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    // Delay cleanup so browser can process the download
+    setTimeout(() => {
+        URL.revokeObjectURL(a.href);
+        a.remove();
+    }, 5000);
+    return true;
+}
+
 async function downloadFile(fileId) {
     const file = APP.files.find(f => f.id === fileId);
     if (!file) return;
@@ -2978,7 +3020,7 @@ async function downloadFile(fileId) {
         }
         let url;
         if (APP.settings.proxyMode !== false) {
-            url = `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`;
+            url = `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}&name=${encodeURIComponent(file.name)}`;
         } else {
             url = `https://api.telegram.org/file/bot${APP.bots[0]?.token}/${file.filePath}`;
         }
@@ -2992,11 +3034,7 @@ async function downloadFile(fileId) {
                 blob = new Blob([decData]);
             } catch(e) { console.warn('Decrypt failed, returning raw file'); }
         }
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = file.name;
-        a.click();
-        URL.revokeObjectURL(a.href);
+        await saveToDevice(blob, file.name);
         showToast(t('download') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
     } catch (err) {
         showToast('Download error: ' + err.message, 'error');
@@ -3047,7 +3085,7 @@ async function bulkDownloadZip() { // F83
         if (!file) continue;
         try {
             const url = APP.settings.proxyMode !== false
-                ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`
+                ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}&name=${encodeURIComponent(file.name)}`
                 : `https://api.telegram.org/file/bot${APP.bots[0]?.token}/${file.filePath}`;
             const resp = await fetch(url);
             if (resp.ok) {
@@ -3059,11 +3097,7 @@ async function bulkDownloadZip() { // F83
     }
     if (count > 0) {
         const content = await zip.generateAsync({ type: 'blob' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(content);
-        a.download = `ridgebox_${Date.now()}.zip`;
-        a.click();
-        URL.revokeObjectURL(a.href);
+        await saveToDevice(content, `ridgebox_${Date.now()}.zip`);
         showToast(`${count} files <i class="fas fa-file-archive" style="font-size:11px"></i> ZIP`, 'success');
     }
     APP.selectedFiles.clear();
@@ -3440,11 +3474,12 @@ async function downloadSharedFile(encodedPath, encodedFileId, botIndex, encodedN
     const fileName = decodeURIComponent(encodedName);
     try {
         // Build download URL — use filePath if available, otherwise use file_id for server-side resolution
+        // Always include name parameter so the API sends Content-Disposition: attachment
         let url;
         if (filePath) {
-            url = `/api/download?path=${encodeURIComponent(filePath)}&bot_index=${botIndex}`;
+            url = `/api/download?path=${encodeURIComponent(filePath)}&bot_index=${botIndex}&name=${encodeURIComponent(fileName)}`;
         } else if (fileId) {
-            url = `/api/download?file_id=${encodeURIComponent(fileId)}&bot_index=${botIndex}`;
+            url = `/api/download?file_id=${encodeURIComponent(fileId)}&bot_index=${botIndex}&name=${encodeURIComponent(fileName)}`;
         } else {
             throw new Error('No file path or ID available');
         }
@@ -3461,11 +3496,7 @@ async function downloadSharedFile(encodedPath, encodedFileId, botIndex, encodedN
                 blob = new Blob([decData]);
             } catch(e) { console.warn('Decrypt failed, returning raw file'); }
         }
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = fileName;
-        a.click();
-        URL.revokeObjectURL(a.href);
+        await saveToDevice(blob, fileName);
         showToast(t('download') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
     } catch (err) {
         showToast('Download error: ' + err.message, 'error');
