@@ -160,56 +160,41 @@
             background: var(--surface); border: 1px solid var(--border); border-radius: 100px;
             padding: 6px 16px; font-size: 11px; color: var(--text3); display: none;
         }
-        /* Grid view */
         .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
         .file-grid .file-item { flex-direction: column; padding: 12px; align-items: center; text-align: center; }
         .file-grid .file-thumb { width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: var(--surface2); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
         .file-grid .file-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
         .file-grid .file-actions-row { display: flex; gap: 2px; justify-content: center; margin-top: 6px; }
-        /* Rename input */
         .rename-input {
             background: var(--surface); border: 1px solid var(--accent); color: var(--text);
             border-radius: 6px; padding: 2px 6px; font-size: 12px; width: 100%; outline: none;
         }
-        /* Folder sidebar */
         .folder-item {
             display: flex; align-items: center; gap: 8px; padding: 8px 12px;
             border-radius: 8px; cursor: pointer; transition: all 0.15s; font-size: 12px; color: var(--text3);
         }
         .folder-item:hover { background: var(--surface2); color: var(--text2); }
         .folder-item.active { background: rgba(59,130,246,0.08); color: var(--accent); }
-        /* Stats */
         .stat-bar { height: 8px; border-radius: 4px; background: var(--surface2); overflow: hidden; }
         .stat-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeUp { animation: fadeUp 0.3s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
         .animate-slideUp { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-        /* Pin icon */
         .pin-icon { color: var(--accent); font-size: 10px; }
-        /* Tag dots */
         .tag-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; cursor: pointer; transition: transform 0.15s; }
         .tag-dot:hover { transform: scale(1.4); }
         .tag-red { background: #ef4444; } .tag-orange { background: #f97316; } .tag-yellow { background: #eab308; }
         .tag-green { background: #22c55e; } .tag-blue { background: #3b82f6; } .tag-purple { background: #a855f7; }
         .tag-dot-none { background: var(--border2); }
-        /* Encrypted badge */
         .enc-badge { font-size: 8px; padding: 1px 5px; border-radius: 4px; background: rgba(59,130,246,0.1); color: var(--accent); font-weight: 600; margin-left: 4px; }
-        /* Notification panel */
         .notif-panel { position: absolute; top: 100%; right: 0; width: 320px; max-height: 400px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 50; }
         .notif-item { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 11px; }
         .notif-item:last-child { border-bottom: none; }
         .notif-item:hover { background: var(--surface2); }
-        /* Keyboard shortcut overlay */
         .kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 2px 6px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 4px; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--text3); }
-        /* Donut chart */
         .donut-legend { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text3); }
         .donut-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        /* Password modal overlay */
-        .password-prompt {
-            position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,0.85);
-            display: flex; align-items: center; justify-content: center;
-        }
     </style>
 </head>
 <body class="antialiased">
@@ -236,14 +221,14 @@
                     <div class="badge bg-[var(--accent)]/10 text-[var(--accent)] mb-4"><span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>Cloud Storage Gratis</div>
                     <h1 class="text-4xl md:text-5xl font-bold leading-tight">Simpan file di cloud,<br><span class="text-[var(--accent)]">pakai Telegram.</span></h1>
                 </div>
-                <p class="text-[var(--text2)] text-base leading-relaxed max-w-md">Ridgebox bikin Telegram Bot kamu jadi cloud storage personal. Upload, share, dan kelola file langsung dari browser. Token bot disimpan aman di server.</p>
+                <p class="text-[var(--text2)] text-base leading-relaxed max-w-md">Ridgebox bikin Telegram Bot kamu jadi cloud storage personal. Upload, share, dan kelola file langsung dari browser. Tanpa batas ukuran file.</p>
                 <div class="flex gap-3">
                     <a href="#/dashboard" class="btn-primary inline-flex items-center gap-2">Mulai Pakai <i class="fa-solid fa-arrow-right text-xs"></i></a>
                     <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" class="btn-ghost inline-flex items-center gap-2"><i class="fa-brands fa-github text-sm"></i> Source</a>
                 </div>
                 <div class="flex items-center gap-6 text-[var(--text4)] text-xs">
-                    <span><i class="fa-solid fa-shield-halved mr-1.5"></i>Token di server</span>
-                    <span><i class="fa-solid fa-bolt mr-1.5"></i>No client token</span>
+                    <span><i class="fa-solid fa-shield-halved mr-1.5"></i>Upload langsung</span>
+                    <span><i class="fa-solid fa-bolt mr-1.5"></i>Tanpa batas ukuran</span>
                     <span><i class="fa-solid fa-infinity mr-1.5"></i>Gratis selamanya</span>
                 </div>
             </div>
@@ -254,8 +239,8 @@
                 </div>
                 <div class="terminal-body">
                     <div><span class="t-accent">$</span> ridgebox upload backup.zip</div>
-                    <div class="t-green">✓ Uploaded via secure API proxy</div>
-                    <div class="t-green">✓ Token never touched the browser</div>
+                    <div class="t-green">✓ Uploaded directly to Telegram</div>
+                    <div class="t-green">✓ No server file size limit</div>
                     <div><span class="t-accent">$</span> ridgebox share backup.zip --expire 24h</div>
                     <div class="t-white">→ https://ridgebox.vercel.app/#/file/djQ0...</div>
                     <div><span class="t-accent">$</span> ridgebox share backup.zip --password</div>
@@ -274,7 +259,6 @@
         <div class="flex items-center gap-3">
             <a href="/" class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-xs"></i></a>
             <span class="text-lg font-bold tracking-wider">RIDGEBOX</span>
-            <!-- Bot selector -->
             <select id="botSelector" class="input-field py-1 px-2 text-[10px] w-auto ml-2 hidden"></select>
         </div>
         <div class="flex items-center gap-2">
@@ -314,7 +298,7 @@
             </div>
 
             <!-- Dropzone + URL Upload -->
-            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
+            <div id="uploadZone" class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
                 <div id="dropZone" class="card p-6 text-center cursor-pointer group border-dashed hover:border-[var(--accent)]/30">
                     <input type="file" id="fileInput" class="hidden" multiple>
                     <div class="py-4 flex flex-col items-center">
@@ -350,7 +334,7 @@
             <div class="card p-5">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                     <div>
-                        <h3 class="text-sm font-semibold">Semua Berkas</h3>
+                        <h3 class="text-sm font-semibold" id="fileListTitle">Semua Berkas</h3>
                         <p class="text-[11px] text-[var(--text4)] mt-0.5" id="fileCountText">0 berkas</p>
                     </div>
                     <div class="flex items-center gap-2">
@@ -405,7 +389,7 @@
             <div class="card p-5">
                 <h3 class="text-sm font-semibold mb-2">Bot Aktif</h3>
                 <p class="text-[var(--accent)] text-xs font-mono font-bold" id="activeBotName">-</p>
-                <p class="text-[10px] text-[var(--text4)] mt-1">Token tersimpan di server</p>
+                <p class="text-[10px] text-[var(--text4)] mt-1">Upload langsung ke Telegram</p>
             </div>
             <!-- Limit -->
             <div class="card p-5">
@@ -436,13 +420,11 @@
         <a href="#/dashboard" class="btn-ghost text-xs">Dasbor <i class="fa-solid fa-arrow-right ml-1 text-[9px]"></i></a>
     </nav>
     <main class="max-w-md mx-auto w-full px-6 py-12 flex-grow flex flex-col justify-center items-center">
-        <!-- Expired State -->
         <div id="expiredState" class="hidden text-center space-y-4">
             <div class="w-16 h-16 mx-auto rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center"><i class="fa-solid fa-clock-rotate-left text-red-400 text-2xl"></i></div>
             <h2 class="text-lg font-semibold text-red-400">Link Kedaluwarsa</h2>
             <p class="text-xs text-[var(--text3)] max-w-xs">Link berbagi ini sudah melewati masa berlaku.</p>
         </div>
-        <!-- Password Required State -->
         <div id="passwordState" class="hidden card w-full p-8 text-center space-y-5">
             <div class="w-14 h-14 mx-auto rounded-2xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center"><i class="fa-solid fa-lock text-[var(--accent)] text-xl"></i></div>
             <h2 class="text-base font-semibold">Link Dilindungi Password</h2>
@@ -450,7 +432,6 @@
             <button onclick="verifyPortalPassword()" class="btn-primary w-full">Buka</button>
             <p id="passwordError" class="text-red-400 text-xs hidden">Password salah.</p>
         </div>
-        <!-- Active State -->
         <div id="activePortal" class="card w-full p-8 text-center space-y-6">
             <div class="w-14 h-14 mx-auto rounded-2xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center text-xl" id="portalFileIcon"><i class="fa-regular fa-file-lines text-[var(--text3)]"></i></div>
             <div>
@@ -482,7 +463,7 @@
         <div class="space-y-4">
             <div class="card-inner p-4 space-y-2">
                 <div class="flex items-center gap-2 text-xs"><i class="fa-solid fa-robot text-[var(--accent)]"></i><span class="font-medium">Bot Aktif</span></div>
-                <p class="text-[11px] text-[var(--text3)]" id="settingsBotInfo">Token disimpan aman di server environment.</p>
+                <p class="text-[11px] text-[var(--text3)]" id="settingsBotInfo">Upload langsung ke Telegram API.</p>
                 <p class="text-[var(--accent)] font-mono text-xs font-bold" id="settingsBotName">-</p>
             </div>
             <div>
@@ -521,11 +502,10 @@
     </div>
 </div>
 
-<!-- ==================== SHARE MODAL (QR + Expiry + Password) ==================== -->
+<!-- ==================== SHARE MODAL ==================== -->
 <div id="shareModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="card w-full max-w-md p-6 space-y-5 animate-fadeUp max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center"><h3 class="text-sm font-semibold">Bagikan Berkas</h3><button onclick="closeShareModal()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button></div>
-        <!-- Expiry -->
         <div>
             <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-2">Masa Berlaku</label>
             <div class="flex gap-2">
@@ -534,7 +514,6 @@
                 <button class="expiry-option share-expiry active" data-expiry="never" onclick="setShareExpiry('never')">Selamanya</button>
             </div>
         </div>
-        <!-- Password -->
         <div>
             <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide block mb-2">Proteksi Password <span class="text-[var(--text4)]">(opsional)</span></label>
             <div class="flex gap-2">
@@ -542,7 +521,6 @@
                 <button onclick="toggleSharePassword()" id="btnTogglePwd" class="btn-ghost text-[10px] px-3">Aktifkan</button>
             </div>
         </div>
-        <!-- Link -->
         <div class="space-y-2">
             <label class="text-[10px] text-[var(--text3)] font-medium tracking-wide">Tautan Aman</label>
             <div class="relative">
@@ -550,12 +528,10 @@
                 <button onclick="copyShareLink()" class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[var(--accent)] hover:bg-[var(--accent-light)] text-black text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors">Salin</button>
             </div>
         </div>
-        <!-- QR Code -->
         <div class="flex flex-col items-center gap-3 py-2">
             <canvas id="qrCanvas" width="160" height="160"></canvas>
             <span class="text-[10px] text-[var(--text4)]">Scan untuk akses cepat</span>
         </div>
-        <!-- File Info -->
         <div class="card-inner p-4 space-y-2">
             <div class="grid grid-cols-2 gap-4 text-xs">
                 <div><span class="text-[var(--text4)] block text-[10px]">Nama</span><span class="text-[var(--text2)] font-medium truncate block mt-0.5" id="modalFileName">-</span></div>
@@ -647,7 +623,7 @@
     </div>
 </div>
 
-<!-- ==================== NOTIFICATION PANEL (positioned via JS) ==================== -->
+<!-- ==================== NOTIFICATION PANEL ==================== -->
 <div id="notifPanel" class="notif-panel hidden animate-fadeUp" style="position:fixed;top:60px;right:20px;">
     <div class="flex justify-between items-center p-3 border-b border-[var(--border)]">
         <span class="text-xs font-semibold">Notifikasi</span>
@@ -689,6 +665,9 @@ let currentShareData = null;
 let viewMode = localStorage.getItem('ridgebox_view') || 'list';
 let deferredPrompt = null;
 let portalDecodedInfo = null;
+
+// ── Bot credentials (fetched from server) ──
+let botCredentials = {}; // { '0': { token, chatId, name }, '1': { ... } }
 
 // ── Theme ──
 function applyTheme(t) {
@@ -753,23 +732,45 @@ function deleteFolderFromDB(id) {
     return new Promise(r => { const tx = db.transaction(['folders'], 'readwrite'); tx.objectStore('folders').delete(id); tx.oncomplete = () => { loadFoldersFromDB(); r(); }; });
 }
 
-// ── API Helpers ──
-async function apiUpload(formData) {
-    formData.append('bot_index', currentBotIndex);
-    const res = await fetch('/api/upload', { method: 'POST', body: formData });
-    return res.json();
+// ── Direct Telegram API (bypasses Vercel 4.5MB limit) ──
+function getBotToken(index) {
+    const cred = botCredentials[index || '0'];
+    return cred ? cred.token : null;
 }
+function getChatId(index) {
+    const cred = botCredentials[index || '0'];
+    return cred ? cred.chatId : null;
+}
+
 async function apiGetFileInfo(fileId, botIndex) {
-    const res = await fetch('/api/file-info', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file_id: fileId, bot_index: botIndex || currentBotIndex })
-    });
+    const token = getBotToken(botIndex);
+    if (!token) {
+        // Fallback to server proxy
+        const res = await fetch('/api/file-info', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file_id: fileId, bot_index: botIndex || currentBotIndex })
+        });
+        return res.json();
+    }
+    const res = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`);
     return res.json();
 }
-async function apiGetDownloadUrl(filePath, botIndex) {
+
+function apiGetDownloadUrl(filePath, botIndex) {
+    const token = getBotToken(botIndex);
+    if (token) {
+        return `https://api.telegram.org/file/bot${token}/${filePath}`;
+    }
+    // Fallback to server proxy
     return `/api/download?path=${encodeURIComponent(filePath)}&bot_index=${botIndex || currentBotIndex}`;
 }
+
 function apiThumbUrl(fileId, botIndex) {
+    const token = getBotToken(botIndex);
+    if (token) {
+        // For thumbnails, we still need to get file_path first - use proxy
+        return `/api/thumb?file_id=${encodeURIComponent(fileId)}&bot_index=${botIndex || currentBotIndex}`;
+    }
     return `/api/thumb?file_id=${encodeURIComponent(fileId)}&bot_index=${botIndex || currentBotIndex}`;
 }
 
@@ -781,7 +782,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     checkUrlRouting();
     setupDragAndDrop();
     setupPWA();
-    fetchBotInfo();
+    await fetchBotConfig();
     applyViewMode();
 
     document.getElementById('searchInput').addEventListener('input', renderFileList);
@@ -799,22 +800,43 @@ window.addEventListener('DOMContentLoaded', async () => {
             e.target.classList.add('active');
         });
     });
+    document.querySelectorAll('.cleanup-age').forEach(b => {
+        b.addEventListener('click', e => {
+            document.querySelectorAll('.cleanup-age').forEach(x => x.classList.remove('active'));
+            e.target.classList.add('active');
+        });
+    });
+    const rules = getCleanupRules();
+    if (rules.enabled) document.getElementById('autoCleanupToggle').checked = true;
+    if (rules.age) {
+        document.querySelectorAll('.cleanup-age').forEach(b => {
+            b.classList.toggle('active', b.dataset.age == rules.age);
+        });
+    }
     window.addEventListener('online', () => document.getElementById('offlineBadge').style.display = 'none');
     window.addEventListener('offline', () => document.getElementById('offlineBadge').style.display = 'block');
+    setTimeout(() => { autoPurgeTrash(); runAutoCleanup(); }, 2000);
 });
 window.addEventListener('hashchange', checkUrlRouting);
 
-async function fetchBotInfo() {
+async function fetchBotConfig() {
     try {
-        const res = await fetch('/api/bots');
+        const res = await fetch('/api/config');
         const data = await res.json();
         if (data.ok && data.bots.length > 0) {
+            // Store credentials
+            botCredentials = {};
+            data.bots.forEach(b => {
+                botCredentials[b.index] = { token: b.token, chatId: b.chatId, name: b.name };
+            });
             availableBots = data.bots;
             const active = availableBots.find(b => b.index === currentBotIndex) || availableBots[0];
+            currentBotIndex = active.index;
+            localStorage.setItem('ridgebox_bot_index', currentBotIndex);
             document.getElementById('connStatus').textContent = 'Cloud Aktif';
             document.getElementById('activeBotName').textContent = active.name;
             document.getElementById('settingsBotName').textContent = active.name;
-            document.getElementById('settingsBotInfo').textContent = 'Token disimpan aman di server environment.';
+            document.getElementById('settingsBotInfo').textContent = 'Upload langsung ke Telegram API.';
             document.getElementById('setupBanner').classList.add('hidden');
             // Populate bot selector
             if (availableBots.length > 1) {
@@ -830,6 +852,7 @@ async function fetchBotInfo() {
             document.getElementById('setupBanner').classList.remove('hidden');
         }
     } catch (e) {
+        console.error('Failed to fetch bot config:', e);
         document.getElementById('connStatus').textContent = 'Gagal terhubung';
         document.getElementById('connDot').classList.remove('bg-[#22c55e]');
         document.getElementById('connDot').classList.add('bg-red-500');
@@ -852,7 +875,7 @@ function checkUrlRouting() {
     }
 }
 
-// ── Secure Link (with expiry + password) ──
+// ── Secure Link ──
 function createSecureLink(tgFileId, fileName, fileSize, expiry, passwordHash, botIndex) {
     const ext = fileName.split('.').pop();
     let shortName = fileName;
@@ -884,15 +907,18 @@ function setupDownloadPortal(encoded) {
     if (info.expiresAt > 0 && Date.now() > info.expiresAt) { expiredState.classList.remove('hidden'); return; }
     if (info.passwordHash) { passwordState.classList.remove('hidden'); return; }
 
+    // Increment share clicks
+    incrementShareClicks(info.fileId);
+
     showPortalActive(info);
 }
 function verifyPortalPassword() {
     const pwd = document.getElementById('portalPasswordInput').value;
     const errEl = document.getElementById('passwordError');
     if (!pwd || !portalDecodedInfo) { errEl.classList.remove('hidden'); return; }
-    // Hash and compare
     hashString(pwd).then(hash => {
         if (hash === portalDecodedInfo.passwordHash) {
+            incrementShareClicks(portalDecodedInfo.fileId);
             document.getElementById('passwordState').classList.add('hidden');
             showPortalActive(portalDecodedInfo);
         } else {
@@ -913,7 +939,6 @@ function showPortalActive(info) {
     document.getElementById('portalFileSize').innerText = formatBytes(parseInt(info.fileSize));
     const iconEl = document.getElementById('portalFileIcon');
     iconEl.innerHTML = getIconMarkup(getFileTypeByName(info.fileName));
-    // Expiry badge
     const badge = document.getElementById('portalExpiryBadge');
     if (info.expiresAt > 0) {
         const hrs = Math.floor((info.expiresAt - Date.now()) / 3600000);
@@ -939,7 +964,7 @@ async function startPremiumDownload(fileId, fileName, botIndex) {
         if (!infoData.ok) throw new Error('Gagal mendapatkan info file.');
         const filePath = infoData.result.file_path;
         ps.innerText = 'Mengunduh...'; pb.style.width = '15%'; pp.innerText = '15%';
-        const dlUrl = await apiGetDownloadUrl(filePath, botIndex);
+        const dlUrl = apiGetDownloadUrl(filePath, botIndex);
         const response = await fetch(dlUrl);
         const reader = response.body.getReader();
         const cl = +response.headers.get('Content-Length');
@@ -972,7 +997,7 @@ function setupDragAndDrop() {
     document.getElementById('fileInput').addEventListener('change', e => handleFileUpload(e.target.files));
 }
 
-// ── Upload ──
+// ── Upload (DIRECTLY to Telegram, bypasses Vercel body limit) ──
 async function handleFileUpload(files) {
     if (files.length === 0) return;
     const qc = document.getElementById('uploadQueueContainer');
@@ -990,9 +1015,16 @@ async function handleFileUpload(files) {
         executeUpload(file, uid);
     }
 }
+
 async function executeUpload(file, uid) {
-    const xhr = new XMLHttpRequest();
-    const fd = new FormData();
+    const token = getBotToken(currentBotIndex);
+    const chatId = getChatId(currentBotIndex);
+
+    if (!token || !chatId) {
+        uploadError(uid, 'Bot belum dikonfigurasi. Cek pengaturan server.');
+        return;
+    }
+
     let fileToUpload = file;
     let isEncrypted = false;
 
@@ -1012,8 +1044,12 @@ async function executeUpload(file, uid) {
         }
     }
 
+    // Upload directly to Telegram API
+    const xhr = new XMLHttpRequest();
+    const fd = new FormData();
+    fd.append('chat_id', chatId);
     fd.append('document', fileToUpload);
-    fd.append('bot_index', currentBotIndex);
+
     xhr.upload.onprogress = e => {
         if (e.lengthComputable) {
             const p = Math.round((e.loaded / e.total) * 100);
@@ -1025,31 +1061,41 @@ async function executeUpload(file, uid) {
     };
     xhr.onload = async function() {
         if (xhr.status === 200) {
-            const res = JSON.parse(xhr.responseText);
-            if (res.ok) {
-                const fileId = res.result.document.file_id;
-                const thumbId = res.result.document.thumb ? res.result.document.thumb.file_id : '';
-                const fileType = getFileTypeByName(file.name);
-                const obj = {
-                    id: uid, tgFileId: fileId, name: file.name, size: file.size, type: fileType,
-                    uploadedAt: new Date().toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}),
-                    uploadedTimestamp: Date.now(), expiresAt: 0, pinned: false, folder: currentFolder !== 'all' ? currentFolder : '',
-                    thumbId, botIndex: currentBotIndex, encrypted: isEncrypted
-                };
-                await saveFileToDB(obj);
-                showToast(`"${file.name}" berhasil diupload.`, 'success');
-                removeQueueItem(uid); loadFilesFromDB();
-            } else {
-                uploadError(uid, res.description || 'Server Telegram menolak');
+            try {
+                const res = JSON.parse(xhr.responseText);
+                if (res.ok) {
+                    const fileId = res.result.document.file_id;
+                    const thumbId = res.result.document.thumb ? res.result.document.thumb.file_id : '';
+                    const fileType = getFileTypeByName(file.name);
+                    const obj = {
+                        id: uid, tgFileId: fileId, name: file.name, size: file.size, type: fileType,
+                        uploadedAt: new Date().toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}),
+                        uploadedTimestamp: Date.now(), expiresAt: 0, pinned: false, folder: currentFolder !== 'all' ? currentFolder : '',
+                        thumbId, botIndex: currentBotIndex, encrypted: isEncrypted
+                    };
+                    await saveFileToDB(obj);
+                    showToast(`"${file.name}" berhasil diupload.`, 'success');
+                    removeQueueItem(uid); loadFilesFromDB();
+                } else {
+                    uploadError(uid, res.description || 'Server Telegram menolak');
+                }
+            } catch(e) {
+                uploadError(uid, 'Respons server tidak valid');
             }
-        } else { uploadError(uid, 'Gagal mengunggah'); }
+        } else {
+            uploadError(uid, `Gagal mengunggah (${xhr.status})`);
+        }
     };
-    xhr.onerror = () => uploadError(uid, 'Kesalahan jaringan');
-    xhr.open('POST', '/api/upload');
+    xhr.onerror = () => uploadError(uid, 'Kesalahan jaringan - cek koneksi internet');
+    xhr.ontimeout = () => uploadError(uid, 'Upload timeout - file terlalu besar atau koneksi lambat');
+    xhr.timeout = 600000; // 10 minute timeout for large files
+    xhr.open('POST', `https://api.telegram.org/bot${token}/sendDocument`);
     xhr.send(fd);
+
     // Store for retry
     window[`_retryFile_${uid}`] = file;
 }
+
 function retryUpload(uid) {
     const file = window[`_retryFile_${uid}`];
     if (!file) return;
@@ -1060,6 +1106,7 @@ function retryUpload(uid) {
     }
     executeUpload(file, uid);
 }
+
 function uploadError(uid, msg) {
     const item = document.getElementById(`queue-${uid}`);
     if (item) {
@@ -1070,19 +1117,19 @@ function uploadError(uid, msg) {
         if (pct) { pct.innerText = 'Gagal'; pct.className = 'text-red-400 font-mono font-bold text-[10px]'; }
         const retry = document.getElementById(`retry-${uid}`);
         if (retry) retry.classList.remove('hidden');
-        // Change spinner to error icon
         const spinner = item.querySelector('.fa-circle-notch');
         if (spinner) { spinner.classList.remove('fa-circle-notch', 'animate-spin', 'text-[var(--accent)]'); spinner.classList.add('fa-solid fa-circle-exclamation', 'text-red-400'); }
     }
     showToast(`Error: ${msg}`, 'error');
 }
+
 function removeQueueItem(id) {
     const item = document.getElementById(`queue-${id}`);
     if (item) { item.style.opacity = '0'; setTimeout(() => { item.remove(); if (document.getElementById('uploadQueue').children.length === 0) document.getElementById('uploadQueueContainer').classList.add('hidden'); }, 200); }
     delete window[`_retryFile_${id}`];
 }
 
-// ── URL Upload ──
+// ── URL Upload (still uses server proxy for downloading from URL) ──
 async function uploadFromURL() {
     const input = document.getElementById('urlInput');
     const url = input.value.trim();
@@ -1140,7 +1187,6 @@ function renderFileList() {
         const matchFolder = currentFolder === 'trash' ? !!f.deletedAt : (currentFolder === 'all' ? !f.deletedAt : (f.folder === currentFolder && !f.deletedAt));
         return matchSearch && matchCat && matchFolder;
     });
-    // Sort: pinned first, then by date
     filtered.sort((a, b) => {
         if (a.pinned && !b.pinned) return -1;
         if (!a.pinned && b.pinned) return 1;
@@ -1261,7 +1307,6 @@ function toggleSelectAll(cb) {
     updateBatchCount(); renderFileList();
 }
 function updateBatchCount() { document.getElementById('batchCount').innerText = selectedFiles.size; }
-// deleteSingleFile & batchDeleteSelected are defined below with trash support
 
 // ── Folders ──
 function renderFolderList() {
@@ -1280,7 +1325,24 @@ function renderFolderList() {
 }
 function selectFolder(name) {
     currentFolder = name;
-    document.querySelectorAll('.folder-item').forEach(el => el.classList.toggle('active', el.textContent.trim().includes(name === 'all' ? 'Semua' : name)));
+    document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('active'));
+    if (name === 'all') document.getElementById('folderAll')?.classList.add('active');
+    else if (name === 'trash') document.getElementById('folderTrash')?.classList.add('active');
+    else {
+        document.querySelectorAll('#folderList .folder-item').forEach(el => {
+            if (el.textContent.trim().includes(name)) el.classList.add('active');
+        });
+    }
+    // Update file list header
+    document.getElementById('fileListTitle').textContent = name === 'trash' ? 'Sampah' : 'Semua Berkas';
+    // Show/hide trash actions
+    const trashActions = document.getElementById('trashActions');
+    if (trashActions) trashActions.classList.toggle('hidden', name !== 'trash');
+    // Hide upload zone in trash view
+    const uploadZone = document.getElementById('uploadZone');
+    if (uploadZone) uploadZone.style.display = name === 'trash' ? 'none' : '';
+    const uploadQueue = document.getElementById('uploadQueueContainer');
+    if (uploadQueue) uploadQueue.style.display = name === 'trash' ? 'none' : '';
     renderFileList();
 }
 function createFolder() { document.getElementById('folderModal').classList.remove('hidden'); document.getElementById('folderNameInput').value = ''; document.getElementById('folderNameInput').focus(); }
@@ -1335,6 +1397,14 @@ function openShareModal(tgFileId, name, size, botIndex) {
     document.getElementById('modalFileName').innerText = name;
     document.getElementById('modalFileSize').innerText = formatBytes(size);
     generateQR(link);
+    // Show click count
+    const file = filesData.find(f => f.tgFileId === tgFileId);
+    if (file && file.shareClicks) {
+        document.getElementById('shareClicksRow').classList.remove('hidden');
+        document.getElementById('shareClicksText').textContent = file.shareClicks;
+    } else {
+        document.getElementById('shareClicksRow').classList.add('hidden');
+    }
     document.getElementById('shareModal').classList.remove('hidden');
 }
 function closeShareModal() { document.getElementById('shareModal').classList.add('hidden'); currentShareData = null; }
@@ -1349,6 +1419,23 @@ function copyShareLink() {
 
 // ── Preview ──
 async function openPreview(tgFileId, fileName, fileType, botIndex) {
+    // Document preview
+    if (isDocPreviewable(fileName)) {
+        document.getElementById('previewModal').classList.remove('hidden');
+        const content = document.getElementById('previewContent');
+        content.innerHTML = '<div class="flex flex-col items-center gap-4"><i class="fa-solid fa-circle-notch animate-spin text-3xl text-[var(--accent)]"></i><span class="text-sm text-[var(--text3)]">Memuat dokumen...</span></div>';
+        try {
+            const infoData = await apiGetFileInfo(tgFileId, botIndex);
+            if (!infoData.ok) throw new Error('Gagal');
+            const dlUrl = apiGetDownloadUrl(infoData.result.file_path, botIndex);
+            await openDocPreview(dlUrl, fileName);
+        } catch(e) {
+            content.innerHTML = '<div class="flex flex-col items-center gap-4 text-red-400"><i class="fa-solid fa-circle-exclamation text-3xl"></i><span class="text-sm">Gagal memuat dokumen.</span></div>';
+        }
+        return;
+    }
+
+    // Image/video preview
     const modal = document.getElementById('previewModal');
     const content = document.getElementById('previewContent');
     content.innerHTML = '<div class="flex flex-col items-center gap-4"><i class="fa-solid fa-circle-notch animate-spin text-3xl text-[var(--accent)]"></i><span class="text-sm text-[var(--text3)]">Memuat preview...</span></div>';
@@ -1356,7 +1443,7 @@ async function openPreview(tgFileId, fileName, fileType, botIndex) {
     try {
         const infoData = await apiGetFileInfo(tgFileId, botIndex);
         if (!infoData.ok) throw new Error('Gagal mendapatkan file.');
-        const dlUrl = await apiGetDownloadUrl(infoData.result.file_path, botIndex);
+        const dlUrl = apiGetDownloadUrl(infoData.result.file_path, botIndex);
         if (fileType === 'image') content.innerHTML = `<img src="${dlUrl}" alt="${fileName}" class="animate-fadeUp">`;
         else if (fileType === 'video') content.innerHTML = `<video controls autoplay class="animate-fadeUp" style="max-width:90vw;max-height:85vh;border-radius:8px"><source src="${dlUrl}">Browser tidak mendukung.</video>`;
     } catch (err) {
@@ -1374,7 +1461,6 @@ function openStats() {
     const activeFiles = filesData.filter(f => !f.deletedAt);
     document.getElementById('statTotal').innerText = activeFiles.length;
     document.getElementById('statSize').innerText = formatBytes(activeFiles.reduce((a,f) => a+f.size, 0));
-    // Type bars
     const types = ['image','video','audio','archive','other'];
     const typeLabels = { image:'Gambar', video:'Video', audio:'Audio', archive:'Arsip', other:'Lainnya' };
     const typeColors = { image:'var(--accent)', video:'#a855f7', audio:'#38bdf8', archive:'#f97316', other:'#737373' };
@@ -1383,7 +1469,6 @@ function openStats() {
     types.forEach(t => counts[t] = activeFiles.filter(f => f.type === t).length);
     const max = Math.max(...Object.values(counts), 1);
     document.getElementById('statTypeBars').innerHTML = types.map(t => `<div class="flex items-center gap-3 text-xs"><span class="w-16 text-[var(--text3)]">${typeLabels[t]}</span><div class="stat-bar flex-grow"><div class="stat-bar-fill" style="width:${(counts[t]/max)*100}%;background:${typeColors[t]}"></div></div><span class="font-mono text-[var(--text2)] w-8 text-right">${counts[t]}</span></div>`).join('');
-    // Week chart
     const now = Date.now();
     const days = [];
     for (let i = 6; i >= 0; i--) {
@@ -1394,7 +1479,6 @@ function openStats() {
     const maxDay = Math.max(...days, 1);
     const dayLabels = ['6h','5h','4h','3h','2h','1h','0h'];
     document.getElementById('statWeekChart').innerHTML = days.map((c,i) => `<div class="flex flex-col items-center flex-grow gap-1"><div class="w-full bg-[var(--accent)] rounded-sm transition-all" style="height:${Math.max((c/maxDay)*100,4)}%"></div><span class="text-[8px] text-[var(--text4)]">${dayLabels[i]}</span></div>`).join('');
-    // Donut chart
     const donutData = types.map(t => ({ label: typeLabels[t], value: counts[t], color: typeColorHex[t] })).filter(d => d.value > 0);
     drawDonutChart('donutCanvas', donutData);
     const legendEl = document.getElementById('donutLegend');
@@ -1411,11 +1495,13 @@ function openSettings() {
 }
 function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
 function saveSettings() {
-    const activeSize = document.querySelector('.size-preset.active');
-    SIZE_LIMIT_MB = activeSize ? parseInt(activeSize.dataset.size) : SIZE_LIMIT_MB;
+    SIZE_LIMIT_MB = parseInt(document.querySelector('.size-preset.active')?.dataset.size) || 50;
     localStorage.setItem('ridgebox_size_limit', SIZE_LIMIT_MB.toString());
-    document.getElementById('limitDisplay').innerText = SIZE_LIMIT_MB >= 1024 ? `${(SIZE_LIMIT_MB/1024).toFixed(0)} GB` : `${SIZE_LIMIT_MB} MB`;
-    closeSettings(); showToast('Pengaturan tersimpan!', 'success');
+    document.getElementById('limitDisplay').textContent = SIZE_LIMIT_MB >= 1024 ? (SIZE_LIMIT_MB/1024)+' GB' : SIZE_LIMIT_MB+' MB';
+    const rules = { enabled: document.getElementById('autoCleanupToggle').checked, age: parseInt(document.querySelector('.cleanup-age.active')?.dataset.age) || 30 };
+    saveCleanupRules(rules);
+    closeSettings();
+    showToast('Pengaturan disimpan.', 'success');
 }
 
 // ── Storage Metrics ──
@@ -1474,8 +1560,8 @@ function getIconClass(t) {
     }
 }
 
-// ── Toast ──
-function showToast(message, type='info') {
+// ── Toast with notification history ──
+const _rawShowToast = function(message, type='info') {
     const c = document.getElementById('toastContainer');
     const t = document.createElement('div');
     let icon = '<i class="fa-solid fa-circle-info text-[var(--text3)]"></i>';
@@ -1485,6 +1571,11 @@ function showToast(message, type='info') {
     t.innerHTML = `${icon}<span class="text-[var(--text2)] text-xs font-medium">${message}</span>`;
     c.appendChild(t);
     setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(12px)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); }, 3500);
+};
+function showToast(message, type='info') {
+    _rawShowToast(message, type);
+    const icons = {success:'fa-solid fa-circle-check', error:'fa-solid fa-circle-xmark', info:'fa-solid fa-circle-info'};
+    addNotif(icons[type] || icons.info, message);
 }
 
 // ── PWA ──
@@ -1555,7 +1646,7 @@ async function batchDownloadZip() {
         try {
             const infoData = await apiGetFileInfo(file.tgFileId, file.botIndex);
             if (!infoData.ok) continue;
-            const dlUrl = await apiGetDownloadUrl(infoData.result.file_path, file.botIndex);
+            const dlUrl = apiGetDownloadUrl(infoData.result.file_path, file.botIndex);
             const resp = await fetch(dlUrl);
             const blob = await resp.blob();
             zip.file(file.name, blob);
@@ -1603,6 +1694,7 @@ document.addEventListener('keydown', e => {
     }
     if (e.key === '?' && !mod) { openShortcuts(); }
 });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSettings(); closeShareModal(); closePreview(); closeStats(); closeFolderModal(); } });
 
 // ── Feature 20: File Encryption ──
 document.getElementById('encryptToggle')?.addEventListener('change', e => {
@@ -1718,7 +1810,6 @@ function drawDonutChart(canvasId, data) {
         ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, start, start + angle); ctx.arc(cx, cy, inner, start + angle, start, true); ctx.closePath(); ctx.fill();
         start += angle;
     });
-    // Center text
     ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim();
     ctx.font = 'bold 16px Space Grotesk'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(total, cx, cy - 6);
@@ -1739,11 +1830,10 @@ function runAutoCleanup() {
     if (toTrash.length === 0) return;
     toTrash.forEach(f => { f.deletedAt = Date.now(); updateFileInDB(f); });
     showToast(`Auto-cleanup: ${toTrash.length} file lama dipindahkan ke Sampah.`, 'info');
-    addNotif('fa-solid fa-broom', `Auto-cleanup: ${toTrash.length} file dipindahkan ke Sampah.`);
     loadFilesFromDB();
 }
 
-// ── Override: deleteSingleFile uses trash ──
+// ── Delete (with trash) ──
 async function deleteSingleFile(id) {
     if (currentFolder === 'trash') {
         if (!confirm('Hapus permanen berkas ini?')) return;
@@ -1754,7 +1844,6 @@ async function deleteSingleFile(id) {
     }
 }
 
-// ── Override: batchDeleteSelected uses trash ──
 async function batchDeleteSelected() {
     if (selectedFiles.size === 0) return;
     if (currentFolder === 'trash') {
@@ -1773,113 +1862,6 @@ async function batchDeleteSelected() {
     loadFilesFromDB();
     if (batchMode) toggleBatchMode();
 }
-
-// ── Override: selectFolder handles trash view ──
-const _origSelectFolder = selectFolder;
-selectFolder = function(name) {
-    currentFolder = name;
-    document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('active'));
-    if (name === 'all') document.getElementById('folderAll')?.classList.add('active');
-    else if (name === 'trash') document.getElementById('folderTrash')?.classList.add('active');
-    else {
-        document.querySelectorAll('#folderList .folder-item').forEach(el => {
-            if (el.textContent.trim().includes(name)) el.classList.add('active');
-        });
-    }
-    // Update file list header
-    const h3 = document.querySelector('#appView .card h3');
-    if (h3) h3.textContent = name === 'trash' ? 'Sampah' : 'Semua Berkas';
-    // Show/hide trash actions
-    const trashActions = document.getElementById('trashActions');
-    if (trashActions) trashActions.classList.toggle('hidden', name !== 'trash');
-    // Hide upload zone in trash view
-    const uploadZone = document.querySelector('#appView main .grid.grid-cols-1');
-    if (uploadZone) uploadZone.style.display = name === 'trash' ? 'none' : '';
-    const uploadQueue = document.getElementById('uploadQueueContainer');
-    if (uploadQueue) uploadQueue.style.display = name === 'trash' ? 'none' : '';
-    renderFileList();
-};
-
-// ── Override: showToast adds to notification history ──
-const _origShowToast = showToast;
-showToast = function(message, type='info') {
-    _origShowToast(message, type);
-    const icons = {success:'fa-solid fa-circle-check', error:'fa-solid fa-circle-xmark', info:'fa-solid fa-circle-info'};
-    addNotif(icons[type] || icons.info, message);
-};
-
-// ── Override: saveSettings saves cleanup rules ──
-const _origSaveSettings = saveSettings;
-saveSettings = function() {
-    SIZE_LIMIT_MB = parseInt(document.querySelector('.size-preset.active')?.dataset.size) || 50;
-    localStorage.setItem('ridgebox_size_limit', SIZE_LIMIT_MB.toString());
-    document.getElementById('limitDisplay').textContent = SIZE_LIMIT_MB >= 1024 ? (SIZE_LIMIT_MB/1024)+' GB' : SIZE_LIMIT_MB+' MB';
-    const rules = { enabled: document.getElementById('autoCleanupToggle').checked, age: parseInt(document.querySelector('.cleanup-age.active')?.dataset.age) || 30 };
-    saveCleanupRules(rules);
-    closeSettings();
-    showToast('Pengaturan disimpan.', 'success');
-};
-
-// ── Override: openShareModal shows click count ──
-const _origOpenShareModal = openShareModal;
-openShareModal = function(tgFileId, name, size, botIndex) {
-    _origOpenShareModal(tgFileId, name, size, botIndex);
-    const file = filesData.find(f => f.tgFileId === tgFileId);
-    if (file && file.shareClicks) {
-        document.getElementById('shareClicksRow').classList.remove('hidden');
-        document.getElementById('shareClicksText').textContent = file.shareClicks;
-    } else {
-        document.getElementById('shareClicksRow').classList.add('hidden');
-    }
-};
-
-// ── Override: setupDownloadPortal increments share clicks ──
-const _origSetupDownloadPortal = setupDownloadPortal;
-setupDownloadPortal = function(encoded) {
-    _origSetupDownloadPortal(encoded);
-    if (portalDecodedInfo) incrementShareClicks(portalDecodedInfo.fileId);
-};
-
-// ── Override: openPreview supports document preview ──
-const _origOpenPreview = openPreview;
-openPreview = async function(tgFileId, fileName, fileType, botIndex) {
-    if (isDocPreviewable(fileName)) {
-        document.getElementById('previewModal').classList.remove('hidden');
-        const content = document.getElementById('previewContent');
-        content.innerHTML = '<div class="flex flex-col items-center gap-4"><i class="fa-solid fa-circle-notch animate-spin text-3xl text-[var(--accent)]"></i><span class="text-sm text-[var(--text3)]">Memuat dokumen...</span></div>';
-        try {
-            const infoData = await apiGetFileInfo(tgFileId, botIndex);
-            if (!infoData.ok) throw new Error('Gagal');
-            const dlUrl = await apiGetDownloadUrl(infoData.result.file_path, botIndex);
-            await openDocPreview(dlUrl, fileName);
-        } catch(e) {
-            content.innerHTML = '<div class="flex flex-col items-center gap-4 text-red-400"><i class="fa-solid fa-circle-exclamation text-3xl"></i><span class="text-sm">Gagal memuat dokumen.</span></div>';
-        }
-        return;
-    }
-    _origOpenPreview(tgFileId, fileName, fileType, botIndex);
-};
-
-// ── Init: encrypt toggle, cleanup-age toggle, auto-cleanup ──
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.cleanup-age').forEach(b => {
-        b.addEventListener('click', e => {
-            document.querySelectorAll('.cleanup-age').forEach(x => x.classList.remove('active'));
-            e.target.classList.add('active');
-        });
-    });
-    const rules = getCleanupRules();
-    if (rules.enabled) document.getElementById('autoCleanupToggle').checked = true;
-    if (rules.age) {
-        document.querySelectorAll('.cleanup-age').forEach(b => {
-            b.classList.toggle('active', b.dataset.age == rules.age);
-        });
-    }
-    setTimeout(() => { autoPurgeTrash(); runAutoCleanup(); }, 2000);
-});
-
-// ── Global keydown for Escape ──
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSettings(); closeShareModal(); closePreview(); closeStats(); closeFolderModal(); } });
 
 // ── Click-outside to close modals ──
 ['settingsModal','shareModal','statsModal','folderModal'].forEach(id => {

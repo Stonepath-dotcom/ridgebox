@@ -12,15 +12,19 @@ export default async function (request) {
   }
 
   try {
+    // Collect all bot configs
     const bots = [];
     let i = 0;
 
     // Default bot
-    if (process.env.TG_BOT_TOKEN) {
+    const defaultToken = process.env.TG_BOT_TOKEN;
+    const defaultChatId = process.env.TG_CHAT_ID;
+    if (defaultToken && defaultChatId) {
       bots.push({
         index: '0',
         name: process.env.TG_BOT_NAME || 'Primary Bot',
-        configured: true,
+        token: defaultToken,
+        chatId: defaultChatId,
       });
     }
 
@@ -28,16 +32,14 @@ export default async function (request) {
     while (true) {
       i++;
       const token = process.env[`TG_BOT_${i}_TOKEN`];
-      if (!token) break;
+      const chatId = process.env[`TG_BOT_${i}_CHAT_ID`];
+      if (!token || !chatId) break;
       bots.push({
         index: String(i),
         name: process.env[`TG_BOT_${i}_NAME`] || `Bot ${i + 1}`,
-        configured: true,
+        token,
+        chatId,
       });
-    }
-
-    if (bots.length === 0) {
-      bots.push({ index: '0', name: 'No bot configured', configured: false });
     }
 
     return new Response(JSON.stringify({ ok: true, bots }), {
