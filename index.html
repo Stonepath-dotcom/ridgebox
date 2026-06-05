@@ -915,7 +915,7 @@ function setupDragAndDrop() { const dz=document.getElementById('dropZone'); ['dr
 // ── Upload (direct to Telegram) ──
 async function handleFileUpload(files) { if(!files.length)return; document.getElementById('uploadQueueContainer').classList.remove('hidden'); for(let file of files){ if(file.size>SIZE_LIMIT_MB*1024*1024){showToast(`"${file.name}" melebihi ${SIZE_LIMIT_MB} MB.`,'error');continue;} const uid=Date.now().toString(36)+Math.random().toString(36).substr(2,5); const qi=document.createElement('div');qi.id=`queue-${uid}`;qi.className='card-inner p-3 space-y-2'; qi.innerHTML=`<div class="flex justify-between items-center text-[11px]"><div class="flex items-center gap-2 truncate"><i class="fa-solid fa-circle-notch animate-spin text-[var(--accent)] text-[10px]"></i><span class="font-medium text-[var(--text2)] truncate max-w-[200px]">${file.name}</span></div><span id="percent-${uid}" class="text-[var(--text3)] font-mono font-bold text-[10px]">0%</span></div><div class="w-full h-[3px] bg-[var(--surface2)] rounded-full overflow-hidden"><div id="bar-${uid}" class="h-full bg-[var(--accent)] rounded-full transition-all" style="width:0%"></div></div><div id="retry-${uid}" class="hidden flex justify-end"><button onclick="retryUpload('${uid}')" class="text-[10px] text-[var(--accent)] font-semibold hover:underline"><i class="fa-solid fa-rotate-right mr-1"></i>Coba Lagi</button></div>`; document.getElementById('uploadQueue').appendChild(qi); executeUpload(file,uid); } }
 
-async function executeUpload(file,uid) { const token=getBotToken(currentBotIndex),chatId=getChatId(currentBotIndex); if(!token||!chatId){uploadError(uid,'Bot belum dikonfigurasi.');return;} let fileToUpload=file,isEncrypted=false; const enc=document.getElementById('encryptToggle'); if(enc&&enc.checked){ const pwd=document.getElementById('encryptPwd').value.trim(); if(pwd){ try{const e=await encryptFile(file,pwd);fileToUpload=new File([e],file.name+'.enc',{type:'application/octet-stream'});isEncrypted=true;}catch(e){showToast('Enkripsi gagal.','error');} } } const xhr=new XMLHttpRequest();const fd=new FormData();fd.append('chat_id',chatId);fd.append('document',fileToUpload); xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round((e.loaded/e.total)*100);const bar=document.getElementById(`bar-${uid}`),pct=document.getElementById(`percent-${uid}`);if(bar)bar.style.width=p+'%';if(pct)pct.innerText=p+'%';}}; xhr.onload=async function(){if(xhr.status===200){try{const res=JSON.parse(xhr.responseText);if(res.ok){const fId=res.result.document.file_id,tId=res.result.document.thumb?res.result.document.thumb.file_id:''; await saveFileToDB({id:uid,tgFileId:fId,name:file.name,size:file.size,type:getFileTypeByName(file.name),uploadedAt:new Date().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}),uploadedTimestamp:Date.now(),expiresAt:0,pinned:false,folder:currentFolder!=='all'&&currentFolder!=='recent'&&currentFolder!=='trash'?currentFolder:'',thumbId:tId,botIndex:currentBotIndex,encrypted:isEncrypted,shareClicks:0,tag:null,notes:'',customIcon:'',versions:[]}); showToast(`"${file.name}" berhasil diupload.`,'success'); logActivity('upload',file.name); removeQueueItem(uid);loadFilesFromDB(); }else uploadError(uid,res.description||'Ditolak Telegram'); }catch(e){uploadError(uid,'Respons tidak valid');}}else uploadError(uid,`Gagal (${xhr.status})`);}; xhr.onerror=()=>uploadError(uid,'Kesalahan jaringan');xhr.ontimeout=()=>uploadError(uid,'Timeout');xhr.timeout=600000;xhr.open('POST',`https://api.telegram.org/bot${token}/sendDocument`);xhr.send(fd); window[`_retryFile_${uid}`]=file; }
+async function executeUpload(file,uid) { try { const token=getBotToken(currentBotIndex),chatId=getChatId(currentBotIndex); if(!token||!chatId){uploadError(uid,'Bot belum dikonfigurasi. Buka Dashboard dan cek pengaturan.');return;} let fileToUpload=file,isEncrypted=false; const enc=document.getElementById('encryptToggle'); if(enc&&enc.checked){ const pwd=document.getElementById('encryptPwd').value.trim(); if(pwd){ try{const e=await encryptFile(file,pwd);fileToUpload=new File([e],file.name+'.enc',{type:'application/octet-stream'});isEncrypted=true;}catch(err){console.error('[Upload] Encrypt error:',err);showToast('Enkripsi gagal.','error');} } } console.log('[Ridgebox Upload]', file.name, formatBytes(file.size), '→ Telegram API'); const xhr=new XMLHttpRequest();const fd=new FormData();fd.append('chat_id',chatId);fd.append('document',fileToUpload); xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round((e.loaded/e.total)*100);const bar=document.getElementById(`bar-${uid}`),pct=document.getElementById(`percent-${uid}`);if(bar)bar.style.width=p+'%';if(pct)pct.innerText=p+'%';}}; xhr.onload=async function(){if(xhr.status===200){try{const res=JSON.parse(xhr.responseText);if(res.ok){const fId=res.result.document.file_id,tId=res.result.document.thumb?res.result.document.thumb.file_id:''; await saveFileToDB({id:uid,tgFileId:fId,name:file.name,size:file.size,type:getFileTypeByName(file.name),uploadedAt:new Date().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}),uploadedTimestamp:Date.now(),expiresAt:0,pinned:false,folder:currentFolder!=='all'&&currentFolder!=='recent'&&currentFolder!=='trash'?currentFolder:'',thumbId:tId,botIndex:currentBotIndex,encrypted:isEncrypted,shareClicks:0,tag:null,notes:'',customIcon:'',versions:[]}); showToast(`"${file.name}" berhasil diupload.`,'success'); logActivity('upload',file.name); removeQueueItem(uid);loadFilesFromDB(); }else{console.error('[Upload] Telegram rejected:', res.description);uploadError(uid,res.description||'Ditolak Telegram');} }catch(e){console.error('[Upload] Parse error:', e);uploadError(uid,'Respons tidak valid');}}else{console.error('[Upload] HTTP error:', xhr.status, xhr.responseText?.substring(0,200));uploadError(uid,`Gagal (${xhr.status})`);}}; xhr.onerror=()=>{console.error('[Upload] Network error');uploadError(uid,'Kesalahan jaringan. Cek koneksi internet.')};xhr.ontimeout=()=>{console.error('[Upload] Timeout');uploadError(uid,'Timeout. File terlalu besar atau koneksi lambat.')};xhr.timeout=600000;xhr.open('POST',`https://api.telegram.org/bot${token}/sendDocument`);xhr.send(fd); window[`_retryFile_${uid}`]=file; } catch(e) { console.error('[Upload] Fatal error:', e); uploadError(uid, 'Error: ' + e.message); } }
 function retryUpload(uid) { const f=window[`_retryFile_${uid}`];if(!f)return; const qi=document.getElementById(`queue-${uid}`);if(qi){qi.className='card-inner p-3 space-y-2';document.getElementById(`retry-${uid}`).classList.add('hidden');} executeUpload(f,uid); }
 function uploadError(uid,msg) { const item=document.getElementById(`queue-${uid}`);if(item){item.style.borderColor='rgba(239,68,68,0.3)';const bar=document.getElementById(`bar-${uid}`),pct=document.getElementById(`percent-${uid}`);if(bar)bar.style.width='0%';if(pct){pct.innerText='Gagal';pct.className='text-red-400 font-mono font-bold text-[10px]';} const retry=document.getElementById(`retry-${uid}`);if(retry)retry.classList.remove('hidden'); const sp=item.querySelector('.fa-circle-notch');if(sp){sp.classList.remove('fa-circle-notch','animate-spin','text-[var(--accent)]');sp.classList.add('fa-solid fa-circle-exclamation','text-red-400');}} showToast(`Error: ${msg}`,'error'); }
 function removeQueueItem(id) { const item=document.getElementById(`queue-${id}`);if(item){item.style.opacity='0';setTimeout(()=>{item.remove();if(document.getElementById('uploadQueue').children.length===0)document.getElementById('uploadQueueContainer').classList.add('hidden');},200);}delete window[`_retryFile_${id}`]; }
@@ -1683,18 +1683,21 @@ function animateSocialProofCounters() {
 
 // ── F70: Scroll Progress Bar ──
 function initScrollProgress() {
+    const bar = document.getElementById('scrollProgress');
+    if (!bar) return;
     window.addEventListener('scroll', () => {
         const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
         const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
         const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
-        document.getElementById('scrollProgress').style.width = progress + '%';
+        bar.style.width = progress + '%';
     });
 }
 
 // ── F71: Back to Top Button ──
 function initBackToTop() {
+    const btn = document.getElementById('backToTopBtn');
+    if (!btn) return;
     window.addEventListener('scroll', () => {
-        const btn = document.getElementById('backToTopBtn');
         if (window.scrollY > 400) btn.classList.add('visible');
         else btn.classList.remove('visible');
     });
@@ -1746,6 +1749,7 @@ function applyPageTransition(element) {
 // ── Enhanced search with F54: Deep Search ──
 const _origRenderFileList = renderFileList;
 renderFileList = function() {
+    try {
     const container = document.getElementById('fileList');
     const searchVal = document.getElementById('searchInput').value.toLowerCase();
     container.innerHTML = '';
@@ -1794,6 +1798,7 @@ renderFileList = function() {
     }
     if (viewMode === 'grid') { container.className = 'file-grid'; filtered.forEach(f => renderGridItem(container, f)); }
     else { container.className = 'space-y-2'; filtered.forEach(f => renderListItem(container, f)); }
+    } catch(e) { console.error('[F54] renderFileList error:', e); _origRenderFileList(); }
 };
 
 // ── Update routing to include F73: 404 Page and F75: Transitions ──
@@ -1854,6 +1859,7 @@ updateBatchCount = function() {
 // ── Update renderListItem to add draggable and detail button (F46, F47) ──
 const _origRenderListItem = renderListItem;
 renderListItem = function(c, file) {
+    try {
     _origRenderListItem(c, file);
     const item = c.lastElementChild;
     if (item) {
@@ -1877,11 +1883,13 @@ renderListItem = function(c, file) {
             nameEl.insertAdjacentHTML('beforeend', badge);
         }
     }
+    } catch(e) { console.error('[F46/F47] renderListItem override error:', e); }
 };
 
 // ── Update renderGridItem to add draggable (F46) ──
 const _origRenderGridItem = renderGridItem;
 renderGridItem = function(c, file) {
+    try {
     _origRenderGridItem(c, file);
     const item = c.lastElementChild;
     if (item) {
@@ -1899,11 +1907,13 @@ renderGridItem = function(c, file) {
             actDiv.insertBefore(detailBtn, actDiv.firstChild);
         }
     }
+    } catch(e) { console.error('[F46] renderGridItem override error:', e); }
 };
 
 // ── Update openPreview for F61, F62, F63 ──
 const _origOpenPreview = openPreview;
 openPreview = async function(tgId, fileName, fileType, bi) {
+    try {
     const modal = document.getElementById('previewModal'), content = document.getElementById('previewContent');
     content.innerHTML = '<div class="flex flex-col items-center gap-4"><i class="fa-solid fa-circle-notch animate-spin text-3xl text-[var(--accent)]"></i><span class="text-sm text-[var(--text3)]">Memuat...</span></div>';
     modal.classList.remove('hidden');
@@ -1943,6 +1953,7 @@ openPreview = async function(tgId, fileName, fileType, bi) {
     } catch (e) {
         content.innerHTML = `<div class="text-center space-y-3"><i class="fa-solid fa-circle-exclamation text-3xl text-red-400"></i><p class="text-sm text-[var(--text3)]">${e.message}</p></div>`;
     }
+    } catch(e) { console.error('[F61-63] openPreview override error:', e); _origOpenPreview(tgId, fileName, fileType, bi); }
 };
 
 // ── Update share modal to include F52: Embed tab ──
@@ -2001,25 +2012,32 @@ function generateAndShowCollabLink() {
 // ── Enhance upload with F50: Auto-Compress ──
 const _origHandleFileUpload = handleFileUpload;
 handleFileUpload = async function(files) {
-    if (!files.length) return;
-    const compressToggle = document.getElementById('compressToggle');
-    const shouldCompress = compressToggle && compressToggle.checked;
-    let processedFiles = [];
-    for (let file of files) {
-        if (shouldCompress && file.type.startsWith('image/') && file.size > 1024 * 1024) {
-            try {
-                showToast(`Mengompres "${file.name}"...`, 'info');
-                const compressed = await compressImageFile(file);
-                processedFiles.push(compressed);
-                showToast(`"${file.name}" dikompres (${formatBytes(file.size)} → ${formatBytes(compressed.size)}).`, 'success');
-            } catch (e) {
+    try {
+        if (!files || !files.length) return;
+        const compressToggle = document.getElementById('compressToggle');
+        const shouldCompress = compressToggle && compressToggle.checked;
+        let processedFiles = [];
+        for (let file of files) {
+            if (shouldCompress && file.type && file.type.startsWith('image/') && file.size > 1024 * 1024) {
+                try {
+                    showToast(`Mengompres "${file.name}"...`, 'info');
+                    const compressed = await compressImageFile(file);
+                    processedFiles.push(compressed);
+                    showToast(`"${file.name}" dikompres (${formatBytes(file.size)} → ${formatBytes(compressed.size)}).`, 'success');
+                } catch (e) {
+                    console.warn('[F50] Compress failed, using original:', e);
+                    processedFiles.push(file);
+                }
+            } else {
                 processedFiles.push(file);
             }
-        } else {
-            processedFiles.push(file);
         }
+        _origHandleFileUpload(processedFiles);
+    } catch(e) {
+        console.error('[F50] Upload enhance error:', e);
+        // Fallback to original upload
+        if (_origHandleFileUpload) _origHandleFileUpload(files);
     }
-    _origHandleFileUpload(processedFiles);
 };
 
 // ── Update folder rendering with F46: dragover/drop handlers ──
@@ -2042,27 +2060,20 @@ renderFolderList = function() {
     });
 };
 
-// ── F59: Init Push Notifications ──
-initPushNotifications();
+// ── Global Error Handler ──
+window.addEventListener('error', e => { console.error('[Ridgebox JS Error]', e.message, e.filename, 'line', e.lineno); });
+window.addEventListener('unhandledrejection', e => { console.error('[Ridgebox Promise Error]', e.reason); });
 
-// ── F70, F71: Init scroll progress and back to top ──
-initScrollProgress();
-initBackToTop();
+// ── Safe Init Wrappers ──
+function safeInit(name, fn) { try { fn(); } catch(e) { console.error(`[Ridgebox Init Error] ${name}:`, e); } }
 
-// ── F53: Init Context Menu ──
-initContextMenu();
-
-// ── F69: Init social proof counters ──
-animateSocialProofCounters();
-
-// ── F74: Init breadcrumb ──
-updateBreadcrumb();
-
-// ── F72: Use skeleton loading on initial load ──
-// (Skeleton will show briefly before data loads)
-
-// ── F46: Init file drag to folder ──
-initFileDragToFolder();
+safeInit('F59: Push Notifications', initPushNotifications);
+safeInit('F70: Scroll Progress', initScrollProgress);
+safeInit('F71: Back to Top', initBackToTop);
+safeInit('F53: Context Menu', initContextMenu);
+safeInit('F69: Social Proof Counters', animateSocialProofCounters);
+safeInit('F74: Breadcrumb', updateBreadcrumb);
+safeInit('F46: File Drag to Folder', initFileDragToFolder);
 
 // ── Close file detail panel on click outside ──
 document.addEventListener('click', e => {
