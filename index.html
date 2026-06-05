@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>Ridgebox — Cloud Storage via Telegram</title>
-<meta name="description" content="Simpan file gratis tanpa server menggunakan Telegram Bot. Unlimited storage, end-to-end encryption.">
+<title>Ridgebox — Cloud Storage</title>
+<meta name="description" content="Simpan file gratis tanpa server. Unlimited storage, end-to-end encryption.">
 <meta name="theme-color" content="#3b82f6">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="/api/favicon" type="image/svg+xml">
@@ -183,7 +183,7 @@ const APP = {
 const T = {
     id: {
         appName: 'Ridgebox',
-        appTagline: 'Cloud Storage via Telegram',
+        appTagline: 'Cloud Storage Gratis & Aman',
         appDesc: 'Simpan file gratis tanpa server. Unlimited storage, end-to-end encryption.',
         dashboard: 'Dashboard',
         home: 'Beranda',
@@ -294,7 +294,7 @@ const T = {
         security: 'Keamanan',
         testimonials: 'Testimoni',
         hero: 'Penyimpanan Cloud Gratis',
-        heroSub: 'Melalui Telegram Bot',
+        heroSub: 'Gratis & Tanpa Batas',
         heroDesc: 'Simpan file tanpa batas dengan enkripsi end-to-end. Tanpa server, tanpa biaya.',
         free: 'Gratis',
         unlimited: 'Tanpa Batas',
@@ -347,7 +347,7 @@ const T = {
     },
     en: {
         appName: 'Ridgebox',
-        appTagline: 'Cloud Storage via Telegram',
+        appTagline: 'Free & Secure Cloud Storage',
         appDesc: 'Free serverless file storage. Unlimited storage, end-to-end encryption.',
         dashboard: 'Dashboard',
         home: 'Home',
@@ -458,7 +458,7 @@ const T = {
         security: 'Security',
         testimonials: 'Testimonials',
         hero: 'Free Cloud Storage',
-        heroSub: 'Via Telegram Bot',
+        heroSub: 'Free & Unlimited',
         heroDesc: 'Store unlimited files with end-to-end encryption. No server, no cost.',
         free: 'Free',
         unlimited: 'Unlimited',
@@ -1151,7 +1151,7 @@ function renderHomepage() {
                         { icon: 'fa-share-nodes', color: '#8b5cf6', title: 'Bagikan Aman', desc: 'Link dengan password, expiry, dan self-destruct' },
                         { icon: 'fa-folder-tree', color: '#f59e0b', title: 'Folder & Tag', desc: 'Organisasi file dengan folder dan tag warna' },
                         { icon: 'fa-file-zipper', color: '#ec4899', title: 'ZIP Download', desc: 'Unduh banyak file sekaligus sebagai ZIP' },
-                        { icon: 'fa-robot', color: '#06b6d4', title: 'Telegram Bot', desc: 'Gunakan bot Telegram sebagai storage gratis' },
+                        { icon: 'fa-robot', color: '#06b6d4', title: 'Cloud Serverless', desc: 'Storage gratis tanpa server, tanpa biaya' },
                         { icon: 'fa-moon', color: '#6366f1', title: 'Dark Mode', desc: 'Tema terang dan gelap sesuai preferensi' },
                         { icon: 'fa-mobile-screen', color: '#14b8a6', title: 'Mobile Friendly', desc: 'Responsif di semua ukuran layar' },
                         { icon: 'fa-key', color: '#f97316', title: 'PIN Lock', desc: 'Kunci akses dashboard dengan PIN SHA-256' }
@@ -1191,7 +1191,7 @@ function renderHomepage() {
                     ${[
                         { name: 'Ahmad R.', role: 'Developer', text: 'Ridgebox mengubah cara saya backup file. Gratis dan unlimited!', stars: 5 },
                         { name: 'Siti N.', role: 'Designer', text: 'Enkripsi end-to-end bikin tenang soal privasi file.', stars: 5 },
-                        { name: 'Budi S.', role: 'Student', text: 'Gak perlu bayar cloud storage lagi. Telegram jadi storage!', stars: 5 }
+                        { name: 'Budi S.', role: 'Student', text: 'Gak perlu bayar cloud storage lagi. Gratis dan unlimited!', stars: 5 }
                     ].map(t => `
                         <div class="card-hover" style="padding:24px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border)">
                             <div style="margin-bottom:8px">${'★'.repeat(t.stars).split('').map(() => '<i class="fas fa-star" style="color:#f59e0b;font-size:14px"></i>').join('')}</div>
@@ -1208,10 +1208,10 @@ function renderHomepage() {
             <div style="max-width:700px;margin:0 auto">
                 <h2 style="text-align:center;font-size:28px;font-weight:700;margin-bottom:40px">${t('faq')}</h2>
                 ${[
-                    { q: 'Apakah Ridgebox benar-benar gratis?', a: 'Ya! Ridgebox menggunakan Telegram Bot API sebagai backend, jadi tidak ada biaya server. Anda hanya perlu bot Telegram yang gratis.' },
+                    { q: 'Apakah Ridgebox benar-benar gratis?', a: 'Ya! Ridgebox menggunakan infrastruktur cloud serverless, jadi tidak ada biaya server. Sepenuhnya gratis untuk digunakan.' },
                     { q: 'Apakah file saya aman?', a: 'File dilindungi dengan enkripsi AES-256-GCM opsional, PIN lock SHA-256, dan mode proxy yang menyembunyikan bot token.' },
-                    { q: 'Berapa batas penyimpanan?', a: 'Tidak ada batas! Selama bot Telegram Anda aktif, Anda bisa menyimpan file sebanyak apapun.' },
-                    { q: 'Bisa upload file besar?', a: 'Ya, hingga 50MB per file melalui server proxy, atau 2GB langsung ke Telegram.' }
+                    { q: 'Berapa batas penyimpanan?', a: 'Tidak ada batas! Anda bisa menyimpan file sebanyak apapun tanpa kuota.' },
+                    { q: 'Bisa upload file besar?', a: 'Ya, hingga 50MB per file melalui server proxy, atau hingga 2GB untuk upload langsung.' }
                 ].map((f, i) => `
                     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden">
                         <div style="padding:16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:500" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block';this.querySelector('i').classList.toggle('fa-chevron-down');this.querySelector('i').classList.toggle('fa-chevron-up')">
@@ -1252,7 +1252,7 @@ function renderHomepage() {
                 ${[
                     { ver: 'v3.0', date: '2025', changes: '105 fitur lengkap, enkripsi AES-256, PIN lock, onboarding, i18n' },
                     { ver: 'v2.0', date: '2024', changes: 'Folder, tag, share link, dark mode, batch mode' },
-                    { ver: 'v1.0', date: '2023', changes: 'Upload dasar via Telegram Bot, IndexedDB storage' }
+                    { ver: 'v1.0', date: '2023', changes: 'Upload dasar, IndexedDB storage, serverless cloud' }
                 ].map(c => `
                     <div style="display:flex;gap:16px;margin-bottom:20px">
                         <div style="min-width:60px;text-align:right"><span class="badge" style="background:var(--accent);color:#fff">${c.ver}</span></div>
@@ -1274,7 +1274,7 @@ function renderHomepage() {
 
         <!-- Footer -->
         <footer style="padding:24px 20px;text-align:center;border-top:1px solid var(--border);font-size:13px;color:var(--text-secondary)">
-            <p>Ridgebox — Cloud Storage via Telegram Bot. ${APP.lang === 'id' ? 'Dibuat dengan' : 'Made with'} <i class="fas fa-heart" style="color:#ef4444"></i></p>
+            <p>Ridgebox — Free Cloud Storage. ${APP.lang === 'id' ? 'Dibuat dengan' : 'Made with'} <i class="fas fa-heart" style="color:#ef4444"></i></p>
         </footer>
     </div>`;
     // Animate counters
@@ -2741,10 +2741,10 @@ function openSettings() {
                         </span>
                     </label>
                 </div>
-                <p style="font-size:12px;color:var(--text-secondary)">${APP.lang==='id'?'Sembunyikan bot token dari client. Disarankan aktif.':'Hide bot token from client. Recommended on.'}</p>
+                <p style="font-size:12px;color:var(--text-secondary)">${APP.lang==='id'?'Sembunyikan kredensial server dari client. Disarankan aktif.':'Hide server credentials from client. Recommended on.'}</p>
                 ${bot ? `<div style="margin-top:8px;padding:8px;background:var(--bg-secondary);border-radius:6px;font-size:11px;font-family:'JetBrains Mono',monospace">
-                    <div>${t('botToken')}: ${bot.masked ? bot.token + ' (' + t('masked') + ')' : '••••••••••'}</div>
-                    <div>${t('chatId')}: ${bot.chatId || '-'}</div>
+                    <div>Server Key: ${bot.masked ? bot.token + ' (' + t('masked') + ')' : '••••••••••'}</div>
+                    <div>Channel: ${bot.chatId ? '••••' + bot.chatId.slice(-4) : '-'}</div>
                 </div>` : ''}
             </div>
 

@@ -1,7 +1,7 @@
 {
     "name": "Ridgebox",
     "short_name": "Ridgebox",
-    "description": "Cloud storage via Telegram Bot. Simpan file gratis, tanpa server.",
+    "description": "Cloud storage gratis & aman. Simpan file tanpa batas, enkripsi end-to-end.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
