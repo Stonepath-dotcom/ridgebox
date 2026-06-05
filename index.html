@@ -365,6 +365,33 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 .toolbar-premium .toolbar-action-btn.active-action{background:rgba(59,130,246,.1);color:var(--accent);border-color:rgba(59,130,246,.2)}
 .toolbar-premium .toolbar-upload-btn{padding:7px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(59,130,246,.3);transition:all .25s ease}
 .toolbar-premium .toolbar-upload-btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(59,130,246,.4)}
+
+/* ===== PREMIUM UX UPGRADES ===== */
+/* Toggle Switch */
+.toggle-switch{position:relative;width:40px;height:22px;cursor:pointer;display:inline-block;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:22px;transition:all .3s ease}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:all .3s ease;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-switch input:checked+.toggle-slider{background:var(--accent)}
+.toggle-switch input:checked+.toggle-slider::before{transform:translateX(18px)}
+
+/* Animated Theme Transition */
+body,body *{transition:background-color .3s ease,color .3s ease,border-color .3s ease,box-shadow .3s ease}
+body.no-transition,body.no-transition *{transition:none!important}
+
+/* Button Press Feedback */
+.btn:active,.header-pill-btn:active,.sidebar-upload-btn:active,.toolbar-upload-btn:active,.filter-pill:active,.sidebar-action-btn:active,.toolbar-action-btn:active,.toolbar-view-btn:active,.detail-action:active,.empty-action-btn:active{transform:scale(.96)!important;opacity:.9}
+.btn-primary:active,.btn-danger:active{transform:scale(.96)!important}
+
+/* Upload Success Glow */
+@keyframes successGlow{0%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 8px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+.success-glow{animation:successGlow .8s ease}
+
+/* Permission Badge */
+.perm-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600}
+.perm-badge.view{background:rgba(59,130,246,.1);color:#3b82f6}
+.perm-badge.download{background:rgba(16,185,129,.1);color:#10b981}
+.perm-badge.edit{background:rgba(139,92,246,.1);color:#8b5cf6}
 </style>
 </head>
 <body>
@@ -1017,6 +1044,23 @@ function removeToast(el, groupKey) {
     setTimeout(() => { el.remove(); delete toastGroups[groupKey]; }, 300);
 }
 
+// ===== UNDO TOAST (Premium UX) =====
+function showUndoToast(message, undoCallback) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const id = 'toast-' + Date.now();
+    const toast = document.createElement('div');
+    toast.className = 'toast info';
+    toast.id = id;
+    toast.innerHTML = `<i class="fas fa-info-circle" style="font-size:14px"></i><span style="flex:1">${message}</span><button style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-family:inherit;font-size:12px;flex-shrink:0" id="undo-btn-${id}">${APP.lang==='id'?'Urungkan':'Undo'}</button><div class="toast-progress" style="animation-duration:6000ms"></div>`;
+    container.appendChild(toast);
+    const undoBtn = document.getElementById('undo-btn-' + id);
+    if (undoBtn) undoBtn.onclick = () => { undoCallback(); if (document.getElementById(id)) document.getElementById(id).remove(); };
+    toast.onclick = (e) => { if (e.target.tagName !== 'BUTTON') removeToast(toast, id); };
+    toast._timer = setTimeout(() => { if (document.getElementById(id)) { removeToast(toast, id); delete toastGroups[id]; } }, 6000);
+    toastGroups[id] = toast;
+}
+
 // ===== THEME (F12) =====
 function applyTheme() {
     document.documentElement.className = APP.theme;
@@ -1245,6 +1289,43 @@ function closeModal() {
     setTimeout(() => { backdrop.style.display = 'none'; }, 350);
 }
 
+// ===== PREMIUM CONFIRM & PROMPT MODALS =====
+function showConfirm(title, message, onConfirm, isDanger) {
+    openModal(`<div style="padding:24px;text-align:center">
+        <div style="width:56px;height:56px;border-radius:50%;background:${isDanger?'rgba(239,68,68,.1)':'rgba(59,130,246,.1)'};display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+            <i class="fas ${isDanger?'fa-exclamation-triangle':'fa-question-circle'}" style="font-size:24px;color:${isDanger?'#ef4444':'var(--accent)'}"></i>
+        </div>
+        <h3 style="font-size:17px;font-weight:600;margin-bottom:8px">${title}</h3>
+        <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;line-height:1.5">${message}</p>
+        <div style="display:flex;gap:8px;justify-content:center">
+            <button class="btn btn-secondary" onclick="closeModal()" style="min-width:100px">${APP.lang==='id'?'Batal':'Cancel'}</button>
+            <button class="btn ${isDanger?'btn-danger':'btn-primary'}" id="confirm-action-btn" style="min-width:100px">${APP.lang==='id'?'Ya, Lanjutkan':'Yes, Continue'}</button>
+        </div>
+    </div>`);
+    setTimeout(() => {
+        const btn = document.getElementById('confirm-action-btn');
+        if (btn) btn.onclick = () => { closeModal(); onConfirm(); };
+    }, 50);
+}
+
+function showPrompt(title, placeholder, onSubmit) {
+    openModal(`<div style="padding:24px">
+        <h3 style="font-size:17px;font-weight:600;margin-bottom:12px">${title}</h3>
+        <input type="text" id="prompt-input" class="input" placeholder="${placeholder}" style="margin-bottom:16px" autofocus>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn btn-secondary" onclick="closeModal()">${APP.lang==='id'?'Batal':'Cancel'}</button>
+            <button class="btn btn-primary" id="prompt-action-btn">${APP.lang==='id'?'Buat':'Create'}</button>
+        </div>
+    </div>`);
+    setTimeout(() => {
+        const inp = document.getElementById('prompt-input');
+        const btn = document.getElementById('prompt-action-btn');
+        if (inp) inp.focus();
+        if (inp) inp.onkeydown = (e) => { if (e.key === 'Enter') { const v = inp.value; closeModal(); onSubmit(v); } };
+        if (btn) btn.onclick = () => { const v = inp?.value || ''; closeModal(); onSubmit(v); };
+    }, 50);
+}
+
 // ===== CONTEXT MENU (F53) =====
 function showContextMenu(e, fileId) {
     e.preventDefault();
@@ -1361,7 +1442,8 @@ function updateQuickActions() {
     if (APP.selectedFiles.size === 0) { bar.classList.remove('visible'); return; }
     bar.classList.add('visible');
     bar.innerHTML = `
-        <span style="font-size:13px;color:var(--text-secondary)">${APP.selectedFiles.size} dipilih</span>
+        <span style="font-size:13px;color:var(--text-secondary)">${APP.selectedFiles.size} ${APP.lang==='id'?'dipilih':'selected'}</span>
+        <button class="btn btn-secondary btn-sm" onclick="bulkMoveToFolder()"><i class="fas fa-folder-open"></i> ${APP.lang==='id'?'Pindah':'Move'}</button>
         <button class="btn btn-danger btn-sm" onclick="bulkDelete()"><i class="fas fa-trash"></i> ${t('bulkDelete')}</button>
         <button class="btn btn-secondary btn-sm" onclick="bulkDownloadZip()"><i class="fas fa-download"></i> ${t('bulkDownload')}</button>
         <button class="btn btn-secondary btn-sm" onclick="openCompareModal()"><i class="fas fa-columns"></i> ${t('compare')}</button>
@@ -2019,7 +2101,20 @@ function selectFolder(folderId) {
     if (sidebar) sidebar.innerHTML = renderSidebarHTML();
     renderBreadcrumb();
     renderQuickFilter();
-    renderFileList();
+    // Folder switch animation
+    const container = document.getElementById('file-list-container');
+    if (container) {
+        container.style.opacity = '0';
+        container.style.transform = 'translateY(8px)';
+        setTimeout(() => {
+            renderFileList();
+            container.style.transition = 'opacity .25s ease, transform .25s ease';
+            container.style.opacity = '1';
+            container.style.transform = 'translateY(0)';
+        }, 150);
+    } else {
+        renderFileList();
+    }
     // Close mobile sidebar after selection
     if (APP.viewMode === 'mobile') toggleMobileSidebar(false);
 }
@@ -2399,7 +2494,19 @@ async function executeUpload(file, folderParam) {
             const msg = result.result;
             const doc = msg.document || msg.photo?.[msg.photo.length - 1] || msg.video || msg.audio || msg.animation;
             const fileId = doc?.file_id || genId();
-            const filePath = doc?.file_path || '';
+            // Telegram sendDocument doesn't return file_path — must call getFile API separately
+            let filePath = '';
+            try {
+                const fileResp = await fetch('/api/file-info', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ file_id: fileId, bot_index: bot.index || '0' })
+                });
+                const fileData = await fileResp.json();
+                if (fileData.ok && fileData.result && fileData.result.file_path) {
+                    filePath = fileData.result.file_path;
+                }
+            } catch(e) { console.warn('getFile failed:', e); }
 
             // F103: Auto-tag by file type
             const fileType = getFileType(fileName, mimeType);
@@ -2432,6 +2539,8 @@ async function executeUpload(file, folderParam) {
             showToast(t('uploaded'), 'success');
             sendNotification('Ridgebox', `${file.name} ${t('uploaded').toLowerCase()}`);
             renderFileList();
+            const _glowC = document.getElementById('file-list-container');
+            if (_glowC) { _glowC.classList.add('success-glow'); setTimeout(() => _glowC.classList.remove('success-glow'), 1000); }
             const sidebar = document.getElementById('sidebar-panel');
             if (sidebar) sidebar.innerHTML = renderSidebarHTML();
         } else {
@@ -2483,13 +2592,27 @@ async function executeUrlUpload() {
         const result = await resp.json();
         if (result.ok || result.result) {
             const doc = result.result?.document || result.result?.photo?.[0];
+            const fileId = doc?.file_id || genId();
+            // Fetch file_path via getFile API
+            let filePath = '';
+            try {
+                const fileResp = await fetch('/api/file-info', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ file_id: fileId, bot_index: APP.bots[0]?.index || '0' })
+                });
+                const fileData = await fileResp.json();
+                if (fileData.ok && fileData.result && fileData.result.file_path) {
+                    filePath = fileData.result.file_path;
+                }
+            } catch(e) { console.warn('getFile failed:', e); }
             const meta = {
                 id: genId(),
                 name: name || url.split('/').pop() || 'download',
                 size: 0,
                 mime: 'application/octet-stream',
-                fileId: doc?.file_id || genId(),
-                filePath: doc?.file_path || '',
+                fileId: fileId,
+                filePath: filePath,
                 botIndex: APP.bots[0]?.index || '0',
                 chatId: APP.bots[0]?.chatId || '',
                 folderId: APP.currentFolder === 'all' ? null : APP.currentFolder,
@@ -2501,6 +2624,8 @@ async function executeUrlUpload() {
             APP.files.push(meta);
             showToast(t('uploaded'), 'success');
             renderFileList();
+            const _glowC2 = document.getElementById('file-list-container');
+            if (_glowC2) { _glowC2.classList.add('success-glow'); setTimeout(() => _glowC2.classList.remove('success-glow'), 1000); }
             closeModal();
         } else {
             showToast(t('uploadError') + ': ' + (result.description || result.error || 'Failed'), 'error');
@@ -2596,7 +2721,7 @@ async function moveToTrash(fileId) {
     APP.selectedFiles.delete(fileId);
     closeDetailPanel();
     closeContextMenu();
-    showToast(t('movedToTrash'), 'info');
+    showUndoToast(t('movedToTrash'), () => { restoreFile(fileId); });
     refreshUI();
 }
 
@@ -2613,28 +2738,32 @@ async function restoreFile(fileId) {
 }
 
 async function deletePermanently(fileId) {
-    if (!confirm(APP.lang === 'id' ? 'Hapus permanen? Tidak bisa dikembalikan.' : 'Delete permanently? Cannot be undone.')) return;
-    const file = APP.files.find(f => f.id === fileId);
-    // Try to delete message from Telegram server
-    if (file && file.messageId && file.chatId) {
-        try {
-            const bot = APP.bots[file.botIndex || 0] || APP.bots[0];
-            if (bot && bot.masked) {
-                // Proxy mode - use server API
-                await fetch(`/api/proxy?method=deleteMessage&chat_id=${encodeURIComponent(file.chatId)}&message_id=${file.messageId}&bot_index=${file.botIndex || '0'}`);
-            } else if (bot) {
-                // Direct mode
-                await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage?chat_id=${encodeURIComponent(file.chatId)}&message_id=${file.messageId}`);
+    showConfirm(
+        APP.lang === 'id' ? 'Hapus Permanen?' : 'Delete Permanently?',
+        APP.lang === 'id' ? 'Tidak bisa dikembalikan.' : 'Cannot be undone.',
+        async () => {
+            const file = APP.files.find(f => f.id === fileId);
+            // Try to delete message from Telegram server
+            if (file && file.messageId && file.chatId) {
+                try {
+                    const bot = APP.bots[file.botIndex || 0] || APP.bots[0];
+                    if (bot && bot.masked) {
+                        await fetch(`/api/proxy?method=deleteMessage&chat_id=${encodeURIComponent(file.chatId)}&message_id=${file.messageId}&bot_index=${file.botIndex || '0'}`);
+                    } else if (bot) {
+                        await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage?chat_id=${encodeURIComponent(file.chatId)}&message_id=${file.messageId}`);
+                    }
+                } catch(e) { console.warn('Telegram delete failed:', e); }
             }
-        } catch(e) { console.warn('Telegram delete failed:', e); }
-    }
-    await deleteFileDB(fileId);
-    APP.files = APP.files.filter(f => f.id !== fileId);
-    APP.selectedFiles.delete(fileId);
-    closeDetailPanel();
-    closeContextMenu();
-    showToast(t('deletedForever'), 'info');
-    refreshUI();
+            await deleteFileDB(fileId);
+            APP.files = APP.files.filter(f => f.id !== fileId);
+            APP.selectedFiles.delete(fileId);
+            closeDetailPanel();
+            closeContextMenu();
+            showToast(t('deletedForever'), 'info');
+            refreshUI();
+        },
+        true
+    );
 }
 
 async function togglePin(fileId) {
@@ -2777,43 +2906,54 @@ async function executeCreateFolder() {
     const folder = { id: genId(), name: input.value.trim(), icon: 'fa-folder', system: false };
     await saveFolder(folder);
     APP.folders.push(folder);
-    showToast(t('create') + ' ✓', 'success');
+    showToast(t('create') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
     closeModal();
     const sidebar = document.getElementById('sidebar-panel');
     if (sidebar) sidebar.innerHTML = renderSidebarHTML();
 }
 
 async function deleteCustomFolder(folderId) {
-    if (!confirm(APP.lang === 'id' ? 'Hapus folder? File tidak akan dihapus.' : 'Delete folder? Files won\'t be deleted.')) return;
-    await deleteFolderDB(folderId);
-    APP.folders = APP.folders.filter(f => f.id !== folderId);
-    if (APP.currentFolder === folderId) selectFolder('all');
-    const sidebar = document.getElementById('sidebar-panel');
-    if (sidebar) sidebar.innerHTML = renderSidebarHTML();
+    showConfirm(
+        APP.lang === 'id' ? 'Hapus Folder?' : 'Delete Folder?',
+        APP.lang === 'id' ? 'File tidak akan dihapus.' : 'Files won\'t be deleted.',
+        async () => {
+            await deleteFolderDB(folderId);
+            APP.folders = APP.folders.filter(f => f.id !== folderId);
+            if (APP.currentFolder === folderId) selectFolder('all');
+            const sidebar = document.getElementById('sidebar-panel');
+            if (sidebar) sidebar.innerHTML = renderSidebarHTML();
+        },
+        false
+    );
 }
 
 async function emptyTrash() {
-    if (!confirm(APP.lang === 'id' ? 'Kosongkan sampah? Semua file akan dihapus permanen.' : 'Empty trash? All files will be permanently deleted.')) return;
-    const trashFiles = APP.files.filter(f => f.trashed);
-    for (const f of trashFiles) {
-        // Try to delete message from Telegram server
-        if (f.messageId && f.chatId) {
-            try {
-                const bot = APP.bots[f.botIndex || 0] || APP.bots[0];
-                if (bot && bot.masked) {
-                    await fetch(`/api/proxy?method=deleteMessage&chat_id=${encodeURIComponent(f.chatId)}&message_id=${f.messageId}&bot_index=${f.botIndex || '0'}`);
-                } else if (bot) {
-                    await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage?chat_id=${encodeURIComponent(f.chatId)}&message_id=${f.messageId}`);
+    showConfirm(
+        APP.lang === 'id' ? 'Kosongkan Sampah?' : 'Empty Trash?',
+        APP.lang === 'id' ? 'Semua file akan dihapus permanen.' : 'All files will be permanently deleted.',
+        async () => {
+            const trashFiles = APP.files.filter(f => f.trashed);
+            for (const f of trashFiles) {
+                if (f.messageId && f.chatId) {
+                    try {
+                        const bot = APP.bots[f.botIndex || 0] || APP.bots[0];
+                        if (bot && bot.masked) {
+                            await fetch(`/api/proxy?method=deleteMessage&chat_id=${encodeURIComponent(f.chatId)}&message_id=${f.messageId}&bot_index=${f.botIndex || '0'}`);
+                        } else if (bot) {
+                            await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage?chat_id=${encodeURIComponent(f.chatId)}&message_id=${f.messageId}`);
+                        }
+                    } catch(e) { console.warn('Telegram delete failed:', e); }
                 }
-            } catch(e) { console.warn('Telegram delete failed:', e); }
-        }
-        await deleteFileDB(f.id);
-    }
-    APP.files = APP.files.filter(f => !f.trashed);
-    closeDetailPanel();
-    closeContextMenu();
-    showToast(t('emptyTrash'), 'info');
-    refreshUI();
+                await deleteFileDB(f.id);
+            }
+            APP.files = APP.files.filter(f => !f.trashed);
+            closeDetailPanel();
+            closeContextMenu();
+            showToast(t('emptyTrash'), 'info');
+            refreshUI();
+        },
+        true
+    );
 }
 
 // ===== DOWNLOAD =====
@@ -2821,6 +2961,21 @@ async function downloadFile(fileId) {
     const file = APP.files.find(f => f.id === fileId);
     if (!file) return;
     try {
+        // Resolve filePath if missing — call getFile API
+        if (!file.filePath && file.fileId) {
+            try {
+                const fileResp = await fetch('/api/file-info', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ file_id: file.fileId, bot_index: file.botIndex || '0' })
+                });
+                const fileData = await fileResp.json();
+                if (fileData.ok && fileData.result && fileData.result.file_path) {
+                    file.filePath = fileData.result.file_path;
+                    await saveFile(file);
+                }
+            } catch(e) { console.warn('getFile resolve failed:', e); }
+        }
         let url;
         if (APP.settings.proxyMode !== false) {
             url = `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`;
@@ -2842,7 +2997,7 @@ async function downloadFile(fileId) {
         a.download = file.name;
         a.click();
         URL.revokeObjectURL(a.href);
-        showToast(t('download') + ' ✓', 'success');
+        showToast(t('download') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
     } catch (err) {
         showToast('Download error: ' + err.message, 'error');
     }
@@ -2850,21 +3005,37 @@ async function downloadFile(fileId) {
 
 // ===== BULK OPERATIONS (F9, F83) =====
 async function bulkDelete() {
-    if (!confirm(APP.lang === 'id' ? `Hapus ${APP.selectedFiles.size} file?` : `Delete ${APP.selectedFiles.size} files?`)) return;
-    for (const id of APP.selectedFiles) {
-        const file = APP.files.find(f => f.id === id);
-        if (file) {
-            file.trashed = true;
-            file.trashedAt = Date.now();
-            await saveFile(file);
-        }
-    }
-    APP.selectedFiles.clear();
-    APP.batchMode = false;
-    closeDetailPanel();
-    closeContextMenu();
-    showToast(`${t('movedToTrash')}`, 'info');
-    refreshUI();
+    const fileCount = APP.selectedFiles.size;
+    showConfirm(
+        APP.lang === 'id' ? `Hapus ${fileCount} File?` : `Delete ${fileCount} Files?`,
+        APP.lang === 'id' ? 'File akan dipindahkan ke sampah.' : 'Files will be moved to trash.',
+        async () => {
+            for (const id of APP.selectedFiles) {
+                const file = APP.files.find(f => f.id === id);
+                if (file) {
+                    file.trashed = true;
+                    file.trashedAt = Date.now();
+                    await saveFile(file);
+                }
+            }
+            APP.selectedFiles.clear();
+            APP.batchMode = false;
+            closeDetailPanel();
+            closeContextMenu();
+            showUndoToast(t('movedToTrash'), () => {
+                // Undo: restore all files that were just trashed
+                APP.files.filter(f => f.trashed && f.trashedAt && Date.now() - f.trashedAt < 10000).forEach(async f => {
+                    f.trashed = false;
+                    f.trashedAt = null;
+                    await saveFile(f);
+                });
+                refreshUI();
+                showToast(APP.lang === 'id' ? 'File dipulihkan' : 'Files restored', 'success');
+            });
+            refreshUI();
+        },
+        true
+    );
 }
 
 async function bulkDownloadZip() { // F83
@@ -2893,7 +3064,7 @@ async function bulkDownloadZip() { // F83
         a.download = `ridgebox_${Date.now()}.zip`;
         a.click();
         URL.revokeObjectURL(a.href);
-        showToast(`${count} files → ZIP`, 'success');
+        showToast(`${count} files <i class="fas fa-file-archive" style="font-size:11px"></i> ZIP`, 'success');
     }
     APP.selectedFiles.clear();
     renderFileList();
@@ -2912,9 +3083,10 @@ function openShareModal(fileId) {
         const s = existingShares[0];
         const payload = {
             fn: file.name, fs: file.size, fm: file.mime || '',
-            fp: file.filePath || '', bi: file.botIndex || '0',
+            fp: file.filePath || '', fi: file.fileId || '', bi: file.botIndex || '0',
             ci: file.chatId || '', pw: s.password || '',
             ex: s.expiry || 0, sd: s.selfDestruct ? 1 : 0,
+            pm: s.permission || 'download',
             sid: s.id, enc: file.encrypted ? 1 : 0,
             ca: file.caption || '', al: s.alias || ''
         };
@@ -2951,9 +3123,22 @@ function openShareModal(fileId) {
                         <option value="720">30 ${APP.lang==='id'?'hari':'days'}</option>
                     </select>
                 </div>
-                <div style="display:flex;align-items:center;gap:8px">
-                    <input type="checkbox" id="share-selfdestruct">
-                    <label for="share-selfdestruct" style="font-size:13px">${t('selfDestruct')} (${APP.lang==='id'?'1x pakai':'1x use'})</label>
+                <div style="display:flex;align-items:center;gap:10px">
+                    <label class="toggle-switch"><input type="checkbox" id="share-selfdestruct"><span class="toggle-slider"></span></label>
+                    <label for="share-selfdestruct" style="font-size:13px;cursor:pointer">${t('selfDestruct')} (${APP.lang==='id'?'1x pakai':'1x use'})</label>
+                </div>
+                <div>
+                    <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${APP.lang==='id'?'Izin Akses':'Access Permission'}</label>
+                    <select id="share-permission" class="input">
+                        <option value="view">${APP.lang==='id'?'Lihat Saja':'View Only'}</option>
+                        <option value="download" selected>${APP.lang==='id'?'Bisa Download':'Can Download'}</option>
+                        <option value="edit">${APP.lang==='id'?'Bisa Edit':'Can Edit'}</option>
+                    </select>
+                    <div style="display:flex;gap:6px;margin-top:6px">
+                        <span class="perm-badge view" id="perm-preview-badge"><i class="fas fa-eye" style="font-size:10px"></i> ${APP.lang==='id'?'Lihat':'View'}</span>
+                        <span class="perm-badge download" id="perm-download-badge"><i class="fas fa-download" style="font-size:10px"></i> ${APP.lang==='id'?'Download':'Download'}</span>
+                        <span class="perm-badge edit" id="perm-edit-badge" style="opacity:.35"><i class="fas fa-pen" style="font-size:10px"></i> ${APP.lang==='id'?'Edit':'Edit'}</span>
+                    </div>
                 </div>
                 <div>
                     <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('customAlias')} (${APP.lang==='id'?'opsional':'optional'})</label>
@@ -2983,12 +3168,28 @@ function openShareModal(fileId) {
             if (urlInput) urlInput.value = shareUrl;
         }, 50);
     }
+    // Permission selector badge feedback
+    setTimeout(() => {
+        const permSelect = document.getElementById('share-permission');
+        if (permSelect) {
+            permSelect.onchange = () => {
+                const val = permSelect.value;
+                const viewBadge = document.getElementById('perm-preview-badge');
+                const downloadBadge = document.getElementById('perm-download-badge');
+                const editBadge = document.getElementById('perm-edit-badge');
+                if (viewBadge) viewBadge.style.opacity = '1';
+                if (downloadBadge) downloadBadge.style.opacity = val === 'download' || val === 'edit' ? '1' : '.35';
+                if (editBadge) editBadge.style.opacity = val === 'edit' ? '1' : '.35';
+            };
+        }
+    }, 100);
 }
 
 async function createShareLink(fileId) {
     const password = document.getElementById('share-password')?.value || '';
     const expiry = parseInt(document.getElementById('share-expiry')?.value || '0');
     const selfDestruct = document.getElementById('share-selfdestruct')?.checked || false;
+    const permission = document.getElementById('share-permission')?.value || 'download';
     const alias = document.getElementById('share-alias')?.value.trim() || genId().substring(0, 8);
     const file = APP.files.find(f => f.id === fileId);
     if (!file) { showToast('File not found', 'error'); return; }
@@ -2999,6 +3200,7 @@ async function createShareLink(fileId) {
         password: password ? await hashPin(password) : '',
         expiry: expiry > 0 ? Date.now() + expiry * 3600000 : 0,
         selfDestruct: selfDestruct,
+        permission: permission,
         clicks: 0,
         lastAccess: null,
         createdAt: Date.now()
@@ -3012,11 +3214,13 @@ async function createShareLink(fileId) {
         fs: file.size,
         fm: file.mime || '',
         fp: file.filePath || '',
+        fi: file.fileId || '',
         bi: file.botIndex || '0',
         ci: file.chatId || '',
         pw: share.password,
         ex: share.expiry,
         sd: selfDestruct ? 1 : 0,
+        pm: permission,
         sid: share.id,
         enc: file.encrypted ? 1 : 0,
         ca: file.caption || '',
@@ -3045,11 +3249,13 @@ function decodeSharePayload(raw) {
             size: p.fs || 0,
             mime: p.fm || '',
             filePath: p.fp || '',
+            fileId: p.fi || '',
             botIndex: p.bi || '0',
             chatId: p.ci || '',
             password: p.pw || '',
             expiry: p.ex || 0,
             selfDestruct: p.sd === 1,
+            permission: p.pm || 'download',
             id: p.sid || raw.substring(0, 8),
             encrypted: p.enc === 1,
             caption: p.ca || '',
@@ -3078,6 +3284,7 @@ function renderSharePortal(rawAlias) {
             size: shareData.size,
             mime: shareData.mime,
             filePath: shareData.filePath,
+            fileId: shareData.fileId,
             botIndex: shareData.botIndex,
             chatId: shareData.chatId,
             encrypted: shareData.encrypted,
@@ -3200,11 +3407,15 @@ function renderShareDownload(share, file) {
         APP.usedSelfDestructLinks.add(share.id || '');
         localStorage.setItem('rb_used_links', JSON.stringify([...APP.usedSelfDestructLinks]));
     }
-    // Build download function: use fileId for local files, or filePath for cross-device shares
+    // Build download function: use fileId for local files, or filePath+fileId for cross-device shares
     const isLocalFile = file.id && APP.files.find(f => f.id === file.id);
     const downloadFn = isLocalFile
         ? `downloadFile('${file.id}')`
-        : `downloadSharedFile('${encodeURIComponent(file.filePath || '')}','${file.botIndex || '0'}','${encodeURIComponent(file.name)}',${file.encrypted ? 1 : 0},'${file.chatId || ''}')`;
+        : `downloadSharedFile('${encodeURIComponent(file.filePath || '')}','${encodeURIComponent(file.fileId || '')}','${file.botIndex || '0'}','${encodeURIComponent(file.name)}',${file.encrypted ? 1 : 0},'${file.chatId || ''}')`;
+    const permissionLevel = share.permission || 'download';
+    const isViewOnly = permissionLevel === 'view';
+    const permLabel = permissionLevel === 'view' ? (APP.lang==='id'?'Lihat Saja':'View Only') : permissionLevel === 'edit' ? (APP.lang==='id'?'Bisa Edit':'Can Edit') : (APP.lang==='id'?'Bisa Download':'Can Download');
+    const permBadgeClass = permissionLevel === 'view' ? 'view' : permissionLevel === 'edit' ? 'edit' : 'download';
     main.innerHTML = `<div class="page-transition" style="display:flex;align-items:center;justify-content:center;min-height:80vh">
         <div style="text-align:center;max-width:400px;padding:40px">
             <div style="width:80px;height:80px;border-radius:20px;background:${icon.color}15;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
@@ -3214,21 +3425,34 @@ function renderShareDownload(share, file) {
             <h3 style="font-size:16px;font-weight:500;margin-bottom:4px">${file.name}</h3>
             <p style="color:var(--text-secondary);font-size:13px;margin-bottom:4px">${formatSize(file.size)} · ${type}</p>
             ${file.caption ? `<p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;font-style:italic">"${file.caption}"</p>` : ''}
+            <span class="perm-badge ${permBadgeClass}" style="margin-bottom:12px"><i class="fas ${permissionLevel==='view'?'fa-eye':permissionLevel==='edit'?'fa-pen':'fa-download'}" style="font-size:10px"></i> ${permLabel}</span>
             ${share.selfDestruct ? `<p style="color:#ef4444;font-size:12px;margin-bottom:16px"><i class="fas fa-fire"></i> ${APP.lang==='id'?'Link ini hanya bisa digunakan sekali':'This link can only be used once'}</p>` : ''}
-            <button class="btn btn-primary" style="width:100%;padding:14px" onclick="${downloadFn}"><i class="fas fa-download"></i> ${t('downloadFile')}</button>
+            ${isViewOnly ? `<div style="padding:14px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:10px;margin-bottom:8px"><i class="fas fa-eye" style="color:var(--accent);margin-right:6px"></i> ${APP.lang==='id'?'File ini hanya bisa dilihat, tidak bisa didownload':'This file is view-only and cannot be downloaded'}</div>` : `<button class="btn btn-primary" style="width:100%;padding:14px" onclick="${downloadFn}"><i class="fas fa-download"></i> ${t('downloadFile')}</button>`}
             <div style="margin-top:16px;font-size:11px;color:var(--text-secondary)">${share.clicks || 0} ${APP.lang==='id'?'klik':'clicks'} · ${formatDate(share.createdAt || Date.now())}</div>
         </div>
     </div>`;
 }
 
-// Download file from share portal (cross-device, uses filePath directly)
-async function downloadSharedFile(encodedPath, botIndex, encodedName, encrypted, chatId) {
-    const filePath = decodeURIComponent(encodedPath);
+// Download file from share portal (cross-device, uses filePath with fileId fallback)
+async function downloadSharedFile(encodedPath, encodedFileId, botIndex, encodedName, encrypted, chatId) {
+    let filePath = decodeURIComponent(encodedPath);
+    const fileId = decodeURIComponent(encodedFileId);
     const fileName = decodeURIComponent(encodedName);
     try {
-        const url = `/api/download?path=${encodeURIComponent(filePath)}&bot_index=${botIndex}`;
+        // Build download URL — use filePath if available, otherwise use file_id for server-side resolution
+        let url;
+        if (filePath) {
+            url = `/api/download?path=${encodeURIComponent(filePath)}&bot_index=${botIndex}`;
+        } else if (fileId) {
+            url = `/api/download?file_id=${encodeURIComponent(fileId)}&bot_index=${botIndex}`;
+        } else {
+            throw new Error('No file path or ID available');
+        }
         const resp = await fetch(url);
-        if (!resp.ok) throw new Error('Download failed');
+        if (!resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            throw new Error(errData.error || 'Download failed (' + resp.status + ')');
+        }
         let blob = await resp.blob();
         if (encrypted) {
             try {
@@ -3242,7 +3466,7 @@ async function downloadSharedFile(encodedPath, botIndex, encodedName, encrypted,
         a.download = fileName;
         a.click();
         URL.revokeObjectURL(a.href);
-        showToast(t('download') + ' ✓', 'success');
+        showToast(t('download') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
     } catch (err) {
         showToast('Download error: ' + err.message, 'error');
     }
@@ -3284,6 +3508,8 @@ async function handlePortalUpload(fileList, folderId) {
         await executeUpload(file, folderId || null);
     }
     showToast(t('uploaded'), 'success');
+    const _glowC3 = document.getElementById('file-list-container');
+    if (_glowC3) { _glowC3.classList.add('success-glow'); setTimeout(() => _glowC3.classList.remove('success-glow'), 1000); }
 }
 
 // ===== PREVIEW (F6, F47, F63, F100, F101) =====
@@ -3621,7 +3847,7 @@ async function setPinLock() {
     if (input.value.length < 4) { showToast(APP.lang==='id'?'PIN minimal 4 digit':'PIN must be at least 4 digits', 'warning'); return; }
     APP.settings.pinLock = await hashPin(input.value);
     await saveSetting('pinLock', APP.settings.pinLock);
-    showToast(t('save') + ' ✓', 'success');
+    showToast(t('save') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
     input.value = '';
 }
 
@@ -3633,18 +3859,23 @@ async function removePinLock() {
 }
 
 async function createCollaborativeFolder() { // F104
-    const name = prompt(APP.lang==='id'?'Nama folder kolaboratif:':'Collaborative folder name:');
-    if (!name) return;
-    const shareToken = genId();
-    const folder = { id: genId(), name, icon: 'fa-users', system: false, shareToken };
-    await saveFolder(folder);
-    APP.folders.push(folder);
-    const shareUrl = `${location.origin}${location.pathname}#/upload/${shareToken}`;
-    closeModal();
-    copyShareLink(shareUrl);
-    showToast(t('shareCreated'), 'success');
-    const sidebar = document.getElementById('sidebar-panel');
-    if (sidebar) sidebar.innerHTML = renderSidebarHTML();
+    showPrompt(
+        APP.lang==='id'?'Folder Kolaboratif':'Collaborative Folder',
+        APP.lang==='id'?'Nama folder kolaboratif:':'Collaborative folder name:',
+        async (name) => {
+            if (!name) return;
+            const shareToken = genId();
+            const folder = { id: genId(), name, icon: 'fa-users', system: false, shareToken };
+            await saveFolder(folder);
+            APP.folders.push(folder);
+            const shareUrl = `${location.origin}${location.pathname}#/upload/${shareToken}`;
+            closeModal();
+            copyShareLink(shareUrl);
+            showToast(t('shareCreated'), 'success');
+            const sidebar = document.getElementById('sidebar-panel');
+            if (sidebar) sidebar.innerHTML = renderSidebarHTML();
+        }
+    );
 }
 
 function scheduleUpload() { // F80
@@ -3659,7 +3890,7 @@ function scheduleUpload() { // F80
     }, delay);
     APP.scheduledUploads.push({ id: genId(), time: scheduledTime, timerId });
     localStorage.setItem('rb_scheduled', JSON.stringify(APP.scheduledUploads.map(s => ({ id: s.id, time: s.time }))));
-    showToast(t('scheduledUpload') + ' ✓', 'success');
+    showToast(t('scheduledUpload') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
 }
 
 function restoreScheduledUploads() { // F80
@@ -4026,6 +4257,65 @@ function safeInit() {
 
 // Start the app
 safeInit();
+
+// ===== BULK MOVE TO FOLDER (Premium UX) =====
+function bulkMoveToFolder() {
+    if (APP.selectedFiles.size === 0) return;
+    const folders = APP.folders.filter(f => !f.system);
+    const allOption = `<div class="context-menu-item" onclick="executeBulkMove('all')"><i class="fas fa-layer-group" style="color:var(--accent)"></i> ${APP.lang==='id'?'Semua File':'All Files'}</div>`;
+    const folderOptions = folders.map(f => `<div class="context-menu-item" onclick="executeBulkMove('${f.id}')"><i class="fas ${f.icon||'fa-folder'}" style="color:var(--accent)"></i> ${f.name}</div>`).join('');
+    openModal(`<div style="padding:24px">
+        <h3 style="font-size:17px;font-weight:600;margin-bottom:4px"><i class="fas fa-folder-open" style="color:var(--accent)"></i> ${APP.lang==='id'?'Pindahkan ke Folder':'Move to Folder'}</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">${APP.selectedFiles.size} ${APP.lang==='id'?'file dipilih':'files selected'}</p>
+        ${allOption}
+        ${folderOptions || `<p style="font-size:13px;color:var(--text-secondary);padding:8px 0">${APP.lang==='id'?'Belum ada folder kustom':'No custom folders yet'}</p>`}
+        <div style="margin-top:16px;text-align:right">
+            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
+        </div>
+    </div>`);
+}
+
+async function executeBulkMove(folderId) {
+    const moveCount = APP.selectedFiles.size;
+    for (const id of APP.selectedFiles) {
+        const file = APP.files.find(f => f.id === id);
+        if (file) {
+            file.folderId = folderId === 'all' ? null : folderId;
+            await saveFile(file);
+        }
+    }
+    const targetName = folderId === 'all' ? (APP.lang==='id'?'Semua File':'All Files') : (APP.folders.find(f => f.id === folderId)?.name || folderId);
+    APP.selectedFiles.clear();
+    APP.batchMode = false;
+    closeModal();
+    closeDetailPanel();
+    refreshUI();
+    showToast(`${moveCount} ${APP.lang==='id'?'file dipindahkan ke':'files moved to'} ${targetName}`, 'success');
+}
+
+// ===== KEYBOARD SHORTCUTS (Premium UX) =====
+document.addEventListener('keydown', (e) => {
+    if (e.key === '?' && !e.target.closest('input,textarea,select')) {
+        openModal(`<div style="padding:24px">
+            <h3 style="font-size:17px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-keyboard" style="color:var(--accent)"></i> ${APP.lang==='id'?'Pintasan Keyboard':'Keyboard Shortcuts'}</h3>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:13px">
+                <kbd style="background:var(--bg-secondary);padding:3px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid var(--border)">U</kbd><span>${t('upload')}</span>
+                <kbd style="background:var(--bg-secondary);padding:3px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid var(--border)">/</kbd><span>${t('search')}</span>
+                <kbd style="background:var(--bg-secondary);padding:3px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid var(--border)">G</kbd><span>${APP.lang==='id'?'Grid/List':'Grid/List view'}</span>
+                <kbd style="background:var(--bg-secondary);padding:3px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid var(--border)">B</kbd><span>${t('batchMode')}</span>
+                <kbd style="background:var(--bg-secondary);padding:3px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid var(--border)">D</kbd><span>${APP.lang==='id'?'Tema Gelap/Terang':'Toggle Dark/Light'}</span>
+                <kbd style="background:var(--bg-secondary);padding:3px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid var(--border)">Esc</kbd><span>${t('close')}</span>
+                <kbd style="background:var(--bg-secondary);padding:3px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid var(--border)">?</kbd><span>${APP.lang==='id'?'Pintasan':'Shortcuts'}</span>
+            </div>
+        </div>`);
+    }
+    if (e.key === 'u' && !e.target.closest('input,textarea,select')) triggerUpload();
+    if (e.key === '/' && !e.target.closest('input,textarea,select')) { e.preventDefault(); const s = document.querySelector('.search-premium input'); if (s) s.focus(); }
+    if (e.key === 'g' && !e.target.closest('input,textarea,select')) { APP.currentView = APP.currentView === 'list' ? 'grid' : 'list'; renderFileList(); }
+    if (e.key === 'b' && !e.target.closest('input,textarea,select')) { APP.batchMode = !APP.batchMode; renderFileList(); }
+    if (e.key === 'd' && !e.target.closest('input,textarea,select')) toggleTheme();
+    if (e.key === 'Escape') { closeModal(); closeDetailPanel(); closeContextMenu(); }
+});
 </script>
 </body>
 </html>

@@ -20,15 +20,9 @@ export default async function (request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const filePath = searchParams.get('path');
+    let filePath = searchParams.get('path');
+    const fileId = searchParams.get('file_id');
     const botIndex = searchParams.get('bot_index') || '0';
-
-    if (!filePath) {
-      return new Response(JSON.stringify({ ok: false, error: 'Missing path parameter' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
-      });
-    }
 
     const token = botIndex === '0'
       ? process.env.TG_BOT_TOKEN
@@ -36,6 +30,29 @@ export default async function (request) {
 
     if (!token) {
       return new Response(JSON.stringify({ ok: false, error: 'Bot not configured' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...CORS },
+      });
+    }
+
+    // If filePath is empty but file_id is provided, resolve it via getFile API
+    if (!filePath && fileId) {
+      const getFileResp = await fetch(
+        `https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`
+      );
+      const getFileData = await getFileResp.json();
+      if (getFileData.ok && getFileData.result && getFileData.result.file_path) {
+        filePath = getFileData.result.file_path;
+      } else {
+        return new Response(JSON.stringify({ ok: false, error: 'Could not resolve file_path from file_id', details: getFileData }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...CORS },
+        });
+      }
+    }
+
+    if (!filePath) {
+      return new Response(JSON.stringify({ ok: false, error: 'Missing path or file_id parameter' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...CORS },
       });
