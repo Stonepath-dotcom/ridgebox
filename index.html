@@ -1044,14 +1044,31 @@ function openDetailPanel(fileId) {
                 <button class="btn btn-primary" onclick="openPreview('${fileId}');closeDetailPanel()"><i class="fas fa-eye"></i> ${t('preview')}</button>
                 <button class="btn btn-secondary" onclick="openShareModal('${fileId}');closeDetailPanel()"><i class="fas fa-share-alt"></i> ${t('share')}</button>
                 <button class="btn btn-secondary" onclick="downloadFile('${fileId}');closeDetailPanel()"><i class="fas fa-download"></i> ${t('download')}</button>
-                ${!file.trashed ? `<button class="btn btn-danger btn-sm" onclick="moveToTrash('${fileId}');closeDetailPanel()"><i class="fas fa-trash"></i> ${t('delete')}</button>` : `<button class="btn btn-secondary btn-sm" onclick="restoreFile('${fileId}');closeDetailPanel()"><i class="fas fa-undo"></i> ${t('restore')}</button>`}
+                ${!file.trashed ? `<button class="btn btn-danger btn-sm" onclick="moveToTrash('${fileId}')"><i class="fas fa-trash"></i> ${t('delete')}</button>` : `<button class="btn btn-secondary btn-sm" onclick="restoreFile('${fileId}')"><i class="fas fa-undo"></i> ${t('restore')}</button> <button class="btn btn-danger btn-sm" onclick="deletePermanently('${fileId}')"><i class="fas fa-times-circle"></i> ${t('delete')}</button>`}
             </div>
         </div>`;
     panel.classList.add('open');
 }
 function closeDetailPanel() {
     const panel = document.getElementById('detail-panel');
-    if (panel) panel.classList.remove('open');
+    if (panel) { panel.classList.remove('open'); panel.innerHTML = ''; }
+}
+
+// ===== REFRESH UI - Complete refresh after file changes =====
+function refreshUI() {
+    // If we're on a file detail page (#/file/xxx), redirect to dashboard
+    const hash = location.hash || '#/';
+    if (hash.startsWith('#/file/')) {
+        location.hash = '#/dashboard';
+        return;
+    }
+    // Update sidebar counts
+    const sidebar = document.getElementById('sidebar-panel');
+    if (sidebar) sidebar.innerHTML = renderSidebarHTML();
+    // Update file list
+    renderFileList();
+    // Update breadcrumb
+    renderBreadcrumb();
 }
 
 // ===== QUICK ACTIONS (F92) =====
@@ -1770,6 +1787,7 @@ async function executeUpload(file, folderParam) {
                 mime: mimeType,
                 fileId: fileId,
                 filePath: filePath,
+                messageId: msg.message_id || null,
                 botIndex: bot.index || '0',
                 chatId: bot.chatId,
                 folderId: folderId === 'all' || folderId === 'recent' || folderId === 'favorites' || folderId === 'trash' ? null : folderId,
@@ -1950,9 +1968,11 @@ async function moveToTrash(fileId) {
     file.trashed = true;
     file.trashedAt = Date.now();
     await saveFile(file);
-    showToast(t('movedToTrash'), 'info');
-    renderFileList();
+    APP.selectedFiles.delete(fileId);
+    closeDetailPanel();
     closeContextMenu();
+    showToast(t('movedToTrash'), 'info');
+    refreshUI();
 }
 
 async function restoreFile(fileId) {
@@ -1961,19 +1981,35 @@ async function restoreFile(fileId) {
     file.trashed = false;
     file.trashedAt = null;
     await saveFile(file);
-    showToast(t('restored'), 'success');
-    renderFileList();
+    closeDetailPanel();
     closeContextMenu();
+    showToast(t('restored'), 'success');
+    refreshUI();
 }
 
 async function deletePermanently(fileId) {
     if (!confirm(APP.lang === 'id' ? 'Hapus permanen? Tidak bisa dikembalikan.' : 'Delete permanently? Cannot be undone.')) return;
+    const file = APP.files.find(f => f.id === fileId);
+    // Try to delete message from Telegram server
+    if (file && file.messageId && file.chatId) {
+        try {
+            const bot = APP.bots[file.botIndex || 0] || APP.bots[0];
+            if (bot && bot.masked) {
+                // Proxy mode - use server API
+                await fetch(`/api/proxy?method=deleteMessage&chat_id=${encodeURIComponent(file.chatId)}&message_id=${file.messageId}&bot_index=${file.botIndex || '0'}`);
+            } else if (bot) {
+                // Direct mode
+                await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage?chat_id=${encodeURIComponent(file.chatId)}&message_id=${file.messageId}`);
+            }
+        } catch(e) { console.warn('Telegram delete failed:', e); }
+    }
     await deleteFileDB(fileId);
     APP.files = APP.files.filter(f => f.id !== fileId);
-    showToast(t('deletedForever'), 'info');
-    renderFileList();
-    closeContextMenu();
+    APP.selectedFiles.delete(fileId);
     closeDetailPanel();
+    closeContextMenu();
+    showToast(t('deletedForever'), 'info');
+    refreshUI();
 }
 
 async function togglePin(fileId) {
@@ -2134,12 +2170,25 @@ async function deleteCustomFolder(folderId) {
 async function emptyTrash() {
     if (!confirm(APP.lang === 'id' ? 'Kosongkan sampah? Semua file akan dihapus permanen.' : 'Empty trash? All files will be permanently deleted.')) return;
     const trashFiles = APP.files.filter(f => f.trashed);
-    for (const f of trashFiles) { await deleteFileDB(f.id); }
+    for (const f of trashFiles) {
+        // Try to delete message from Telegram server
+        if (f.messageId && f.chatId) {
+            try {
+                const bot = APP.bots[f.botIndex || 0] || APP.bots[0];
+                if (bot && bot.masked) {
+                    await fetch(`/api/proxy?method=deleteMessage&chat_id=${encodeURIComponent(f.chatId)}&message_id=${f.messageId}&bot_index=${f.botIndex || '0'}`);
+                } else if (bot) {
+                    await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage?chat_id=${encodeURIComponent(f.chatId)}&message_id=${f.messageId}`);
+                }
+            } catch(e) { console.warn('Telegram delete failed:', e); }
+        }
+        await deleteFileDB(f.id);
+    }
     APP.files = APP.files.filter(f => !f.trashed);
+    closeDetailPanel();
+    closeContextMenu();
     showToast(t('emptyTrash'), 'info');
-    renderFileList();
-    const sidebar = document.getElementById('sidebar-panel');
-    if (sidebar) sidebar.innerHTML = renderSidebarHTML();
+    refreshUI();
 }
 
 // ===== DOWNLOAD =====
@@ -2185,10 +2234,12 @@ async function bulkDelete() {
             await saveFile(file);
         }
     }
-    showToast(`${APP.selectedFiles.size} ${t('movedToTrash').toLowerCase()}`, 'info');
     APP.selectedFiles.clear();
     APP.batchMode = false;
-    renderFileList();
+    closeDetailPanel();
+    closeContextMenu();
+    showToast(`${t('movedToTrash')}`, 'info');
+    refreshUI();
 }
 
 async function bulkDownloadZip() { // F83
@@ -2647,6 +2698,7 @@ function renderFileDetail(fileId) {
                     <button class="btn btn-secondary" onclick="openShareModal('${file.id}')"><i class="fas fa-share-alt"></i> ${t('share')}</button>
                     <button class="btn btn-ghost" onclick="toggleStar('${file.id}')"><i class="fas fa-star" style="color:${file.starred?'#f59e0b':'inherit'}"></i></button>
                     <button class="btn btn-ghost" onclick="togglePin('${file.id}')"><i class="fas fa-thumbtack" style="color:${file.pinned?'var(--accent)':'inherit'}"></i></button>
+                    ${!file.trashed ? `<button class="btn btn-danger" onclick="moveToTrash('${file.id}')"><i class="fas fa-trash"></i> ${t('delete')}</button>` : `<button class="btn btn-secondary" onclick="restoreFile('${file.id}')"><i class="fas fa-undo"></i> ${t('restore')}</button> <button class="btn btn-danger" onclick="deletePermanently('${file.id}')"><i class="fas fa-times-circle"></i> ${t('delete')}</button>`}
                 </div>
             </div>
             <div style="width:260px">
