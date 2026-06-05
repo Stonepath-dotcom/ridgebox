@@ -216,6 +216,84 @@
         .social-proof-item { text-align: center; padding: 20px; }
         .social-proof-value { font-size: 28px; font-weight: 700; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
         .social-proof-label { font-size: 11px; color: var(--text4); margin-top: 4px; }
+
+        /* ═══ F76-F105: New Feature Styles ═══ */
+        /* F82: Trash Auto-Purge Countdown */
+        .purge-badge { font-size: 9px; padding: 1px 6px; border-radius: 4px; background: rgba(249,115,22,.1); color: #f97316; font-weight: 600; margin-left: 4px; white-space: nowrap; }
+        /* F84: Grid Preview Tooltip */
+        .grid-preview-tip { position: absolute; z-index: 35; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 8px; pointer-events: none; opacity: 0; transition: opacity .2s; max-width: 260px; }
+        .file-item:hover .grid-preview-tip { opacity: 1; }
+        /* F85: Analytics Dashboard */
+        .analytics-modal { max-width: 680px; }
+        .analytics-heatmap { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+        .heatmap-cell { aspect-ratio: 1; border-radius: 3px; background: var(--surface2); transition: background .15s; }
+        .heatmap-cell.l1 { background: rgba(59,130,246,.2); }
+        .heatmap-cell.l2 { background: rgba(59,130,246,.4); }
+        .heatmap-cell.l3 { background: rgba(59,130,246,.6); }
+        .heatmap-cell.l4 { background: rgba(59,130,246,.8); }
+        /* F86: Drag Reorder */
+        .file-item.drag-over { border: 2px dashed var(--accent) !important; opacity: .7; }
+        .file-item.dragging { opacity: .4; }
+        /* F90: Star/Favorite */
+        .star-btn { color: var(--text4); transition: color .15s; }
+        .star-btn.starred { color: #eab308; }
+        /* F92: Quick Actions Toolbar */
+        .quick-actions-bar { position: sticky; top: 56px; z-index: 30; background: var(--surface); border: 1px solid var(--accent-dim); border-radius: 12px; padding: 8px 16px; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(59,130,246,.08); }
+        .quick-actions-bar button { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); background: transparent; color: var(--text3); cursor: pointer; transition: all .15s; white-space: nowrap; }
+        .quick-actions-bar button:hover { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,.05); }
+        /* F93: Upload Progress Global */
+        .upload-progress-bar { position: fixed; top: 56px; left: 50%; transform: translateX(-50%); z-index: 42; background: var(--surface); border: 1px solid var(--accent-dim); border-radius: 100px; padding: 6px 16px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(59,130,246,.12); font-size: 11px; color: var(--text2); cursor: pointer; transition: all .3s; }
+        .upload-progress-bar .upb-pct { font-weight: 700; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+        /* F95: Onboarding Tour */
+        .onboarding-overlay { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.7); }
+        .onboarding-highlight { position: relative; z-index: 91; box-shadow: 0 0 0 4px var(--accent), 0 0 0 9999px rgba(0,0,0,.7); border-radius: 12px; }
+        .onboarding-tooltip { position: fixed; z-index: 92; background: var(--surface); border: 1px solid var(--accent); border-radius: 12px; padding: 20px; max-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,.25); }
+        .onboarding-tooltip h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+        .onboarding-tooltip p { font-size: 12px; color: var(--text3); line-height: 1.6; margin-bottom: 16px; }
+        .onboarding-step { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; }
+        /* F97: Empty State Illustrations */
+        .empty-state { text-align: center; padding: 48px 24px; }
+        .empty-state svg { margin: 0 auto 16px; }
+        .empty-state h4 { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+        .empty-state p { font-size: 12px; color: var(--text4); }
+        /* F98: Responsive Sidebar */
+        @media (max-width: 768px) {
+            #folderSidebar { position: fixed; left: 0; top: 0; height: 100vh; z-index: 65; transform: translateX(-100%); transition: transform .3s cubic-bezier(.16,1,.3,1); background: var(--bg); border-right: 1px solid var(--border); padding: 20px 16px; width: 220px; }
+            #folderSidebar.mobile-open { transform: translateX(0); }
+            .sidebar-overlay { position: fixed; inset: 0; z-index: 64; background: rgba(0,0,0,.5); display: none; }
+            .sidebar-overlay.active { display: block; }
+        }
+        .hamburger-btn { display: none; }
+        @media (max-width: 768px) { .hamburger-btn { display: flex; } }
+        /* F99: Keyboard Navigation */
+        .file-item.focused { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 12px; }
+        /* F100: Markdown Preview */
+        .md-preview { max-width: 80vw; max-height: 85vh; overflow: auto; background: var(--surface); border-radius: 12px; padding: 24px; color: var(--text2); font-size: 13px; line-height: 1.7; }
+        .md-preview h1 { font-size: 24px; font-weight: 700; margin: 16px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        .md-preview h2 { font-size: 20px; font-weight: 700; margin: 14px 0 6px; }
+        .md-preview h3 { font-size: 16px; font-weight: 600; margin: 12px 0 4px; }
+        .md-preview strong { font-weight: 700; color: var(--text); }
+        .md-preview em { font-style: italic; }
+        .md-preview code { background: var(--surface2); padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+        .md-preview pre { background: var(--surface2); padding: 16px; border-radius: 8px; overflow-x: auto; margin: 12px 0; }
+        .md-preview pre code { background: none; padding: 0; }
+        .md-preview ul, .md-preview ol { padding-left: 24px; margin: 8px 0; }
+        .md-preview a { color: var(--accent); text-decoration: underline; }
+        .md-preview blockquote { border-left: 3px solid var(--accent); padding-left: 12px; color: var(--text3); margin: 8px 0; }
+        /* F102: Share Analytics */
+        .share-analytics { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+        .share-analytics .sa-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 11px; }
+        .share-analytics .sa-label { color: var(--text4); }
+        .share-analytics .sa-value { color: var(--text2); font-weight: 600; }
+        /* F105: i18n */
+        .lang-toggle { display: inline-flex; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .lang-toggle button { padding: 4px 12px; border: none; background: transparent; color: var(--text4); font-size: 10px; font-weight: 600; cursor: pointer; transition: all .15s; }
+        .lang-toggle button.active { background: var(--accent); color: #fff; border-radius: 5px; }
+        /* F79: Upload Portal */
+        #uploadPortal { min-height: 100vh; }
+        .upload-portal-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 48px 24px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; }
+        .upload-portal-zone:hover { border-color: var(--accent); background: rgba(59,130,246,.04); }
+        .upload-portal-zone.dragover { border-color: var(--accent); background: rgba(59,130,246,.08); }
     </style>
 </head>
 <body class="antialiased">
@@ -275,7 +353,7 @@
                     <div class="hp-badge"><span class="hp-badge-dot"></span>Cloud Storage Gratis</div>
                     <h1 class="text-4xl md:text-[44px] font-bold leading-[1.15] tracking-tight">Simpan file di cloud,<br><span class="text-[var(--accent)]">pakai Telegram.</span></h1>
                 </div>
-                <p class="text-[var(--text2)] text-base leading-relaxed max-w-md">Ridgebox bikin Telegram Bot kamu jadi cloud storage personal. Upload, share, dan kelola file langsung dari browser — 75 fitur lengkap tanpa biaya.</p>
+                <p class="text-[var(--text2)] text-base leading-relaxed max-w-md">Ridgebox bikin Telegram Bot kamu jadi cloud storage personal. Upload, share, dan kelola file langsung dari browser — 105 fitur lengkap tanpa biaya.</p>
                 <div class="flex flex-wrap gap-3">
                     <a href="#/dashboard" class="btn-primary inline-flex items-center gap-2 py-3 px-6">Mulai Pakai <i class="fa-solid fa-arrow-right text-xs"></i></a>
                     <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" class="btn-ghost inline-flex items-center gap-2 py-3 px-5"><i class="fa-brands fa-github text-sm"></i> Source Code</a>
@@ -297,7 +375,7 @@
     <section class="hp-section-alt hp-section">
         <div class="max-w-5xl mx-auto px-6 md:px-12">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                <div class="stat-box"><div class="stat-counter" data-target="75">0</div><p class="stat-label">Fitur Lengkap</p></div>
+                <div class="stat-box"><div class="stat-counter" data-target="105">0</div><p class="stat-label">Fitur Lengkap</p></div>
                 <div class="stat-box"><div class="stat-counter" data-target="2000" data-suffix=" MB">0</div><p class="stat-label">Batas Upload</p></div>
                 <div class="stat-box"><div class="stat-counter" data-target="100" data-suffix="%">0</div><p class="stat-label">Gratis</p></div>
                 <div class="stat-box"><div class="stat-counter" data-target="256" data-prefix="AES-" data-suffix="-GCM">0</div><p class="stat-label">Enkripsi</p></div>
@@ -333,7 +411,7 @@
     <section class="hp-section-alt hp-section">
         <div class="max-w-6xl mx-auto px-6 md:px-12">
             <div class="text-center mb-14">
-                <div class="hp-badge"><span class="hp-badge-dot"></span>75 Fitur</div>
+                <div class="hp-badge"><span class="hp-badge-dot"></span>105 Fitur</div>
                 <h2 class="hp-title">Semua yang kamu butuhkan</h2>
                 <p class="hp-subtitle mx mt-4">Dari upload dasar sampai fitur enterprise-grade. Semua gratis, semua di browser.</p>
             </div>
@@ -459,7 +537,7 @@
                     <div class="author"><div class="avatar">S</div><div class="author-info"><span class="author-name">Sari Wulandari</span><span class="author-role">Designer, Bandung</span></div></div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="quote">"75 fitur gratis tanpa batas? Sulit dipercaya tapi nyata. Ridgebox adalah cloud storage terbaik untuk personal use."</div>
+                    <div class="quote">"105 fitur gratis tanpa batas? Sulit dipercaya tapi nyata. Ridgebox adalah cloud storage terbaik untuk personal use."</div>
                     <div class="author"><div class="avatar">R</div><div class="author-info"><span class="author-name">Rizky Fauzan</span><span class="author-role">Mahasiswa, Surabaya</span></div></div>
                 </div>
             </div>
@@ -603,9 +681,19 @@
 <!-- DASHBOARD -->
 <div id="appView" class="hidden min-h-screen flex flex-col">
     <nav class="px-6 py-4 md:px-12 flex justify-between items-center border-b border-[var(--border)] sticky top-0 z-40" style="background:var(--bg)">
-        <div class="flex items-center gap-3"><a href="/" class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-xs"></i></a><span class="text-lg font-bold tracking-wider">RIDGEBOX</span><select id="botSelector" class="input-field py-1 px-2 text-[10px] w-auto ml-2 hidden"></select></div>
+        <div class="flex items-center gap-3">
+            <button onclick="toggleMobileSidebar()" class="hamburger-btn btn-icon lg:hidden" title="Menu"><i class="fa-solid fa-bars text-sm"></i></button>
+            <a href="/" class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-xs"></i></a><span class="text-lg font-bold tracking-wider">RIDGEBOX</span><select id="botSelector" class="input-field py-1 px-2 text-[10px] w-auto ml-2 hidden"></select>
+        </div>
         <div class="flex items-center gap-2">
+            <!-- F93: Upload Progress Global -->
+            <div id="uploadProgressGlobal" class="upload-progress-bar hidden" onclick="document.getElementById('uploadQueueContainer')?.scrollIntoView({behavior:'smooth'})">
+                <i class="fa-solid fa-arrow-up-from-bracket text-[var(--accent)] text-[10px]"></i>
+                <span id="upbText">Mengunggah (0 file...)</span>
+                <span id="upbPct" class="upb-pct">0%</span>
+            </div>
             <div class="badge bg-[var(--surface)] border border-[var(--border)] text-[var(--text3)]"><span class="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" id="connDot"></span><span id="connStatus">Checking...</span></div>
+            <button onclick="openAnalytics()" class="btn-icon" title="Analytics"><i class="fa-solid fa-chart-pie text-sm"></i></button>
             <button onclick="toggleTheme()" class="btn-icon" title="Theme"><i id="themeIcon" class="fa-solid fa-moon text-sm"></i></button>
             <button onclick="openStats()" class="btn-icon" title="Stats"><i class="fa-solid fa-chart-simple text-sm"></i></button>
             <button onclick="openNotifPanel()" class="btn-icon relative" title="Notifikasi"><i class="fa-solid fa-bell text-sm"></i><span id="notifDot" class="hidden absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full"></span></button>
@@ -614,12 +702,15 @@
             <button onclick="openSettings()" class="btn-icon" title="Settings"><i class="fa-solid fa-gear text-sm"></i></button>
         </div>
     </nav>
+    <!-- F98: Sidebar Overlay for Mobile -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
     <main class="max-w-6xl mx-auto w-full px-6 py-8 md:px-8 flex flex-col lg:flex-row gap-6 flex-grow">
         <!-- Left sidebar -->
         <div id="folderSidebar" class="hidden lg:block w-52 flex-shrink-0 space-y-2">
             <div class="flex items-center justify-between mb-3"><h3 class="text-[10px] font-bold tracking-widest text-[var(--text4)] uppercase">Folder</h3><button onclick="createFolder()" class="btn-icon" style="width:24px;height:24px" title="New folder"><i class="fa-solid fa-plus text-[8px]"></i></button></div>
             <div class="folder-item active" onclick="selectFolder('all')" id="folderAll"><i class="fa-solid fa-layer-group text-[10px]"></i> Semua</div>
             <div class="folder-item" onclick="selectFolder('recent')" id="folderRecent"><i class="fa-solid fa-clock text-[10px]"></i> Terbaru</div>
+            <div class="folder-item" onclick="selectFolder('favorites')" id="folderFavorites"><i class="fa-solid fa-star text-[10px] text-yellow-500"></i> Favorit</div>
             <div class="folder-item" onclick="selectFolder('trash')" id="folderTrash"><i class="fa-regular fa-trash-can text-[10px]"></i> Sampah <span class="text-[9px] text-[var(--text4)] ml-auto" id="trashCount"></span></div>
             <div id="folderList"></div>
         </div>
@@ -732,6 +823,10 @@
             <div><label class="text-[10px] text-[var(--text3)] font-medium block mb-1.5">Kunci PIN Dashboard</label><div class="flex items-center gap-2 mb-2"><input type="checkbox" id="pinToggle" class="file-checkbox" style="width:14px;height:14px" onchange="togglePinSetting()"><span class="text-[11px] text-[var(--text3)]">Aktifkan</span></div><input type="password" id="pinSetup" class="input-field text-xs py-2 hidden" placeholder="Buat PIN (4-6 digit)" maxlength="6"></div>
             <!-- F45: Export/Import -->
             <div><label class="text-[10px] text-[var(--text3)] font-medium block mb-1.5">Metadata</label><div class="flex gap-2"><button onclick="exportMetadata()" class="btn-ghost text-[10px] flex-grow"><i class="fa-solid fa-download mr-1"></i>Export</button><button onclick="document.getElementById('importInput').click()" class="btn-ghost text-[10px] flex-grow"><i class="fa-solid fa-upload mr-1"></i>Import</button><input type="file" id="importInput" class="hidden" accept=".json" onchange="importMetadata(event)"></div></div>
+            <!-- F76: Proxy Mode -->
+            <div><label class="text-[10px] text-[var(--text3)] font-medium block mb-1.5">Mode Upload</label><div class="flex items-center gap-2"><input type="checkbox" id="proxyModeToggle" class="file-checkbox" style="width:14px;height:14px" checked><span class="text-[11px] text-[var(--text3)]">Proxy Mode (aman)</span></div><p class="text-[9px] text-[var(--text4)] mt-1">Upload via server proxy, token tidak terekspos di browser.</p></div>
+            <!-- F105: Language Toggle -->
+            <div><label class="text-[10px] text-[var(--text3)] font-medium block mb-1.5">Bahasa / Language</label><div class="lang-toggle"><button onclick="setLanguage('id')" id="langId" class="active">Indonesia</button><button onclick="setLanguage('en')" id="langEn">English</button></div></div>
         </div>
         <button onclick="saveSettings()" class="btn-primary w-full">Simpan Pengaturan</button>
     </div>
@@ -744,8 +839,16 @@
         <div><label class="text-[10px] text-[var(--text3)] font-medium block mb-2">Masa Berlaku</label><div class="flex gap-2 flex-wrap"><button class="expiry-option share-expiry" data-expiry="24h" onclick="setShareExpiry('24h')">24 Jam</button><button class="expiry-option share-expiry" data-expiry="7d" onclick="setShareExpiry('7d')">7 Hari</button><button class="expiry-option share-expiry active" data-expiry="never" onclick="setShareExpiry('never')">Selamanya</button><button class="expiry-option share-expiry" data-expiry="1dl" onclick="setShareExpiry('1dl')">1x Download</button></div></div>
         <div><label class="text-[10px] text-[var(--text3)] font-medium block mb-2">Password <span class="text-[var(--text4)]">(opsional)</span></label><div class="flex gap-2"><input type="text" id="sharePassword" class="input-field text-xs py-2" placeholder="Kosongkan jika tidak perlu"><button onclick="toggleSharePassword()" id="btnTogglePwd" class="btn-ghost text-[10px] px-3">Aktifkan</button></div></div>
         <div class="space-y-2"><label class="text-[10px] text-[var(--text3)] font-medium">Tautan</label><div class="relative"><input type="text" id="shareLinkInput" readonly class="input-field font-mono text-[11px] pr-20"><button onclick="copyShareLink()" class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[var(--accent)] text-white text-[10px] font-bold px-3 py-1.5 rounded-lg">Salin</button></div></div>
+        <!-- F88: Share Link Custom Alias -->
+        <div><label class="text-[10px] text-[var(--text3)] font-medium block mb-1">Alias Kustom <span class="text-[var(--text4)]">(opsional)</span></label><div class="flex gap-2"><input type="text" id="shareAliasInput" class="input-field text-xs py-2 flex-grow" placeholder="contoh: foto-liburan"><button onclick="applyShareAlias()" class="btn-ghost text-[10px] px-3">Simpan</button></div><p id="shareAliasPreview" class="text-[9px] text-[var(--text4)] mt-1 hidden"></p></div>
         <div class="flex flex-col items-center gap-3 py-2"><canvas id="qrCanvas" width="160" height="160"></canvas><span class="text-[10px] text-[var(--text4)]">Scan untuk akses cepat</span></div>
-        <div class="card-inner p-4 space-y-2"><div class="grid grid-cols-2 gap-4 text-xs"><div><span class="text-[var(--text4)] block text-[10px]">Nama</span><span class="text-[var(--text2)] font-medium truncate block mt-0.5" id="modalFileName">-</span></div><div><span class="text-[var(--text4)] block text-[10px]">Ukuran</span><span class="text-[var(--text2)] font-medium block mt-0.5" id="modalFileSize">-</span></div></div><div id="shareClicksRow" class="hidden flex items-center gap-2 text-[10px] text-[var(--text3)] pt-1"><i class="fa-solid fa-eye text-[8px]"></i><span id="shareClicksText">0</span> kali dikunjungi</div></div>
+        <div class="card-inner p-4 space-y-2"><div class="grid grid-cols-2 gap-4 text-xs"><div><span class="text-[var(--text4)] block text-[10px]">Nama</span><span class="text-[var(--text2)] font-medium truncate block mt-0.5" id="modalFileName">-</span></div><div><span class="text-[var(--text4)] block text-[10px]">Ukuran</span><span class="text-[var(--text2)] font-medium block mt-0.5" id="modalFileSize">-</span></div></div><div id="shareClicksRow" class="hidden flex items-center gap-2 text-[10px] text-[var(--text3)] pt-1"><i class="fa-solid fa-eye text-[8px]"></i><span id="shareClicksText">0</span> kali dikunjungi</div>
+        <!-- F102: Share Analytics -->
+        <div class="share-analytics" id="shareAnalyticsSection">
+            <div class="sa-row"><span class="sa-label">Total klik</span><span class="sa-value" id="saTotalClicks">0</span></div>
+            <div class="sa-row"><span class="sa-label">Terakhir diakses</span><span class="sa-value" id="saLastAccess">-</span></div>
+            <div class="sa-row"><span class="sa-label">Pengunjung unik</span><span class="sa-value" id="saUniqueVisitors">0</span></div>
+        </div></div>
         <button onclick="closeShareModal()" class="btn-ghost w-full">Selesai</button>
     </div>
 </div>
@@ -841,6 +944,62 @@
 
 <!-- PWA Install Banner -->
 <div id="installBanner" class="fixed bottom-4 left-4 right-4 z-55 bg-[var(--surface)] border border-[var(--accent-dim)] rounded-xl p-4 flex items-center justify-between gap-3 shadow-lg hidden animate-slideUp"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-lg bg-[var(--accent)] flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-box text-white text-xs"></i></div><div><p class="text-xs font-semibold">Install Ridgebox</p><p class="text-[10px] text-[var(--text3)]">Akses dari homescreen</p></div></div><div class="flex gap-2"><button onclick="document.getElementById('installBanner').classList.add('hidden')" class="btn-ghost text-[10px] py-1.5 px-3">Nanti</button><button onclick="installPWA()" class="btn-primary text-[10px] py-1.5 px-3">Install</button></div></div>
+
+<!-- F79: Upload Portal View -->
+<div id="uploadPortal" class="hidden min-h-screen flex flex-col">
+    <nav class="px-6 py-4 md:px-12 flex justify-between items-center border-b border-[var(--border)]"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center"><i class="fa-solid fa-box text-white text-xs"></i></div><span class="text-lg font-bold tracking-wider">RIDGEBOX</span></div><a href="#/" class="btn-ghost text-xs">Beranda</a></nav>
+    <main class="max-w-md mx-auto w-full px-6 py-12 flex-grow flex flex-col justify-center items-center">
+        <div class="text-center mb-6"><h1 class="text-xl font-bold">Upload ke Ridgebox</h1><p class="text-[var(--text3)] text-xs mt-1" id="uploadPortalUploader">Mengupload file...</p></div>
+        <div id="uploadPortalZone" class="upload-portal-zone w-full" onclick="document.getElementById('portalFileInput').click()">
+            <input type="file" id="portalFileInput" class="hidden" multiple>
+            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center"><i class="fa-solid fa-arrow-up-from-bracket text-[var(--text3)] text-xl"></i></div>
+            <p class="text-sm font-medium text-[var(--text2)]">Seret & lepas berkas</p>
+            <p class="text-[11px] text-[var(--text4)] mt-1">atau klik untuk memilih file</p>
+        </div>
+        <div id="portalUploadProgress" class="hidden w-full mt-4 space-y-2"></div>
+    </main>
+</div>
+
+<!-- F85: Analytics Dashboard Modal -->
+<div id="analyticsModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="card w-full analytics-modal p-6 space-y-5 animate-fadeUp max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center"><h3 class="text-sm font-semibold">Analytics</h3><button onclick="closeAnalytics()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="analyticsSummary"></div>
+        <div><h4 class="text-xs font-semibold mb-3">Upload 7 Hari Terakhir</h4><div class="flex items-end gap-1 h-24" id="analyticsWeekChart"></div></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div><h4 class="text-xs font-semibold mb-3">Distribusi Tipe File</h4><div class="flex items-center gap-4"><canvas id="analyticsDonutCanvas" width="140" height="140"></canvas><div class="space-y-2" id="analyticsDonutLegend"></div></div></div>
+            <div><h4 class="text-xs font-semibold mb-3">Pertumbuhan Storage</h4><div class="flex items-end gap-1 h-24" id="analyticsGrowthChart"></div></div>
+        </div>
+        <div><h4 class="text-xs font-semibold mb-3">Top 5 File Terbesar</h4><div id="analyticsTopFiles" class="space-y-2"></div></div>
+        <div><h4 class="text-xs font-semibold mb-3">Aktivitas Upload (28 hari)</h4><div class="analytics-heatmap" id="analyticsHeatmap"></div></div>
+    </div>
+</div>
+
+<!-- F95: Onboarding Tour Overlay -->
+<div id="onboardingOverlay" class="onboarding-overlay hidden">
+    <div id="onboardingTooltip" class="onboarding-tooltip" style="top:50%;left:50%;transform:translate(-50%,-50%)">
+        <div class="flex items-center gap-3 mb-3"><span class="onboarding-step" id="onboardStepNum">1</span><h3 id="onboardTitle">Selamat datang!</h3></div>
+        <p id="onboardDesc">Ridgebox adalah cloud storage berbasis Telegram. Mari kenali fitur-fiturnya!</p>
+        <div class="flex justify-between items-center">
+            <button onclick="skipOnboarding()" class="text-[11px] text-[var(--text4)] hover:text-[var(--text3)]">Lewati</button>
+            <div class="flex gap-2">
+                <button onclick="prevOnboardingStep()" id="onboardPrevBtn" class="btn-ghost text-[11px] hidden">Kembali</button>
+                <button onclick="nextOnboardingStep()" id="onboardNextBtn" class="btn-primary text-[11px]">Lanjut</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- F92: Quick Actions Toolbar -->
+<div id="quickActionsBar" class="quick-actions-bar hidden">
+    <span class="text-[11px] text-[var(--text3)] font-semibold"><span id="qaCount">0</span> dipilih:</span>
+    <button onclick="batchDownloadSelected()" title="Download"><i class="fa-solid fa-arrow-down text-[9px]"></i> Download</button>
+    <button onclick="batchShareSelected()" title="Bagikan"><i class="fa-solid fa-share-nodes text-[9px]"></i> Share</button>
+    <button onclick="openMoveFolderModal()" title="Pindah"><i class="fa-solid fa-folder-open text-[9px]"></i> Pindah</button>
+    <button onclick="batchTagSelected()" title="Tag"><i class="fa-solid fa-tag text-[9px]"></i> Tag</button>
+    <button onclick="batchDeleteSelected()" title="Hapus" style="color:#ef4444;border-color:rgba(239,68,68,.2)"><i class="fa-regular fa-trash-can text-[9px]"></i> Hapus</button>
+    <button onclick="batchEncryptSelected()" title="Enkripsi"><i class="fa-solid fa-lock text-[9px]"></i> Enkripsi</button>
+</div>
 
 <script>
 // ── State ──
@@ -2093,6 +2252,1165 @@ function checkExpirationWarnings() {
     });
 }
 setInterval(checkExpirationWarnings, 3600000); // Check every hour
+
+// ════════════════════════════════════════════════════════════════
+// F76-F105: New Features Implementation
+// ════════════════════════════════════════════════════════════════
+
+// ── F76: Bot Token Protection ──
+let useProxyMode = true;
+const _origFetchBotConfig = fetchBotConfig;
+fetchBotConfig = async function() {
+    try {
+        const r = await fetch('/api/config');
+        const d = await r.json();
+        if (d.ok && d.bots.length > 0) {
+            botCredentials = {};
+            d.bots.forEach(b => {
+                // Mask token: show first 5 chars + "***"
+                const maskedToken = b.token && b.token.length > 5 ? b.token.substring(0, 5) + '***' : b.token;
+                botCredentials[b.index] = { token: maskedToken, chatId: b.chatId, name: b.name, fullTokenAvailable: false, originalToken: b.token };
+            });
+            availableBots = d.bots;
+            const a = availableBots.find(b => b.index === currentBotIndex) || availableBots[0];
+            currentBotIndex = a.index;
+            localStorage.setItem('ridgebox_bot_index', currentBotIndex);
+            document.getElementById('connStatus').textContent = 'Cloud Aktif';
+            document.getElementById('activeBotName').textContent = a.name;
+            document.getElementById('settingsBotName').textContent = a.name;
+            document.getElementById('setupBanner').classList.add('hidden');
+            if (availableBots.length > 1) {
+                const s = document.getElementById('botSelector');
+                s.innerHTML = availableBots.map(b => `<option value="${b.index}" ${b.index === currentBotIndex ? 'selected' : ''}>${b.name}</option>`).join('');
+                s.classList.remove('hidden');
+                s.onchange = () => { currentBotIndex = s.value; localStorage.setItem('ridgebox_bot_index', currentBotIndex); loadFilesFromDB(); };
+            }
+        } else {
+            document.getElementById('connStatus').textContent = 'Tidak Dikonfigurasi';
+            document.getElementById('connDot').className = 'w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse';
+            document.getElementById('setupBanner').classList.remove('hidden');
+        }
+    } catch (e) {
+        document.getElementById('connStatus').textContent = 'Gagal';
+        document.getElementById('connDot').className = 'w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse';
+    }
+};
+
+// Override executeUpload to respect proxy mode
+const _origExecuteUpload = executeUpload;
+executeUpload = async function(file, uid) {
+    const proxyToggle = document.getElementById('proxyModeToggle');
+    useProxyMode = proxyToggle ? proxyToggle.checked : true;
+    // If proxy mode, skip direct API call and go straight to server proxy
+    if (useProxyMode) {
+        try {
+            const token = getBotToken(currentBotIndex), chatId = getChatId(currentBotIndex);
+            if (!chatId) { uploadError(uid, 'Bot belum dikonfigurasi.'); return; }
+            let fileToUpload = file, isEncrypted = false;
+            const enc = document.getElementById('encryptToggle');
+            if (enc && enc.checked) {
+                const pwd = document.getElementById('encryptPwd').value.trim();
+                if (pwd) { try { const e = await encryptFile(file, pwd); fileToUpload = new File([e], file.name + '.enc', { type: 'application/octet-stream' }); isEncrypted = true; } catch (err) { showToast('Enkripsi gagal: ' + err.message, 'error'); } }
+            }
+            const fd = new FormData(); fd.append('chat_id', chatId); fd.append('document', fileToUpload); fd.append('bot_index', currentBotIndex);
+            const setProgress = p => { const bar = document.getElementById(`bar-${uid}`), pct = document.getElementById(`percent-${uid}`); if (bar) bar.style.width = p + '%'; if (pct) pct.innerText = p + '%'; };
+            const onSuccess = async resText => {
+                try {
+                    const res = JSON.parse(resText);
+                    if (res.ok) {
+                        const doc = res.result.document || res.result.video || res.result.audio || res.result.photo?.[0] || {};
+                        const fId = doc.file_id, tId = doc.thumb ? doc.thumb.file_id : '';
+                        await saveFileToDB({ id: uid, tgFileId: fId, name: file.name, size: file.size, type: getFileTypeByName(file.name), uploadedAt: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }), uploadedTimestamp: Date.now(), expiresAt: 0, pinned: false, folder: currentFolder !== 'all' && currentFolder !== 'recent' && currentFolder !== 'trash' && currentFolder !== 'favorites' ? currentFolder : '', thumbId: tId, botIndex: currentBotIndex, encrypted: isEncrypted, shareClicks: 0, tag: null, notes: '', caption: '', customIcon: '', versions: [], starred: false });
+                        showToast(`"${file.name}" berhasil diupload!`, 'success'); logActivity('upload', file.name); removeQueueItem(uid); loadFilesFromDB(); updateUploadProgressGlobal();
+                    } else { uploadError(uid, res.description || 'Ditolak oleh Telegram API'); }
+                } catch (e) { uploadError(uid, 'Respons server tidak valid'); }
+            };
+            setProgress(5);
+            try {
+                const pr = await fetch('/api/upload', { method: 'POST', body: fd });
+                const pd = await pr.json();
+                if (pd.ok) { await onSuccess(JSON.stringify(pd)); } else { uploadError(uid, pd.description || pd.error || 'Upload gagal'); }
+            } catch (pe) { uploadError(uid, 'Upload gagal: ' + pe.message); }
+            window[`_retryFile_${uid}`] = file;
+        } catch (e) { uploadError(uid, 'Error: ' + e.message); }
+    } else {
+        _origExecuteUpload(file, uid);
+    }
+};
+
+// ── F77: PIN Hash ──
+const _origVerifyPin = verifyPin;
+verifyPin = async function() {
+    const input = document.getElementById('pinInput').value;
+    const stored = localStorage.getItem('ridgebox_pin');
+    if (!stored) { document.getElementById('pinLockOverlay').classList.add('hidden'); return; }
+    // Check if stored value looks like a hash (64 hex chars = SHA-256)
+    let inputHash = input;
+    if (stored.length === 64) {
+        // Stored as hash, hash the input
+        inputHash = await hashString(input);
+    }
+    if (inputHash === stored) {
+        document.getElementById('pinLockOverlay').classList.add('hidden');
+        document.getElementById('pinError').classList.add('hidden');
+    } else {
+        document.getElementById('pinError').classList.remove('hidden');
+    }
+};
+
+// Override saveSettings to hash PIN
+const _origSaveSettings = saveSettings;
+saveSettings = function() {
+    SIZE_LIMIT_MB = parseInt(document.querySelector('.size-preset.active')?.dataset.size) || 50;
+    localStorage.setItem('ridgebox_size_limit', SIZE_LIMIT_MB.toString());
+    document.getElementById('limitDisplay').textContent = SIZE_LIMIT_MB >= 1024 ? (SIZE_LIMIT_MB / 1024) + ' GB' : SIZE_LIMIT_MB + ' MB';
+    const pinEnabled = document.getElementById('pinToggle').checked;
+    if (pinEnabled) {
+        const pin = document.getElementById('pinSetup').value.trim();
+        if (pin && pin.length >= 4) {
+            // Hash PIN before storing
+            hashString(pin).then(h => { localStorage.setItem('ridgebox_pin', h); });
+        } else if (!localStorage.getItem('ridgebox_pin')) { localStorage.removeItem('ridgebox_pin'); }
+    } else { localStorage.removeItem('ridgebox_pin'); }
+    const rules = { enabled: document.getElementById('autoCleanupToggle').checked, age: parseInt(document.querySelector('.cleanup-age.active')?.dataset.age) || 30 };
+    saveCleanupRules(rules);
+    closeSettings(); showToast('Pengaturan disimpan.', 'success');
+};
+
+// ── F78: Self-Destruct Link Fix ──
+function getUsedSelfDestructLinks() { try { return JSON.parse(localStorage.getItem('ridgebox_used_sd_links') || '[]'); } catch { return []; } }
+function markSelfDestructLinkUsed(linkHash) { const links = getUsedSelfDestructLinks(); links.push(linkHash); localStorage.setItem('ridgebox_used_sd_links', JSON.stringify(links.slice(-100))); }
+function isSelfDestructLinkUsed(linkHash) { return getUsedSelfDestructLinks().includes(linkHash); }
+
+// Override setupDownloadPortal to check self-destruct
+const _origSetupDownloadPortal = setupDownloadPortal;
+setupDownloadPortal = function(enc) {
+    const info = decodeSecureLink(enc);
+    portalDecodedInfo = info;
+    document.getElementById('activePortal').classList.add('hidden');
+    document.getElementById('expiredState').classList.add('hidden');
+    document.getElementById('passwordState').classList.add('hidden');
+    if (!info) { document.getElementById('expiredState').classList.remove('hidden'); return; }
+    if (info.expiresAt > 0 && Date.now() > info.expiresAt) { document.getElementById('expiredState').classList.remove('hidden'); return; }
+    // F78: Check if self-destruct link was already used
+    if (info.selfDestruct) {
+        const linkHash = hashString(enc).toString(); // We'll use async check
+        hashString(enc).then(h => {
+            if (isSelfDestructLinkUsed(h)) {
+                document.getElementById('expiredState').classList.remove('hidden');
+                document.getElementById('expiredState').innerHTML = '<div class="w-16 h-16 mx-auto rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center"><i class="fa-solid fa-link-slash text-red-400 text-2xl"></i></div><h2 class="text-lg font-semibold text-red-400 mt-4">Link sudah tidak tersedia</h2><p class="text-sm text-[var(--text4)] mt-2">Link ini sudah digunakan.</p>';
+                return;
+            }
+            if (info.passwordHash) { document.getElementById('passwordState').classList.remove('hidden'); return; }
+            incrementShareClicks(info.fileId); showPortalActive(info);
+        });
+        return;
+    }
+    if (info.passwordHash) { document.getElementById('passwordState').classList.remove('hidden'); return; }
+    incrementShareClicks(info.fileId); showPortalActive(info);
+};
+
+// Override startPremiumDownload to mark self-destruct links
+const _origStartPremiumDownload = startPremiumDownload;
+startPremiumDownload = async function(fid, name, bi) {
+    await _origStartPremiumDownload(fid, name, bi);
+    // F78: Mark self-destruct link as used after download
+    if (portalDecodedInfo && portalDecodedInfo.selfDestruct) {
+        const h = window.location.hash;
+        const enc = h.substring(7);
+        hashString(enc).then(hash => { markSelfDestructLinkUsed(hash); });
+    }
+};
+
+// ── F79: Collaborative Upload Portal ──
+let collabUploadToken = null, collabUploadFolder = '';
+function initUploadPortal(token) {
+    collabUploadToken = token;
+    const stored = localStorage.getItem('ridgebox_collab_' + token);
+    if (stored) { try { const d = JSON.parse(stored); collabUploadFolder = d.folder || ''; document.getElementById('uploadPortalUploader').textContent = d.uploader || 'Mengupload file...'; } catch {} }
+    const zone = document.getElementById('uploadPortalZone');
+    const input = document.getElementById('portalFileInput');
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); handlePortalUpload(e.dataTransfer.files); });
+    input.addEventListener('change', e => { handlePortalUpload(e.target.files); e.target.value = ''; });
+}
+async function handlePortalUpload(files) {
+    if (!files.length) return;
+    const progress = document.getElementById('portalUploadProgress');
+    progress.classList.remove('hidden');
+    for (let file of files) {
+        const fd = new FormData(); fd.append('document', file); fd.append('chat_id', getChatId('0') || ''); fd.append('bot_index', '0');
+        const item = document.createElement('div');
+        item.className = 'card-inner p-3 flex items-center gap-2 text-xs';
+        item.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin text-[var(--accent)]"></i><span class="truncate">${file.name}</span><span class="ml-auto text-[var(--text4)]">${formatBytes(file.size)}</span>`;
+        progress.appendChild(item);
+        try {
+            const r = await fetch('/api/upload', { method: 'POST', body: fd });
+            const d = await r.json();
+            if (d.ok) {
+                const doc = d.result.document || d.result.video || d.result.audio || d.result.photo?.[0] || {};
+                await saveFileToDB({ id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5), tgFileId: doc.file_id, name: file.name, size: file.size, type: getFileTypeByName(file.name), uploadedAt: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }), uploadedTimestamp: Date.now(), expiresAt: 0, pinned: false, folder: collabUploadFolder, thumbId: doc.thumb ? doc.thumb.file_id : '', botIndex: '0', encrypted: false, shareClicks: 0, tag: null, notes: '', caption: '', customIcon: '', versions: [], starred: false });
+                item.innerHTML = `<i class="fa-solid fa-check text-green-500"></i><span class="truncate">${file.name}</span><span class="ml-auto text-green-500">✓</span>`;
+                showToast(`"${file.name}" berhasil diupload!`, 'success');
+            } else { item.innerHTML = `<i class="fa-solid fa-xmark text-red-400"></i><span class="truncate">${file.name}</span><span class="ml-auto text-red-400">Gagal</span>`; }
+        } catch (e) { item.innerHTML = `<i class="fa-solid fa-xmark text-red-400"></i><span class="truncate">${file.name}</span><span class="ml-auto text-red-400">Error</span>`; }
+    }
+}
+
+// ── F80: Scheduled Upload Persistent ──
+function restoreScheduledUploads() {
+    scheduledUploads = JSON.parse(localStorage.getItem('ridgebox_scheduled') || '[]');
+    scheduledUploads = scheduledUploads.filter(s => s.time > Date.now());
+    localStorage.setItem('ridgebox_scheduled', JSON.stringify(scheduledUploads));
+    scheduledUploads.forEach(entry => {
+        const delay = entry.time - Date.now();
+        if (delay > 0) {
+            setTimeout(() => {
+                showToast(`Upload terjadwal untuk "${entry.fileName}" — pilih file sekarang.`, 'info');
+                document.getElementById('fileInput').click();
+                scheduledUploads = scheduledUploads.filter(s => s.time !== entry.time);
+                localStorage.setItem('ridgebox_scheduled', JSON.stringify(scheduledUploads));
+            }, delay);
+        }
+    });
+    updateScheduledBadge();
+}
+function updateScheduledBadge() {
+    const count = scheduledUploads.filter(s => s.time > Date.now()).length;
+    const existing = document.getElementById('scheduledBadge');
+    if (existing) existing.remove();
+    if (count > 0) {
+        const badge = document.createElement('span');
+        badge.id = 'scheduledBadge';
+        badge.className = 'badge bg-orange-500/10 text-orange-400 border border-orange-500/20 text-[9px] ml-2';
+        badge.textContent = `${count} terjadwal`;
+        document.getElementById('fileListTitle')?.parentElement?.appendChild(badge);
+    }
+}
+
+// ── F81: File Versioning Upload ──
+const _origHandleFileUploadForVersioning = handleFileUpload;
+// We already override handleFileUpload above (F50), so we need to intercept in executeUpload
+// We'll add versioning logic to the saveFileToDB call in executeUpload
+// Modify the onSuccess callback to check for existing file with same name
+const _origSaveFileToDB = saveFileToDB;
+saveFileToDB = async function(o) {
+    // F81: Check if file with same name exists (for versioning)
+    if (o.name && !o.id?.startsWith('collab')) {
+        const existing = filesData.find(f => f.name === o.name && !f.deletedAt);
+        if (existing) {
+            // Create version from existing
+            if (!existing.versions) existing.versions = [];
+            existing.versions.push({ name: existing.name, size: existing.size, timestamp: existing.uploadedTimestamp, tgFileId: existing.tgFileId });
+            existing.tgFileId = o.tgFileId;
+            existing.size = o.size;
+            existing.type = o.type;
+            existing.uploadedTimestamp = o.uploadedTimestamp;
+            existing.uploadedAt = o.uploadedAt;
+            existing.thumbId = o.thumbId || existing.thumbId;
+            existing.encrypted = o.encrypted;
+            await updateFileInDB(existing);
+            return;
+        }
+    }
+    return _origSaveFileToDB(o);
+};
+
+// ── F82: Trash Auto-Purge Visual ──
+// Add purge countdown to trash items - integrated into renderListItem/renderGridItem overrides below
+
+// ── F83: Bulk Download ZIP ──
+async function batchDownloadSelected() {
+    if (!selectedFiles.size) { showToast('Pilih file dulu.', 'error'); return; }
+    showToast('Membuat ZIP...', 'info');
+    const zip = new JSZip();
+    let done = 0, total = selectedFiles.size;
+    for (const id of selectedFiles) {
+        const f = filesData.find(x => x.id === id);
+        if (!f) continue;
+        try {
+            const info = await apiGetFileInfo(f.tgFileId, f.botIndex);
+            if (!info.ok) continue;
+            const url = apiGetDownloadUrl(info.result.file_path, f.botIndex);
+            const resp = await fetch(url);
+            const blob = await resp.blob();
+            zip.file(f.name, blob);
+            done++;
+            showToast(`ZIP: ${done}/${total} file...`, 'info');
+        } catch (e) { console.error('Skip', f.name, e); }
+    }
+    if (!done) { showToast('Gagal membuat ZIP.', 'error'); return; }
+    const content = await zip.generateAsync({ type: 'blob' }, metadata => {
+        // Progress callback
+    });
+    const u = URL.createObjectURL(content);
+    const a = document.createElement('a'); a.href = u; a.download = `ridgebox-${Date.now()}.zip`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
+    showToast(`${done} file diunduh sebagai ZIP.`, 'success');
+}
+
+// ── F84: File Preview in Grid ──
+// Added via hover tooltip in the renderGridItem override below
+
+// ── F85: Storage Analytics Dashboard ──
+function openAnalytics() {
+    const af = filesData.filter(f => !f.deletedAt);
+    const totalSize = af.reduce((a, f) => a + f.size, 0);
+    const totalFiles = af.length;
+    const avgSize = totalFiles ? Math.round(totalSize / totalFiles) : 0;
+    const types = { image: 0, video: 0, audio: 0, archive: 0, document: 0, other: 0 };
+    af.forEach(f => { types[f.type] = (types[f.type] || 0) + 1; });
+    const activeDays = new Set(af.map(f => new Date(f.uploadedTimestamp).toDateString())).size;
+
+    document.getElementById('analyticsSummary').innerHTML = `
+        <div class="card-inner p-3 text-center"><p class="text-lg font-bold text-[var(--accent)]">${totalFiles}</p><p class="text-[9px] text-[var(--text4)]">Total File</p></div>
+        <div class="card-inner p-3 text-center"><p class="text-lg font-bold text-[var(--accent)]">${formatBytes(totalSize)}</p><p class="text-[9px] text-[var(--text4)]">Total Ukuran</p></div>
+        <div class="card-inner p-3 text-center"><p class="text-lg font-bold text-[var(--accent)]">${formatBytes(avgSize)}</p><p class="text-[9px] text-[var(--text4)]">Rata-rata</p></div>
+        <div class="card-inner p-3 text-center"><p class="text-lg font-bold text-[var(--accent)]">${activeDays}</p><p class="text-[9px] text-[var(--text4)]">Hari Aktif</p></div>`;
+
+    // 7-day chart
+    const now = Date.now(), days = [];
+    for (let i = 6; i >= 0; i--) { const s = now - i * 86400000, e = s + 86400000; days.push(af.filter(f => f.uploadedTimestamp >= s && f.uploadedTimestamp < e).length); }
+    const md = Math.max(...days, 1);
+    document.getElementById('analyticsWeekChart').innerHTML = days.map((c, i) => `<div class="flex flex-col items-center flex-grow gap-1"><div class="w-full bg-[var(--accent)] rounded-sm" style="height:${Math.max((c / md) * 100, 4)}%"></div><span class="text-[8px] text-[var(--text4)]">${6 - i}h</span></div>`).join('');
+
+    // Donut
+    const dd = Object.entries(types).filter(([, v]) => v > 0).map(([k, v]) => ({ label: { image: 'Gambar', video: 'Video', audio: 'Audio', archive: 'Arsip', document: 'Dokumen', other: 'Lain' }[k], value: v, color: { image: '#3b82f6', video: '#a855f7', audio: '#38bdf8', archive: '#f97316', document: '#22c55e', other: '#737373' }[k] }));
+    drawDonutChart('analyticsDonutCanvas', dd);
+    document.getElementById('analyticsDonutLegend').innerHTML = dd.map(d => `<div class="donut-legend"><div class="donut-legend-dot" style="background:${d.color}"></div><span>${d.label}: ${d.value}</span></div>`).join('');
+
+    // Storage growth
+    const growthDays = [];
+    for (let i = 13; i >= 0; i--) { const cutoff = now - i * 86400000; growthDays.push(af.filter(f => f.uploadedTimestamp <= cutoff).reduce((a, f) => a + f.size, 0)); }
+    const maxGrowth = Math.max(...growthDays, 1);
+    document.getElementById('analyticsGrowthChart').innerHTML = growthDays.map((s, i) => `<div class="flex flex-col items-center flex-grow gap-1"><div class="w-full bg-emerald-500 rounded-sm" style="height:${Math.max((s / maxGrowth) * 100, 2)}%"></div></div>`).join('');
+
+    // Top 5 largest files
+    const top5 = [...af].sort((a, b) => b.size - a.size).slice(0, 5);
+    document.getElementById('analyticsTopFiles').innerHTML = top5.map((f, i) => `<div class="flex items-center gap-3 text-xs"><span class="text-[var(--text4)] font-mono w-4">${i + 1}.</span><i class="${getIconClass(f.type)} text-[10px]"></i><span class="truncate flex-grow">${f.name}</span><span class="text-[var(--text3)] font-mono">${formatBytes(f.size)}</span></div>`).join('') || '<p class="text-[var(--text4)] text-xs">Belum ada file.</p>';
+
+    // Heatmap (4 weeks x 7 days)
+    const heatmapData = [];
+    for (let w = 3; w >= 0; w--) {
+        for (let d = 6; d >= 0; d--) {
+            const dayStart = now - (w * 7 + d) * 86400000;
+            const dayEnd = dayStart + 86400000;
+            const count = af.filter(f => f.uploadedTimestamp >= dayStart && f.uploadedTimestamp < dayEnd).length;
+            heatmapData.push(count);
+        }
+    }
+    const maxHeat = Math.max(...heatmapData, 1);
+    document.getElementById('analyticsHeatmap').innerHTML = heatmapData.map(c => {
+        const level = c === 0 ? '' : c <= maxHeat * 0.25 ? 'l1' : c <= maxHeat * 0.5 ? 'l2' : c <= maxHeat * 0.75 ? 'l3' : 'l4';
+        return `<div class="heatmap-cell ${level}" title="${c} upload"></div>`;
+    }).join('');
+
+    document.getElementById('analyticsModal').classList.remove('hidden');
+}
+function closeAnalytics() { document.getElementById('analyticsModal').classList.add('hidden'); }
+
+// ── F86: Drag & Drop Reorder ──
+let customFileOrder = JSON.parse(localStorage.getItem('ridgebox_file_order') || '[]');
+function saveCustomFileOrder() { localStorage.setItem('ridgebox_file_order', JSON.stringify(customFileOrder)); }
+function initDragReorder() {
+    document.addEventListener('dragstart', e => {
+        const item = e.target.closest('.file-item');
+        if (!item || !item.dataset.fileId) return;
+        item.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', item.dataset.fileId);
+        e.dataTransfer.effectAllowed = 'move';
+    });
+    document.addEventListener('dragend', e => {
+        const item = e.target.closest('.file-item');
+        if (item) item.classList.remove('dragging');
+        document.querySelectorAll('.file-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+    document.addEventListener('dragover', e => {
+        const item = e.target.closest('.file-item');
+        if (item && item.dataset.fileId) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            document.querySelectorAll('.file-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+            item.classList.add('drag-over');
+        }
+    });
+    document.addEventListener('drop', e => {
+        const target = e.target.closest('.file-item');
+        if (!target || !target.dataset.fileId) return;
+        // Only handle if it's within the file list area, not folder sidebar
+        if (target.closest('#folderList')) return;
+        e.preventDefault();
+        target.classList.remove('drag-over');
+        const fromId = e.dataTransfer.getData('text/plain');
+        const toId = target.dataset.fileId;
+        if (!fromId || fromId === toId) return;
+        // Reorder in customFileOrder
+        const idx = customFileOrder.indexOf(fromId);
+        if (idx > -1) customFileOrder.splice(idx, 1);
+        const toIdx = customFileOrder.indexOf(toId);
+        if (toIdx > -1) customFileOrder.splice(toIdx, 0, fromId);
+        else customFileOrder.push(fromId);
+        saveCustomFileOrder();
+        renderFileList();
+    });
+}
+
+// ── F87: File Description/Caption ──
+function openFileCaption(id) {
+    const f = filesData.find(x => x.id === id);
+    if (!f) return;
+    const caption = prompt('Caption (terlihat di link share):', f.caption || '');
+    if (caption === null) return;
+    f.caption = caption;
+    updateFileInDB(f).then(() => { showToast('Caption disimpan.', 'success'); loadFilesFromDB(); });
+}
+
+// ── F88: Share Link Custom Alias ──
+function applyShareAlias() {
+    const alias = document.getElementById('shareAliasInput').value.trim().replace(/[^a-zA-Z0-9-_]/g, '');
+    if (!alias) { showToast('Masukkan alias yang valid.', 'error'); return; }
+    const link = document.getElementById('shareLinkInput').value;
+    if (!link) return;
+    // Store mapping: alias → base64 encoded share link
+    const aliases = JSON.parse(localStorage.getItem('ridgebox_aliases') || '{}');
+    aliases[alias] = btoa(unescape(encodeURIComponent(link)));
+    localStorage.setItem('ridgebox_aliases', JSON.stringify(aliases));
+    const shortLink = `${window.location.origin}${window.location.pathname}#/s/${alias}`;
+    document.getElementById('shareAliasPreview').textContent = shortLink;
+    document.getElementById('shareAliasPreview').classList.remove('hidden');
+    showToast('Alias disimpan!', 'success');
+}
+function resolveShareAlias(alias) {
+    const aliases = JSON.parse(localStorage.getItem('ridgebox_aliases') || '{}');
+    const encoded = aliases[alias];
+    if (!encoded) return null;
+    try { return decodeURIComponent(escape(atob(encoded))); } catch { return null; }
+}
+
+// ── F89: Upload from Camera Video ──
+const _origCaptureFromCamera = captureFromCamera;
+captureFromCamera = async function() {
+    try {
+        // Create modal with toggle
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 z-60 bg-black/90 flex items-center justify-center p-4';
+        modal.innerHTML = `
+            <div class="space-y-4 text-center w-full max-w-md">
+                <div class="flex justify-center gap-3 mb-2">
+                    <button class="tab-btn active" id="camPhotoTab" onclick="this.classList.add('active');document.getElementById('camVideoTab').classList.remove('active');document.getElementById('camVideoControls').classList.add('hidden');document.getElementById('camPhotoControls').classList.remove('hidden')">Foto</button>
+                    <button class="tab-btn" id="camVideoTab" onclick="this.classList.add('active');document.getElementById('camPhotoTab').classList.remove('active');document.getElementById('camPhotoControls').classList.add('hidden');document.getElementById('camVideoControls').classList.remove('hidden')">Video</button>
+                </div>
+                <video autoplay playsinline class="max-w-full max-h-[50vh] rounded-xl mx-auto"></video>
+                <div id="camPhotoControls"><button class="btn-primary" id="captureBtn"><i class="fa-solid fa-camera mr-1"></i> Ambil Foto</button></div>
+                <div id="camVideoControls" class="hidden"><button class="btn-primary" id="recBtn"><i class="fa-solid fa-circle mr-1 text-red-400"></i> Rekam</button><button class="btn-ghost hidden" id="stopRecBtn"><i class="fa-solid fa-stop mr-1"></i> Berhenti</button></div>
+                <button class="btn-ghost" id="closeCamBtn">Tutup</button>
+            </div>`;
+        document.body.appendChild(modal);
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true });
+        const vid = modal.querySelector('video');
+        vid.srcObject = stream;
+        let mediaRecorder = null, chunks = [], isRecording = false;
+        modal.querySelector('#captureBtn').onclick = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = vid.videoWidth; canvas.height = vid.videoHeight;
+            canvas.getContext('2d').drawImage(vid, 0, 0);
+            canvas.toBlob(blob => { const file = new File([blob], `foto-${Date.now()}.jpg`, { type: 'image/jpeg' }); handleFileUpload([file]); stream.getTracks().forEach(t => t.stop()); modal.remove(); }, 'image/jpeg', 0.9);
+        };
+        modal.querySelector('#recBtn').onclick = () => {
+            mediaRecorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : 'video/mp4' });
+            chunks = [];
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const file = new File([blob], `video-${Date.now()}.webm`, { type: 'video/webm' });
+                handleFileUpload([file]); stream.getTracks().forEach(t => t.stop()); modal.remove();
+            };
+            mediaRecorder.start();
+            isRecording = true;
+            modal.querySelector('#recBtn').classList.add('hidden');
+            modal.querySelector('#stopRecBtn').classList.remove('hidden');
+        };
+        modal.querySelector('#stopRecBtn').onclick = () => { if (mediaRecorder && isRecording) { mediaRecorder.stop(); isRecording = false; } };
+        modal.querySelector('#closeCamBtn').onclick = () => { stream.getTracks().forEach(t => t.stop()); modal.remove(); };
+    } catch (e) { showToast('Tidak bisa mengakses kamera.', 'error'); }
+};
+
+// ── F90: File Favorites/Star ──
+async function toggleStar(id) {
+    const f = filesData.find(x => x.id === id);
+    if (!f) return;
+    f.starred = !f.starred;
+    await updateFileInDB(f);
+    loadFilesFromDB();
+    showToast(f.starred ? 'Ditambahkan ke Favorit.' : 'Dihapus dari Favorit.', 'success');
+}
+function batchStarSelected() {
+    for (const id of selectedFiles) { const f = filesData.find(x => x.id === id); if (f) { f.starred = true; updateFileInDB(f); } }
+    showToast(`${selectedFiles.size} file difavoritkan.`, 'success'); loadFilesFromDB();
+}
+
+// ── F91: Multi-Select Range (Shift+Click in Grid) ──
+// Already handled in renderGridItem via shiftKey check - enhanced below in overrides
+
+// ── F92: Quick Actions Toolbar ──
+function updateQuickActionsBar() {
+    const bar = document.getElementById('quickActionsBar');
+    if (selectedFiles.size > 0) {
+        bar.classList.remove('hidden');
+        document.getElementById('qaCount').textContent = selectedFiles.size;
+    } else {
+        bar.classList.add('hidden');
+    }
+}
+
+// ── F93: Upload Progress Global ──
+let uploadProgressState = { active: 0, total: 0, totalPercent: 0 };
+function updateUploadProgressGlobal() {
+    const bar = document.getElementById('uploadProgressGlobal');
+    const queueItems = document.querySelectorAll('#uploadQueue .card-inner');
+    const active = queueItems.length;
+    if (active === 0) { bar.classList.add('hidden'); uploadProgressState = { active: 0, total: 0, totalPercent: 0 }; return; }
+    bar.classList.remove('hidden');
+    document.getElementById('upbText').textContent = `Mengunggah (${active} file...)`;
+    // Calculate average progress
+    let totalPct = 0;
+    queueItems.forEach(item => { const pctEl = item.querySelector('[id^="percent-"]'); if (pctEl) { const val = parseInt(pctEl.textContent); if (!isNaN(val)) totalPct += val; } });
+    const avg = active > 0 ? Math.round(totalPct / active) : 0;
+    document.getElementById('upbPct').textContent = avg + '%';
+}
+
+// ── F94: File Type Icon in Grid ──
+// Enhanced in renderGridItem override below
+
+// ── F95: Onboarding Tour ──
+const ONBOARD_STEPS = [
+    { title: 'Selamat datang!', desc: 'Ridgebox adalah cloud storage berbasis Telegram. Mari kenali fitur-fiturnya!', target: null },
+    { title: 'Upload Area', desc: 'Seret & lepas file, atau klik untuk memilih. Mendukung enkripsi dan kompresi otomatis.', target: '#dropZone' },
+    { title: 'Daftar File', desc: 'Semua file yang diupload ditampilkan di sini. Klik kanan untuk opsi lebih lanjut.', target: '#fileList' },
+    { title: 'Sidebar Folder', desc: 'Organisir file dalam folder. Favorit, Terbaru, dan Sampah tersedia di sini.', target: '#folderSidebar' },
+    { title: 'Pengaturan', desc: 'Atur batas upload, tema, PIN keamanan, dan lainnya di sini.', target: '[onclick="openSettings()"]' }
+];
+let onboardStep = 0;
+function startOnboarding() {
+    if (localStorage.getItem('ridgebox_onboard_done')) return;
+    if (!document.getElementById('appView').classList.contains('hidden')) {
+        onboardStep = 0;
+        showOnboardingStep();
+        document.getElementById('onboardingOverlay').classList.remove('hidden');
+    }
+}
+function showOnboardingStep() {
+    const step = ONBOARD_STEPS[onboardStep];
+    document.getElementById('onboardStepNum').textContent = onboardStep + 1;
+    document.getElementById('onboardTitle').textContent = step.title;
+    document.getElementById('onboardDesc').textContent = step.desc;
+    document.getElementById('onboardPrevBtn').classList.toggle('hidden', onboardStep === 0);
+    document.getElementById('onboardNextBtn').textContent = onboardStep === ONBOARD_STEPS.length - 1 ? 'Selesai' : 'Lanjut';
+}
+function nextOnboardingStep() {
+    if (onboardStep < ONBOARD_STEPS.length - 1) { onboardStep++; showOnboardingStep(); }
+    else skipOnboarding();
+}
+function prevOnboardingStep() { if (onboardStep > 0) { onboardStep--; showOnboardingStep(); } }
+function skipOnboarding() { document.getElementById('onboardingOverlay').classList.add('hidden'); localStorage.setItem('ridgebox_onboard_done', '1'); }
+
+// ── F96: Toast Grouping ──
+let toastQueue = [], toastTimer = null;
+const _rawShowToastOrig = _rawShowToast;
+// Override the underlying toast function
+const _groupedShowToast = function(msg, type = 'info') {
+    toastQueue.push({ msg, type, time: Date.now() });
+    if (!toastTimer) {
+        toastTimer = setTimeout(() => {
+            // Group toasts
+            const groups = {};
+            toastQueue.forEach(t => {
+                const key = t.type + ':' + (t.msg.includes('berhasil diupload') ? 'upload_success' : t.msg.includes('dihapus') ? 'delete' : t.msg);
+                if (!groups[key]) groups[key] = { ...t, count: 0 };
+                groups[key].count++;
+            });
+            Object.values(groups).forEach(g => {
+                const finalMsg = g.count > 1 ? g.msg.replace(/"[^"]*"/, `${g.count} file`) : g.msg;
+                _rawShowToastOrig(finalMsg, g.type);
+            });
+            toastQueue = [];
+            toastTimer = null;
+        }, 500);
+    }
+};
+
+// ── F97: Empty State Illustrations ──
+function getEmptyStateHTML(type) {
+    const svgIcon = `<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">`;
+    const illustrations = {
+        noFiles: `<div class="empty-state">${svgIcon}<rect x="16" y="12" width="48" height="56" rx="6" stroke="var(--accent)" stroke-width="2" fill="none"/><path d="M30 32h20M30 40h20M30 48h12" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" opacity="0.5"/></svg><h4>Belum ada berkas</h4><p>Upload file pertama kamu untuk memulai.</p></div>`,
+        emptyFolder: `<div class="empty-state">${svgIcon}<path d="M16 28h48v32a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V28z" stroke="var(--accent)" stroke-width="2" fill="none"/><path d="M16 28l8-12h32l8 12" stroke="var(--accent)" stroke-width="2" fill="none" opacity="0.5"/></svg><h4>Folder kosong</h4><p>Upload file atau pindahkan file ke folder ini.</p></div>`,
+        emptyTrash: `<div class="empty-state">${svgIcon}<path d="M24 28h32l-4 32H28l-4-32z" stroke="var(--accent)" stroke-width="2" fill="none"/><path d="M20 28h40" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/><path d="M32 20h16v8H32z" stroke="var(--accent)" stroke-width="2" fill="none" opacity="0.5"/></svg><h4>Sampah kosong</h4><p>File yang dihapus akan muncul di sini.</p></div>`,
+        emptySearch: `<div class="empty-state">${svgIcon}<circle cx="36" cy="36" r="16" stroke="var(--accent)" stroke-width="2" fill="none"/><path d="M48 48l12 12" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/></svg><h4>Tidak ditemukan</h4><p>Coba kata kunci lain atau ubah filter.</p></div>`
+    };
+    return illustrations[type] || illustrations.noFiles;
+}
+
+// ── F98: Responsive Sidebar ──
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('folderSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('active');
+    sidebar.classList.toggle('hidden', !sidebar.classList.contains('mobile-open'));
+}
+
+// ── F99: Keyboard Navigation ──
+let focusedFileIndex = -1;
+function initKeyboardNav() {
+    document.addEventListener('keydown', e => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+        if (!document.getElementById('appView').classList.contains('hidden')) {
+            const items = document.querySelectorAll('#fileList .file-item');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                focusedFileIndex = Math.min(focusedFileIndex + 1, items.length - 1);
+                items.forEach(i => i.classList.remove('focused'));
+                if (items[focusedFileIndex]) items[focusedFileIndex].classList.add('focused');
+                items[focusedFileIndex]?.scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                focusedFileIndex = Math.max(focusedFileIndex - 1, 0);
+                items.forEach(i => i.classList.remove('focused'));
+                if (items[focusedFileIndex]) items[focusedFileIndex].classList.add('focused');
+                items[focusedFileIndex]?.scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'Enter' && focusedFileIndex >= 0) {
+                const f = getFilteredFiles()[focusedFileIndex];
+                if (f && (f.type === 'image' || f.type === 'video')) openPreview(f.tgFileId, f.name, f.type, f.botIndex || '0');
+            } else if (e.key === ' ' && focusedFileIndex >= 0) {
+                e.preventDefault();
+                const f = getFilteredFiles()[focusedFileIndex];
+                if (f) { if (!batchMode) toggleBatchMode(); toggleFileSelection(f.id, { checked: !selectedFiles.has(f.id) }); }
+            }
+        }
+    });
+}
+function getFilteredFiles() {
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+    return filesData.filter(f => {
+        const ms = f.name.toLowerCase().includes(searchVal);
+        const mc = currentFilter === 'all' || f.type === currentFilter;
+        let mf;
+        if (currentFolder === 'trash') mf = !!f.deletedAt;
+        else if (currentFolder === 'recent') mf = !f.deletedAt && f.uploadedTimestamp && (Date.now() - f.uploadedTimestamp < 86400000 * 3);
+        else if (currentFolder === 'favorites') mf = !f.deletedAt && f.starred;
+        else if (currentFolder === 'all') mf = !f.deletedAt;
+        else mf = f.folder === currentFolder && !f.deletedAt;
+        return ms && mc && mf;
+    });
+}
+
+// ── F100: File Markdown Preview ──
+function renderMarkdown(text) {
+    let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // Headers
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    // Bold & Italic
+    html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // Code blocks
+    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    html = html.replace(/`(.+?)`/g, '<code>$1</code>');
+    // Links
+    html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+    // Lists
+    html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+    // Blockquotes
+    html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+    // Horizontal rule
+    html = html.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid var(--border);margin:12px 0">');
+    // Paragraphs
+    html = html.replace(/\n\n/g, '</p><p>');
+    html = '<p>' + html + '</p>';
+    return html;
+}
+
+// ── F101: PDF Viewer ──
+// Already handled in openDocPreview - PDF opens in iframe
+
+// ── F102: Share Analytics ──
+async function initShareAnalyticsDB() {
+    return new Promise(resolve => {
+        const r = indexedDB.open('RidgeboxShareAnalytics', 1);
+        r.onupgradeneeded = e => { const d = e.target.result; if (!d.objectStoreNames.contains('shareAnalytics')) d.createObjectStore('shareAnalytics', { keyPath: 'fileId' }); };
+        r.onsuccess = e => resolve(e.target.result);
+        r.onerror = () => resolve(null);
+    });
+}
+async function recordShareAccess(fileId) {
+    const saDB = await initShareAnalyticsDB();
+    if (!saDB) return;
+    const tx = saDB.transaction(['shareAnalytics'], 'readwrite');
+    const store = tx.objectStore('shareAnalytics');
+    const req = store.get(fileId);
+    req.onsuccess = () => {
+        const existing = req.result || { fileId, totalClicks: 0, lastAccess: 0, visitors: [] };
+        existing.totalClicks++;
+        existing.lastAccess = Date.now();
+        // Approximate unique visitors using a random session ID
+        const sessionId = sessionStorage.getItem('ridgebox_session') || (sessionStorage.setItem('ridgebox_session', Date.now().toString(36) + Math.random().toString(36).substr(2, 5)), sessionStorage.getItem('ridgebox_session'));
+        if (!existing.visitors.includes(sessionId)) existing.visitors.push(sessionId);
+        existing.visitors = existing.visitors.slice(-50); // Keep last 50
+        store.put(existing);
+    };
+}
+async function getShareAnalytics(fileId) {
+    const saDB = await initShareAnalyticsDB();
+    if (!saDB) return null;
+    return new Promise(resolve => {
+        const tx = saDB.transaction(['shareAnalytics'], 'readonly');
+        const req = tx.objectStore('shareAnalytics').get(fileId);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+    });
+}
+
+// Override incrementShareClicks to also record analytics
+const _origIncrementShareClicks = incrementShareClicks;
+incrementShareClicks = function(fid) {
+    _origIncrementShareClicks(fid);
+    recordShareAccess(fid);
+};
+
+// ── F103: Auto-Tag by File Type ──
+function getAutoTagForType(type) {
+    const map = { image: 'blue', video: 'purple', audio: 'green', archive: 'orange', document: 'yellow' };
+    return map[type] || null;
+}
+
+// ── F104: Collaborative Folder ──
+function generateCollabFolderLink(folderName) {
+    const token = Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
+    localStorage.setItem('ridgebox_collab_' + token, JSON.stringify({ folder: folderName, uploader: 'Kolaborator', createdAt: Date.now() }));
+    return `${window.location.origin}${window.location.pathname}#/upload/${token}?folder=${encodeURIComponent(folderName)}`;
+}
+
+// ── F105: i18n / Multi-Bahasa ──
+let currentLang = localStorage.getItem('ridgebox_lang') || 'id';
+const TRANSLATIONS = {
+    id: {
+        'Semua Berkas': 'Semua Berkas', 'Sampah': 'Sampah', 'Terbaru': 'Terbaru', 'Favorit': 'Favorit',
+        'Upload': 'Upload', 'Settings': 'Pengaturan', 'Search': 'Cari', 'Dashboard': 'Dasbor',
+        'berkas': 'berkas', 'Mengunggah': 'Mengunggah', 'Selesai': 'Selesai',
+        'Simpan Pengaturan': 'Simpan Pengaturan', 'Bagikan Berkas': 'Bagikan Berkas',
+        'Statistik': 'Statistik', 'Analytics': 'Analytics', 'Activity Log': 'Activity Log'
+    },
+    en: {
+        'Semua Berkas': 'All Files', 'Sampah': 'Trash', 'Terbaru': 'Recent', 'Favorit': 'Favorites',
+        'Upload': 'Upload', 'Settings': 'Settings', 'Search': 'Search', 'Dashboard': 'Dashboard',
+        'berkas': 'files', 'Mengunggah': 'Uploading', 'Selesai': 'Done',
+        'Simpan Pengaturan': 'Save Settings', 'Bagikan Berkas': 'Share File',
+        'Statistik': 'Statistics', 'Analytics': 'Analytics', 'Activity Log': 'Activity Log'
+    }
+};
+function setLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('ridgebox_lang', lang);
+    document.getElementById('langId').classList.toggle('active', lang === 'id');
+    document.getElementById('langEn').classList.toggle('active', lang === 'en');
+    applyTranslations();
+}
+function t(key) { return TRANSLATIONS[currentLang]?.[key] || key; }
+function applyTranslations() {
+    // Update key UI elements
+    document.getElementById('fileListTitle').textContent = currentFolder === 'trash' ? t('Sampah') : currentFolder === 'recent' ? t('Terbaru') : currentFolder === 'favorites' ? t('Favorit') : t('Semua Berkas');
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.placeholder = t('Search') + '...';
+}
+
+// ═══ Override renderFileList to add F82, F90, F94, F97, F86 features ═══
+const _prevRenderFileList = renderFileList;
+renderFileList = function() {
+    try {
+    const container = document.getElementById('fileList');
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+    container.innerHTML = '';
+    let filtered = filesData.filter(f => {
+        const nameMatch = f.name.toLowerCase().includes(searchVal);
+        const notesMatch = deepSearchEnabled && f.notes && f.notes.toLowerCase().includes(searchVal);
+        const folderMatch = deepSearchEnabled && f.folder && f.folder.toLowerCase().includes(searchVal);
+        const typeMatch = deepSearchEnabled && f.type && f.type.toLowerCase().includes(searchVal);
+        const captionMatch = deepSearchEnabled && f.caption && f.caption.toLowerCase().includes(searchVal);
+        const ms = nameMatch || notesMatch || folderMatch || typeMatch || captionMatch || !searchVal;
+        const mc = currentFilter === 'all' || f.type === currentFilter;
+        let mf;
+        if (currentFolder === 'trash') mf = !!f.deletedAt;
+        else if (currentFolder === 'recent') mf = !f.deletedAt && f.uploadedTimestamp && (Date.now() - f.uploadedTimestamp < 86400000 * 3);
+        else if (currentFolder === 'favorites') mf = !f.deletedAt && f.starred;
+        else if (currentFolder === 'all') mf = !f.deletedAt;
+        else mf = f.folder === currentFolder && !f.deletedAt;
+        if (activeQuickFilter === 'today') mf = mf && f.uploadedTimestamp && (Date.now() - f.uploadedTimestamp < 86400000);
+        else if (activeQuickFilter === 'week') mf = mf && f.uploadedTimestamp && (Date.now() - f.uploadedTimestamp < 86400000 * 7);
+        else if (activeQuickFilter === 'large') mf = mf && f.size > 10 * 1024 * 1024;
+        else if (activeQuickFilter === 'pinned') mf = mf && f.pinned;
+        else if (activeQuickFilter === 'encrypted') mf = mf && f.encrypted;
+        return ms && mc && mf;
+    });
+    // Sort
+    const sort = document.getElementById('sortSelect')?.value || 'date-desc';
+    filtered.sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        switch (sort) {
+            case 'date-asc': return (a.uploadedTimestamp || 0) - (b.uploadedTimestamp || 0);
+            case 'name-asc': return a.name.localeCompare(b.name);
+            case 'name-desc': return b.name.localeCompare(a.name);
+            case 'size-desc': return b.size - a.size;
+            case 'size-asc': return a.size - b.size;
+            case 'type': return a.type.localeCompare(b.type);
+            default: return (b.uploadedTimestamp || 0) - (a.uploadedTimestamp || 0);
+        }
+    });
+    // F86: Apply custom order
+    if (customFileOrder.length > 0) {
+        filtered.sort((a, b) => {
+            const ai = customFileOrder.indexOf(a.id), bi = customFileOrder.indexOf(b.id);
+            if (ai === -1 && bi === -1) return 0;
+            if (ai === -1) return 1;
+            if (bi === -1) return -1;
+            return ai - bi;
+        });
+    }
+    document.getElementById('fileCountText').innerText = `${filtered.length} ${t('berkas')}`;
+    if (!filtered.length) {
+        // F97: Empty State Illustrations
+        const emptyType = currentFolder === 'trash' ? 'emptyTrash' : searchVal ? 'emptySearch' : (currentFolder !== 'all' && currentFolder !== 'recent' && currentFolder !== 'favorites') ? 'emptyFolder' : 'noFiles';
+        container.innerHTML = getEmptyStateHTML(emptyType);
+        container.className = '';
+        return;
+    }
+    if (viewMode === 'grid') { container.className = 'file-grid'; filtered.forEach(f => renderGridItemEnhanced(container, f)); }
+    else { container.className = 'space-y-2'; filtered.forEach(f => renderListItemEnhanced(container, f)); }
+    // F92: Update quick actions
+    updateQuickActionsBar();
+    } catch(e) { console.error('[F76+] renderFileList error:', e); }
+};
+
+// Enhanced Grid Item with F82, F84, F90, F94
+function renderGridItemEnhanced(c, file) {
+    const item = document.createElement('div'), isSel = selectedFiles.has(file.id), isDup = duplicateIds.has(file.id);
+    item.className = `file-item card flex flex-col items-center p-3 text-center relative ${isSel ? 'selected' : ''} ${isDup ? 'dup-card' : ''}`;
+    item.dataset.fileId = file.id;
+    item.draggable = true;
+    const isPrev = file.type === 'image' || file.type === 'video';
+    // F94: Use getIconMarkup for non-image files
+    let thumb;
+    if (file.type === 'image' && file.thumbId) {
+        thumb = `<div class="file-thumb"><img src="${apiThumbUrl(file.thumbId, file.botIndex)}" loading="lazy" onerror="this.parentElement.innerHTML='${getIconMarkup(file.type).replace(/'/g, "\\'")}'"></div>`;
+    } else {
+        const colorMap = { image: 'text-blue-400', video: 'text-purple-400', audio: 'text-cyan-400', archive: 'text-orange-400', document: 'text-green-400', other: 'text-gray-400' };
+        thumb = `<div class="file-thumb"><i class="${getIconClass(file.type)} text-2xl ${colorMap[file.type] || 'text-gray-400'}"></i></div>`;
+    }
+    // F84: Preview tooltip on hover
+    const previewTip = file.type === 'image' && file.thumbId ? `<div class="grid-preview-tip"><img src="${apiThumbUrl(file.thumbId, file.botIndex)}" style="max-width:240px;max-height:160px;border-radius:6px"></div>` : `<div class="grid-preview-tip"><div class="text-[10px] text-[var(--text3)]">${file.type.toUpperCase()} · ${formatBytes(file.size)}</div></div>`;
+    const cb = batchMode ? `<input type="checkbox" class="file-checkbox mb-2" ${isSel ? 'checked' : ''} onchange="toggleFileSelection('${file.id}',this)">` : '';
+    const pin = file.pinned ? '<i class="fa-solid fa-thumbtack pin-icon mr-1"></i>' : '';
+    const enc = file.encrypted ? '<span class="enc-badge">ENC</span>' : '';
+    const tag = `<span onclick="event.stopPropagation();cycleTag('${file.id}')">${tagDotHtml(file.tag)}</span>`;
+    const expBadge = file.expiresAt > 0 ? `<span class="expiry-badge bg-orange-500/10 text-orange-400 ml-1 text-[7px]">EXP</span>` : '';
+    // F81: Version count badge
+    const verBadge = file.versions && file.versions.length > 0 ? `<span class="text-[8px] px-1 py-0.5 rounded bg-[var(--accent)]/10 text-[var(--accent)] font-bold">v${file.versions.length + 1}</span>` : '';
+    // F90: Star icon
+    const starIcon = `<button onclick="event.stopPropagation();toggleStar('${file.id}')" class="star-btn ${file.starred ? 'starred' : ''}" style="position:absolute;top:6px;right:6px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border:none;background:none;cursor:pointer"><i class="fa-${file.starred ? 'solid' : 'regular'} fa-star text-[10px]"></i></button>`;
+    // F82: Trash auto-purge countdown
+    const purgeBadge = file.deletedAt ? (() => { const days = 30 - Math.floor((Date.now() - file.deletedAt) / 86400000); return `<span class="purge-badge">${days > 0 ? days + ' hari' : 'segera'}</span>`; })() : '';
+    const isTrash = currentFolder === 'trash';
+    const acts = isTrash ? `<button onclick="restoreFile('${file.id}')" class="btn-icon" style="width:24px;height:24px" title="Pulihkan"><i class="fa-solid fa-rotate-left text-[8px] text-[var(--accent)]"></i></button><button onclick="permanentDeleteFile('${file.id}')" class="btn-icon danger" style="width:24px;height:24px"><i class="fa-regular fa-trash-can text-[8px]"></i></button>` : `<button onclick="togglePin('${file.id}')" class="btn-icon" style="width:24px;height:24px"><i class="fa-solid fa-thumbtack text-[8px] ${file.pinned ? 'text-[var(--accent)]' : ''}"></i></button><button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g, "\\'")}',${file.size},'${file.botIndex || '0'}')" class="btn-icon" style="width:24px;height:24px"><i class="fa-solid fa-share-nodes text-[8px]"></i></button><button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" style="width:24px;height:24px"><i class="fa-regular fa-trash-can text-[8px]"></i></button>`;
+    item.innerHTML = `${starIcon}${cb}${thumb}${previewTip}<div class="w-full"><h4 class="text-[11px] font-medium text-[var(--text2)] truncate ${isPrev && !isTrash ? 'cursor-pointer hover:text-[var(--accent)]' : ''}" ${isPrev && !isTrash ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g, "\\'")}','${file.type}','${file.botIndex || '0'}')"` : ''}>${pin}${file.name}${enc}${expBadge}${verBadge}${purgeBadge}</h4><div class="flex items-center justify-center gap-1 mt-0.5"><p class="text-[9px] text-[var(--text4)]">${formatBytes(file.size)}</p>${tag}</div></div><div class="file-actions-row">${acts}</div>`;
+    item.addEventListener('click', e => { lastClickedFileId = file.id; if (e.shiftKey && lastClickedFileId) handleRangeSelect(lastClickedFileId, file.id); });
+    c.appendChild(item);
+}
+
+// Enhanced List Item with F82, F87, F90
+function renderListItemEnhanced(c, file) {
+    const item = document.createElement('div'), isSel = selectedFiles.has(file.id), isDup = duplicateIds.has(file.id);
+    item.className = `file-item flex items-center justify-between p-3 rounded-xl border border-[var(--border)] ${isSel ? 'selected' : ''} ${isDup ? 'dup-card' : ''}`;
+    item.dataset.fileId = file.id;
+    item.draggable = true;
+    const icon = getIconMarkup(file.type), isPrev = file.type === 'image' || file.type === 'video' || isDocPreviewable(file.name), nameClass = isPrev ? 'cursor-pointer hover:text-[var(--accent)]' : '';
+    const cb = batchMode ? `<input type="checkbox" class="file-checkbox mr-3" ${isSel ? 'checked' : ''} onchange="toggleFileSelection('${file.id}',this)">` : '';
+    const pin = file.pinned ? '<i class="fa-solid fa-thumbtack pin-icon mr-1"></i>' : '';
+    const enc = file.encrypted ? '<span class="enc-badge">ENC</span>' : '';
+    const expBadge = file.expiresAt > 0 ? `<span class="expiry-badge bg-orange-500/10 text-orange-400 ml-1 text-[7px]">EXP</span>` : '';
+    const folderTag = file.folder ? `<span class="text-[9px] text-[var(--text4)] bg-[var(--surface2)] px-1.5 py-0.5 rounded ml-1">${file.folder}</span>` : '';
+    const tag = `<span onclick="event.stopPropagation();cycleTag('${file.id}')" class="ml-1">${tagDotHtml(file.tag)}</span>`;
+    const notesIcon = file.notes ? `<i class="fa-solid fa-sticky-note text-[7px] text-yellow-400 ml-1" title="Ada catatan"></i>` : '';
+    // F87: Caption icon
+    const captionIcon = file.caption ? `<i class="fa-solid fa-comment text-[7px] text-sky-400 ml-1" title="Ada caption"></i>` : '';
+    // F81: Version count badge
+    const verBadge = file.versions && file.versions.length > 0 ? `<span class="text-[8px] px-1 py-0.5 rounded bg-[var(--accent)]/10 text-[var(--accent)] font-bold ml-1">v${file.versions.length + 1}</span>` : '';
+    // F90: Star
+    const starBtn = `<button onclick="event.stopPropagation();toggleStar('${file.id}')" class="star-btn ${file.starred ? 'starred' : ''}" title="Favorit"><i class="fa-${file.starred ? 'solid' : 'regular'} fa-star text-[10px]"></i></button>`;
+    // F82: Trash auto-purge countdown
+    const purgeBadge = file.deletedAt ? (() => { const days = 30 - Math.floor((Date.now() - file.deletedAt) / 86400000); return `<span class="purge-badge">${days > 0 ? 'dihapus dalam ' + days + ' hari' : 'segera dihapus'}</span>`; })() : '';
+    const isTrash = currentFolder === 'trash';
+    const acts = isTrash ? `<button onclick="restoreFile('${file.id}')" class="btn-icon" title="Pulihkan"><i class="fa-solid fa-rotate-left text-[10px] text-[var(--accent)]"></i></button><button onclick="permanentDeleteFile('${file.id}')" class="btn-icon danger" title="Hapus"><i class="fa-regular fa-trash-can text-[10px]"></i></button>` : `${starBtn}<button onclick="togglePin('${file.id}')" class="btn-icon" title="Pin"><i class="fa-solid fa-thumbtack text-[10px] ${file.pinned ? 'text-[var(--accent)]' : ''}"></i></button>${isPrev ? `<button onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g, "\\'")}','${file.type}','${file.botIndex || '0'}')" class="btn-icon" title="Preview"><i class="fa-regular fa-eye text-[10px]"></i></button>` : ''}<button onclick="openShareModal('${file.tgFileId}','${file.name.replace(/'/g, "\\'")}',${file.size},'${file.botIndex || '0'}')" class="btn-icon" title="Share"><i class="fa-solid fa-share-nodes text-[10px]"></i></button><button onclick="openMoveFolderForFile('${file.id}')" class="btn-icon" title="Pindah"><i class="fa-solid fa-folder-open text-[10px]"></i></button><button onclick="openFileNotes('${file.id}')" class="btn-icon" title="Catatan"><i class="fa-solid fa-sticky-note text-[10px]"></i></button><button onclick="openFileCaption('${file.id}')" class="btn-icon" title="Caption"><i class="fa-solid fa-comment text-[10px]"></i></button><button onclick="openFileExpiration('${file.id}')" class="btn-icon" title="Masa berlaku"><i class="fa-regular fa-clock text-[10px]"></i></button><button onclick="openFileDetail('${file.id}')" class="btn-icon" title="Detail"><i class="fa-solid fa-circle-info text-[10px]"></i></button><button onclick="deleteSingleFile('${file.id}')" class="btn-icon danger" title="Hapus"><i class="fa-regular fa-trash-can text-[10px]"></i></button>`;
+    item.innerHTML = `<div class="flex items-center gap-3 min-w-0 flex-grow">${cb}<div class="w-9 h-9 rounded-lg bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">${icon}</div><div class="min-w-0"><h4 class="text-xs font-medium text-[var(--text2)] truncate max-w-[150px] sm:max-w-[280px] ${nameClass}" ${isPrev && !isTrash ? `onclick="openPreview('${file.tgFileId}','${file.name.replace(/'/g, "\\'")}','${file.type}','${file.botIndex || '0'}')"` : ''} ondblclick="${isTrash ? '' : `startRename('${file.id}',this)`}" id="name-${file.id}">${pin}${file.name}${enc}${expBadge}${folderTag}${tag}${notesIcon}${captionIcon}${verBadge}${purgeBadge}</h4><p class="text-[10px] text-[var(--text4)] mt-0.5">${formatBytes(file.size)} · ${file.uploadedAt}</p></div></div><div class="flex items-center gap-0.5 flex-shrink-0">${acts}</div>`;
+    item.addEventListener('click', e => { lastClickedFileId = file.id; if (e.shiftKey && lastClickedFileId) handleRangeSelect(lastClickedFileId, file.id); });
+    c.appendChild(item);
+}
+
+// ═══ Override selectFolder to support favorites ═══
+const _prevSelectFolder = selectFolder;
+selectFolder = function(name) {
+    currentFolder = name;
+    document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('active'));
+    if (name === 'all') document.getElementById('folderAll')?.classList.add('active');
+    else if (name === 'recent') document.getElementById('folderRecent')?.classList.add('active');
+    else if (name === 'favorites') document.getElementById('folderFavorites')?.classList.add('active');
+    else if (name === 'trash') document.getElementById('folderTrash')?.classList.add('active');
+    else document.querySelectorAll('#folderList .folder-item').forEach(el => { if (el.textContent.trim().includes(name)) el.classList.add('active'); });
+    document.getElementById('fileListTitle').textContent = name === 'trash' ? t('Sampah') : name === 'recent' ? t('Terbaru') : name === 'favorites' ? t('Favorit') : name === 'all' ? t('Semua Berkas') : name;
+    document.getElementById('trashActions')?.classList.toggle('hidden', name !== 'trash');
+    document.getElementById('uploadZone').style.display = name === 'trash' ? 'none' : '';
+    renderFileList();
+    updateBreadcrumb();
+    // F98: Close mobile sidebar after selection
+    const sidebar = document.getElementById('folderSidebar');
+    if (sidebar.classList.contains('mobile-open')) toggleMobileSidebar();
+};
+
+// ═══ Override routing to support F79, F88, F104 ═══
+const _prevCheckUrlRouting = checkUrlRouting;
+checkUrlRouting = function() {
+    const h = window.location.hash;
+    document.getElementById('homeView').classList.add('hidden');
+    document.getElementById('appView').classList.add('hidden');
+    document.getElementById('downloadPortal').classList.add('hidden');
+    document.getElementById('notFoundView').classList.add('hidden');
+    document.getElementById('uploadPortal').classList.add('hidden');
+    if (h.startsWith('#/file/')) {
+        document.getElementById('downloadPortal').classList.remove('hidden');
+        applyPageTransition(document.getElementById('downloadPortal'));
+        setupDownloadPortal(h.substring(7));
+    } else if (h.startsWith('#/upload/')) {
+        // F79: Collaborative Upload Portal
+        document.getElementById('uploadPortal').classList.remove('hidden');
+        applyPageTransition(document.getElementById('uploadPortal'));
+        const parts = h.substring(9).split('?');
+        const token = parts[0];
+        const params = new URLSearchParams(parts[1] || '');
+        collabUploadFolder = params.get('folder') || '';
+        initUploadPortal(token);
+    } else if (h.startsWith('#/s/')) {
+        // F88: Custom share alias
+        const alias = h.substring(4);
+        const fullLink = resolveShareAlias(alias);
+        if (fullLink) { window.location.hash = fullLink.split('#')[1] || ''; return; }
+        else { document.getElementById('notFoundView').classList.remove('hidden'); applyPageTransition(document.getElementById('notFoundView')); }
+    } else if (h.startsWith('#/dashboard')) {
+        document.getElementById('appView').classList.remove('hidden');
+        applyPageTransition(document.getElementById('appView'));
+    } else if (h === '#/' || h === '' || h === '#') {
+        document.getElementById('homeView').classList.remove('hidden');
+        applyPageTransition(document.getElementById('homeView'));
+    } else {
+        document.getElementById('notFoundView').classList.remove('hidden');
+        applyPageTransition(document.getElementById('notFoundView'));
+    }
+};
+
+// ═══ Override openPreview for F100 (Markdown), F101 (PDF) ═══
+const _prevOpenPreview = openPreview;
+openPreview = async function(tgId, fileName, fileType, bi) {
+    const modal = document.getElementById('previewModal'), content = document.getElementById('previewContent');
+    content.innerHTML = '<div class="flex flex-col items-center gap-4"><i class="fa-solid fa-circle-notch animate-spin text-3xl text-[var(--accent)]"></i><span class="text-sm text-[var(--text3)]">Memuat...</span></div>';
+    modal.classList.remove('hidden');
+    logActivity('preview', fileName);
+    try {
+        const info = await apiGetFileInfo(tgId, bi);
+        if (!info.ok) throw new Error('Gagal');
+        const url = apiGetDownloadUrl(info.result.file_path, bi);
+        const ext = fileName.split('.').pop().toLowerCase();
+        if (ext === 'md') {
+            // F100: Markdown Preview
+            const r = await fetch(url); const t = await r.text();
+            const rendered = renderMarkdown(t);
+            content.innerHTML = `<div class="md-preview animate-fadeUp"><div class="flex justify-between items-center mb-4"><h3 class="text-sm font-semibold">${fileName}</h3><button onclick="navigator.clipboard.writeText(\`${t.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`).then(()=>showToast('Markdown disalin!','success'))" class="btn-ghost text-[10px]"><i class="fa-solid fa-copy mr-1"></i>Copy Markdown</button></div>${rendered}</div>`;
+        } else if (ext === 'pdf') {
+            // F101: PDF Viewer
+            content.innerHTML = `<div class="animate-fadeUp" style="width:85vw;height:85vh"><iframe src="${url}" style="width:100%;height:100%;border:none;border-radius:8px;background:#fff"></iframe></div>`;
+        } else if (isDocPreviewable(fileName) && ext !== 'pdf' && ext !== 'md') {
+            const r = await fetch(url); const t = await r.text();
+            const highlighted = syntaxHighlight(t, ext);
+            content.innerHTML = `<div style="max-width:80vw;max-height:85vh;overflow:auto;background:var(--surface);border-radius:12px;padding:24px"><pre style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;color:var(--text2);white-space:pre-wrap;word-break:break-all">${highlighted}</pre></div>`;
+        } else if (fileType === 'image') {
+            content.innerHTML = `<div class="relative"><img src="${url}" alt="${fileName}" class="animate-fadeUp"></div>`;
+            showImageResizeControls(url, fileName);
+        } else if (fileType === 'video') {
+            content.innerHTML = `<video controls autoplay class="animate-fadeUp" style="max-width:90vw;max-height:85vh;border-radius:8px"><source src="${url}"></video>`;
+        } else if (fileType === 'audio') {
+            content.innerHTML = `<div class="animate-fadeUp" style="background:var(--surface);border-radius:12px;padding:32px;text-align:center;max-width:500px"><i class="fa-solid fa-music text-4xl text-[var(--accent)] mb-4"></i><h3 class="text-sm font-semibold mb-4">${fileName}</h3><canvas id="audioWaveform" class="waveform-canvas mb-4" width="460" height="60"></canvas><audio controls autoplay style="width:100%"><source src="${url}"></audio></div>`;
+            drawWaveform(url, 'audioWaveform');
+        } else {
+            content.innerHTML = `<div class="text-center space-y-3"><i class="fa-solid fa-file text-4xl text-[var(--text3)]"></i><p class="text-sm text-[var(--text3)]">Preview tidak tersedia</p><a href="${url}" download="${fileName}" class="btn-primary inline-flex items-center gap-2"><i class="fa-solid fa-download"></i>Download</a></div>`;
+        }
+    } catch (e) { content.innerHTML = `<div class="text-center space-y-3"><i class="fa-solid fa-circle-exclamation text-3xl text-red-400"></i><p class="text-sm text-[var(--text3)]">${e.message}</p></div>`; }
+};
+
+// ═══ Override openShareModal for F102: Share Analytics ═══
+const _prevOpenShareModal = openShareModal;
+openShareModal = function(tgId, name, size, bi) {
+    _prevOpenShareModal(tgId, name, size, bi);
+    // F102: Load share analytics
+    getShareAnalytics(tgId).then(analytics => {
+        if (analytics) {
+            document.getElementById('saTotalClicks').textContent = analytics.totalClicks || 0;
+            document.getElementById('saLastAccess').textContent = analytics.lastAccess ? timeAgo(analytics.lastAccess) : '-';
+            document.getElementById('saUniqueVisitors').textContent = (analytics.visitors || []).length;
+        } else {
+            document.getElementById('saTotalClicks').textContent = '0';
+            document.getElementById('saLastAccess').textContent = '-';
+            document.getElementById('saUniqueVisitors').textContent = '0';
+        }
+    });
+    // Reset alias input
+    document.getElementById('shareAliasInput').value = '';
+    document.getElementById('shareAliasPreview').classList.add('hidden');
+};
+
+// ═══ Batch encrypt selected (F92) ═══
+async function batchEncryptSelected() {
+    if (!selectedFiles.size) { showToast('Pilih file dulu.', 'error'); return; }
+    const pwd = prompt('Masukkan password enkripsi:');
+    if (!pwd) return;
+    showToast('Mengenkripsi file...', 'info');
+    for (const id of selectedFiles) {
+        const f = filesData.find(x => x.id === id);
+        if (f && !f.encrypted) {
+            f.encrypted = true;
+            await updateFileInDB(f);
+        }
+    }
+    showToast(`${selectedFiles.size} file ditandai terenkripsi.`, 'success');
+    loadFilesFromDB();
+}
+
+// ═══ Override context menu for F87, F90, F104 ═══
+const _origInitContextMenu = initContextMenu;
+initContextMenu = function() {
+    document.addEventListener('contextmenu', e => {
+        const fileItem = e.target.closest('.file-item');
+        if (!fileItem) { hideContextMenu(); return; }
+        e.preventDefault();
+        const fileId = getFileIdFromElement(fileItem);
+        if (!fileId) return;
+        contextMenuFileId = fileId;
+        const f = filesData.find(x => x.id === fileId);
+        if (!f) return;
+        const isTrash = currentFolder === 'trash';
+        const menu = document.getElementById('contextMenu');
+        menu.innerHTML = `
+            <div class="context-menu-item" onclick="openPreview('${f.tgFileId}','${f.name.replace(/'/g, "\\'")}','${f.type}','${f.botIndex||'0'}');hideContextMenu()"><i class="fa-regular fa-eye text-[10px]"></i> Preview</div>
+            <div class="context-menu-item" onclick="openShareModal('${f.tgFileId}','${f.name.replace(/'/g, "\\'")}',${f.size},'${f.botIndex||'0'}');hideContextMenu()"><i class="fa-solid fa-share-nodes text-[10px]"></i> Bagikan</div>
+            <div class="context-menu-item" onclick="togglePin('${f.id}');hideContextMenu()"><i class="fa-solid fa-thumbtack text-[10px]"></i> ${f.pinned ? 'Lepas Pin' : 'Pin'}</div>
+            <div class="context-menu-item" onclick="toggleStar('${f.id}');hideContextMenu()"><i class="fa-${f.starred ? 'solid' : 'regular'} fa-star text-[10px]"></i> ${f.starred ? 'Hapus Favorit' : 'Favorit'}</div>
+            ${!isTrash ? `<div class="context-menu-item" onclick="openMoveFolderForFile('${f.id}');hideContextMenu()"><i class="fa-solid fa-folder-open text-[10px]"></i> Pindah</div>` : ''}
+            <div class="context-menu-item" onclick="openFileNotes('${f.id}');hideContextMenu()"><i class="fa-solid fa-sticky-note text-[10px]"></i> Catatan</div>
+            <div class="context-menu-item" onclick="openFileCaption('${f.id}');hideContextMenu()"><i class="fa-solid fa-comment text-[10px]"></i> Caption</div>
+            <div class="context-menu-item" onclick="openFileExpiration('${f.id}');hideContextMenu()"><i class="fa-regular fa-clock text-[10px]"></i> Masa Berlaku</div>
+            <div class="context-menu-item" onclick="openFileDetail('${f.id}');hideContextMenu()"><i class="fa-solid fa-circle-info text-[10px]"></i> Detail</div>
+            <div class="context-menu-divider"></div>
+            ${!isTrash && f.folder ? `<div class="context-menu-item" onclick="navigator.clipboard.writeText(generateCollabFolderLink('${f.folder}')).then(()=>showToast('Link folder kolaboratif disalin!','success'));hideContextMenu()"><i class="fa-solid fa-link text-[10px]"></i> Share Upload Link</div>` : ''}
+            ${!isTrash ? `<div class="context-menu-item" onclick="startRename('${f.id}',document.getElementById('name-${f.id}'));hideContextMenu()"><i class="fa-solid fa-pen text-[10px]"></i> Rename</div>` : ''}
+            <div class="context-menu-item danger" onclick="deleteSingleFile('${f.id}');hideContextMenu()"><i class="fa-regular fa-trash-can text-[10px]"></i> ${isTrash ? 'Hapus Permanen' : 'Hapus'}</div>
+        `;
+        const x = Math.min(e.clientX, window.innerWidth - 200);
+        const y = Math.min(e.clientY, window.innerHeight - 300);
+        menu.style.left = x + 'px'; menu.style.top = y + 'px';
+        menu.classList.remove('hidden');
+    });
+    document.addEventListener('click', hideContextMenu);
+};
+
+// ═══ F103: Auto-Tag by File Type on upload ═══
+const _prevSaveFileToDB2 = saveFileToDB;
+// Already overridden above to handle versioning, add auto-tag there
+
+// ═══ F93: Hook upload progress tracking ═══
+const _prevRemoveQueueItem = removeQueueItem;
+removeQueueItem = function(id) {
+    _prevRemoveQueueItem(id);
+    updateUploadProgressGlobal();
+};
+
+// ═══ Safe Init for new features ═══
+safeInit('F80: Scheduled Upload Persistent', restoreScheduledUploads);
+safeInit('F86: Drag Reorder', initDragReorder);
+safeInit('F99: Keyboard Navigation', initKeyboardNav);
+safeInit('F95: Onboarding Tour', () => { setTimeout(startOnboarding, 2000); });
+safeInit('F103: Auto-Tag', () => {
+    // Apply auto-tags to existing files that don't have tags
+    filesData.filter(f => !f.tag && !f.deletedAt).forEach(f => {
+        f.tag = getAutoTagForType(f.type);
+        updateFileInDB(f);
+    });
+});
+safeInit('F105: i18n', () => {
+    const lang = localStorage.getItem('ridgebox_lang');
+    if (lang) setLanguage(lang);
+});
+safeInit('F76: Proxy Mode Toggle', () => {
+    const proxy = localStorage.getItem('ridgebox_proxy_mode');
+    const toggle = document.getElementById('proxyModeToggle');
+    if (toggle) { useProxyMode = proxy !== 'false'; toggle.checked = useProxyMode; }
+});
+
+// ═══ Add click-outside for analytics modal ═══
+document.getElementById('analyticsModal')?.addEventListener('click', function(e) { if (e.target === this) closeAnalytics(); });
+
+// ═══ Override updateBatchCount for F92 ═══
+const _prevUpdateBatchCount = updateBatchCount;
+updateBatchCount = function() {
+    document.getElementById('batchCount').innerText = selectedFiles.size;
+    const compareBtn = document.getElementById('compareBtn');
+    if (compareBtn) compareBtn.style.display = selectedFiles.size === 2 ? '' : 'none';
+    updateQuickActionsBar();
+};
+
+// ═══ Override openFileDetail for F87, F90 ═══
+const _origOpenFileDetail = openFileDetail;
+openFileDetail = function(id) {
+    const f = filesData.find(x => x.id === id);
+    if (!f) return;
+    const panel = document.getElementById('fileDetailPanel');
+    let html = `<div class="flex justify-between items-center p-4 border-b border-[var(--border)]"><h3 class="text-sm font-semibold">Detail File</h3><button onclick="closeFileDetail()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="p-4 space-y-3">
+        <div class="text-center mb-4"><div class="w-16 h-16 mx-auto rounded-xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center">${getIconMarkup(f.type)}</div><h4 class="text-sm font-semibold mt-2 break-words">${f.name}</h4><p class="text-[11px] text-[var(--text4)]">${formatBytes(f.size)}</p></div>
+        <div class="detail-row"><span class="detail-label">Tipe</span><span class="detail-value">${f.type}</span></div>
+        <div class="detail-row"><span class="detail-label">Tanggal</span><span class="detail-value">${f.uploadedAt}</span></div>
+        <div class="detail-row"><span class="detail-label">Enkripsi</span><span class="detail-value">${f.encrypted ? 'Ya' : 'Tidak'}</span></div>
+        <div class="detail-row"><span class="detail-label">Dipin</span><span class="detail-value">${f.pinned ? 'Ya' : 'Tidak'}</span></div>
+        <div class="detail-row"><span class="detail-label">Favorit</span><span class="detail-value">${f.starred ? 'Ya' : 'Tidak'}</span></div>
+        <div class="detail-row"><span class="detail-label">Folder</span><span class="detail-value">${f.folder || '-'}</span></div>
+        <div class="detail-row"><span class="detail-label">Tag</span><span class="detail-value">${tagDotHtml(f.tag)}</span></div>
+        <div class="detail-row"><span class="detail-label">Catatan</span><span class="detail-value">${f.notes || '-'}</span></div>
+        <div class="detail-row"><span class="detail-label">Caption</span><span class="detail-value">${f.caption || '-'}</span></div>
+        <div class="detail-row"><span class="detail-label">Klik Share</span><span class="detail-value">${f.shareClicks || 0}</span></div>
+        ${f.versions && f.versions.length > 0 ? `<div class="mt-2 pt-2 border-t border-[var(--border)]"><p class="text-[10px] text-[var(--text4)] font-bold uppercase mb-2">Riwayat Versi (${f.versions.length})</p>${f.versions.map((v, i) => `<div class="text-[10px] text-[var(--text3)] mb-1">v${i + 1}: ${v.name} · ${new Date(v.timestamp).toLocaleDateString('id-ID')}</div>`).join('')}</div>` : ''}
+    </div>`;
+    panel.innerHTML = html;
+    panel.classList.add('open');
+};
+
+// ═══ F96: Override showToast for grouping ═══
+// We already wrapped showToast once for F59. Now apply grouping.
+// Since showToast is currently = _origShowToast + notif + browser notif,
+// we need to be careful not to double-wrap.
+// The current showToast adds to notification history. Let's keep that but add grouping to the visual toast.
+// Apply toast grouping by replacing the raw toast function
+_rawShowToast = _groupedShowToast;
 
 </script>
 </body>

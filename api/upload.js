@@ -21,7 +21,8 @@ export default async function (request) {
   try {
     const formData = await request.formData();
     const file = formData.get('document');
-    const botIndex = formData.get('bot_index') || '0';
+    let botIndex = formData.get('bot_index') || '0';
+    let chatId = formData.get('chat_id') || '';
 
     if (!file) {
       return new Response(JSON.stringify({ ok: false, error: 'No file provided' }), {
@@ -33,9 +34,13 @@ export default async function (request) {
     const token = botIndex === '0'
       ? process.env.TG_BOT_TOKEN
       : process.env[`TG_BOT_${botIndex}_TOKEN`];
-    const chatId = botIndex === '0'
-      ? process.env.TG_CHAT_ID
-      : process.env[`TG_BOT_${botIndex}_CHAT_ID`];
+    
+    // F76/F79: If chat_id is provided via form (proxy mode), use it; otherwise use env var
+    if (!chatId) {
+      chatId = botIndex === '0'
+        ? process.env.TG_CHAT_ID
+        : process.env[`TG_BOT_${botIndex}_CHAT_ID`];
+    }
 
     if (!token || !chatId) {
       return new Response(JSON.stringify({ ok: false, error: 'Bot not configured on server' }), {

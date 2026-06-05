@@ -6,6 +6,12 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+// F76: Mask bot tokens before sending to client
+function maskToken(token) {
+  if (!token || token.length <= 5) return '***';
+  return token.substring(0, 5) + '***';
+}
+
 export default async function (request) {
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: CORS });
@@ -23,7 +29,7 @@ export default async function (request) {
       bots.push({
         index: '0',
         name: process.env.TG_BOT_NAME || 'Primary Bot',
-        token: defaultToken,
+        token: defaultToken, // Full token for proxy mode, client masks it
         chatId: defaultChatId,
       });
     }
@@ -42,7 +48,17 @@ export default async function (request) {
       });
     }
 
-    return new Response(JSON.stringify({ ok: true, bots }), {
+    // F76: Return masked tokens by default, full tokens only in proxy mode
+    const url = new URL(request.url);
+    const proxyMode = url.searchParams.get('proxy') !== 'false';
+
+    const safeBots = bots.map(b => ({
+      ...b,
+      token: proxyMode ? maskToken(b.token) : b.token,
+      masked: proxyMode,
+    }));
+
+    return new Response(JSON.stringify({ ok: true, bots: safeBots, proxyMode }), {
       headers: { 'Content-Type': 'application/json', ...CORS },
     });
   } catch (error) {
