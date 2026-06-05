@@ -85,8 +85,33 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 .waveform-bar{display:inline-block;width:3px;margin:0 1px;background:var(--accent);border-radius:2px;vertical-align:bottom;transition:height .1s ease}
 .onboarding-highlight{position:relative;z-index:110;box-shadow:0 0 0 4px var(--accent),0 0 0 9999px rgba(0,0,0,.5);border-radius:8px}
 .onboarding-tooltip{position:fixed;z-index:111;background:var(--bg-card);border-radius:var(--radius);padding:16px;max-width:320px;box-shadow:var(--shadow-lg)}
-@media(max-width:768px){.sidebar-desktop{display:none!important}.detail-panel{width:100%}}
-@media(min-width:769px){.sidebar-mobile-toggle{display:none!important}}
+/* View Mode: Mobile */
+body.view-mobile .sidebar-desktop{display:none!important}
+body.view-mobile .detail-panel{width:100%!important;top:auto!important;bottom:0!important;left:0!important;right:0!important;height:70vh!important;border-radius:16px 16px 0 0!important;transform:translateY(100%)!important;box-shadow:0 -4px 24px rgba(0,0,0,.15)!important}
+body.view-mobile .detail-panel.open{transform:translateY(0)!important}
+body.view-mobile .modal-content{position:fixed!important;bottom:0!important;left:0!important;right:0!important;max-width:100%!important;width:100%!important;max-height:90vh!important;border-radius:16px 16px 0 0!important;animation:slideUp .25s ease!important}
+body.view-mobile .modal-backdrop{align-items:flex-end!important}
+body.view-mobile .toast-container{left:16px!important;right:16px!important;bottom:80px!important;max-width:none!important}
+body.view-mobile .quick-actions-bar{bottom:16px!important;left:16px!important;right:16px!important;transform:none!important;width:auto!important}
+body.view-mobile .file-list-row{min-height:56px;padding:12px 16px!important}
+body.view-mobile .file-grid-item{padding:12px!important}
+body.view-mobile .btn{min-height:36px}
+body.view-mobile .back-to-top{bottom:80px!important;left:16px!important}
+body.view-mobile .hide-mobile-small{display:none!important}
+body.view-mobile .sidebar-mobile{position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;transform:translateX(-100%);transition:transform .3s ease}
+body.view-mobile .sidebar-mobile.open{transform:translateX(0)}
+body.view-mobile .toolbar-wrap{flex-wrap:wrap!important;gap:4px!important;padding:8px 12px!important}
+body.view-mobile .toolbar-wrap .search-box{min-width:0!important;width:100%!important;order:-1}
+body.view-mobile .toolbar-wrap select{font-size:11px!important;padding:4px 6px!important}
+body.view-mobile .file-list-row .action-btns{display:none!important}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+/* View Mode: Desktop */
+body.view-desktop .sidebar-mobile-toggle{display:none!important}
+body.view-desktop .detail-panel{width:420px;max-width:100%;top:0;right:0;bottom:0;left:auto;height:auto;border-radius:0}
+body.view-desktop .detail-panel.open{transform:translateX(0)}
+/* Fallback: auto-detect */
+@media(max-width:768px){body:not(.view-mobile):not(.view-desktop) .sidebar-desktop{display:none!important}body:not(.view-mobile):not(.view-desktop) .detail-panel{width:100%}}
+@media(min-width:769px){body:not(.view-mobile):not(.view-desktop) .sidebar-mobile-toggle{display:none!important}}
 </style>
 </head>
 <body>
@@ -150,7 +175,8 @@ const APP = {
     lastSelectedIndex: -1,
     uploadQueue: [],
     activeUploads: 0,
-    totalUploadProgress: 0
+    totalUploadProgress: 0,
+    viewMode: localStorage.getItem('rb_view_mode') || (window.innerWidth < 769 ? 'mobile' : 'desktop')
 };
 
 // ===== i18n (F105) =====
@@ -848,28 +874,32 @@ function renderHeader() {
     const hash = location.hash || '#/';
     const isHome = hash === '#/' || hash === '';
     const isDashboard = hash.startsWith('#/dashboard') || hash.startsWith('#/file/');
+    const vm = APP.viewMode;
     header.innerHTML = `
-        <header style="position:sticky;top:0;z-index:60;background:var(--bg);border-bottom:1px solid var(--border);height:var(--header-h);display:flex;align-items:center;padding:0 20px;gap:12px">
-            ${isDashboard ? `<button class="btn btn-ghost sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)"><i class="fas fa-bars"></i></button>` : ''}
-            <a href="#/" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-weight:700;font-size:18px">
-                <div style="width:32px;height:32px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center">
-                    <i class="fas fa-cloud" style="color:#fff;font-size:14px"></i>
+        <header style="position:sticky;top:0;z-index:60;background:var(--bg);border-bottom:1px solid var(--border);height:var(--header-h);display:flex;align-items:center;padding:0 12px;gap:8px">
+            ${isDashboard ? `<button class="btn btn-ghost sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)" style="padding:8px"><i class="fas fa-bars"></i></button>` : ''}
+            <a href="#/" style="display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--text);font-weight:700;font-size:16px">
+                <div style="width:28px;height:28px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center">
+                    <i class="fas fa-cloud" style="color:#fff;font-size:12px"></i>
                 </div>
-                Ridgebox
+                <span class="hide-mobile-small">Ridgebox</span>
             </a>
             <div style="flex:1"></div>
-            <div id="conn-status" style="cursor:pointer" onclick="updateConnectionStatus()">
+            <button class="btn btn-ghost" onclick="toggleViewMode()" title="${vm === 'mobile' ? 'Desktop Mode' : 'Mobile Mode'}" style="padding:6px 8px;${vm==='mobile'?'background:rgba(59,130,246,.1);color:var(--accent)':''}">
+                <i class="fas fa-${vm === 'mobile' ? 'mobile-screen' : 'display'}"></i>
+            </button>
+            <div id="conn-status" style="cursor:pointer;padding:0 4px" onclick="updateConnectionStatus()">
                 <i class="fas fa-wifi" style="color:${APP.connected ? '#10b981' : '#ef4444'}"></i>
             </div>
-            ${APP.activeUploads > 0 ? `<span style="font-size:12px;color:var(--accent)"><i class="fas fa-spinner fa-spin"></i> ${APP.activeUploads}</span>` : ''}
-            <button class="btn btn-ghost" onclick="toggleTheme()" title="${t('theme')}">
+            ${APP.activeUploads > 0 ? `<span style="font-size:11px;color:var(--accent)"><i class="fas fa-spinner fa-spin"></i></span>` : ''}
+            <button class="btn btn-ghost" onclick="toggleTheme()" title="${t('theme')}" style="padding:6px 8px">
                 <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'}"></i>
             </button>
-            <button class="btn btn-ghost" onclick="toggleLang()" title="${t('language')}">
-                <span style="font-size:12px;font-weight:600">${APP.lang === 'id' ? 'ID' : 'EN'}</span>
+            <button class="btn btn-ghost" onclick="toggleLang()" title="${t('language')}" style="padding:6px 8px">
+                <span style="font-size:11px;font-weight:600">${APP.lang === 'id' ? 'ID' : 'EN'}</span>
             </button>
-            ${!isHome ? `<a href="#/" class="btn btn-ghost"><i class="fas fa-home"></i></a>` : ''}
-            ${isHome ? `<a href="#/dashboard" class="btn btn-primary btn-sm"><i class="fas fa-rocket"></i> ${t('openDashboard')}</a>` : ''}
+            ${!isHome ? `<a href="#/" class="btn btn-ghost" style="padding:6px 8px"><i class="fas fa-home"></i></a>` : ''}
+            ${isHome ? `<a href="#/dashboard" class="btn btn-primary btn-sm" style="font-size:12px"><i class="fas fa-rocket"></i> <span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
         </header>`;
 }
 
@@ -880,9 +910,50 @@ function toggleLang() {
     checkUrlRouting();
 }
 
+// ===== VIEW MODE TOGGLE (Mobile/Desktop) =====
+function toggleViewMode() {
+    APP.viewMode = APP.viewMode === 'mobile' ? 'desktop' : 'mobile';
+    localStorage.setItem('rb_view_mode', APP.viewMode);
+    applyViewMode();
+    renderHeader();
+    // Re-render current page with new layout
+    const sidebar = document.getElementById('sidebar-panel');
+    if (sidebar) {
+        if (APP.viewMode === 'desktop') {
+            sidebar.style.transform = '';
+            sidebar.style.position = '';
+            const overlay = document.getElementById('sidebar-mobile-overlay');
+            if (overlay) overlay.classList.remove('open');
+        } else {
+            sidebar.style.transform = 'translateX(-100%)';
+            sidebar.style.position = 'fixed';
+        }
+    }
+    showToast(APP.viewMode === 'mobile' ? 'Mobile Mode' : 'Desktop Mode', 'info', 2000);
+}
+
+function applyViewMode() {
+    document.body.classList.remove('view-mobile', 'view-desktop');
+    document.body.classList.add('view-' + APP.viewMode);
+    // Update sidebar visibility based on mode
+    const sidebar = document.getElementById('sidebar-panel');
+    if (sidebar) {
+        if (APP.viewMode === 'desktop') {
+            sidebar.classList.remove('sidebar-mobile');
+            sidebar.classList.add('sidebar-desktop');
+            sidebar.style.cssText = 'width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:var(--bg);overflow-y:auto;padding:12px;transition:transform .3s ease;z-index:50';
+        } else {
+            sidebar.classList.remove('sidebar-desktop');
+            sidebar.classList.add('sidebar-mobile');
+            sidebar.style.cssText = 'position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;background:var(--bg);overflow-y:auto;padding:12px;transform:translateX(-100%);transition:transform .3s ease;box-shadow:var(--shadow-lg)';
+        }
+    }
+}
+
 function toggleMobileSidebar(open) {
     const sidebar = document.getElementById('sidebar-panel');
     const overlay = document.getElementById('sidebar-mobile-overlay');
+    if (APP.viewMode === 'desktop') return; // No sidebar toggle in desktop mode
     if (sidebar) sidebar.style.transform = open ? 'translateX(0)' : 'translateX(-100%)';
     if (overlay) overlay.classList.toggle('open', open);
 }
@@ -1217,14 +1288,14 @@ function renderDashboard() {
     main.innerHTML = `
     <div class="page-transition" style="display:flex;min-height:calc(100vh - var(--header-h))">
         <!-- Sidebar Desktop (F98) -->
-        <aside id="sidebar-panel" class="sidebar-desktop" style="width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:var(--bg);overflow-y:auto;padding:12px;transition:transform .3s ease;z-index:50">
+        <aside id="sidebar-panel" class="${APP.viewMode === 'mobile' ? 'sidebar-mobile' : 'sidebar-desktop'}" style="${APP.viewMode === 'mobile' ? 'position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;background:var(--bg);overflow-y:auto;padding:12px;transform:translateX(-100%);transition:transform .3s ease;box-shadow:var(--shadow-lg)' : 'width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:var(--bg);overflow-y:auto;padding:12px;transition:transform .3s ease;z-index:50'}">
             ${renderSidebarHTML()}
         </aside>
         <!-- Main Content -->
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
             <!-- Toolbar -->
-            <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <div style="flex:1;min-width:200px;position:relative">
+            <div class="toolbar-wrap" style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <div class="search-box" style="flex:1;min-width:200px;position:relative">
                     <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:13px"></i>
                     <input type="text" class="input" placeholder="${t('search')}" style="padding-left:32px;font-size:13px" value="${APP.searchQuery}" oninput="APP.searchQuery=this.value;renderFileList()">
                 </div>
@@ -1307,7 +1378,8 @@ function selectFolder(folderId) {
     renderBreadcrumb();
     renderQuickFilter();
     renderFileList();
-    toggleMobileSidebar(false);
+    // Close mobile sidebar after selection
+    if (APP.viewMode === 'mobile') toggleMobileSidebar(false);
 }
 
 // ===== BREADCRUMB (F74) =====
@@ -1498,7 +1570,7 @@ function renderFileListRow(file, index) {
             </div>
             <div style="font-size:12px;color:var(--text-secondary)">${formatSize(file.size)} · ${formatDate(file.uploadedAt)}${file.caption ? ' · ' + file.caption.substring(0, 30) : ''}</div>
         </div>
-        <div style="display:flex;gap:4px;flex-shrink:0">
+        <div class="action-btns" style="display:flex;gap:4px;flex-shrink:0">
             <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openPreview('${file.id}')" title="${t('preview')}"><i class="fas fa-eye"></i></button>
             <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openShareModal('${file.id}')" title="${t('share')}"><i class="fas fa-share-alt"></i></button>
             <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();downloadFile('${file.id}')" title="${t('download')}"><i class="fas fa-download"></i></button>
@@ -3061,6 +3133,7 @@ async function init() {
         APP.theme = localStorage.getItem('rb_theme') || 'light';
         APP.lang = localStorage.getItem('rb_lang') || 'id';
         applyTheme();
+        applyViewMode();
 
         // Load data from IndexedDB
         await loadAllData();
