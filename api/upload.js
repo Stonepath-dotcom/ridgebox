@@ -23,6 +23,13 @@ export default async function (request) {
     const file = formData.get('document');
     const botIndex = formData.get('bot_index') || '0';
 
+    if (!file) {
+      return new Response(JSON.stringify({ ok: false, error: 'No file provided' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...CORS },
+      });
+    }
+
     const token = botIndex === '0'
       ? process.env.TG_BOT_TOKEN
       : process.env[`TG_BOT_${botIndex}_TOKEN`];
@@ -37,11 +44,29 @@ export default async function (request) {
       });
     }
 
+    // Determine the best API method based on file type
+    const fileName = file.name || 'file';
+    const fileType = file.type || 'application/octet-stream';
+    let apiMethod = 'sendDocument'; // default for all files
+
     const tgFormData = new FormData();
     tgFormData.append('chat_id', chatId);
-    tgFormData.append('document', file);
 
-    const response = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
+    // Use appropriate Telegram API method based on file type
+    if (fileType.startsWith('image/') && file.size < 10 * 1024 * 1024) {
+      apiMethod = 'sendPhoto';
+      tgFormData.append('photo', file);
+    } else if (fileType.startsWith('video/') && file.size < 50 * 1024 * 1024) {
+      apiMethod = 'sendVideo';
+      tgFormData.append('video', file);
+    } else if (fileType.startsWith('audio/') && file.size < 50 * 1024 * 1024) {
+      apiMethod = 'sendAudio';
+      tgFormData.append('audio', file);
+    } else {
+      tgFormData.append('document', file);
+    }
+
+    const response = await fetch(`https://api.telegram.org/bot${token}/${apiMethod}`, {
       method: 'POST',
       body: tgFormData,
     });
@@ -53,6 +78,7 @@ export default async function (request) {
       headers: { 'Content-Type': 'application/json', ...CORS },
     });
   } catch (error) {
+    console.error('[Upload API Error]', error);
     return new Response(JSON.stringify({ ok: false, error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...CORS },
