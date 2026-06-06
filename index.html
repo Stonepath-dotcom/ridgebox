@@ -3726,7 +3726,7 @@ async function bulkDelete() {
             APP.batchMode = false;
             closeDetailPanel();
             closeContextMenu();
-            showUndoToast(t('movedToTrash'), () => {
+            showUndoToast(t('movedToTrash'), async () => {
                 // Undo: restore all files that were just trashed
                 APP.files.filter(f => f.trashed && f.trashedAt && Date.now() - f.trashedAt < 10000).forEach(async f => {
                     f.trashed = false;
