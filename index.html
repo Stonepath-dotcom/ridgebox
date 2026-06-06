@@ -8445,104 +8445,113 @@ function openMediaPlayer(fileId) {
     const type = getMediaType(file.name, file.mime);
     if (!type) { downloadFile(fileId); return; }
     const downloadUrl = APP.settings.proxyMode !== false
-        ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`
-        : `https://api.telegram.org/file/bot${APP.bots[0]?.token}/${file.filePath}`;
-    const icon = getFileIcon(getFileType(file.name, file.mime));
+        ? '/api/download?path=' + encodeURIComponent(file.filePath) + '&bot_index=' + file.botIndex
+        : 'https://api.telegram.org/file/bot' + (APP.bots[0]?.token||'') + '/' + file.filePath;
     if (type === 'video') {
-        openModal(`
-        <div style="padding:16px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-                <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
-                    <i class="fas fa-film" style="color:#8b5cf6"></i>
-                    <span style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</span>
-                </div>
-                <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
-            </div>
-            <div style="position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:12px;overflow:hidden;margin-bottom:8px">
-                <video id="media-video" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain" src="${downloadUrl}" controls playsinline>
-                    ${APP.lang==='id'?'Browser tidak mendukung video ini':'Browser cannot play this video'}
-                </video>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)">
-                <span>${formatSize(file.size)} · ${file.name.split('.').pop().toUpperCase()}</span>
-                <span>${formatDate(file.uploadedAt)}</span>
-            </div>
-            <div style="margin-top:8px" id="video-fallback"></div>
-            <script>
-                (function(){
-                    var v=document.getElementById('media-video');
-                    v.onerror=function(){document.getElementById('video-fallback').innerHTML='<button class="btn btn-primary" style="width:100%" onclick="downloadFile(\\'${fileId}\\');closeModal()"><i class="fas fa-download"></i> ${APP.lang==='id'?'Download untuk memutar':'Download to play'}</button>';};
-                })();
-            </script>
-        </div>`);
+        openModal('<div style="padding:16px">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+                '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">' +
+                    '<i class="fas fa-film" style="color:#8b5cf6"></i>' +
+                    '<span style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + file.name + '</span>' +
+                '</div>' +
+                '<button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>' +
+            '</div>' +
+            '<div style="position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:12px;overflow:hidden;margin-bottom:8px">' +
+                '<video id="media-video" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain" src="' + downloadUrl + '" controls playsinline>' +
+                    (APP.lang==='id'?'Browser tidak mendukung video ini':'Browser cannot play this video') +
+                '</video>' +
+            '</div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)">' +
+                '<span>' + formatSize(file.size) + ' · ' + file.name.split('.').pop().toUpperCase() + '</span>' +
+                '<span>' + formatDate(file.uploadedAt) + '</span>' +
+            '</div>' +
+            '<div style="margin-top:8px" id="video-fallback"></div>' +
+        '</div>');
+        // Setup video fallback after modal is rendered
+        requestAnimationFrame(function() {
+            var v = document.getElementById('media-video');
+            if (v) {
+                v.onerror = function() {
+                    var fb = document.getElementById('video-fallback');
+                    if (fb) fb.innerHTML = '<button class="btn btn-primary" style="width:100%" onclick="downloadFile(\'' + fileId + '\');closeModal()"><i class="fas fa-download"></i> ' + (APP.lang==='id'?'Download untuk memutar':'Download to play') + '</button>';
+                };
+            }
+        });
     } else if (type === 'audio') {
-        const pid = 'ap-'+Date.now();
-        openModal(`
-        <div style="padding:20px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
-                    <i class="fas fa-music" style="color:#f59e0b"></i>
-                    <span style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</span>
-                </div>
-                <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
-            </div>
-            <div style="text-align:center;margin-bottom:20px">
-                <div style="width:120px;height:120px;border-radius:20px;background:linear-gradient(135deg,#f59e0b20,#8b5cf620);display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 8px 32px rgba(245,158,11,.15)">
-                    <i class="fas fa-music" style="font-size:48px;color:#f59e0b"></i>
-                </div>
-            </div>
-            <div style="margin-bottom:8px">
-                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:4px">
-                    <span id="${pid}-cur">0:00</span>
-                    <span id="${pid}-dur">0:00</span>
-                </div>
-                <div style="position:relative;height:6px;background:var(--border);border-radius:3px;cursor:pointer" onclick="audioSeek_${pid}(event)" id="${pid}-bar">
-                    <div id="${pid}-prog" style="height:100%;background:var(--accent);border-radius:3px;width:0%;transition:width .1s linear"></div>
-                </div>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px">
-                <button onclick="audioSkip_${pid}(-10)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px"><i class="fas fa-backward"></i></button>
-                <button id="${pid}-play" onclick="audioToggle_${pid}()" style="width:48px;height:48px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(59,130,246,.3)"><i class="fas fa-play"></i></button>
-                <button onclick="audioSkip_${pid}(10)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px"><i class="fas fa-forward"></i></button>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:12px">
-                <i class="fas fa-volume-down" style="color:var(--text-secondary);font-size:13px"></i>
-                <input type="range" min="0" max="1" step="0.05" value="1" oninput="audioVol_${pid}(this.value)" style="width:100px;accent-color:var(--accent)">
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)">
-                <span>${formatSize(file.size)} · ${file.name.split('.').pop().toUpperCase()}</span>
-                <span>${formatDate(file.uploadedAt)}</span>
-            </div>
-            <div id="${pid}-fallback" style="margin-top:8px"></div>
-            <audio id="${pid}" src="${downloadUrl}" preload="metadata"></audio>
-            <script>
-            (function(){
-                var a=document.getElementById('${pid}'),playing=false;
-                var playBtn=document.getElementById('${pid}-play');
-                var progBar=document.getElementById('${pid}-prog');
-                var curEl=document.getElementById('${pid}-cur');
-                var durEl=document.getElementById('${pid}-dur');
-                a.addEventListener('timeupdate',function(){
-                    if(a.duration){progBar.style.width=(a.currentTime/a.duration*100)+'%';curEl.textContent=formatTime(a.currentTime);}
-                });
-                a.addEventListener('loadedmetadata',function(){durEl.textContent=formatTime(a.duration);});
-                a.addEventListener('ended',function(){playing=false;playBtn.innerHTML='<i class="fas fa-play"></i>';});
-                a.onerror=function(){document.getElementById('${pid}-fallback').innerHTML='<button class="btn btn-primary" style="width:100%" onclick="downloadFile(\\'${fileId}\\');closeModal()"><i class="fas fa-download"></i> ${APP.lang==='id'?'Download untuk memutar':'Download to play'}</button>';};
-                window['audioToggle_${pid}']=function(){
-                    if(playing){a.pause();playing=false;playBtn.innerHTML='<i class="fas fa-play"></i>';}
-                    else{a.play().catch(function(){});playing=true;playBtn.innerHTML='<i class="fas fa-pause"></i>';}
-                };
-                window['audioSkip_${pid}']=function(s){a.currentTime=Math.max(0,Math.min(a.duration||0,a.currentTime+s));};
-                window['audioVol_${pid}']=function(v){a.volume=v;};
-                window['audioSeek_${pid}']=function(e){
-                    var bar=document.getElementById('${pid}-bar');
-                    var rect=bar.getBoundingClientRect();
-                    var pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
-                    if(a.duration)a.currentTime=pct*a.duration;
-                };
-            })();
-            </script>
-        </div>`);
+        var pid = 'ap-' + Date.now();
+        openModal('<div style="padding:20px">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
+                '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">' +
+                    '<i class="fas fa-music" style="color:#f59e0b"></i>' +
+                    '<span style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + file.name + '</span>' +
+                '</div>' +
+                '<button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>' +
+            '</div>' +
+            '<div style="text-align:center;margin-bottom:20px">' +
+                '<div style="width:120px;height:120px;border-radius:20px;background:linear-gradient(135deg,#f59e0b20,#8b5cf620);display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 8px 32px rgba(245,158,11,.15)">' +
+                    '<i class="fas fa-music" style="font-size:48px;color:#f59e0b"></i>' +
+                '</div>' +
+            '</div>' +
+            '<div style="margin-bottom:8px">' +
+                '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:4px">' +
+                    '<span id="' + pid + '-cur">0:00</span>' +
+                    '<span id="' + pid + '-dur">0:00</span>' +
+                '</div>' +
+                '<div style="position:relative;height:6px;background:var(--border);border-radius:3px;cursor:pointer" id="' + pid + '-bar">' +
+                    '<div id="' + pid + '-prog" style="height:100%;background:var(--accent);border-radius:3px;width:0%;transition:width .1s linear"></div>' +
+                '</div>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px">' +
+                '<button id="' + pid + '-skip-back" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px"><i class="fas fa-backward"></i></button>' +
+                '<button id="' + pid + '-play" style="width:48px;height:48px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(59,130,246,.3)"><i class="fas fa-play"></i></button>' +
+                '<button id="' + pid + '-skip-fwd" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px"><i class="fas fa-forward"></i></button>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:12px">' +
+                '<i class="fas fa-volume-down" style="color:var(--text-secondary);font-size:13px"></i>' +
+                '<input type="range" min="0" max="1" step="0.05" value="1" id="' + pid + '-vol" style="width:100px;accent-color:var(--accent)">' +
+            '</div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)">' +
+                '<span>' + formatSize(file.size) + ' · ' + file.name.split('.').pop().toUpperCase() + '</span>' +
+                '<span>' + formatDate(file.uploadedAt) + '</span>' +
+            '</div>' +
+            '<div id="' + pid + '-fallback" style="margin-top:8px"></div>' +
+            '<audio id="' + pid + '" src="' + downloadUrl + '" preload="metadata"></audio>' +
+        '</div>');
+        // Setup audio player after modal is rendered
+        requestAnimationFrame(function() {
+            var a = document.getElementById(pid);
+            var playBtn = document.getElementById(pid + '-play');
+            var progBar = document.getElementById(pid + '-prog');
+            var curEl = document.getElementById(pid + '-cur');
+            var durEl = document.getElementById(pid + '-dur');
+            var barEl = document.getElementById(pid + '-bar');
+            var volEl = document.getElementById(pid + '-vol');
+            var skipBack = document.getElementById(pid + '-skip-back');
+            var skipFwd = document.getElementById(pid + '-skip-fwd');
+            if (!a) return;
+            var playing = false;
+            a.addEventListener('timeupdate', function() {
+                if (a.duration) { progBar.style.width = (a.currentTime / a.duration * 100) + '%'; curEl.textContent = formatTime(a.currentTime); }
+            });
+            a.addEventListener('loadedmetadata', function() { durEl.textContent = formatTime(a.duration); });
+            a.addEventListener('ended', function() { playing = false; playBtn.innerHTML = '<i class="fas fa-play"></i>'; });
+            a.onerror = function() {
+                var fb = document.getElementById(pid + '-fallback');
+                if (fb) fb.innerHTML = '<button class="btn btn-primary" style="width:100%" onclick="downloadFile(\'' + fileId + '\');closeModal()"><i class="fas fa-download"></i> ' + (APP.lang==='id'?'Download untuk memutar':'Download to play') + '</button>';
+            };
+            playBtn.onclick = function() {
+                if (playing) { a.pause(); playing = false; playBtn.innerHTML = '<i class="fas fa-pause"></i>'; }
+                else { a.play().catch(function(){}); playing = true; playBtn.innerHTML = '<i class="fas fa-pause"></i>'; }
+            };
+            skipBack.onclick = function() { a.currentTime = Math.max(0, a.currentTime - 10); };
+            skipFwd.onclick = function() { a.currentTime = Math.min(a.duration || 0, a.currentTime + 10); };
+            volEl.oninput = function() { a.volume = this.value; };
+            barEl.onclick = function(e) {
+                var rect = barEl.getBoundingClientRect();
+                var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                if (a.duration) a.currentTime = pct * a.duration;
+            };
+        });
     }
 }
 
