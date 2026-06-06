@@ -540,7 +540,9 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 /* Glassmorphism Header */
 .header-glass{background:rgba(255,255,255,.92);border-bottom:1px solid transparent;border-image:linear-gradient(90deg,transparent,rgba(59,130,246,.3),rgba(139,92,246,.3),transparent) 1}
 .dark .header-glass{background:rgba(15,23,42,.95)}
-.header-logo-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#8b5cf6);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.header-logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 8px rgba(59,130,246,.3)}
+.header-logo-icon::after{content:'';position:absolute;inset:-2px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6,#3b82f6);z-index:-1;opacity:.5;animation:logoGlow 3s ease infinite}
+@keyframes logoGlow{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.7;transform:scale(1.05)}}
 .header-pill-btn{padding:6px 14px;border-radius:99px;font-size:13px;cursor:pointer;border:none;background:rgba(59,130,246,.08);color:var(--text-secondary);transition:all .25s ease;font-family:inherit;font-weight:500;display:inline-flex;align-items:center;gap:6px}
 .header-pill-btn:hover{background:rgba(59,130,246,.15);color:var(--accent)}
 .dark .header-pill-btn{background:rgba(255,255,255,.06)}
@@ -569,25 +571,67 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 .storage-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),#8b5cf6);transition:width .6s cubic-bezier(.4,0,.2,1)}
 .storage-info{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text-secondary)}
 
-/* Premium File Grid Card */
-.file-card-premium{border:1px solid var(--border);border-radius:14px;background:var(--bg-card);padding:20px 16px;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
-.file-card-premium::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),#8b5cf6);opacity:0;transition:opacity .3s ease}
-.file-card-premium:hover{border-color:rgba(59,130,246,.3);transform:translateY(-4px);box-shadow:0 12px 40px rgba(59,130,246,.1)}
-.file-card-premium:hover::before{opacity:1}
-.file-card-premium.selected{border-color:var(--accent);background:rgba(59,130,246,.06);box-shadow:0 0 0 2px rgba(59,130,246,.15)}
-.file-card-premium .file-icon-circle{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;position:relative}
-.file-card-premium .file-icon-circle::after{content:'';position:absolute;inset:0;border-radius:14px;background:inherit;filter:blur(12px);opacity:.3;z-index:-1}
+/* Premium File Grid Card — Redesigned */
+.file-card-premium{border:1px solid var(--border);border-radius:14px;background:var(--bg-card);padding:0;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;display:flex;flex-direction:column}
+.file-card-premium:hover{border-color:rgba(59,130,246,.3);transform:translateY(-3px) scale(1.01);box-shadow:0 12px 40px rgba(59,130,246,.12)}
+.file-card-premium.selected{border-color:var(--accent);background:rgba(59,130,246,.04);box-shadow:0 0 0 2px rgba(59,130,246,.2)}
+.file-card-premium.selected .grid-select-check{opacity:1;transform:scale(1)}
+.grid-card-preview{position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;border-radius:13px 13px 0 0;background:var(--bg-secondary)}
+.grid-card-preview img{width:100%;height:100%;object-fit:cover;transition:transform .4s cubic-bezier(.4,0,.2,1)}
+.file-card-premium:hover .grid-card-preview img{transform:scale(1.05)}
+.grid-card-preview .preview-icon-area{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative}
+.grid-card-preview .preview-icon-area .icon-glow{position:absolute;width:80px;height:80px;border-radius:50%;filter:blur(28px);opacity:.2}
+.grid-card-preview .preview-icon-area i{position:relative;z-index:1}
+.grid-type-badge{position:absolute;top:8px;left:8px;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:rgba(0,0,0,.55);color:#fff;backdrop-filter:blur(6px);z-index:3;line-height:1.4}
+.grid-status-icons{position:absolute;top:8px;right:8px;display:flex;gap:4px;z-index:3}
+.grid-status-icons .si{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);color:#fff}
+.grid-status-icons .si.starred{color:#fbbf24}
+.grid-status-icons .si.pinned{color:#60a5fa}
+.grid-status-icons .si.encrypted{color:#818cf8}
+.grid-status-icons .si.has-notes{color:#fbbf24}
+.grid-tag-strip{height:3px;border-radius:0;width:100%;flex-shrink:0}
+.grid-card-info{padding:10px 12px 12px;flex:1;display:flex;flex-direction:column;gap:2px}
+.grid-card-info .grid-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+.grid-card-info .grid-meta{font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:4px}
+.grid-card-info .grid-meta .tag-dot-inline{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.grid-select-check{position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:6px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;opacity:0;transform:scale(.7);transition:all .2s ease;z-index:5;box-shadow:0 2px 6px rgba(59,130,246,.4)}
+.grid-play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2}
+.grid-play-overlay .play-btn{width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;border:none;cursor:pointer;transition:transform .2s ease,background .2s ease;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.file-card-premium:hover .play-btn{transform:scale(1.1);background:rgba(59,130,246,.8)}
+.grid-pdf-badge{position:absolute;bottom:8px;right:8px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(239,68,68,.85);color:#fff;letter-spacing:.3px;z-index:2}
+.grid-audio-wave{display:flex;align-items:end;justify-content:center;gap:3px;height:40px}
+.grid-audio-wave span{width:4px;border-radius:2px;animation:audioBar 1.2s ease-in-out infinite alternate}
+@keyframes audioBar{0%{height:20%}50%{height:80%}100%{height:40%}}
+.grid-card-preview .gradient-overlay{position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(to top,rgba(0,0,0,.45),transparent);z-index:1;pointer-events:none}
+.file-thumb{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.file-thumb-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-secondary);border-radius:8px}
 @keyframes shimmerHover{0%{background-position:-200% 0}100%{background-position:200% 0}}
-.file-card-premium:hover .file-icon-circle::before{content:'';position:absolute;top:0;left:-100%;width:200%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:shimmerHover 1.5s ease forwards}
 
-/* Premium File List Row */
-.file-row-premium{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:all .2s ease;position:relative}
+/* Premium File List Row — Redesigned */
+.file-row-premium{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:all .2s ease;position:relative;gap:12px}
 .file-row-premium:hover{background:rgba(59,130,246,.03)}
 .file-row-premium:hover .row-actions{opacity:1;transform:translateX(0)}
 .file-row-premium .row-actions{opacity:0;transform:translateX(8px);transition:all .2s ease;display:flex;gap:4px;flex-shrink:0}
 .file-row-premium:nth-child(even){background:rgba(0,0,0,.01)}
 .dark .file-row-premium:nth-child(even){background:rgba(255,255,255,.01)}
 .file-row-premium.selected{background:rgba(59,130,246,.06)!important}
+.list-thumb{width:40px;height:40px;border-radius:8px;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
+.list-thumb img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.list-thumb .thumb-icon{width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.list-name-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.list-name-row{display:flex;align-items:center;gap:6px;min-width:0}
+.list-name-row .fname{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-name-row .tag-dot-inline{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.list-name-row .inline-status{font-size:9px;color:var(--text-secondary);flex-shrink:0}
+.list-name-row .inline-status.starred{color:#f59e0b}
+.list-name-row .inline-status.pinned{color:var(--accent)}
+.list-name-row .inline-status.encrypted{color:#8b5cf6}
+.list-sub-meta{font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:6px}
+.list-col-size{font-size:12px;color:var(--text-secondary);width:72px;text-align:right;flex-shrink:0}
+.list-col-date{font-size:12px;color:var(--text-secondary);width:90px;text-align:right;flex-shrink:0}
+.list-upload-progress{height:3px;background:var(--border);border-radius:2px;margin-top:3px;overflow:hidden;width:100%}
+.list-upload-progress .bar{height:100%;background:var(--accent);border-radius:2px;transition:width .3s ease}
+@media(max-width:768px){.list-col-size,.list-col-date{display:none!important}}
 
 /* ===== SWIPE TO DELETE ===== */
 .swipe-wrapper{position:relative;overflow:hidden}
@@ -618,7 +662,7 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 .clear-history-btn:hover{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3)}
 
 /* Grid quick-delete button */
-.grid-quick-delete{display:none;position:absolute;top:6px;left:6px;width:26px;height:26px;border-radius:50%;background:rgba(239,68,68,.9);color:#fff;border:2px solid rgba(255,255,255,.3);cursor:pointer;font-size:10px;align-items:center;justify-content:center;z-index:5;box-shadow:0 2px 8px rgba(239,68,68,.3);-webkit-tap-highlight-color:transparent;transition:transform .15s ease}
+.grid-quick-delete{display:none;position:absolute;bottom:8px;left:8px;width:26px;height:26px;border-radius:50%;background:rgba(239,68,68,.9);color:#fff;border:2px solid rgba(255,255,255,.3);cursor:pointer;font-size:10px;align-items:center;justify-content:center;z-index:5;box-shadow:0 2px 8px rgba(239,68,68,.3);-webkit-tap-highlight-color:transparent;transition:transform .15s ease}
 .grid-quick-delete:active{transform:scale(.85)}
 @media(max-width:768px){.grid-quick-delete{display:flex!important}}
 @media(hover:none) and (pointer:coarse){.grid-quick-delete{display:flex!important}}
@@ -649,12 +693,32 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 .empty-premium .empty-action-btn{margin-top:20px;display:inline-flex;align-items:center;gap:8px;padding:10px 24px;border-radius:99px;background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;font-weight:600;font-size:14px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 4px 15px rgba(59,130,246,.3);transition:all .3s ease}
 .empty-premium .empty-action-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(59,130,246,.4)}
 
-/* Detail Panel Premium */
-.detail-premium .detail-header{padding:20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(59,130,246,.04),rgba(139,92,246,.04));position:relative}
+/* Detail Panel Premium — Redesigned */
+.detail-premium .detail-header{padding:16px 20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(59,130,246,.04),rgba(139,92,246,.04));position:relative;display:flex;justify-content:space-between;align-items:center}
 .detail-premium .detail-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),#8b5cf6)}
-.detail-premium .detail-body{padding:20px}
+.detail-premium .detail-body{padding:0}
+.detail-premium .detail-preview-area{width:100%;aspect-ratio:16/10;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--bg-secondary);position:relative}
+.detail-premium .detail-preview-area img{width:100%;height:100%;object-fit:contain}
+.detail-premium .detail-preview-area video{width:100%;height:100%;object-fit:contain}
+.detail-premium .detail-preview-area audio{width:90%;margin:0 auto}
+.detail-premium .detail-preview-area .preview-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:100%;height:100%}
+.detail-premium .detail-preview-area .preview-placeholder .big-icon{width:80px;height:80px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:34px;position:relative}
+.detail-premium .detail-preview-area .preview-placeholder .big-icon::after{content:'';position:absolute;inset:0;border-radius:20px;background:inherit;filter:blur(20px);opacity:.2;z-index:-1}
+.detail-premium .detail-info-section{padding:16px 20px}
+.detail-premium .detail-file-name{font-size:16px;font-weight:700;word-break:break-all;line-height:1.3;margin-bottom:4px}
+.detail-premium .detail-caption{font-size:12px;color:var(--text-secondary);margin-bottom:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.detail-premium .detail-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
 .detail-premium .detail-stat{padding:10px 12px;background:var(--bg-secondary);border-radius:10px;font-size:13px;transition:all .2s ease}
 .detail-premium .detail-stat:hover{background:rgba(59,130,246,.05)}
+.detail-premium .detail-stat .stat-label{font-size:10px;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.detail-premium .detail-stat .stat-value{font-weight:600;font-size:13px}
+.detail-premium .detail-actions-row{display:flex;flex-wrap:wrap;gap:6px;padding:12px 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.detail-premium .detail-action-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text);transition:all .2s ease;font-family:inherit;white-space:nowrap}
+.detail-premium .detail-action-btn:hover{border-color:var(--accent);background:rgba(59,130,246,.04)}
+.detail-premium .detail-action-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.detail-premium .detail-action-btn.primary:hover{background:var(--accent-hover);box-shadow:0 2px 8px rgba(59,130,246,.3)}
+.detail-premium .detail-action-btn.danger{color:#ef4444;border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.04)}
+.detail-premium .detail-action-btn.danger:hover{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3)}
 .detail-premium .detail-action{padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .25s ease;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
 .detail-premium .detail-action-primary{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;box-shadow:0 2px 10px rgba(59,130,246,.3)}
 .detail-premium .detail-action-primary:hover{box-shadow:0 4px 15px rgba(59,130,246,.4);transform:translateY(-1px)}
@@ -663,6 +727,12 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 .detail-premium .detail-action-danger{background:rgba(239,68,68,.08);color:#ef4444;border:1px solid rgba(239,68,68,.15)}
 .detail-premium .detail-action-danger:hover{background:rgba(239,68,68,.12)}
 .detail-premium .detail-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600}
+.detail-premium .detail-section-title{font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding:0 20px}
+.detail-premium .detail-analytics{padding:12px 20px}
+.detail-premium .detail-analytics .analytics-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:12px}
+.detail-premium .detail-analytics .analytics-row .analytics-label{color:var(--text-secondary)}
+.detail-premium .detail-analytics .analytics-row .analytics-value{font-weight:600}
+.detail-premium .detail-version-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;background:rgba(139,92,246,.1);color:#8b5cf6}
 
 /* Toolbar Premium */
 .toolbar-premium{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%)}
@@ -874,7 +944,10 @@ body.no-transition,body.no-transition *{transition:none!important}
 
 /* Dashboard Widget Cards */
 .dash-cards-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dash-3col-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 @media(max-width:768px){.dash-cards-row{grid-template-columns:1fr}}
+@media(max-width:900px){.dash-3col-row{grid-template-columns:1fr}}
+@media(max-width:768px){.dash-3col-row{grid-template-columns:1fr}}
 .dash-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
 .dash-card-title{font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px}
 
@@ -1031,6 +1104,121 @@ body.no-transition,body.no-transition *{transition:none!important}
 .gallery-card .gc-size{font-size:11px;color:var(--text-secondary)}
 .gallery-card .gc-download{margin-top:10px}
 @media(max-width:600px){.gallery-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:12px}.gallery-card{padding:12px}}
+
+/* ===== RIDGEBOX PREMIUM BRANDING ===== */
+/* Header logo animated gradient — defined above with .header-logo-icon */
+
+/* ===== SIDEBAR PREMIUM ===== */
+.sidebar-upload-btn{width:100%;padding:14px 16px;border-radius:12px;border:none;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s ease;box-shadow:0 4px 12px rgba(59,130,246,.25)}
+.sidebar-upload-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(59,130,246,.35)}
+.sidebar-upload-btn:active{transform:translateY(0);box-shadow:0 2px 8px rgba(59,130,246,.2)}
+.sidebar-section-label{font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.8px;padding:12px 12px 6px;margin-top:4px}
+.sidebar-section-divider{height:1px;background:var(--border);margin:8px 0}
+
+/* Active sidebar item with sliding indicator */
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);transition:all .15s ease;position:relative}
+.sidebar-item:hover{background:rgba(59,130,246,.06);color:var(--accent)}
+.sidebar-item.active{background:rgba(59,130,246,.1);color:var(--accent);font-weight:600}
+.sidebar-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,#3b82f6,#8b5cf6)}
+
+/* Sidebar badge */
+.sidebar-badge{font-size:10px;font-weight:600;min-width:18px;height:18px;padding:0 5px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.sidebar-badge-default{background:var(--bg-secondary);color:var(--text-secondary)}
+.sidebar-badge-accent{background:rgba(59,130,246,.12);color:var(--accent)}
+.sidebar-badge-warning{background:rgba(245,158,11,.12);color:#f59e0b}
+.sidebar-badge-danger{background:rgba(239,68,68,.12);color:#ef4444}
+
+/* ===== DASHBOARD STATS BAR ===== */
+.dash-stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:0 20px 16px}
+.dash-stat-card{padding:16px;border-radius:14px;background:var(--bg-card);border:1px solid var(--border);position:relative;overflow:hidden;transition:all .2s ease}
+.dash-stat-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.dash-stat-card .stat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:16px}
+.dash-stat-card .stat-value{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1.2}
+.dash-stat-card .stat-label{font-size:11px;color:var(--text-secondary);margin-top:4px;font-weight:500}
+.dash-stat-card .stat-bg{position:absolute;right:-10px;bottom:-10px;font-size:60px;opacity:.04}
+
+/* ===== QUICK ACTIONS PREMIUM ===== */
+.quick-actions-premium{display:flex;gap:8px;padding:0 20px 16px;flex-wrap:wrap}
+.quick-action-btn{display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;border:1px solid var(--border);background:var(--bg-card);cursor:pointer;font-size:13px;font-weight:500;color:var(--text);transition:all .15s ease;white-space:nowrap}
+.quick-action-btn:hover{border-color:var(--accent);background:rgba(59,130,246,.04)}
+.quick-action-btn:active{transform:scale(.97)}
+.quick-action-btn.primary{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;border:none;box-shadow:0 4px 12px rgba(59,130,246,.25)}
+.quick-action-btn.primary:hover{box-shadow:0 6px 20px rgba(59,130,246,.35);transform:translateY(-1px)}
+
+/* ===== RECENT WIDGETS ===== */
+.recent-widget{padding:16px 20px;border-bottom:1px solid var(--border)}
+.recent-widget-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.recent-widget-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.recent-widget-title i{color:var(--accent);font-size:13px}
+.recent-widget-link{font-size:12px;color:var(--accent);cursor:pointer;font-weight:500}
+.recent-widget-link:hover{text-decoration:underline}
+.recent-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.04)}
+.recent-item:last-child{border-bottom:none}
+.recent-item-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.recent-item-info{flex:1;min-width:0}
+.recent-item-name{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.recent-item-meta{font-size:11px;color:var(--text-secondary);margin-top:1px}
+.recent-item-time{font-size:11px;color:var(--text-secondary);white-space:nowrap}
+
+/* ===== MOBILE-FIRST OPTIMIZATIONS ===== */
+@media(max-width:768px){
+  .dash-stats-bar{grid-template-columns:repeat(2,1fr);gap:8px;padding:0 12px 12px}
+  .dash-stat-card{padding:12px;border-radius:12px}
+  .dash-stat-card .stat-value{font-size:18px}
+  .dash-stat-card .stat-label{font-size:10px}
+  .quick-actions-premium{padding:0 12px 12px;gap:6px}
+  .quick-action-btn{padding:10px 14px;font-size:12px;border-radius:10px}
+  .recent-widget{padding:12px}
+  .file-card-premium{min-height:160px!important}
+  .file-row-premium{padding:12px!important;min-height:64px}
+  .row-actions{display:none!important}
+  .mobile-delete-btn,.mobile-restore-btn{display:flex!important;width:36px;height:36px;border-radius:10px;border:none;align-items:center;justify-content:center;font-size:14px;cursor:pointer}
+  .mobile-delete-btn{background:rgba(239,68,68,.1);color:#ef4444}
+  .mobile-restore-btn{background:rgba(16,185,129,.1);color:#10b981}
+  .toolbar-wrap{padding:8px 12px!important;gap:6px!important}
+  .search-premium{min-width:0!important;flex:1!important}
+  .toolbar-upload-btn{position:fixed;bottom:20px;right:20px;z-index:80;width:56px;height:56px;border-radius:50%;font-size:20px;display:flex!important;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(59,130,246,.4);padding:0}
+  .toolbar-upload-btn span,.toolbar-upload-btn .fa-plus+span{display:none}
+  .detail-panel{width:100%!important;max-width:100%!important}
+  .dash-sidebar{display:none!important}
+  .sidebar-desktop{display:none!important}
+  .dash-widget-body .dash-cards-row{flex-direction:column}
+}
+
+/* Touch-friendly file cards */
+@media(max-width:768px) and (hover:none){
+  .file-card-premium{min-height:180px;border-radius:14px}
+  .file-row-premium{padding:14px 12px;gap:10px}
+  .context-menu-item{padding:14px 16px;font-size:15px}
+}
+
+/* ===== FILE THUMBNAIL STYLES ===== */
+.file-thumb{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.file-thumb-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.file-card-thumb{position:relative;width:100%;padding-top:65%;overflow:hidden;border-radius:10px 10px 0 0;background:var(--bg-secondary)}
+.file-card-thumb img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+.file-card-thumb .play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.2);opacity:0;transition:opacity .2s}
+.file-card-premium:hover .play-overlay{opacity:1}
+.file-type-badge-top{position:absolute;top:6px;left:6px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,.6);color:#fff;letter-spacing:.5px;z-index:2}
+.file-card-gradient-overlay{position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(transparent,rgba(0,0,0,.5));pointer-events:none;z-index:1}
+.file-card-name-overlay{position:absolute;bottom:6px;left:8px;right:8px;font-size:11px;font-weight:600;color:#fff;z-index:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Detail panel enhancements */
+.detail-preview-area{width:100%;min-height:200px;max-height:350px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--bg-secondary);margin-bottom:16px}
+.detail-preview-area img{max-width:100%;max-height:350px;object-fit:contain}
+.detail-preview-area video{max-width:100%;max-height:350px}
+.detail-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;padding:12px 0}
+.detail-info-item{font-size:12px}
+.detail-info-label{color:var(--text-secondary);font-weight:500;margin-bottom:2px}
+.detail-info-value{font-weight:600;font-family:'JetBrains Mono',monospace;font-size:13px}
+.detail-actions-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.detail-action{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);cursor:pointer;font-size:12px;font-weight:500;color:var(--text);transition:all .15s ease}
+.detail-action:hover{border-color:var(--accent);color:var(--accent)}
+.detail-action:active{transform:scale(.96)}
+.detail-action-primary{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;border:none}
+.detail-action-primary:hover{color:#fff;box-shadow:0 4px 12px rgba(59,130,246,.3)}
+.detail-action-danger{color:#ef4444;border-color:rgba(239,68,68,.2)}
+.detail-action-danger:hover{background:rgba(239,68,68,.06);border-color:#ef4444}
 </style>
 </head>
 <body>
@@ -1065,6 +1253,8 @@ const APP = {
         { id: 'all', name: 'Semua File', icon: 'fa-folder', system: true },
         { id: 'recent', name: 'Terbaru', icon: 'fa-clock', system: true },
         { id: 'favorites', name: 'Favorit', icon: 'fa-star', system: true },
+        { id: 'shared', name: 'Dibagikan', icon: 'fa-share-alt', system: true },
+        { id: 'encrypted', name: 'Terenkripsi', icon: 'fa-lock', system: true },
         { id: 'trash', name: 'Sampah', icon: 'fa-trash', system: true }
     ],
     currentFolder: 'all',
@@ -1109,6 +1299,7 @@ const APP = {
     uploadQueue: [],
     activeUploads: 0,
     totalUploadProgress: 0,
+    _activityCache: null,
     viewMode: localStorage.getItem('rb_view_mode') || (window.innerWidth < 769 ? 'mobile' : 'desktop')
 };
 
@@ -2038,18 +2229,61 @@ async function clearOldThumbnails() {
     } catch(e) {}
 }
 async function loadThumbnailsForVisibleFiles(files) {
-    const imageFiles = files.filter(f => getFileType(f.name, f.mime) === 'image' && f.filePath);
-    for (const file of imageFiles.slice(0, 20)) {
-        const fileUrl = APP.settings.proxyMode !== false
-            ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}&name=${encodeURIComponent(file.name)}`
-            : `https://api.telegram.org/file/bot${APP.bots[0]?.token}/${file.filePath}`;
-        const thumb = await getThumbnail(file.id, fileUrl);
-        if (!thumb) continue;
-        const card = document.querySelector(`[data-file-id="${file.id}"] .file-icon-circle`);
-        if (card) {
-            card.innerHTML = `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    // Use IntersectionObserver for lazy loading image thumbnails
+    const lazyElements = document.querySelectorAll('[data-lazy-thumb]');
+    if (lazyElements.length === 0) return;
+
+    if (window._thumbObserver) window._thumbObserver.disconnect();
+
+    window._thumbObserver = new IntersectionObserver((entries) => {
+        entries.forEach(async (entry) => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            const thumbUrl = el.getAttribute('data-lazy-thumb');
+            const fileId = el.getAttribute('data-file-id');
+            if (!thumbUrl || el._thumbLoaded) return;
+            el._thumbLoaded = true;
+            window._thumbObserver.unobserve(el);
+
+            // Try cached thumbnail first
+            try {
+                const cached = await dbGet('thumbnails', fileId);
+                if (cached && cached.dataUrl && (Date.now() - cached.cachedAt < 7 * 86400000)) {
+                    applyThumbToElement(el, cached.dataUrl);
+                    return;
+                }
+            } catch(e) {}
+
+            // Load the image directly as background (for grid cards)
+            const img = el.querySelector('img.file-thumb-placeholder-img');
+            if (img) {
+                img.src = thumbUrl;
+            } else {
+                // For list thumbnails, set background-image
+                const thumbDiv = el.querySelector('img') || el;
+                if (thumbDiv.tagName === 'IMG') {
+                    thumbDiv.src = thumbUrl;
+                } else {
+                    el.style.backgroundImage = `url(${thumbUrl})`;
+                    el.style.backgroundSize = 'cover';
+                    el.style.backgroundPosition = 'center';
+                }
+            }
+        });
+    }, { rootMargin: '200px', threshold: 0.01 });
+
+    lazyElements.forEach(el => window._thumbObserver.observe(el));
+}
+
+function applyThumbToElement(el, dataUrl) {
+    const img = el.querySelector('img.file-thumb-placeholder-img');
+    if (img) {
+        img.src = dataUrl;
+    } else {
+        const thumbImg = el.querySelector('img');
+        if (thumbImg) {
+            thumbImg.src = dataUrl;
         }
-        const row = document.querySelector(`.file-row-premium [data-file-id="${file.id}"]`);
     }
 }
 
@@ -2608,11 +2842,11 @@ function renderHeader() {
     header.innerHTML = `
         <header class="header-glass" style="position:sticky;top:0;z-index:60;height:var(--header-h);display:flex;align-items:center;padding:0 16px;gap:8px">
             ${isDashboard ? `<button class="header-pill-btn sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)"><i class="fas fa-bars"></i></button>` : ''}
-            <a href="#/" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-weight:700;font-size:16px">
+            <a href="#/" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-size:16px">
                 <div class="header-logo-icon">
-                    <i class="fas fa-cloud" style="color:#fff;font-size:14px"></i>
+                    <i class="fas fa-cloud" style="color:#fff;font-size:15px"></i>
                 </div>
-                <span class="hide-mobile-small" style="letter-spacing:-.3px">Ridgebox</span>
+                <span class="hide-mobile-small" style="letter-spacing:-.5px;font-weight:700">Ridgebox</span>
             </a>
             <div style="flex:1"></div>
             <button class="header-pill-btn ${vm==='mobile'?'active-pill':''}" onclick="toggleViewMode()" title="${vm === 'mobile' ? 'Desktop Mode' : 'Mobile Mode'}">
@@ -3079,38 +3313,127 @@ function openDetailPanel(fileId) {
     const type = getFileType(file.name, file.mime);
     const icon = getFileIcon(type);
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
+    const isId = APP.lang === 'id';
+    const downloadUrl = `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`;
+    const ext = (file.name || '').split('.').pop().toUpperCase();
+
+    // File shares
+    const fileShares = (APP.shares || []).filter(s => s.fileId === fileId && s.type !== 'gallery');
+    const totalDownloads = fileShares.reduce((sum, s) => sum + (s.downloads || 0), 0);
+    const activeLinks = fileShares.filter(s => !s.used && (!s.expiresAt || s.expiresAt > Date.now())).length;
+    const lastAccess = fileShares.length > 0 ? Math.max(...fileShares.map(s => s.lastAccessed || s.createdAt || 0)) : 0;
+
+    // Folder name
+    const folderObj = APP.folders ? APP.folders.find(f => f.id === file.folderId) : null;
+    const folderName = folderObj ? folderObj.name : (isId ? 'Semua File' : 'All Files');
+
+    // Build preview area
+    let previewHtml = '';
+    if (type === 'image') {
+        previewHtml = `<div class="detail-preview-area">
+            <img src="${downloadUrl}" alt="${file.name}" style="cursor:zoom-in" onclick="openPreview('${fileId}');closeDetailPanel()" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="preview-placeholder" style="display:none">
+                <div class="big-icon" style="background:${icon.color}12"><i class="fas ${icon.icon}" style="color:${icon.color}"></i></div>
+            </div>
+        </div>`;
+    } else if (type === 'video') {
+        previewHtml = `<div class="detail-preview-area" style="background:#000">
+            <video src="${downloadUrl}" controls preload="metadata" style="width:100%;height:100%;object-fit:contain" onclick="event.stopPropagation()"></video>
+        </div>`;
+    } else if (type === 'audio') {
+        previewHtml = `<div class="detail-preview-area" style="background:linear-gradient(135deg,${icon.color}18,${icon.color}08);min-height:160px">
+            <div class="preview-placeholder">
+                <div class="big-icon" style="background:${icon.color}12"><i class="fas ${icon.icon}" style="color:${icon.color}"></i></div>
+                <audio controls preload="metadata" style="width:90%;max-width:320px" onclick="event.stopPropagation()">
+                    <source src="${downloadUrl}">
+                </audio>
+            </div>
+        </div>`;
+    } else if (type === 'pdf') {
+        previewHtml = `<div class="detail-preview-area" style="background:${icon.color}08">
+            <div class="preview-placeholder">
+                <div class="big-icon" style="background:${icon.color}12"><i class="fas fa-file-pdf" style="color:${icon.color}"></i></div>
+                <span style="font-size:12px;color:var(--text-secondary);font-weight:500">PDF Document</span>
+            </div>
+        </div>`;
+    } else {
+        previewHtml = `<div class="detail-preview-area" style="background:${icon.color}08">
+            <div class="preview-placeholder">
+                <div class="big-icon" style="background:${icon.color}12"><i class="fas ${icon.icon}" style="color:${icon.color}"></i></div>
+                <span style="font-size:12px;color:var(--text-secondary);font-weight:500">${ext} File</span>
+            </div>
+        </div>`;
+    }
+
+    // Full absolute date
+    const fullDate = file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString(isId ? 'id-ID' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+
+    // Tag badge
+    let tagBadge = '';
+    if (file.tag) {
+        tagBadge = `<div style="margin-bottom:8px"><span class="detail-badge" style="background:${file.tag}15;color:${file.tag};cursor:pointer" onclick="toggleTagFilter('${file.tag}')"><span class="tag-dot" style="background:${file.tag};margin-right:4px;width:8px;height:8px"></span>${type}</span></div>`;
+    }
+
+    // Encrypted badge
+    let encryptedBadge = '';
+    if (file.encrypted) {
+        encryptedBadge = `<div style="margin-bottom:8px"><span class="detail-badge" style="background:rgba(59,130,246,.1);color:#3b82f6"><i class="fas fa-lock" style="margin-right:4px"></i>${t('encrypted')}</span></div>`;
+    }
+
+    // Version badge
+    let versionHtml = '';
+    if (versions.length > 1) {
+        versionHtml = `<span class="detail-version-badge"><i class="fas fa-code-branch" style="font-size:9px"></i> v${file.version || 1} / ${versions.length} ${t('versions')}</span>`;
+    }
+
+    // Share analytics
+    let analyticsHtml = '';
+    if (fileShares.length > 0) {
+        analyticsHtml = `<div style="margin-top:4px">
+            <div class="detail-section-title" style="padding:0;margin-top:12px;margin-bottom:8px">${t('shareAnalytics')}</div>
+            <div class="detail-analytics" style="padding:0">
+                <div class="analytics-row"><span class="analytics-label">${t('totalShares')}</span><span class="analytics-value">${fileShares.length}</span></div>
+                <div class="analytics-row"><span class="analytics-label">${t('activeLinks')}</span><span class="analytics-value" style="color:#10b981">${activeLinks}</span></div>
+                <div class="analytics-row"><span class="analytics-label">${t('totalDownloads')}</span><span class="analytics-value">${totalDownloads}</span></div>
+                ${lastAccess ? `<div class="analytics-row"><span class="analytics-label">${t('lastAccessed')}</span><span class="analytics-value">${timeAgo(lastAccess)}</span></div>` : ''}
+            </div>
+        </div>`;
+    }
+
     panel.innerHTML = `
         <div class="detail-premium">
             <div class="detail-header">
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                    <h3 style="font-size:16px;font-weight:600">${t('preview')}</h3>
-                    <button class="header-pill-btn" onclick="closeDetailPanel()" style="padding:4px 10px"><i class="fas fa-times"></i></button>
-                </div>
+                <h3 style="font-size:15px;font-weight:600">${t('preview')}</h3>
+                <button class="header-pill-btn" onclick="closeDetailPanel()" style="padding:4px 10px"><i class="fas fa-times"></i></button>
             </div>
             <div class="detail-body">
-                <div style="text-align:center;margin-bottom:24px">
-                    <div style="width:80px;height:80px;border-radius:18px;background:${icon.color}12;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 8px 24px ${icon.color}15">
-                        <i class="fas ${icon.icon}" style="font-size:32px;color:${icon.color}"></i>
-                    </div>
-                    <h4 style="font-size:15px;font-weight:600;word-break:break-all">${file.name}</h4>
-                    ${file.caption ? `<p id="detail-desc-${file.id}" style="font-size:12px;color:var(--text-secondary);margin-top:4px;cursor:pointer;display:flex;align-items:center;gap:6px" onclick="startEditDescription('${file.id}')">${file.caption} <i class="fas fa-pen" style="font-size:10px;opacity:.5"></i></p>` : `<p id="detail-desc-${file.id}" style="font-size:12px;color:var(--text-secondary);margin-top:4px;cursor:pointer;font-style:italic;opacity:.6" onclick="startEditDescription('${file.id}')">${t('addCaption')} <i class="fas fa-pen" style="font-size:10px;opacity:.5"></i></p>`}
+                ${previewHtml}
+                <div class="detail-info-section">
+                    <div class="detail-file-name">${file.name} ${versionHtml}</div>
+                    ${file.caption ? `<p id="detail-desc-${file.id}" class="detail-caption" onclick="startEditDescription('${file.id}')">${file.caption} <i class="fas fa-pen" style="font-size:10px;opacity:.5"></i></p>` : `<p id="detail-desc-${file.id}" class="detail-caption" style="font-style:italic;opacity:.6" onclick="startEditDescription('${file.id}')">${t('addCaption')} <i class="fas fa-pen" style="font-size:10px;opacity:.5"></i></p>`}
                     <span id="desc-saved-indicator" style="font-size:11px;color:#10b981;opacity:0;transition:opacity .3s ease">✓ ${t('save')}</span>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;margin-top:6px">
+                        <span class="detail-badge" style="background:${icon.color}15;color:${icon.color}"><i class="fas ${icon.icon}" style="margin-right:4px;font-size:10px"></i>${type.toUpperCase()}</span>
+                        ${tagBadge}
+                        ${encryptedBadge}
+                    </div>
+                    <div class="detail-info-grid">
+                        <div class="detail-stat"><div class="stat-label">${isId?'Ukuran':'Size'}</div><div class="stat-value">${formatSize(file.size)}</div></div>
+                        <div class="detail-stat"><div class="stat-label">${isId?'Tipe':'Type'}</div><div class="stat-value">${ext}</div></div>
+                        <div class="detail-stat"><div class="stat-label">${isId?'Diupload':'Uploaded'}</div><div class="stat-value" title="${fullDate}">${formatDate(file.uploadedAt)}</div></div>
+                        <div class="detail-stat"><div class="stat-label">${isId?'Folder':'Folder'}</div><div class="stat-value">${folderName}</div></div>
+                    </div>
+                    ${analyticsHtml}
+                    ${renderDetailTagPicker(fileId)}
+                    ${renderNotesSection(fileId)}
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:20px">
-                    <div class="detail-stat"><span style="color:var(--text-secondary);font-size:11px">${APP.lang==='id'?'Ukuran':'Size'}</span><br><strong>${formatSize(file.size)}</strong></div>
-                    <div class="detail-stat"><span style="color:var(--text-secondary);font-size:11px">${APP.lang==='id'?'Tipe':'Type'}</span><br><strong>${type}</strong></div>
-                    <div class="detail-stat"><span style="color:var(--text-secondary);font-size:11px">${APP.lang==='id'?'Tanggal':'Date'}</span><br><strong>${formatDate(file.uploadedAt)}</strong></div>
-                    <div class="detail-stat"><span style="color:var(--text-secondary);font-size:11px">${t('version')}</span><br><strong>v${file.version || 1} (${versions.length} ${t('versions')})</strong></div>
-                </div>
-                ${file.tag ? `<div style="margin-bottom:14px"><span class="detail-badge" style="background:${file.tag}15;color:${file.tag};cursor:pointer" onclick="toggleTagFilter('${file.tag}')"><span class="tag-dot" style="background:${file.tag};margin-right:4px;width:8px;height:8px"></span>${type}</span></div>` : ''}
-                ${file.encrypted ? `<div style="margin-bottom:14px"><span class="detail-badge" style="background:rgba(59,130,246,.1);color:#3b82f6"><i class="fas fa-lock" style="margin-right:4px"></i>${t('encrypted')}</span></div>` : ''}
-                ${renderDetailTagPicker(fileId)}
-                ${renderNotesSection(fileId)}
-                <div style="display:flex;flex-direction:column;gap:8px">
-                    ${(type==='video'||type==='audio')?`<button class="detail-action detail-action-primary" onclick="openMediaPlayer('${fileId}');closeDetailPanel()"><i class="fas fa-play"></i> ${APP.lang==='id'?'Putar':'Play'}</button>`:`<button class="detail-action detail-action-primary" onclick="openPreview('${fileId}');closeDetailPanel()"><i class="fas fa-eye"></i> ${t('preview')}</button>`}
-                    <button class="detail-action detail-action-secondary" onclick="openShareModal('${fileId}');closeDetailPanel()"><i class="fas fa-share-alt"></i> ${t('share')}</button>
-                    <button class="detail-action detail-action-secondary" onclick="downloadFile('${fileId}');closeDetailPanel()"><i class="fas fa-download"></i> ${t('download')}</button>
-                    ${!file.trashed ? `<button class="detail-action detail-action-danger" onclick="moveToTrash('${fileId}')"><i class="fas fa-trash"></i> ${t('delete')}</button>` : `<button class="detail-action detail-action-secondary" onclick="restoreFile('${fileId}')"><i class="fas fa-undo"></i> ${t('restore')}</button> <button class="detail-action detail-action-danger" onclick="deletePermanently('${fileId}')"><i class="fas fa-times-circle"></i> ${t('delete')}</button>`}
+                <div class="detail-actions-row">
+                    ${(type==='video'||type==='audio')?`<button class="detail-action-btn primary" onclick="openMediaPlayer('${fileId}');closeDetailPanel()"><i class="fas fa-play"></i> ${isId?'Putar':'Play'}</button>`:`<button class="detail-action-btn primary" onclick="openPreview('${fileId}');closeDetailPanel()"><i class="fas fa-eye"></i> ${t('preview')}</button>`}
+                    <button class="detail-action-btn" onclick="downloadFile('${fileId}');closeDetailPanel()"><i class="fas fa-download"></i> ${t('download')}</button>
+                    <button class="detail-action-btn" onclick="openShareModal('${fileId}');closeDetailPanel()"><i class="fas fa-share-alt"></i> ${t('share')}</button>
+                    <button class="detail-action-btn" onclick="startRename('${fileId}')"><i class="fas fa-i-cursor"></i> ${t('rename')}</button>
+                    <button class="detail-action-btn" onclick="showMovePicker('${fileId}')"><i class="fas fa-folder-open"></i> ${t('move')}</button>
+                    ${!file.trashed ? `<button class="detail-action-btn danger" onclick="moveToTrash('${fileId}')"><i class="fas fa-trash"></i> ${t('delete')}</button>` : `<button class="detail-action-btn" onclick="restoreFile('${fileId}')"><i class="fas fa-undo"></i> ${t('restore')}</button> <button class="detail-action-btn danger" onclick="deletePermanently('${fileId}')"><i class="fas fa-times-circle"></i> ${t('delete')}</button>`}
                 </div>
             </div>
         </div>`;
@@ -4250,6 +4573,114 @@ function renderDashboard() {
     if (!main) return;
     renderHeader();
     const hasFiles = APP.files.filter(f => !f.trashed).length > 0;
+    const isId = APP.lang === 'id';
+
+    // === PREMIUM DASHBOARD: Compute analytics data ===
+    const activeFiles = APP.files.filter(f => !f.trashed);
+    const totalFiles = activeFiles.length;
+    const totalDownloads = APP.shares.reduce((sum, s) => sum + (s.downloadCount || 0), 0);
+    const totalShares = APP.shares.length;
+    const totalUsed = activeFiles.reduce((sum, f) => sum + (f.size || 0), 0);
+    const maxStorage = getStorageLimitBytes();
+    const usedPercent = maxStorage > 0 ? Math.min((totalUsed / maxStorage) * 100, 100) : 0;
+
+    // Hero stats
+    const heroStats = [
+        { icon: 'fa-folder-open', label: isId ? 'Total File' : 'Total Files', value: totalFiles, color: '#3b82f6', gradient: 'linear-gradient(135deg,rgba(59,130,246,.1),rgba(59,130,246,.03))' },
+        { icon: 'fa-download', label: isId ? 'Total Unduhan' : 'Total Downloads', value: totalDownloads, color: '#10b981', gradient: 'linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.03))' },
+        { icon: 'fa-share-nodes', label: isId ? 'Total Dibagikan' : 'Total Shares', value: totalShares, color: '#8b5cf6', gradient: 'linear-gradient(135deg,rgba(139,92,246,.1),rgba(139,92,246,.03))' },
+        { icon: 'fa-hard-drive', label: isId ? 'Penyimpanan' : 'Storage Used', value: usedPercent.toFixed(1) + '%', color: '#f59e0b', gradient: 'linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.03))', sub: formatSize(totalUsed) + ' / ' + formatSize(maxStorage) }
+    ];
+
+    const heroStatsHtml = heroStats.map((s, i) => `
+        <div style="background:${s.gradient};border:1px solid ${s.color}20;border-radius:14px;padding:18px 20px;flex:1;min-width:140px;animation:fadeIn .4s ease ${i*0.08}s both;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-8px;right:-8px;width:48px;height:48px;border-radius:50%;background:${s.color}08"></div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <div style="width:36px;height:36px;border-radius:10px;background:${s.color}18;display:flex;align-items:center;justify-content:center">
+                    <i class="fas ${s.icon}" style="color:${s.color};font-size:15px"></i>
+                </div>
+            </div>
+            <div style="font-size:26px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace;line-height:1.1" class="stat-count-up" data-target="${typeof s.value === 'number' ? s.value : ''}">${s.value}</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;font-weight:500">${s.label}</div>
+            ${s.sub ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;opacity:.7">${s.sub}</div>` : ''}
+        </div>
+    `).join('');
+
+    // Quick Actions
+    const quickActions = [
+        { icon: 'fa-cloud-arrow-up', label: isId ? 'Unggah File' : 'Upload Files', action: 'triggerUpload()', primary: true },
+        { icon: 'fa-folder-plus', label: isId ? 'Folder Baru' : 'New Folder', action: 'createFolderDialog()', primary: false },
+        { icon: 'fa-camera', label: isId ? 'Kamera' : 'Camera Upload', action: 'openCameraUpload()', primary: false },
+        { icon: 'fa-share-from-square', label: isId ? 'Bagikan' : 'Share File', action: 'APP.batchMode=false;renderFileList()', primary: false },
+        { icon: 'fa-link', label: isId ? 'Unggah URL' : 'URL Upload', action: 'openUrlUpload()', primary: false }
+    ];
+
+    const quickActionsHtml = quickActions.map(a => `
+        <div onclick="${a.action}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:99px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s ease;${a.primary ? 'background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.3);' : 'background:var(--bg-card);border:1px solid var(--border);color:var(--text);'}white-space:nowrap" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+            <i class="fas ${a.icon}" style="font-size:14px"></i>
+            <span>${a.label}</span>
+        </div>
+    `).join('');
+
+    // Recent Activity Widget (last 8)
+    const activityLog = APP._activityCache || [];
+    const recentActivity = activityLog.slice(0, 8);
+    const typeConfig = {
+        upload: { icon: 'fa-cloud-arrow-up', color: '#10b981' },
+        download: { icon: 'fa-download', color: '#3b82f6' },
+        share: { icon: 'fa-share-alt', color: '#8b5cf6' },
+        delete: { icon: 'fa-trash', color: '#ef4444' },
+        rename: { icon: 'fa-pen', color: '#f59e0b' },
+        move: { icon: 'fa-arrows-alt', color: '#06b6d4' }
+    };
+    const recentActivityHtml = recentActivity.length > 0 ? recentActivity.map(a => {
+        const cfg = typeConfig[a.type] || typeConfig.move;
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);border-bottom-style:dashed">
+            <div style="width:30px;height:30px;border-radius:8px;background:${cfg.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${cfg.icon}" style="color:${cfg.color};font-size:12px"></i></div>
+            <div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.description}</div><div style="font-size:10px;color:var(--text-secondary)">${timeAgo(a.timestamp)}</div></div>
+        </div>`;
+    }).join('') : `<div style="text-align:center;padding:20px 0;color:var(--text-secondary);font-size:12px">${isId ? 'Belum ada aktivitas' : 'No activity yet'}</div>`;
+
+    // Recent Shared Links Widget (last 5 active)
+    const recentShares = (APP.shares || []).slice(0, 5);
+    const recentSharesHtml = recentShares.length > 0 ? recentShares.map(s => {
+        const file = APP.files.find(f => f.id === s.fileId);
+        const fname = file ? file.name : (isId ? 'File tidak ditemukan' : 'File not found');
+        const expired = s.expiresAt && s.expiresAt < Date.now();
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);border-bottom-style:dashed">
+            <div style="width:30px;height:30px;border-radius:8px;background:#8b5cf615;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas fa-link" style="color:#8b5cf6;font-size:12px"></i></div>
+            <div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fname}</div><div style="font-size:10px;color:var(--text-secondary);display:flex;gap:8px;align-items:center"><span>${s.downloadCount || 0} ${isId ? 'klik' : 'clicks'}</span>${expired ? '<span style="color:#ef4444;font-weight:600">' + (isId ? 'Kedaluwarsa' : 'Expired') + '</span>' : ''}</div></div>
+        </div>`;
+    }).join('') : `<div style="text-align:center;padding:20px 0;color:var(--text-secondary);font-size:12px">${isId ? 'Belum ada tautan' : 'No shared links yet'}</div>`;
+
+    // Recent Downloads Widget
+    const recentDownloads = activityLog.filter(a => a.type === 'download').slice(0, 5);
+    const recentDownloadsHtml = recentDownloads.length > 0 ? recentDownloads.map(a => {
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);border-bottom-style:dashed">
+            <div style="width:30px;height:30px;border-radius:8px;background:#3b82f615;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas fa-download" style="color:#3b82f6;font-size:12px"></i></div>
+            <div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.description}</div><div style="font-size:10px;color:var(--text-secondary)">${timeAgo(a.timestamp)}</div></div>
+        </div>`;
+    }).join('') : `<div style="text-align:center;padding:20px 0;color:var(--text-secondary);font-size:12px">${isId ? 'Belum ada unduhan' : 'No downloads yet'}</div>`;
+
+    // Most Downloaded Files Widget (top 5)
+    const filesWithShares = activeFiles.map(f => {
+        const shares = APP.shares.filter(s => s.fileId === f.id);
+        const dlCount = shares.reduce((sum, s) => sum + (s.downloadCount || 0), 0);
+        return { ...f, totalDownloads: dlCount };
+    }).sort((a, b) => b.totalDownloads - a.totalDownloads).slice(0, 5);
+    const mostDownloadedHtml = filesWithShares.filter(f => f.totalDownloads > 0).length > 0 ? filesWithShares.filter(f => f.totalDownloads > 0).map(f => {
+        const fType = getFileType(f.name, f.mime);
+        const fIcon = getFileIcon(fType);
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);border-bottom-style:dashed;cursor:pointer" onclick="openDetailPanel('${f.id}')">
+            <div style="width:30px;height:30px;border-radius:8px;background:${fIcon.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${fIcon.icon}" style="color:${fIcon.color};font-size:12px"></i></div>
+            <div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</div><div style="font-size:10px;color:var(--text-secondary)">${formatSize(f.size || 0)}</div></div>
+            <div style="font-size:13px;font-weight:700;color:#3b82f6;font-family:'JetBrains Mono',monospace">${f.totalDownloads}</div>
+        </div>`;
+    }).join('') : `<div style="text-align:center;padding:20px 0;color:var(--text-secondary);font-size:12px">${isId ? 'Belum ada unduhan' : 'No downloads yet'}</div>`;
+
+    // Enhanced Storage Analytics Card
+    const storageAnalyticsEnhanced = renderDashboardAnalytics();
+
     main.innerHTML = `
     <div class="page-transition" style="display:flex;min-height:calc(100vh - var(--header-h))">
         <!-- Sidebar Desktop (F98) -->
@@ -4260,6 +4691,8 @@ function renderDashboard() {
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
             <!-- Storage Warning Banner -->
             ${renderStorageWarningBanner()}
+            <!-- Stats Bar -->
+            ${renderDashboardStatsBar()}
             <!-- Toolbar -->
             <div class="toolbar-premium toolbar-wrap" style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                 <div class="search-premium" style="flex:1;min-width:200px">
@@ -4294,46 +4727,70 @@ function renderDashboard() {
             </div>
             <!-- File Preview Carousel -->
             <div id="carousel-section">${renderCarousel()}</div>
-            <!-- Dashboard Widgets Section -->
+            <!-- PREMIUM Dashboard Widgets Section -->
             <div id="dashboard-widgets" class="dash-widgets-wrap ${hasFiles && localStorage.getItem('rb_widgets_collapsed')==='1' ? 'collapsed' : ''}">
                 <div class="dash-widget-toggle" onclick="toggleDashWidgets()">
                     <i class="fas fa-chevron-down" style="font-size:10px"></i>
-                    <span>${APP.lang==='id'?'Widget Dashboard':'Dashboard Widgets'}</span>
+                    <span>${isId ? 'Widget Dashboard' : 'Dashboard Widgets'}</span>
                 </div>
-                <div class="dash-widget-body" style="display:flex;flex-direction:column;gap:14px">
+                <div class="dash-widget-body" style="display:flex;flex-direction:column;gap:16px">
                     <!-- Smart Upload Zone -->
                     <div id="smart-upload-zone" class="smart-upload-zone ${hasFiles ? 'minimized' : ''}" onclick="handleSmartUploadClick(event)">
                         <i class="fas fa-cloud-arrow-up upload-icon"></i>
                         <div>
-                            <div class="upload-title">${APP.lang==='id'?'Seret & Lepas File':'Drag & Drop Files'}</div>
-                            <div class="upload-sub">${APP.lang==='id'?'atau ':'or '}<span>${APP.lang==='id'?'klik untuk mencari':'click to browse'}</span></div>
+                            <div class="upload-title">${isId ? 'Seret & Lepas File' : 'Drag & Drop Files'}</div>
+                            <div class="upload-sub">${isId ? 'atau ' : 'or '}<span>${isId ? 'klik untuk mencari' : 'click to browse'}</span></div>
                         </div>
                         <div class="upload-methods">
-                            <div class="upload-method" onclick="event.stopPropagation();triggerUpload()"><i class="fas fa-folder-open"></i> ${APP.lang==='id'?'Pilih File':'Browse'}</div>
-                            <div class="upload-method" onclick="event.stopPropagation();handleClipboardPaste()"><i class="fas fa-paste"></i> ${APP.lang==='id'?'Tempel':'Paste'}</div>
-                            <div class="upload-method" onclick="event.stopPropagation();openCameraUpload()"><i class="fas fa-camera"></i> ${APP.lang==='id'?'Kamera':'Camera'}</div>
+                            <div class="upload-method" onclick="event.stopPropagation();triggerUpload()"><i class="fas fa-folder-open"></i> ${isId ? 'Pilih File' : 'Browse'}</div>
+                            <div class="upload-method" onclick="event.stopPropagation();handleClipboardPaste()"><i class="fas fa-paste"></i> ${isId ? 'Tempel' : 'Paste'}</div>
+                            <div class="upload-method" onclick="event.stopPropagation();openCameraUpload()"><i class="fas fa-camera"></i> ${isId ? 'Kamera' : 'Camera'}</div>
                         </div>
                     </div>
                     <!-- Upload Preview Queue -->
                     <div id="upload-preview-queue" class="upload-preview-queue" style="display:none"></div>
-                    <!-- Quick Actions Bar -->
-                    <div class="quick-actions-row" id="dash-quick-actions-bar">
-                        <div class="quick-action-pill" onclick="triggerUpload()"><i class="fas fa-cloud-arrow-up"></i> ${APP.lang==='id'?'Unggah':'Upload'}</div>
-                        <div class="quick-action-pill" onclick="createFolderDialog()"><i class="fas fa-folder-plus"></i> ${APP.lang==='id'?'Folder Baru':'New Folder'}</div>
-                        <div class="quick-action-pill" onclick="openCameraUpload()"><i class="fas fa-camera"></i> ${APP.lang==='id'?'Kamera':'Camera'}</div>
-                        <div class="quick-action-pill" onclick="openVideoRecord()"><i class="fas fa-video"></i> ${APP.lang==='id'?'Rekam':'Record'}</div>
-                        <div class="quick-action-pill" onclick="openUrlUpload()"><i class="fas fa-link"></i> URL</div>
-                        <div class="quick-action-pill" onclick="openQrScan()"><i class="fas fa-qrcode"></i> ${APP.lang==='id'?'Pindai':'Scan'}</div>
-                        <div class="quick-action-pill" onclick="openDuplicateChecker()"><i class="fas fa-clone"></i> ${APP.lang==='id'?'Cek Duplikat':'Duplicates'}</div>
+
+                    <!-- ===== HERO STATS BAR ===== -->
+                    <div style="display:flex;gap:12px;flex-wrap:wrap">${heroStatsHtml}</div>
+
+                    <!-- ===== QUICK ACTIONS ROW ===== -->
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">${quickActionsHtml}</div>
+
+                    <!-- ===== 3-COLUMN WIDGET ROW: Activity + Shares + Downloads ===== -->
+                    <div class="dash-3col-row" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+                        <!-- Recent Activity Widget -->
+                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;overflow:hidden">
+                            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px"><i class="fas fa-clock-rotate-left" style="color:#10b981"></i> ${isId ? 'Aktivitas Terbaru' : 'Recent Activity'}</div>
+                            <div style="max-height:240px;overflow-y:auto">${recentActivityHtml}</div>
+                            <div style="margin-top:8px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('recent')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
+                        </div>
+                        <!-- Recent Shared Links Widget -->
+                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;overflow:hidden">
+                            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px"><i class="fas fa-share-nodes" style="color:#8b5cf6"></i> ${isId ? 'Tautan Dibagikan' : 'Shared Links'}</div>
+                            <div style="max-height:240px;overflow-y:auto">${recentSharesHtml}</div>
+                            <div style="margin-top:8px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('all')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
+                        </div>
+                        <!-- Recent Downloads Widget -->
+                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;overflow:hidden">
+                            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px"><i class="fas fa-download" style="color:#3b82f6"></i> ${isId ? 'Unduhan Terbaru' : 'Recent Downloads'}</div>
+                            <div style="max-height:240px;overflow-y:auto">${recentDownloadsHtml}</div>
+                            <div style="margin-top:8px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('all')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
+                        </div>
                     </div>
-                    <!-- Cards Row: Storage + Weekly + Top Files -->
-                    <div class="dash-cards-row" id="dash-cards-row">
-                        <div class="dash-card" id="storage-analytics-card">${renderStorageAnalyticsCard()}</div>
-                        <div class="dash-card weekly-card" id="weekly-summary-card">${renderWeeklySummaryCard()}</div>
-                    </div>
+
+                    <!-- ===== 2-COLUMN ROW: Storage Analytics + Most Downloaded ===== -->
                     <div class="dash-cards-row">
+                        <div class="dash-card" id="storage-analytics-card">${storageAnalyticsEnhanced}</div>
+                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;overflow:hidden">
+                            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px"><i class="fas fa-ranking-star" style="color:#f59e0b"></i> ${isId ? 'Paling Banyak Diunduh' : 'Most Downloaded'}</div>
+                            <div style="max-height:260px;overflow-y:auto">${mostDownloadedHtml}</div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 2-COLUMN ROW: Top Files + Weekly ===== -->
+                    <div class="dash-cards-row" id="dash-cards-row">
                         <div class="dash-card" id="top-files-card">${renderTopFilesCard()}</div>
-                        <div class="dash-card" id="activity-card">${renderActivityTimeline()}</div>
+                        <div class="dash-card weekly-card" id="weekly-summary-card">${renderWeeklySummaryCard()}</div>
                     </div>
                     <div class="dash-cards-row">
                         <div class="dash-card" id="usage-trend-card">${renderUsageTrendCard()}</div>
@@ -4347,7 +4804,7 @@ function renderDashboard() {
         </div>
         <!-- Right Sidebar: Activity Timeline -->
         <aside class="dash-sidebar" id="dash-right-sidebar">
-            <div class="dash-card-title"><i class="fas fa-clock-rotate-left"></i> ${APP.lang==='id'?'Aktivitas Terbaru':'Recent Activity'}</div>
+            <div class="dash-card-title"><i class="fas fa-clock-rotate-left"></i> ${isId ? 'Aktivitas Terbaru' : 'Recent Activity'}</div>
             <div id="activity-sidebar-timeline" class="activity-timeline">${renderActivityItems()}</div>
         </aside>
     </div>
@@ -4365,59 +4822,282 @@ function renderDashboard() {
     initHoverPreview();
     checkStorageWarningToast();
     setupPullToRefresh();
+    // Animate hero stat count-up numbers
+    setTimeout(() => {
+        document.querySelectorAll('.stat-count-up[data-target]').forEach(el => {
+            const target = parseInt(el.getAttribute('data-target'));
+            if (isNaN(target) || target === 0) return;
+            let current = 0;
+            const step = Math.max(1, Math.ceil(target / 30));
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) { current = target; clearInterval(timer); }
+                el.textContent = current;
+            }, 25);
+        });
+    }, 100);
     // Start carousel auto-scroll
     if (APP.files.filter(f => !f.trashed).length > 0) {
         setTimeout(() => startCarouselAutoScroll(), 1000);
     }
 }
 
+// ===== DASHBOARD STATS BAR =====
+function renderDashboardStatsBar() {
+    const isId = APP.lang === 'id';
+    const totalFiles = APP.files.filter(f => !f.trashed).length;
+    const totalDownloads = APP.shares.reduce((s, sh) => s + (sh.downloadCount || 0), 0);
+    const totalShares = APP.shares.length;
+    const totalBytes = APP.files.filter(f => !f.trashed).reduce((sum, f) => sum + (f.size || 0), 0);
+    const limit = getStorageLimitBytes();
+    const pct = limit > 0 ? Math.min(Math.round((totalBytes / limit) * 100), 100) : 0;
+
+    return `<div class="dash-stats-bar">
+        <div class="dash-stat-card">
+            <div class="stat-icon" style="background:rgba(59,130,246,.1);color:#3b82f6"><i class="fas fa-file"></i></div>
+            <div class="stat-value">${totalFiles}</div>
+            <div class="stat-label">${isId ? 'Total File' : 'Total Files'}</div>
+            <div class="stat-bg"><i class="fas fa-file"></i></div>
+        </div>
+        <div class="dash-stat-card">
+            <div class="stat-icon" style="background:rgba(16,185,129,.1);color:#10b981"><i class="fas fa-download"></i></div>
+            <div class="stat-value">${totalDownloads}</div>
+            <div class="stat-label">${isId ? 'Total Unduhan' : 'Total Downloads'}</div>
+            <div class="stat-bg"><i class="fas fa-download"></i></div>
+        </div>
+        <div class="dash-stat-card">
+            <div class="stat-icon" style="background:rgba(139,92,246,.1);color:#8b5cf6"><i class="fas fa-share-alt"></i></div>
+            <div class="stat-value">${totalShares}</div>
+            <div class="stat-label">${isId ? 'Total Tautan' : 'Total Shares'}</div>
+            <div class="stat-bg"><i class="fas fa-share-alt"></i></div>
+        </div>
+        <div class="dash-stat-card">
+            <div class="stat-icon" style="background:rgba(245,158,11,.1);color:#f59e0b"><i class="fas fa-database"></i></div>
+            <div class="stat-value">${formatSize(totalBytes)}</div>
+            <div class="stat-label">${isId ? 'Penyimpanan' : 'Storage Used'} · ${pct}%</div>
+            <div class="stat-bg"><i class="fas fa-database"></i></div>
+        </div>
+    </div>`;
+}
+
+// ===== RECENT ACTIVITY WIDGET =====
+function renderRecentActivity() {
+    const isId = APP.lang === 'id';
+    const log = APP._activityCache || [];
+    const last5 = log.slice(0, 5);
+    const typeConfig = {
+        upload: { icon: 'fa-cloud-arrow-up', color: '#10b981', bg: 'rgba(16,185,129,.1)' },
+        download: { icon: 'fa-download', color: '#3b82f6', bg: 'rgba(59,130,246,.1)' },
+        share: { icon: 'fa-share-alt', color: '#8b5cf6', bg: 'rgba(139,92,246,.1)' },
+        delete: { icon: 'fa-trash', color: '#ef4444', bg: 'rgba(239,68,68,.1)' },
+        rename: { icon: 'fa-pen', color: '#f59e0b', bg: 'rgba(245,158,11,.1)' },
+        move: { icon: 'fa-arrows-alt', color: '#06b6d4', bg: 'rgba(6,182,212,.1)' }
+    };
+    let items = '';
+    if (last5.length === 0) {
+        items = `<div style="text-align:center;padding:16px 0;color:var(--text-secondary);font-size:12px">${isId ? 'Belum ada aktivitas' : 'No activity yet'}</div>`;
+    } else {
+        items = last5.map(a => {
+            const cfg = typeConfig[a.type] || typeConfig.move;
+            return `<div class="recent-item">
+                <div class="recent-item-icon" style="background:${cfg.bg};color:${cfg.color}"><i class="fas ${cfg.icon}"></i></div>
+                <div class="recent-item-info">
+                    <div class="recent-item-name">${a.description || a.type}</div>
+                    <div class="recent-item-meta">${a.type}</div>
+                </div>
+                <div class="recent-item-time">${timeAgo(a.timestamp)}</div>
+            </div>`;
+        }).join('');
+    }
+    return `<div class="recent-widget">
+        <div class="recent-widget-header">
+            <div class="recent-widget-title"><i class="fas fa-clock-rotate-left"></i> ${isId ? 'Aktivitas Terbaru' : 'Recent Activity'}</div>
+            <div class="recent-widget-link" onclick="document.getElementById('activity-card')&&document.getElementById('activity-card').scrollIntoView({behavior:'smooth'})">${isId ? 'Lihat semua' : 'View all'}</div>
+        </div>
+        ${items}
+    </div>`;
+}
+
+// ===== RECENT SHARES WIDGET =====
+function renderRecentShares() {
+    const isId = APP.lang === 'id';
+    const last3 = (APP.shares || []).slice(-3).reverse();
+    let items = '';
+    if (last3.length === 0) {
+        items = `<div style="text-align:center;padding:16px 0;color:var(--text-secondary);font-size:12px">${isId ? 'Belum ada tautan' : 'No shares yet'}</div>`;
+    } else {
+        items = last3.map(s => {
+            const file = APP.files.find(f => f.id === s.fileId);
+            const fname = file ? file.name : (s.alias || s.id);
+            return `<div class="recent-item">
+                <div class="recent-item-icon" style="background:rgba(139,92,246,.1);color:#8b5cf6"><i class="fas fa-share-alt"></i></div>
+                <div class="recent-item-info">
+                    <div class="recent-item-name">${fname}</div>
+                    <div class="recent-item-meta">${s.downloadCount || 0} ${isId ? 'unduhan' : 'downloads'}</div>
+                </div>
+                <div class="recent-item-time">${timeAgo(s.createdAt)}</div>
+            </div>`;
+        }).join('');
+    }
+    return `<div class="recent-widget">
+        <div class="recent-widget-header">
+            <div class="recent-widget-title"><i class="fas fa-share-alt"></i> ${isId ? 'Tautan Terbaru' : 'Recent Shares'}</div>
+            <div class="recent-widget-link" onclick="selectFolder('all')">${isId ? 'Kelola' : 'Manage'}</div>
+        </div>
+        ${items}
+    </div>`;
+}
+
+// ===== RECENT DOWNLOADS WIDGET =====
+function renderRecentDownloads() {
+    const isId = APP.lang === 'id';
+    const log = APP._activityCache || [];
+    const downloads = log.filter(a => a.type === 'download').slice(0, 3);
+    let items = '';
+    if (downloads.length === 0) {
+        items = `<div style="text-align:center;padding:16px 0;color:var(--text-secondary);font-size:12px">${isId ? 'Belum ada unduhan' : 'No downloads yet'}</div>`;
+    } else {
+        items = downloads.map(a => {
+            return `<div class="recent-item">
+                <div class="recent-item-icon" style="background:rgba(59,130,246,.1);color:#3b82f6"><i class="fas fa-download"></i></div>
+                <div class="recent-item-info">
+                    <div class="recent-item-name">${a.description || (isId ? 'Unduhan' : 'Download')}</div>
+                    <div class="recent-item-meta">${isId ? 'Diunduh' : 'Downloaded'}</div>
+                </div>
+                <div class="recent-item-time">${timeAgo(a.timestamp)}</div>
+            </div>`;
+        }).join('');
+    }
+    return `<div class="recent-widget">
+        <div class="recent-widget-header">
+            <div class="recent-widget-title"><i class="fas fa-download"></i> ${isId ? 'Unduhan Terbaru' : 'Recent Downloads'}</div>
+        </div>
+        ${items}
+    </div>`;
+}
+
 function renderSidebarHTML() {
+    const isId = APP.lang === 'id';
     // Get trash count from _trashFiles cache or estimate
     const trashCount = (APP._trashFiles || []).length;
-    const folderItems = APP.folders.map(f => {
-        const active = f.id === APP.currentFolder;
-        const count = f.id === 'all' ? APP.files.length
-            : f.id === 'recent' ? APP.files.filter(x => isToday(x.uploadedAt)).length
-            : f.id === 'favorites' ? APP.files.filter(x => x.starred).length
-            : f.id === 'trash' ? trashCount
-            : APP.files.filter(x => x.folderId === f.id).length;
-        return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="selectFolder('${f.id}')" draggable="true" ondragover="event.preventDefault();this.style.background='rgba(59,130,246,.1)'" ondragleave="this.style.background=''" ondrop="handleFolderDrop(event,'${f.id}');this.style.background=''">
-            <i class="fas ${f.icon}" style="width:16px;text-align:center;color:${active ? 'var(--accent)' : ''}"></i>
-            <span style="flex:1">${f.name}</span>
-            ${count > 0 ? `<span style="font-size:11px;color:var(--text-secondary);background:var(--bg-secondary);padding:1px 6px;border-radius:99px">${count}</span>` : ''}
-            ${f.id === 'trash' && count > 0 ? `<span style="font-size:10px;color:var(--text-secondary);background:#ef444420;color:#ef4444;padding:1px 6px;border-radius:99px;margin-left:2px" title="${t('purgeIn')} ${APP.settings.trashPurgeDays} ${t('days')}">${APP.settings.trashPurgeDays}d</span>` : ''}
-            ${!f.system ? `<button class="btn btn-ghost" style="padding:2px 4px;font-size:11px" onclick="event.stopPropagation();deleteCustomFolder('${f.id}')"><i class="fas fa-times"></i></button>` : ''}
-        </div>`;
-    }).join('');
+    const sharedFileCount = APP.files.filter(f => !f.trashed && APP.shares.some(s => s.fileId === f.id)).length;
+    const encryptedFileCount = APP.files.filter(f => !f.trashed && f.encrypted).length;
 
     // Storage calculation
     const totalUsed = APP.files.filter(f => !f.trashed).reduce((sum, f) => sum + (f.size || 0), 0);
     const maxStorage = getStorageLimitBytes();
     const usedPercent = maxStorage > 0 ? Math.min((totalUsed / maxStorage) * 100, 100) : 0;
 
+    // Mini ring chart for storage
+    const miniR = 22, miniC = 2 * Math.PI * miniR;
+    const miniOffset = miniC - (usedPercent / 100) * miniC;
+    const level = usedPercent > 90 ? '#ef4444' : usedPercent > 75 ? '#f97316' : usedPercent > 50 ? '#f59e0b' : 'var(--accent)';
+
+    // MENU nav items
+    const menuItems = [
+        { id: 'all', icon: 'fa-house', name: isId ? 'Beranda' : 'Home', count: APP.files.filter(f => !f.trashed).length },
+        { id: 'all-files', icon: 'fa-folder-open', name: isId ? 'Semua File' : 'All Files', count: APP.files.filter(f => !f.trashed).length },
+        { id: 'recent', icon: 'fa-clock', name: isId ? 'Terbaru' : 'Recent', count: APP.files.filter(x => !x.trashed && isToday(x.uploadedAt)).length },
+        { id: 'favorites', icon: 'fa-star', name: isId ? 'Favorit' : 'Favorites', count: APP.files.filter(x => !x.trashed && x.starred).length },
+        { id: 'shared', icon: 'fa-share-nodes', name: isId ? 'File Dibagikan' : 'Shared Files', count: sharedFileCount },
+        { id: 'encrypted', icon: 'fa-shield-halved', name: isId ? 'File Terenkripsi' : 'Encrypted Files', count: encryptedFileCount }
+    ];
+
+    const menuItemsHtml = menuItems.map(m => {
+        const active = m.id === APP.currentFolder;
+        return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="selectFolder('${m.id === 'all-files' ? 'all' : m.id}')" style="position:relative">
+            <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${active ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
+            <i class="fas ${m.icon}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};position:relative;z-index:1;font-size:14px"></i>
+            <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${m.name}</span>
+            ${m.count > 0 ? `<span style="font-size:11px;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};background:${active ? 'rgba(59,130,246,.1)' : 'var(--bg-secondary)'};padding:2px 8px;border-radius:99px;font-weight:600;position:relative;z-index:1">${m.count}</span>` : ''}
+        </div>`;
+    }).join('');
+
+    // Custom FOLDERS nav items
+    const customFolders = APP.folders.filter(f => !f.system);
+    const folderItemsHtml = customFolders.map(f => {
+        const active = f.id === APP.currentFolder;
+        const count = APP.files.filter(x => !x.trashed && x.folderId === f.id).length;
+        return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="selectFolder('${f.id}')" draggable="true" ondragover="event.preventDefault();this.style.background='rgba(59,130,246,.1)'" ondragleave="this.style.background=''" ondrop="handleFolderDrop(event,'${f.id}');this.style.background=''" style="position:relative">
+            <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${active ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
+            <i class="fas ${f.icon || 'fa-folder'}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : '#f59e0b'};position:relative;z-index:1;font-size:14px"></i>
+            <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${f.name}</span>
+            ${count > 0 ? `<span style="font-size:11px;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};background:${active ? 'rgba(59,130,246,.1)' : 'var(--bg-secondary)'};padding:2px 8px;border-radius:99px;font-weight:600;position:relative;z-index:1">${count}</span>` : ''}
+            <button class="btn btn-ghost" style="padding:2px 4px;font-size:11px;position:relative;z-index:1" onclick="event.stopPropagation();deleteCustomFolder('${f.id}')"><i class="fas fa-times"></i></button>
+        </div>`;
+    }).join('');
+
+    // TOOLS nav items
+    const toolItems = [
+        { id: 'storage-analytics', icon: 'fa-chart-pie', name: isId ? 'Analisis Penyimpanan' : 'Storage Analytics', action: 'openStorageAnalytics()' },
+        { id: 'trash', icon: 'fa-trash', name: isId ? 'Sampah' : 'Trash', action: `selectFolder('trash')`, count: trashCount },
+        { id: 'settings', icon: 'fa-gear', name: isId ? 'Pengaturan' : 'Settings', action: 'openSettings()' }
+    ];
+
+    const toolItemsHtml = toolItems.map(t => {
+        const active = t.id === APP.currentFolder;
+        return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="${t.action}" style="position:relative">
+            <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${active ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
+            <i class="fas ${t.icon}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};position:relative;z-index:1;font-size:14px"></i>
+            <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${t.name}</span>
+            ${t.count > 0 ? `<span style="font-size:11px;color:${active ? 'var(--accent)' : '#ef4444'};background:${active ? 'rgba(59,130,246,.1)' : 'rgba(239,68,68,.08)'};padding:2px 8px;border-radius:99px;font-weight:600;position:relative;z-index:1">${t.count}</span>` : ''}
+        </div>`;
+    }).join('');
+
     return `
-        <div style="margin-bottom:16px">
-            <button class="sidebar-upload-btn" onclick="triggerUpload()"><i class="fas fa-cloud-arrow-up"></i> ${t('upload')}</button>
-        </div>
-        <div class="sidebar-section-label">${APP.lang==='id'?'Navigasi':'Navigation'}</div>
-        ${folderItems}
-        <div class="sidebar-section-divider"></div>
-        <div style="display:flex;flex-direction:column;gap:6px">
-            <button class="sidebar-action-btn" onclick="createFolderDialog()"><i class="fas fa-folder-plus"></i> ${t('newFolder')}</button>
-        </div>
-        <div class="sidebar-section-divider"></div>
-        <div style="display:flex;flex-direction:column;gap:6px">
-            <button class="sidebar-action-btn" onclick="openSettings()"><i class="fas fa-cog"></i> ${t('settings')}</button>
-            <button class="sidebar-action-btn" onclick="openStorageAnalytics()"><i class="fas fa-chart-pie"></i> ${t('storageAnalytics')}</button>
-        </div>
-        <div class="storage-widget">
-            <div class="storage-widget-title"><i class="fas fa-hard-drive" style="font-size:10px"></i> ${APP.lang==='id'?'Penyimpanan':'Storage'} ${getStorageIndicatorHtml()}</div>
-            <div class="storage-bar-track">
-                <div class="storage-bar-fill" style="width:${usedPercent}%"></div>
+        <!-- RidgeBox Branding -->
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 8px 18px;border-bottom:1px solid var(--border);margin-bottom:14px">
+            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(59,130,246,.25)">
+                <i class="fas fa-cloud" style="color:#fff;font-size:16px"></i>
             </div>
-            <div class="storage-info">
-                <span>${formatSize(totalUsed)} ${APP.lang==='id'?'digunakan':'used'}</span>
-                <span>${usedPercent.toFixed(1)}%</span>
+            <div>
+                <div style="font-size:16px;font-weight:700;color:var(--text);line-height:1.2">RidgeBox</div>
+                <div style="font-size:10px;color:var(--text-secondary);font-weight:500">${isId ? 'Cloud Storage' : 'Cloud Storage'}</div>
+            </div>
+        </div>
+
+        <!-- UPLOAD BUTTON - BIG & PROMINENT -->
+        <button onclick="triggerUpload()" style="width:100%;padding:14px 16px;border-radius:12px;border:none;background:linear-gradient(135deg,#3b82f6,#6366f1,#8b5cf6);color:#fff;font-weight:700;font-size:14px;font-family:'Space Grotesk',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(59,130,246,.35);transition:all .2s ease;margin-bottom:18px" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(59,130,246,.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 6px 20px rgba(59,130,246,.35)'">
+            <i class="fas fa-cloud-arrow-up" style="font-size:18px"></i>
+            <span>${isId ? 'Unggah File' : 'Upload Files'}</span>
+        </button>
+
+        <!-- MENU Section -->
+        <div class="sidebar-section-label" style="margin-bottom:6px">${isId ? 'MENU' : 'MENU'}</div>
+        ${menuItemsHtml}
+
+        <div class="sidebar-section-divider"></div>
+
+        <!-- FOLDERS Section -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div class="sidebar-section-label" style="margin:0">${isId ? 'FOLDER' : 'FOLDERS'}</div>
+            <button onclick="createFolderDialog()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:12px;padding:2px 6px;border-radius:6px;transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.1)'" onmouseout="this.style.background=''"><i class="fas fa-plus"></i></button>
+        </div>
+        ${folderItemsHtml || `<div style="padding:8px 12px;font-size:12px;color:var(--text-secondary);font-style:italic">${isId ? 'Belum ada folder' : 'No folders yet'}</div>`}
+
+        <div class="sidebar-section-divider"></div>
+
+        <!-- TOOLS Section -->
+        <div class="sidebar-section-label" style="margin-bottom:6px">${isId ? 'PERALATAN' : 'TOOLS'}</div>
+        ${toolItemsHtml}
+
+        <!-- Storage Widget at Bottom -->
+        <div class="storage-widget" style="margin-top:auto">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+                <svg width="52" height="52" viewBox="0 0 52 52" style="flex-shrink:0;transform:rotate(-90deg)">
+                    <circle cx="26" cy="26" r="${miniR}" fill="none" stroke="var(--bg-secondary)" stroke-width="5"/>
+                    <circle cx="26" cy="26" r="${miniR}" fill="none" stroke="${level}" stroke-width="5" stroke-dasharray="${miniC}" stroke-dashoffset="${miniC - (usedPercent / 100) * miniC}" stroke-linecap="round" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)"/>
+                </svg>
+                <div style="flex:1">
+                    <div class="storage-widget-title" style="margin-bottom:4px"><i class="fas fa-hard-drive" style="font-size:10px"></i> ${isId ? 'Penyimpanan' : 'Storage'}</div>
+                    <div class="storage-bar-track" style="margin-bottom:4px">
+                        <div class="storage-bar-fill" style="width:${usedPercent}%"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-secondary)">
+                        <span>${formatSize(totalUsed)}</span>
+                        <span style="font-weight:600">${usedPercent.toFixed(1)}%</span>
+                    </div>
+                </div>
             </div>
         </div>
         <div id="auto-lock-countdown" style="display:none;align-items:center;gap:4px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--text-secondary);background:var(--bg-secondary);border-radius:8px"></div>`;
@@ -4458,10 +5138,15 @@ function selectFolder(folderId) {
 function renderBreadcrumb() {
     const bar = document.getElementById('breadcrumb-bar');
     if (!bar) return;
+    const isId = APP.lang === 'id';
     let crumbs = [`<a href="#/dashboard" class="crumb-home" style="text-decoration:none;display:flex;align-items:center;gap:4px"><i class="fas fa-home" style="font-size:12px"></i></a>`];
     const folder = APP.folders.find(f => f.id === APP.currentFolder);
     if (folder) {
         crumbs.push(`<span class="crumb-sep">/</span> <span class="crumb-active">${folder.name}</span>`);
+    } else if (APP.currentFolder === 'shared') {
+        crumbs.push(`<span class="crumb-sep">/</span> <span class="crumb-active">${isId ? 'File Dibagikan' : 'Shared Files'}</span>`);
+    } else if (APP.currentFolder === 'encrypted') {
+        crumbs.push(`<span class="crumb-sep">/</span> <span class="crumb-active">${isId ? 'File Terenkripsi' : 'Encrypted Files'}</span>`);
     }
     if (APP.quickFilter) {
         crumbs.push(`<span class="crumb-sep">/</span> <span class="crumb-active">${t(APP.quickFilter)}</span>`);
@@ -4577,7 +5262,7 @@ async function renderFileList() {
     if (APP.currentView === 'categories') {
         container.innerHTML = `${actionBtns}${renderCategoriesView()}`;
     } else if (APP.currentView === 'grid') {
-        container.innerHTML = `${actionBtns}<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">
+        container.innerHTML = `${actionBtns}<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px">
             ${files.map((f, i) => renderFileGridItem(f, i)).join('')}
         </div>`;
     } else {
@@ -4607,6 +5292,10 @@ function getFilteredFiles() {
         files = files.sort((a, b) => (b.uploadedAt || 0) - (a.uploadedAt || 0)).slice(0, 20);
     } else if (APP.currentFolder === 'favorites') {
         files = files.filter(f => f.starred);
+    } else if (APP.currentFolder === 'shared') {
+        files = files.filter(f => APP.shares.some(s => s.fileId === f.id));
+    } else if (APP.currentFolder === 'encrypted') {
+        files = files.filter(f => f.encrypted);
     } else if (APP.currentFolder !== 'all' && APP.currentFolder !== 'trash') {
         files = files.filter(f => f.folderId === APP.currentFolder);
     }
@@ -4652,6 +5341,91 @@ function renderFileGridItem(file, index) {
     const selected = APP.selectedFiles.has(file.id);
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
     const trashDays = file.trashed && APP.settings.trashPurgeDays > 0 ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : -1;
+    const ext = (file.name || '').split('.').pop().toUpperCase();
+    const downloadUrl = `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`;
+    const isId = APP.lang === 'id';
+
+    // Build status icons row
+    let statusIcons = '';
+    if (file.starred) statusIcons += '<span class="si starred"><i class="fas fa-star"></i></span>';
+    if (file.pinned) statusIcons += '<span class="si pinned"><i class="fas fa-thumbtack"></i></span>';
+    if (file.encrypted) statusIcons += '<span class="si encrypted"><i class="fas fa-lock"></i></span>';
+    if (file.notes) statusIcons += '<span class="si has-notes"><i class="fas fa-sticky-note"></i></span>';
+
+    // Build preview area based on file type
+    let previewArea = '';
+    if (type === 'image') {
+        previewArea = `<div class="grid-card-preview" data-lazy-thumb="${downloadUrl}" data-file-id="${file.id}">
+            <img src="" alt="${file.name}" class="file-thumb-placeholder-img" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s ease" onload="this.style.opacity=1" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="preview-icon-area" style="display:none;position:absolute;inset:0">
+                <div class="icon-glow" style="background:${icon.color}"></div>
+                <i class="fas ${icon.icon}" style="font-size:32px;color:${icon.color}"></i>
+            </div>
+            <div class="gradient-overlay"></div>
+            <span class="grid-type-badge">${ext}</span>
+            ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
+        </div>`;
+    } else if (type === 'video') {
+        const thumbSrc = file.thumbnailUrl || '';
+        previewArea = `<div class="grid-card-preview" style="background:linear-gradient(135deg,${icon.color}18,${icon.color}08)">
+            ${thumbSrc ? `<img src="${thumbSrc}" alt="${file.name}" style="width:100%;height:100%;object-fit:cover;opacity:.7">` : ''}
+            <div class="grid-play-overlay">
+                <div class="play-btn"><i class="fas fa-play" style="margin-left:2px"></i></div>
+            </div>
+            <span class="grid-type-badge">${ext}</span>
+            ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
+        </div>`;
+    } else if (type === 'pdf') {
+        previewArea = `<div class="grid-card-preview" style="background:linear-gradient(135deg,${icon.color}12,${icon.color}05)">
+            <div class="preview-icon-area">
+                <div class="icon-glow" style="background:${icon.color}"></div>
+                <i class="fas fa-file-pdf" style="font-size:36px;color:${icon.color}"></i>
+            </div>
+            <span class="grid-type-badge">PDF</span>
+            <span class="grid-pdf-badge"><i class="fas fa-file-pdf" style="margin-right:3px"></i>PDF</span>
+            ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
+        </div>`;
+    } else if (type === 'audio') {
+        const barColors = [icon.color, icon.color + 'cc', icon.color + '99', icon.color + 'b3', icon.color + '80', icon.color + 'cc', icon.color];
+        const bars = barColors.map((c, i) => `<span style="background:${c};animation-delay:${i * 0.15}s"></span>`).join('');
+        previewArea = `<div class="grid-card-preview" style="background:linear-gradient(135deg,${icon.color}15,${icon.color}08)">
+            <div class="preview-icon-area" style="flex-direction:column;gap:12px">
+                <div class="icon-glow" style="background:${icon.color}"></div>
+                <i class="fas fa-music" style="font-size:28px;color:${icon.color}"></i>
+                <div class="grid-audio-wave">${bars}</div>
+            </div>
+            <span class="grid-type-badge">${ext}</span>
+            ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
+        </div>`;
+    } else {
+        previewArea = `<div class="grid-card-preview" style="background:linear-gradient(135deg,${icon.color}12,${icon.color}05)">
+            <div class="preview-icon-area">
+                <div class="icon-glow" style="background:${icon.color}"></div>
+                <i class="fas ${icon.icon}" style="font-size:32px;color:${icon.color}"></i>
+            </div>
+            <span class="grid-type-badge">${ext}</span>
+            ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
+        </div>`;
+    }
+
+    // Tag strip
+    const tagStrip = file.tag ? `<div class="grid-tag-strip" style="background:${file.tag}"></div>` : '';
+
+    // Trash progress
+    let trashInfo = '';
+    if (file.trashed && trashDays >= 0) {
+        const urgent = trashDays < 1;
+        const warn = trashDays < 3;
+        const color = urgent ? '#ef4444' : warn ? '#f97316' : '#f59e0b';
+        const pct = APP.settings.trashPurgeDays > 0 ? Math.max(0, Math.min(100, ((APP.settings.trashPurgeDays - trashDays) / APP.settings.trashPurgeDays) * 100)) : 0;
+        trashInfo = `<div style="margin-top:4px;width:100%">
+            <div style="font-size:10px;color:${color};font-weight:${urgent?'700':'400'}"><i class="fas fa-clock"></i> ${isId?'Dihapus dalam':'Deleted in'} ${trashDays} ${isId?'hari':'day(s)'}</div>
+            <div style="height:3px;background:var(--border);border-radius:2px;margin-top:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:2px;transition:width .3s ease"></div></div>
+        </div>`;
+    }
+
+    // Version badge
+    const versionBadge = versions.length > 1 ? `<span class="detail-version-badge" style="font-size:9px;padding:1px 6px;margin-left:4px">v${file.version || 1}/${versions.length}</span>` : '';
 
     return `<div class="file-card-premium file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''}" 
         onclick="handleFileClick(event, '${file.id}', ${index})"
@@ -4660,33 +5434,19 @@ function renderFileGridItem(file, index) {
         ondragstart="handleDragStart(event, '${file.id}')"
         ondragover="handleDragReorder(event, ${index})"
         ondrop="handleDropReorder(event, '${file.id}')"
-        style="position:relative" data-file-id="${file.id}">
-        ${file.pinned ? '<i class="fas fa-thumbtack" style="position:absolute;top:8px;right:8px;font-size:10px;color:var(--accent)"></i>' : ''}
-        ${file.starred ? '<i class="fas fa-star" style="position:absolute;top:8px;right:24px;font-size:10px;color:#f59e0b"></i>' : ''}
-        ${file.encrypted ? '<i class="fas fa-lock" style="position:absolute;top:8px;right:' + (file.pinned && file.starred ? '40px' : file.pinned || file.starred ? '24px' : '8px') + ';font-size:10px;color:#3b82f6"></i>' : ''}
-        ${file.notes ? '<i class="fas fa-sticky-note" style="position:absolute;top:8px;right:' + (file.pinned && file.starred && file.encrypted ? '56px' : (file.pinned && file.starred) || (file.pinned && file.encrypted) || (file.starred && file.encrypted) ? '40px' : file.pinned || file.starred || file.encrypted ? '24px' : '8px') + ';font-size:10px;color:#f59e0b;opacity:.7"></i>' : ''}
-        ${file.trashed ? `<button class="grid-quick-delete" style="background:rgba(239,68,68,.9)" onclick="event.stopPropagation();deletePermanently('${file.id}')"><i class="fas fa-times"></i></button>` : `<button class="grid-quick-delete" onclick="event.stopPropagation();quickDeleteFile('${file.id}')"><i class="fas fa-times"></i></button>`}
-        <div style="text-align:center;padding:8px 0">
-            <div class="file-icon-circle" style="background:${icon.color}15">
-                <i class="fas ${icon.icon}" style="font-size:22px;color:${icon.color}"></i>
+        data-file-id="${file.id}">
+        ${selected ? '<div class="grid-select-check"><i class="fas fa-check"></i></div>' : ''}
+        ${file.trashed ? `<button class="grid-quick-delete" style="background:rgba(239,68,68,.9);z-index:6" onclick="event.stopPropagation();deletePermanently('${file.id}')"><i class="fas fa-times"></i></button>` : `<button class="grid-quick-delete" style="z-index:6" onclick="event.stopPropagation();quickDeleteFile('${file.id}')"><i class="fas fa-times"></i></button>`}
+        ${previewArea}
+        ${tagStrip}
+        <div class="grid-card-info">
+            <div class="grid-name" title="${file.name}">${file.name}${versionBadge}</div>
+            <div class="grid-meta">
+                ${file.tag ? `<span class="tag-dot-inline" style="background:${file.tag}" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
+                <span>${formatSize(file.size)} · ${formatDate(file.uploadedAt)}</span>
             </div>
-            <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px" title="${file.name}">${file.name}</div>
-            <div style="font-size:11px;color:var(--text-secondary);margin-top:3px">${formatSize(file.size)} · ${formatDate(file.uploadedAt)}</div>
-            ${versions.length > 1 ? `<span class="badge" style="background:#8b5cf620;color:#8b5cf6;margin-top:6px">v${file.version || 1}/${versions.length}</span>` : ''}
-            ${file.tag ? `<span class="tag-dot" style="background:${file.tag};margin-top:4px" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
-            ${file.trashed && trashDays >= 0 ? (() => {
-                const isId = APP.lang === 'id';
-                const urgent = trashDays < 1;
-                const warn = trashDays < 3;
-                const pct = APP.settings.trashPurgeDays > 0 ? Math.max(0, Math.min(100, ((APP.settings.trashPurgeDays - trashDays) / APP.settings.trashPurgeDays) * 100)) : 0;
-                const color = urgent ? '#ef4444' : warn ? '#f97316' : '#f59e0b';
-                return `<div style="margin-top:6px;width:100%">
-                    <div style="font-size:10px;color:${color};font-weight:${urgent?'700':'400'}"><i class="fas fa-clock"></i> ${isId?'Dihapus dalam':'Deleted in'} ${trashDays} ${isId?'hari':'day(s)'}</div>
-                    <div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:2px;transition:width .3s ease"></div></div>
-                </div>`;
-            })() : ''}
+            ${trashInfo}
         </div>
-        ${APP.batchMode ? `<div style="position:absolute;top:8px;left:8px;width:20px;height:20px;border-radius:4px;border:2px solid ${selected ? 'var(--accent)' : 'var(--border)'};background:${selected ? 'var(--accent)' : 'transparent'};display:flex;align-items:center;justify-content:center">${selected ? '<i class="fas fa-check" style="color:#fff;font-size:10px"></i>' : ''}</div>` : ''}
     </div>`;
 }
 
@@ -4696,6 +5456,55 @@ function renderFileListRow(file, index) {
     const selected = APP.selectedFiles.has(file.id);
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
     const trashDays = file.trashed && APP.settings.trashPurgeDays > 0 ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : -1;
+    const downloadUrl = `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`;
+    const isId = APP.lang === 'id';
+
+    // Thumbnail or icon
+    let thumbHtml = '';
+    if (type === 'image') {
+        thumbHtml = `<div class="list-thumb" data-lazy-thumb="${downloadUrl}" data-file-id="${file.id}" style="background:${icon.color}15">
+            <img src="" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;opacity:0;transition:opacity .3s ease;position:absolute;inset:0" onload="this.style.opacity=1" onerror="this.style.display='none';this.parentElement.querySelector('.thumb-icon').style.display='flex'">
+            <div class="thumb-icon" style="background:${icon.color}15;display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:8px">
+                <i class="fas ${icon.icon}" style="font-size:16px;color:${icon.color}"></i>
+            </div>
+        </div>`;
+    } else {
+        thumbHtml = `<div class="list-thumb" style="background:${icon.color}12">
+            <div class="thumb-icon" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:8px">
+                <i class="fas ${icon.icon}" style="font-size:16px;color:${icon.color}"></i>
+            </div>
+        </div>`;
+    }
+
+    // Inline status icons
+    let inlineStatus = '';
+    if (file.pinned) inlineStatus += '<i class="fas fa-thumbtack inline-status pinned"></i>';
+    if (file.starred) inlineStatus += '<i class="fas fa-star inline-status starred"></i>';
+    if (file.encrypted) inlineStatus += '<i class="fas fa-lock inline-status encrypted"></i>';
+
+    // Version badge inline
+    const versionBadge = versions.length > 1 ? `<span class="detail-version-badge" style="font-size:9px;padding:1px 5px">v${file.version || 1}</span>` : '';
+
+    // Trash countdown
+    let trashBadge = '';
+    if (file.trashed && trashDays >= 0) {
+        const urgent = trashDays < 1;
+        const warn = trashDays < 3;
+        const color = urgent ? '#ef4444' : warn ? '#f97316' : '#f59e0b';
+        trashBadge = `<span style="font-size:10px;color:${color};font-weight:${urgent?'700':'400'}"><i class="fas fa-clock"></i> ${trashDays}d</span>`;
+    }
+
+    // Sub-meta line
+    let subMeta = `${formatSize(file.size)}`;
+    if (file.caption) subMeta += ` · ${file.caption.substring(0, 30)}`;
+
+    // Trash progress bar
+    let trashProgress = '';
+    if (file.trashed && trashDays >= 0) {
+        const pct = APP.settings.trashPurgeDays > 0 ? Math.max(0, Math.min(100, ((APP.settings.trashPurgeDays - trashDays) / APP.settings.trashPurgeDays) * 100)) : 0;
+        const color = trashDays < 1 ? '#ef4444' : trashDays < 3 ? '#f97316' : '#f59e0b';
+        trashProgress = `<div class="list-upload-progress" style="background:var(--border)"><div class="bar" style="width:${pct}%;background:${color}"></div></div>`;
+    }
 
     return `<div class="file-row-premium file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''}"
         onclick="handleFileClick(event, '${file.id}', ${index})"
@@ -4703,34 +5512,23 @@ function renderFileListRow(file, index) {
         draggable="true"
         ondragstart="handleDragStart(event, '${file.id}')"
         ondragover="handleDragReorder(event, ${index})"
-        ondrop="handleDropReorder(event, '${file.id}')">
-        ${APP.batchMode ? `<div style="width:20px;height:20px;border-radius:4px;border:2px solid ${selected ? 'var(--accent)' : 'var(--border)'};background:${selected ? 'var(--accent)' : 'transparent'};display:flex;align-items:center;justify-content:center;margin-right:8px;flex-shrink:0">${selected ? '<i class="fas fa-check" style="color:#fff;font-size:10px"></i>' : ''}</div>` : ''}
-        <div style="width:40px;height:40px;border-radius:10px;background:${icon.color}12;display:flex;align-items:center;justify-content:center;margin-right:14px;flex-shrink:0">
-            <i class="fas ${icon.icon}" style="font-size:16px;color:${icon.color}"></i>
-        </div>
-        <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:6px">
-                <span style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</span>
-                ${file.pinned ? '<i class="fas fa-thumbtack" style="font-size:10px;color:var(--accent)"></i>' : ''}
-                ${file.starred ? '<i class="fas fa-star" style="font-size:10px;color:#f59e0b"></i>' : ''}
-                ${file.encrypted ? '<i class="fas fa-lock" style="font-size:10px;color:#3b82f6"></i>' : ''}
-                ${file.notes ? '<i class="fas fa-sticky-note" style="font-size:10px;color:#f59e0b;opacity:.7" title="Has notes"></i>' : ''}
-                ${file.tag ? `<span class="tag-dot" style="background:${file.tag};width:8px;height:8px" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
-                ${versions.length > 1 ? `<span class="badge" style="background:#8b5cf620;color:#8b5cf6;font-size:10px">v${file.version || 1}</span>` : ''}
-                ${file.trashed && trashDays >= 0 ? (() => {
-                    const urgent = trashDays < 1;
-                    const warn = trashDays < 3;
-                    const color = urgent ? '#ef4444' : warn ? '#f97316' : '#f59e0b';
-                    return `<span style="font-size:10px;color:${color};font-weight:${urgent?'700':'400'}"><i class="fas fa-clock"></i> ${trashDays}d</span>`;
-                })() : ''}
+        ondrop="handleDropReorder(event, '${file.id}')"
+        data-file-id="${file.id}">
+        ${APP.batchMode ? `<div style="width:20px;height:20px;border-radius:4px;border:2px solid ${selected ? 'var(--accent)' : 'var(--border)'};background:${selected ? 'var(--accent)' : 'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0">${selected ? '<i class="fas fa-check" style="color:#fff;font-size:10px"></i>' : ''}</div>` : ''}
+        ${thumbHtml}
+        <div class="list-name-col">
+            <div class="list-name-row">
+                <span class="fname">${file.name}</span>
+                ${inlineStatus}
+                ${file.tag ? `<span class="tag-dot-inline" style="background:${file.tag}" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
+                ${versionBadge}
+                ${trashBadge}
             </div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">${formatSize(file.size)} · ${formatDate(file.uploadedAt)}${file.caption ? ' · ' + file.caption.substring(0, 30) : ''}</div>
-            ${file.trashed && trashDays >= 0 ? (() => {
-                const pct = APP.settings.trashPurgeDays > 0 ? Math.max(0, Math.min(100, ((APP.settings.trashPurgeDays - trashDays) / APP.settings.trashPurgeDays) * 100)) : 0;
-                const color = trashDays < 1 ? '#ef4444' : trashDays < 3 ? '#f97316' : '#f59e0b';
-                return `<div style="height:3px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:2px;transition:width .3s ease"></div></div>`;
-            })() : ''}
+            <div class="list-sub-meta">${subMeta}</div>
+            ${trashProgress}
         </div>
+        <div class="list-col-size">${formatSize(file.size)}</div>
+        <div class="list-col-date">${formatDate(file.uploadedAt)}</div>
         <div class="row-actions action-btns">
             <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openPreview('${file.id}')" title="${t('preview')}"><i class="fas fa-eye"></i></button>
             <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openShareModal('${file.id}')" title="${t('share')}"><i class="fas fa-share-alt"></i></button>
@@ -7602,6 +8400,136 @@ function openQrScan() {
     showToast(APP.lang === 'id' ? 'Pemindai QR segera hadir!' : 'QR scanner coming soon!', 'info', 3000);
 }
 
+// --- Dashboard Analytics (Enhanced) ---
+function renderDashboardAnalytics() {
+    const isId = APP.lang === 'id';
+    const activeFiles = APP.files.filter(f => !f.trashed);
+    const totalUsed = activeFiles.reduce((sum, f) => sum + (f.size || 0), 0);
+    const maxStorage = getStorageLimitBytes();
+    const usedPercent = maxStorage > 0 ? Math.min((totalUsed / maxStorage) * 100, 100) : 0;
+
+    // Total Downloads from shares
+    const totalDownloads = APP.shares.reduce((sum, s) => sum + (s.downloadCount || 0), 0);
+
+    // Total Shares
+    const totalShares = APP.shares.length;
+
+    // Storage Growth: compare current week vs last week
+    const now = Date.now();
+    const thisWeekStart = now - 7 * 86400000;
+    const lastWeekStart = now - 14 * 86400000;
+    const thisWeekStorage = activeFiles.filter(f => f.uploadedAt >= thisWeekStart).reduce((sum, f) => sum + (f.size || 0), 0);
+    const lastWeekStorage = activeFiles.filter(f => f.uploadedAt >= lastWeekStart && f.uploadedAt < thisWeekStart).reduce((sum, f) => sum + (f.size || 0), 0);
+    const growthDiff = lastWeekStorage > 0 ? ((thisWeekStorage - lastWeekStorage) / lastWeekStorage * 100) : (thisWeekStorage > 0 ? 100 : 0);
+    const growthUp = growthDiff >= 0;
+
+    // Most Downloaded Files (top 5)
+    const filesWithDl = activeFiles.map(f => {
+        const shares = APP.shares.filter(s => s.fileId === f.id);
+        const dlCount = shares.reduce((sum, s) => sum + (s.downloadCount || 0), 0);
+        return { id: f.id, name: f.name, size: f.size, mime: f.mime, totalDownloads: dlCount };
+    }).sort((a, b) => b.totalDownloads - a.totalDownloads).slice(0, 5);
+
+    // Recent Uploads (last 5)
+    const recentUploads = [...activeFiles].sort((a, b) => (b.uploadedAt || 0) - (a.uploadedAt || 0)).slice(0, 5);
+
+    // Breakdown by type
+    const typeMap = {
+        image: { label: isId ? 'Foto' : 'Photos', color: '#10b981', size: 0 },
+        video: { label: isId ? 'Video' : 'Videos', color: '#ef4444', size: 0 },
+        audio: { label: isId ? 'Audio' : 'Audio', color: '#8b5cf6', size: 0 },
+        document: { label: isId ? 'Dokumen' : 'Documents', color: '#3b82f6', size: 0 },
+        other: { label: isId ? 'Lainnya' : 'Others', color: '#64748b', size: 0 }
+    };
+    const docTypes = ['document','pdf','spreadsheet','presentation','text','code'];
+    activeFiles.forEach(f => {
+        const fType = getFileType(f.name, f.mime);
+        if (fType === 'image') typeMap.image.size += (f.size || 0);
+        else if (fType === 'video') typeMap.video.size += (f.size || 0);
+        else if (fType === 'audio') typeMap.audio.size += (f.size || 0);
+        else if (docTypes.includes(fType)) typeMap.document.size += (f.size || 0);
+        else typeMap.other.size += (f.size || 0);
+    });
+
+    // SVG ring (bigger)
+    const r = 52, c = 2 * Math.PI * r;
+    const offset = c - (usedPercent / 100) * c;
+    const usedGB = (totalUsed / (1024*1024*1024)).toFixed(2);
+    const level = usedPercent > 90 ? '#ef4444' : usedPercent > 75 ? '#f97316' : usedPercent > 50 ? '#f59e0b' : 'var(--accent)';
+    const ringColor = level;
+
+    let breakdownHtml = Object.values(typeMap).map(t => {
+        const pct = totalUsed > 0 ? ((t.size / totalUsed) * 100).toFixed(1) : '0.0';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+            <div style="width:8px;height:8px;border-radius:50%;background:${t.color};flex-shrink:0"></div>
+            <div style="flex:1;font-size:12px;color:var(--text)">${t.label}</div>
+            <div style="font-size:11px;color:var(--text-secondary);font-family:'JetBrains Mono',monospace">${formatSize(t.size)}</div>
+            <div style="font-size:11px;color:var(--text-secondary);width:40px;text-align:right">${pct}%</div>
+        </div>`;
+    }).join('');
+
+    // Most downloaded mini-list
+    const mostDownloadedHtml = filesWithDl.filter(f => f.totalDownloads > 0).length > 0
+        ? filesWithDl.filter(f => f.totalDownloads > 0).map(f => {
+            const fIcon = getFileIcon(getFileType(f.name, f.mime));
+            return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer" onclick="openDetailPanel('${f.id}')">
+                <div style="width:24px;height:24px;border-radius:6px;background:${fIcon.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${fIcon.icon}" style="color:${fIcon.color};font-size:10px"></i></div>
+                <div style="flex:1;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</div>
+                <div style="font-size:11px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace">${f.totalDownloads}</div>
+            </div>`;
+        }).join('')
+        : `<div style="font-size:11px;color:var(--text-secondary);padding:8px 0">${isId ? 'Belum ada unduhan' : 'No downloads yet'}</div>`;
+
+    // Recent uploads mini-list
+    const recentUploadsHtml = recentUploads.length > 0 ? recentUploads.map(f => {
+        const fIcon = getFileIcon(getFileType(f.name, f.mime));
+        return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer" onclick="openDetailPanel('${f.id}')">
+            <div style="width:24px;height:24px;border-radius:6px;background:${fIcon.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${fIcon.icon}" style="color:${fIcon.color};font-size:10px"></i></div>
+            <div style="flex:1;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</div>
+            <div style="font-size:10px;color:var(--text-secondary)">${formatSize(f.size || 0)}</div>
+        </div>`;
+    }).join('') : `<div style="font-size:11px;color:var(--text-secondary);padding:8px 0">${isId ? 'Belum ada file' : 'No files yet'}</div>`;
+
+    // Storage growth indicator
+    const growthHtml = `<div style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;${growthUp ? 'color:#10b981' : 'color:#ef4444'}">
+        <i class="fas fa-arrow-${growthUp ? 'up' : 'down'}" style="font-size:10px"></i>
+        ${Math.abs(growthDiff).toFixed(1)}%
+        <span style="color:var(--text-secondary);font-weight:400">${isId ? 'minggu ini' : 'this week'}</span>
+    </div>`;
+
+    return `<div class="dash-card-title"><i class="fas fa-chart-pie"></i> ${isId ? 'Analisis Penyimpanan' : 'Storage Analytics'}</div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">${Math.max(APP.bots.length || 1, 1)} bot · 2 GB/bot = ${formatSize(maxStorage)}</div>
+        <div style="display:flex;gap:20px;align-items:flex-start">
+            <!-- Ring Chart -->
+            <div style="flex-shrink:0;text-align:center">
+                <svg viewBox="0 0 120 120" width="120" height="120" style="transform:rotate(-90deg)">
+                    <circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--bg-secondary)" stroke-width="8"/>
+                    <circle cx="60" cy="60" r="${r}" fill="none" stroke="${ringColor}" stroke-width="8" stroke-dasharray="${c}" stroke-dashoffset="${c}" data-target-offset="${offset}" class="storage-ring-fill" style="stroke-dashoffset:${c};transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);stroke-linecap:round"/>
+                </svg>
+                <div style="margin-top:-76px;position:relative;text-align:center;margin-bottom:30px">
+                    <div style="font-size:18px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace">${usedGB} GB</div>
+                    <div style="font-size:10px;color:var(--text-secondary)">${isId ? 'dari' : 'of'} ${formatSize(maxStorage)}</div>
+                </div>
+            </div>
+            <!-- Breakdown + Growth -->
+            <div style="flex:1;min-width:0">
+                <div style="margin-bottom:8px">${growthHtml}</div>
+                ${breakdownHtml}
+            </div>
+        </div>
+        <!-- Most Downloaded + Recent Uploads -->
+        <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+                <div style="font-size:10px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">${isId ? 'Paling Diunduh' : 'Most Downloaded'}</div>
+                ${mostDownloadedHtml}
+            </div>
+            <div>
+                <div style="font-size:10px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">${isId ? 'Unggahan Terbaru' : 'Recent Uploads'}</div>
+                ${recentUploadsHtml}
+            </div>
+        </div>`;
+}
+
 // --- Storage Analytics Card ---
 function renderStorageAnalyticsCard() {
     const files = APP.files.filter(f => !f.trashed);
@@ -7749,7 +8677,7 @@ function renderTopFilesCard() {
 }
 
 // --- Activity Timeline ---
-let _activityCache = null;
+// _activityCache is stored in APP._activityCache (initialized in APP object)
 
 async function logActivity(type, description) {
     const entry = {
@@ -7768,28 +8696,28 @@ async function logActivity(type, description) {
         if (log.length > 50) log.length = 50;
         entry.log = log;
         await dbPut('settings', entry);
-        _activityCache = log;
+        APP._activityCache = log;
         // Update activity timeline if visible
         refreshActivityUI();
     } catch(e) {
         console.warn('logActivity error:', e);
         // Fallback to memory-only
-        if (!_activityCache) _activityCache = [];
-        _activityCache.unshift({ type, description, timestamp: Date.now() });
-        if (_activityCache.length > 50) _activityCache.length = 50;
+        if (!APP._activityCache) APP._activityCache = [];
+        APP._activityCache.unshift({ type, description, timestamp: Date.now() });
+        if (APP._activityCache.length > 50) APP._activityCache.length = 50;
         refreshActivityUI();
     }
 }
 
 async function loadActivityLog() {
-    if (_activityCache) return _activityCache;
+    if (APP._activityCache) return APP._activityCache;
     try {
         const data = await dbGet('settings', 'activityLog');
-        _activityCache = data ? (data.log || []) : [];
+        APP._activityCache = data ? (data.log || []) : [];
     } catch(e) {
-        _activityCache = [];
+        APP._activityCache = [];
     }
-    return _activityCache;
+    return APP._activityCache;
 }
 
 function refreshActivityUI() {
@@ -7808,7 +8736,7 @@ function renderActivityTimeline() {
 }
 
 function renderActivityItems() {
-    const log = _activityCache || [];
+    const log = APP._activityCache || [];
     const last20 = log.slice(0, 20);
     if (last20.length === 0) {
         return `<div style="text-align:center;padding:20px 0;color:var(--text-secondary);font-size:12px">${APP.lang==='id'?'Belum ada aktivitas':'No activity yet'}</div>`;
