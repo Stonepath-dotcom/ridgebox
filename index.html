@@ -4691,8 +4691,6 @@ function renderDashboard() {
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
             <!-- Storage Warning Banner -->
             ${renderStorageWarningBanner()}
-            <!-- Stats Bar -->
-            ${renderDashboardStatsBar()}
             <!-- Toolbar -->
             <div class="toolbar-premium toolbar-wrap" style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                 <div class="search-premium" style="flex:1;min-width:200px">
@@ -4802,11 +4800,6 @@ function renderDashboard() {
             <div id="ptr-indicator" style="text-align:center;padding:0;height:0;overflow:hidden;transition:height .2s ease"><div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);margin:8px auto;box-shadow:var(--shadow-sm)"><i class="fas fa-arrow-down" id="ptr-arrow" style="font-size:12px;color:var(--text-secondary);transition:transform .2s ease"></i></div></div>
             <div id="file-list-container" style="flex:1;overflow-y:auto;padding:0 20px 20px"></div>
         </div>
-        <!-- Right Sidebar: Activity Timeline -->
-        <aside class="dash-sidebar" id="dash-right-sidebar">
-            <div class="dash-card-title"><i class="fas fa-clock-rotate-left"></i> ${isId ? 'Aktivitas Terbaru' : 'Recent Activity'}</div>
-            <div id="activity-sidebar-timeline" class="activity-timeline">${renderActivityItems()}</div>
-        </aside>
     </div>
     <input type="file" id="file-upload-input" multiple style="display:none" onchange="handleFileSelect(this.files)">`;
 
@@ -8721,9 +8714,7 @@ async function loadActivityLog() {
 }
 
 function refreshActivityUI() {
-    const sidebarTL = document.getElementById('activity-sidebar-timeline');
     const cardTL = document.getElementById('activity-card');
-    if (sidebarTL) sidebarTL.innerHTML = renderActivityItems();
     if (cardTL) {
         const inner = cardTL.querySelector('.activity-timeline');
         if (inner) inner.innerHTML = renderActivityItems();
