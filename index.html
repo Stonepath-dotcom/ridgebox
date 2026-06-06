@@ -666,6 +666,7 @@ body.no-transition,body.no-transition *{transition:none!important}
 // ===== GLOBAL STATE =====
 const APP = {
     files: [],
+    _trashFiles: [], // Cache of trashed files (loaded from IndexedDB for trash view)
     folders: [
         { id: 'all', name: 'Semua File', icon: 'fa-folder', system: true },
         { id: 'recent', name: 'Terbaru', icon: 'fa-clock', system: true },
@@ -1048,7 +1049,8 @@ let _db = null;
 
 function openDB() {
     return new Promise((resolve, reject) => {
-        if (_db) return resolve(_db);
+        if (_db && !_db.closed) return resolve(_db);
+        _db = null; // Reset if closed
         const req = indexedDB.open(DB_NAME, DB_VERSION);
         req.onupgradeneeded = (e) => {
             const db = e.target.result;
@@ -1095,6 +1097,7 @@ async function dbPut(store, data) {
         tx.objectStore(store).put(data);
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error || new Error('Transaction aborted'));
     });
 }
 
@@ -1694,6 +1697,19 @@ async function refreshUI() {
             ...customFolders
         ];
     } catch(e) { console.warn('refreshUI reload error:', e); }
+    // Safety check: sync non-trashed files from IndexedDB that might be missing from memory
+    // (e.g., files added from another tab). Skip trashed files — they're handled by trash view.
+    // Also update trash count cache for sidebar.
+    try {
+        const dbFiles = await dbGetAll('files');
+        APP._trashFiles = dbFiles.filter(f => f.trashed);
+        for (const dbFile of dbFiles) {
+            if (!dbFile.trashed && !APP.files.find(f => f.id === dbFile.id)) {
+                console.warn(`refreshUI: adding missing non-trashed file from DB: ${dbFile.id}`);
+                APP.files.push(dbFile);
+            }
+        }
+    } catch(e) { console.warn('refreshUI sync error:', e); }
     // Update sidebar counts
     const sidebar = document.getElementById('sidebar-panel');
     if (sidebar) sidebar.innerHTML = renderSidebarHTML();
@@ -2520,13 +2536,15 @@ function renderDashboard() {
 }
 
 function renderSidebarHTML() {
+    // Get trash count from _trashFiles cache or estimate
+    const trashCount = (APP._trashFiles || []).length;
     const folderItems = APP.folders.map(f => {
         const active = f.id === APP.currentFolder;
-        const count = f.id === 'all' ? APP.files.filter(x => !x.trashed).length
-            : f.id === 'recent' ? APP.files.filter(x => !x.trashed && isToday(x.uploadedAt)).length
-            : f.id === 'favorites' ? APP.files.filter(x => x.starred && !x.trashed).length
-            : f.id === 'trash' ? APP.files.filter(x => x.trashed).length
-            : APP.files.filter(x => x.folderId === f.id && !x.trashed).length;
+        const count = f.id === 'all' ? APP.files.length
+            : f.id === 'recent' ? APP.files.filter(x => isToday(x.uploadedAt)).length
+            : f.id === 'favorites' ? APP.files.filter(x => x.starred).length
+            : f.id === 'trash' ? trashCount
+            : APP.files.filter(x => x.folderId === f.id).length;
         return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="selectFolder('${f.id}')" draggable="true" ondragover="event.preventDefault();this.style.background='rgba(59,130,246,.1)'" ondragleave="this.style.background=''" ondrop="handleFolderDrop(event,'${f.id}');this.style.background=''">
             <i class="fas ${f.icon}" style="width:16px;text-align:center;color:${active ? 'var(--accent)' : ''}"></i>
             <span style="flex:1">${f.name}</span>
@@ -2641,10 +2659,27 @@ function setQuickFilter(key) {
 }
 
 // ===== FILE LIST (integrated with ALL enhancements) =====
-function renderFileList() {
+async function renderFileList() {
     const container = document.getElementById('file-list-container');
     if (!container) return;
+
+    // For trash view, we need to load trashed files from IndexedDB
+    // because they are removed from APP.files when trashed
+    if (APP.currentFolder === 'trash') {
+        try {
+            const allDbFiles = await dbGetAll('files');
+            APP._trashFiles = allDbFiles.filter(f => f.trashed);
+        } catch(e) {
+            console.warn('Failed to load trash files:', e);
+            APP._trashFiles = [];
+        }
+    }
+
     let files = getFilteredFiles();
+    // Debug: log trashed state
+    const trashedCount = APP.files.filter(f => f.trashed).length;
+    const totalCount = APP.files.length;
+    console.log(`renderFileList: total=${totalCount}, trashed=${trashedCount}, visible=${files.length}, folder=${APP.currentFolder}`);
 
     // Sort
     files.sort((a, b) => {
@@ -2696,19 +2731,23 @@ function renderFileList() {
 }
 
 function getFilteredFiles() {
-    let files = [...APP.files];
-
+    let files;
     // Folder filter
-    if (APP.currentFolder === 'all') {
-        files = files.filter(f => !f.trashed);
-    } else if (APP.currentFolder === 'recent') {
-        files = files.filter(f => !f.trashed).sort((a, b) => (b.uploadedAt || 0) - (a.uploadedAt || 0)).slice(0, 20);
-    } else if (APP.currentFolder === 'favorites') {
-        files = files.filter(f => f.starred && !f.trashed);
-    } else if (APP.currentFolder === 'trash') {
-        files = files.filter(f => f.trashed);
+    if (APP.currentFolder === 'trash') {
+        // Trash view uses files loaded from IndexedDB (they're removed from APP.files when trashed)
+        files = [...(APP._trashFiles || [])];
     } else {
-        files = files.filter(f => f.folderId === APP.currentFolder && !f.trashed);
+        files = [...APP.files];
+        // For non-trash views, filter out any trashed files that might still be in memory
+        files = files.filter(f => !f.trashed);
+    }
+
+    if (APP.currentFolder === 'recent') {
+        files = files.sort((a, b) => (b.uploadedAt || 0) - (a.uploadedAt || 0)).slice(0, 20);
+    } else if (APP.currentFolder === 'favorites') {
+        files = files.filter(f => f.starred);
+    } else if (APP.currentFolder !== 'all' && APP.currentFolder !== 'trash') {
+        files = files.filter(f => f.folderId === APP.currentFolder);
     }
 
     // Quick filter (F65)
@@ -2830,16 +2869,20 @@ async function quickDeleteFile(fileId) {
     if (!file) { console.warn('quickDelete: file not found', fileId); return; }
     // Immediately remove from DOM for instant visual feedback
     removeFileElement(fileId);
+    // Set trashed flags
     file.trashed = true;
     file.trashedAt = Date.now();
-    try { await saveFile(file); } catch(e) { console.error('quickDelete save error:', e); }
+    // Save to IndexedDB with trashed flag
+    try {
+        await saveFile(file);
+        console.log('quickDelete: saved', fileId, 'trashed=', file.trashed);
+    } catch(e) { console.error('quickDelete save error:', e); }
+    // CRITICAL: Remove from APP.files IMMEDIATELY so it disappears from all non-trash views
+    APP.files = APP.files.filter(f => f.id !== fileId);
     APP.selectedFiles.delete(fileId);
     closeDetailPanel();
     closeContextMenu();
     showUndoToast(t('movedToTrash'), async () => { await restoreFile(fileId); });
-    // Verify the file is marked trashed in memory
-    const check = APP.files.find(f => f.id === fileId);
-    if (check && !check.trashed) { check.trashed = true; check.trashedAt = Date.now(); }
     await refreshUI();
 }
 
@@ -2896,11 +2939,15 @@ async function clearRecentHistory() {
         APP.lang === 'id' ? 'File terbaru akan dipindahkan ke sampah.' : 'Recent files will be moved to trash.',
         async () => {
             const recentFiles = APP.files.filter(f => !f.trashed && isToday(f.uploadedAt));
+            const trashedIds = new Set();
             for (const f of recentFiles) {
                 f.trashed = true;
                 f.trashedAt = Date.now();
                 await saveFile(f);
+                trashedIds.add(f.id);
             }
+            // Remove trashed files from APP.files
+            APP.files = APP.files.filter(f => !trashedIds.has(f.id));
             APP.selectedFiles.clear();
             closeDetailPanel();
             closeContextMenu();
@@ -2916,11 +2963,20 @@ async function restoreAllTrash() {
         APP.lang === 'id' ? 'Pulihkan Semua?' : 'Restore All?',
         APP.lang === 'id' ? 'Semua file di sampah akan dipulihkan.' : 'All trashed files will be restored.',
         async () => {
-            const trashFiles = APP.files.filter(f => f.trashed);
+            // Get trashed files from IndexedDB (they're not in APP.files anymore)
+            let trashFiles;
+            try {
+                const allDbFiles = await dbGetAll('files');
+                trashFiles = allDbFiles.filter(f => f.trashed);
+            } catch(e) { trashFiles = []; }
             for (const f of trashFiles) {
                 f.trashed = false;
                 f.trashedAt = null;
                 await saveFile(f);
+                // Add back to APP.files
+                if (!APP.files.find(af => af.id === f.id)) {
+                    APP.files.push(f);
+                }
             }
             closeDetailPanel();
             closeContextMenu();
@@ -3333,27 +3389,44 @@ async function moveToTrash(fileId) {
     if (!file) { console.warn('moveToTrash: file not found', fileId); return; }
     // Immediately remove from DOM for instant visual feedback
     removeFileElement(fileId);
+    // Set trashed flags
     file.trashed = true;
     file.trashedAt = Date.now();
-    try { await saveFile(file); } catch(e) { console.error('moveToTrash save error:', e); }
+    // Save to IndexedDB with trashed flag
+    try {
+        await saveFile(file);
+        console.log('moveToTrash: saved', fileId, 'trashed=', file.trashed);
+    } catch(e) { console.error('moveToTrash save error:', e); }
+    // CRITICAL: Remove from APP.files IMMEDIATELY so it disappears from all non-trash views
+    // The trash view will read directly from IndexedDB
+    APP.files = APP.files.filter(f => f.id !== fileId);
     APP.selectedFiles.delete(fileId);
     closeDetailPanel();
     closeContextMenu();
     showUndoToast(t('movedToTrash'), async () => { await restoreFile(fileId); });
-    // Verify the file is marked trashed in memory
-    const check = APP.files.find(f => f.id === fileId);
-    if (check && !check.trashed) { check.trashed = true; check.trashedAt = Date.now(); }
     await refreshUI();
 }
 
 async function restoreFile(fileId) {
-    const file = APP.files.find(f => f.id === fileId);
-    if (!file) return;
+    // File might not be in APP.files anymore (removed when trashed)
+    // So we need to get it from IndexedDB
+    let file = APP.files.find(f => f.id === fileId);
+    if (!file) {
+        try {
+            file = await dbGet('files', fileId);
+        } catch(e) { console.error('restoreFile: cannot find file:', e); }
+    }
+    if (!file) { console.warn('restoreFile: file not found anywhere', fileId); return; }
     file.trashed = false;
     file.trashedAt = null;
     try { await saveFile(file); } catch(e) { console.error('restoreFile save error:', e); }
-    const idx = APP.files.findIndex(f => f.id === fileId);
-    if (idx !== -1) { APP.files[idx].trashed = false; APP.files[idx].trashedAt = null; }
+    // Add back to APP.files so it appears in non-trash views
+    if (!APP.files.find(f => f.id === fileId)) {
+        APP.files.push(file);
+    } else {
+        const idx = APP.files.findIndex(f => f.id === fileId);
+        if (idx !== -1) { APP.files[idx].trashed = false; APP.files[idx].trashedAt = null; }
+    }
     closeDetailPanel();
     closeContextMenu();
     showToast(t('restored'), 'success');
@@ -3558,7 +3631,12 @@ async function emptyTrash() {
         APP.lang === 'id' ? 'Kosongkan Sampah?' : 'Empty Trash?',
         APP.lang === 'id' ? 'Semua file akan dihapus permanen.' : 'All files will be permanently deleted.',
         async () => {
-            const trashFiles = APP.files.filter(f => f.trashed);
+            // Get trashed files from IndexedDB (they're not in APP.files anymore)
+            let trashFiles;
+            try {
+                const allDbFiles = await dbGetAll('files');
+                trashFiles = allDbFiles.filter(f => f.trashed);
+            } catch(e) { trashFiles = []; }
             for (const f of trashFiles) {
                 if (f.messageId && f.chatId) {
                     try {
@@ -3572,6 +3650,7 @@ async function emptyTrash() {
                 }
                 await deleteFileDB(f.id);
             }
+            // Also remove any trashed files still in APP.files (shouldn't be, but safety)
             APP.files = APP.files.filter(f => !f.trashed);
             closeDetailPanel();
             closeContextMenu();
@@ -3674,26 +3753,27 @@ async function bulkDelete() {
         APP.lang === 'id' ? `Hapus ${fileCount} File?` : `Delete ${fileCount} Files?`,
         APP.lang === 'id' ? 'File akan dipindahkan ke sampah.' : 'Files will be moved to trash.',
         async () => {
+            const trashedIds = new Set();
             for (const id of APP.selectedFiles) {
                 const file = APP.files.find(f => f.id === id);
                 if (file) {
                     file.trashed = true;
                     file.trashedAt = Date.now();
                     await saveFile(file);
+                    trashedIds.add(id);
                 }
             }
+            // Remove trashed files from APP.files
+            APP.files = APP.files.filter(f => !trashedIds.has(f.id));
             APP.selectedFiles.clear();
             APP.batchMode = false;
             closeDetailPanel();
             closeContextMenu();
             showUndoToast(t('movedToTrash'), async () => {
                 // Undo: restore all files that were just trashed
-                APP.files.filter(f => f.trashed && f.trashedAt && Date.now() - f.trashedAt < 10000).forEach(async f => {
-                    f.trashed = false;
-                    f.trashedAt = null;
-                    await saveFile(f);
-                });
-                await refreshUI();
+                for (const id of trashedIds) {
+                    await restoreFile(id);
+                }
                 showToast(APP.lang === 'id' ? 'File dipulihkan' : 'Files restored', 'success');
             });
             await refreshUI();
@@ -4777,12 +4857,18 @@ document.addEventListener('keydown', (e) => {
 async function autoPurgeTrash() {
     if (APP.settings.trashPurgeDays <= 0) return;
     const cutoff = Date.now() - APP.settings.trashPurgeDays * 86400000;
-    const toDelete = APP.files.filter(f => f.trashed && f.trashedAt && f.trashedAt < cutoff);
+    // Get trashed files from IndexedDB (they may not be in APP.files)
+    let toDelete;
+    try {
+        const allDbFiles = await dbGetAll('files');
+        toDelete = allDbFiles.filter(f => f.trashed && f.trashedAt && f.trashedAt < cutoff);
+    } catch(e) { toDelete = []; }
     for (const f of toDelete) {
         await deleteFileDB(f.id);
     }
     if (toDelete.length > 0) {
-        APP.files = APP.files.filter(f => !(f.trashed && f.trashedAt && f.trashedAt < cutoff));
+        // Also remove from APP.files if they're still there
+        APP.files = APP.files.filter(f => !(toDelete.find(d => d.id === f.id)));
         showToast(`${toDelete.length} ${APP.lang==='id'?'file dihapus permanen':'files permanently deleted'}`, 'info');
     }
 }
