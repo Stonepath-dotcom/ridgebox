@@ -523,7 +523,7 @@ body.view-mobile .file-list-row .action-btns,body.view-mobile .file-row-premium 
 .animated-gradient-text{background:linear-gradient(135deg,#3b82f6,#8b5cf6,#ec4899,#06b6d4,#3b82f6);background-size:300% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:textGradShift 5s ease infinite}
 
 /* Luxury Footer */
-.lux-footer{background:var(--bg-secondary);border-top:1px solid var(--border);padding:60px 20px 30px;position:relative;overflow:hidden}
+.lux-footer{background:var(--bg-secondary);border-top:1px solid var(--border);padding:48px 20px 24px;position:relative;overflow:hidden}
 .lux-footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#3b82f6,#8b5cf6,#ec4899,#f59e0b,#3b82f6);background-size:200% 100%;animation:progressShimmer 4s linear infinite}
 .lux-footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;max-width:960px;margin:0 auto}
 @media(max-width:700px){.lux-footer-grid{grid-template-columns:1fr 1fr;gap:24px}}
@@ -543,11 +543,15 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 .header-logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 8px rgba(59,130,246,.3)}
 .header-logo-icon::after{content:'';position:absolute;inset:-2px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6,#3b82f6);z-index:-1;opacity:.5;animation:logoGlow 3s ease infinite}
 @keyframes logoGlow{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.7;transform:scale(1.05)}}
-.header-pill-btn{padding:6px 14px;border-radius:99px;font-size:13px;cursor:pointer;border:none;background:rgba(59,130,246,.08);color:var(--text-secondary);transition:all .25s ease;font-family:inherit;font-weight:500;display:inline-flex;align-items:center;gap:6px}
+.header-pill-btn{padding:6px 14px;border-radius:99px;font-size:13px;cursor:pointer;border:none;background:rgba(59,130,246,.08);color:var(--text);transition:all .25s ease;font-family:inherit;font-weight:500;display:inline-flex;align-items:center;gap:6px}
 .header-pill-btn:hover{background:rgba(59,130,246,.15);color:var(--accent)}
-.dark .header-pill-btn{background:rgba(255,255,255,.06)}
-.dark .header-pill-btn:hover{background:rgba(59,130,246,.2);color:var(--accent)}
+.dark .header-pill-btn{background:rgba(255,255,255,.08);color:#e2e8f0}
+.dark .header-pill-btn:hover{background:rgba(59,130,246,.25);color:#93c5fd}
 .header-pill-btn.active-pill{background:rgba(59,130,246,.15);color:var(--accent)}
+.header-pill-btn .theme-icon-sun{color:#fbbf24}
+.header-pill-btn .theme-icon-moon{color:#6366f1}
+.dark .header-pill-btn .theme-icon-sun{color:#fbbf24}
+.dark .header-pill-btn .theme-icon-moon{color:#a5b4fc}
 
 /* Premium Sidebar */
 .sidebar-premium{background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);border-right:1px solid var(--border);display:flex;flex-direction:column}
@@ -674,9 +678,11 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 .search-premium i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:13px}
 
 /* Premium Filter Pills */
-.filter-pill{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);transition:all .25s ease;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.filter-pill{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text);transition:all .25s ease;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
 .filter-pill:hover{border-color:var(--accent);background:rgba(59,130,246,.05)}
 .filter-pill.active{background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;border-color:transparent;box-shadow:0 2px 10px rgba(59,130,246,.3)}
+.dark .filter-pill{color:#cbd5e1}
+.dark .filter-pill:hover{color:#93c5fd}
 
 /* Premium Breadcrumb */
 .breadcrumb-premium{padding:10px 20px;font-size:13px;display:flex;align-items:center;gap:6px}
@@ -740,10 +746,13 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 .toolbar-premium .toolbar-sort{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);font-size:12px;color:var(--text);font-family:inherit;cursor:pointer;transition:all .2s ease;-webkit-appearance:none;appearance:none;padding-right:24px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
 .toolbar-premium .toolbar-sort:hover{border-color:var(--accent)}
 .toolbar-premium .toolbar-sort:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,130,246,.1)}
-.toolbar-premium .toolbar-view-btn{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;transition:all .2s ease;font-size:13px}
+.toolbar-premium .toolbar-view-btn{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);cursor:pointer;transition:all .2s ease;font-size:13px}
 .toolbar-premium .toolbar-view-btn:hover{border-color:var(--accent);color:var(--accent)}
-.toolbar-premium .toolbar-action-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;transition:all .2s ease;font-size:12px;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
+.dark .toolbar-premium .toolbar-view-btn{color:#cbd5e1}
+.toolbar-premium .toolbar-action-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);cursor:pointer;transition:all .2s ease;font-size:12px;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
 .toolbar-premium .toolbar-action-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(59,130,246,.04)}
+.dark .toolbar-premium .toolbar-action-btn{color:#cbd5e1}
+.dark .toolbar-premium .toolbar-action-btn:hover{color:#93c5fd;border-color:rgba(59,130,246,.4)}
 .toolbar-premium .toolbar-action-btn.active-action{background:rgba(59,130,246,.1);color:var(--accent);border-color:rgba(59,130,246,.2)}
 .toolbar-premium .toolbar-upload-btn{padding:7px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(59,130,246,.3);transition:all .25s ease}
 .toolbar-premium .toolbar-upload-btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(59,130,246,.4)}
@@ -868,9 +877,10 @@ body.no-transition,body.no-transition *{transition:none!important}
 .scroll-reveal.reveal-delay-5{transition-delay:.5s}
 
 /* 10. Dark Mode Toggle */
-.dm-toggle{position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,.1);cursor:pointer;z-index:90;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .3s ease;color:var(--text)}
-.dm-toggle:hover{transform:scale(1.1);box-shadow:0 6px 24px rgba(0,0,0,.15)}
-.dark .dm-toggle{background:var(--bg-secondary);border-color:var(--border)}
+.dm-toggle{position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;box-shadow:0 4px 16px rgba(59,130,246,.35);cursor:pointer;z-index:90;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .3s ease;color:#fff}
+.dm-toggle:hover{transform:scale(1.1);box-shadow:0 6px 24px rgba(59,130,246,.5)}
+.dark .dm-toggle{background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 16px rgba(139,92,246,.35)}
+.dark .dm-toggle:hover{box-shadow:0 6px 24px rgba(139,92,246,.5)}
 
 /* 11. Live Demo Section */
 .live-demo-mockup{position:relative;max-width:600px;margin:0 auto}
@@ -899,7 +909,7 @@ body.no-transition,body.no-transition *{transition:none!important}
 @media(max-width:640px){.demo-float{display:none!important}.security-badges{flex-direction:column;align-items:center}.security-badge{width:100%;max-width:320px}}
 
 /* ===== DASHBOARD WIDGETS ===== */
-.dash-widgets-wrap{padding:0 20px 12px;display:flex;flex-direction:column;gap:14px}
+.dash-widgets-wrap{padding:0 20px 16px;display:flex;flex-direction:column;gap:16px}
 .dash-widgets-wrap.collapsed .dash-widget-body{display:none}
 .dash-widget-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-secondary);padding:4px 0;user-select:none;transition:color .2s}
 .dash-widget-toggle:hover{color:var(--accent)}
@@ -948,8 +958,10 @@ body.no-transition,body.no-transition *{transition:none!important}
 @media(max-width:768px){.dash-cards-row{grid-template-columns:1fr}}
 @media(max-width:900px){.dash-3col-row{grid-template-columns:1fr}}
 @media(max-width:768px){.dash-3col-row{grid-template-columns:1fr}}
-.dash-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+.dash-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s ease}
+.dash-card:hover{border-color:rgba(59,130,246,.2)}
 .dash-card-title{font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px}
+.dark .dash-card-title{color:#94a3b8}
 
 /* Storage Analytics Ring */
 .storage-ring-wrap{display:flex;align-items:center;gap:20px}
@@ -1059,9 +1071,11 @@ body.no-transition,body.no-transition *{transition:none!important}
 
 /* ===== SORT PRESETS ===== */
 .sort-preset-wrap{display:flex;gap:4px;align-items:center}
-.sort-preset-btn{padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);transition:all .2s;white-space:nowrap}
+.sort-preset-btn{padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text);transition:all .2s;white-space:nowrap}
 .sort-preset-btn:hover{border-color:var(--accent);color:var(--accent)}
 .sort-preset-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.dark .sort-preset-btn{color:#cbd5e1}
+.dark .sort-preset-btn:hover{color:#93c5fd}
 @media(max-width:768px){.sort-preset-btn{padding:4px 8px;font-size:11px}}
 /* Share Modal Tabs */
 .share-tab-bar{display:flex;border-bottom:1px solid var(--border);margin:-24px -24px 16px;padding:0 24px}
@@ -1120,6 +1134,9 @@ body.no-transition,body.no-transition *{transition:none!important}
 .sidebar-item:hover{background:rgba(59,130,246,.06);color:var(--accent)}
 .sidebar-item.active{background:rgba(59,130,246,.1);color:var(--accent);font-weight:600}
 .sidebar-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,#3b82f6,#8b5cf6)}
+.sidebar-item i{color:var(--text-secondary);width:18px;text-align:center;transition:color .15s ease}
+.sidebar-item:hover i{color:var(--accent)}
+.sidebar-item.active i{color:var(--accent)}
 
 /* Sidebar badge */
 .sidebar-badge{font-size:10px;font-weight:600;min-width:18px;height:18px;padding:0 5px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
@@ -2857,7 +2874,7 @@ function renderHeader() {
             </div>
             ${APP.activeUploads > 0 ? `<span style="font-size:11px;color:var(--accent)"><i class="fas fa-spinner fa-spin"></i></span>` : ''}
             <button class="header-pill-btn" onclick="toggleTheme()" title="${t('theme')}">
-                <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'}"></i>
+                <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'} ${APP.theme === 'dark' ? 'theme-icon-sun' : 'theme-icon-moon'}"></i>
             </button>
             <button class="header-pill-btn" onclick="cycleLang()" title="${t('language')}">
                 <span style="font-size:11px;font-weight:600">${APP.lang.toUpperCase()}</span>
@@ -3563,7 +3580,7 @@ function renderHomepage() {
     main.innerHTML = `
     <div class="page-transition" style="position:relative;z-index:1">
         <!-- ===== HERO — Ultra Luxury Aurora with Typing Effect ===== -->
-        <section class="aurora-bg" id="hero-section" style="padding:100px 20px 80px;text-align:center;min-height:100vh;display:flex;align-items:center;justify-content:center;perspective:1200px">
+        <section class="aurora-bg" id="hero-section" style="padding:80px 20px 60px;text-align:center;min-height:100vh;display:flex;align-items:center;justify-content:center;perspective:1200px">
             <div class="hero-spotlight"><div class="hero-spotlight-glow" id="hero-glow"></div></div>
             <div class="morph-blob morph-blob-1" style="top:-10%;right:-5%"></div>
             <div class="morph-blob morph-blob-2" style="bottom:5%;left:-8%"></div>
@@ -3623,7 +3640,7 @@ function renderHomepage() {
         <div class="lux-grad-divider"></div>
 
         <!-- ===== ANIMATED HERO COUNTERS ===== -->
-        <section class="scroll-reveal" style="padding:40px 20px 80px;background:var(--bg-secondary);position:relative">
+        <section class="scroll-reveal" style="padding:48px 20px;background:var(--bg-secondary);position:relative">
             <div class="decor-orb decor-orb-1" style="top:-200px;right:-100px"></div>
             <div class="morph-blob morph-blob-2" style="bottom:-20%;left:-10%"></div>
             <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
@@ -3649,7 +3666,7 @@ function renderHomepage() {
         <div class="lux-grad-divider"></div>
 
         <!-- ===== HOW IT WORKS — Numbered Steps with Connecting Lines ===== -->
-        <section class="scroll-reveal" style="padding:80px 20px;position:relative">
+        <section class="scroll-reveal" style="padding:64px 20px;position:relative">
             <div class="decor-orb decor-orb-2" style="top:-100px;left:-150px"></div>
             <div class="morph-blob morph-blob-1" style="top:-5%;right:-8%"></div>
             <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
@@ -3679,7 +3696,7 @@ function renderHomepage() {
         <div class="lux-grad-divider"></div>
 
         <!-- ===== FEATURE SHOWCASE CAROUSEL ===== -->
-        <section id="features" class="scroll-reveal" style="padding:80px 20px;position:relative">
+        <section id="features" class="scroll-reveal" style="padding:64px 20px;position:relative">
             <div class="decor-orb decor-orb-3" style="bottom:-200px;right:-100px"></div>
             <div class="morph-blob morph-blob-3" style="bottom:-10%;left:-5%"></div>
             <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
@@ -3707,7 +3724,7 @@ function renderHomepage() {
         <div class="wave-divider"><svg viewBox="0 0 1200 80" preserveAspectRatio="none" style="height:80px"><path d="M0,20 C200,80 400,0 600,40 C800,80 1000,10 1200,30 L1200,80 L0,80Z" fill="var(--bg-secondary)"/></svg></div>
 
         <!-- ===== SECURITY BADGES ===== -->
-        <section class="scroll-reveal" style="padding:60px 20px 80px;background:var(--bg-secondary);position:relative">
+        <section class="scroll-reveal" style="padding:48px 20px 64px;background:var(--bg-secondary);position:relative">
             <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
                 <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
                     <div class="section-eyebrow"><i class="fas fa-shield-halved"></i> ${isId?'Keamanan':'Security'}</div>
@@ -3731,7 +3748,7 @@ function renderHomepage() {
         </section>
 
         <!-- ===== COMPARISON ===== -->
-        <section class="scroll-reveal" style="padding:60px 20px 80px;position:relative">
+        <section class="scroll-reveal" style="padding:48px 20px 64px;position:relative">
             <div class="decor-orb decor-orb-1" style="top:-100px;left:-200px"></div>
             <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
                 <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
@@ -3777,7 +3794,7 @@ function renderHomepage() {
         </section>
 
         <!-- ===== FILE TYPE MARQUEE ===== -->
-        <section class="scroll-reveal" style="padding:60px 20px;position:relative">
+        <section class="scroll-reveal" style="padding:48px 20px;position:relative">
             <div style="max-width:960px;margin:0 auto;text-align:center;position:relative;z-index:1">
                 <div class="scroll-reveal" style="margin-bottom:32px">
                     <div class="section-eyebrow"><i class="fas fa-file-circle-check"></i> ${isId?'Kompatibilitas':'Compatibility'}</div>
@@ -3808,7 +3825,7 @@ function renderHomepage() {
         </section>
 
         <!-- ===== LIVE DEMO SECTION ===== -->
-        <section class="scroll-reveal" style="padding:80px 20px;background:var(--bg-secondary);position:relative">
+        <section class="scroll-reveal" style="padding:64px 20px;background:var(--bg-secondary);position:relative">
             <div class="decor-orb decor-orb-2" style="top:-150px;right:-150px"></div>
             <div style="max-width:840px;margin:0 auto;text-align:center;position:relative;z-index:1">
                 <div class="scroll-reveal" style="margin-bottom:40px">
@@ -3854,7 +3871,7 @@ function renderHomepage() {
         </section>
 
         <!-- ===== TESTIMONIAL MARQUEE ===== -->
-        <section class="scroll-reveal" style="padding:80px 20px;position:relative">
+        <section class="scroll-reveal" style="padding:64px 20px;position:relative">
             <div class="decor-orb decor-orb-3" style="bottom:-150px;left:-150px"></div>
             <div class="morph-blob morph-blob-1" style="top:-10%;right:-5%"></div>
             <div style="max-width:100%;margin:0 auto;position:relative;z-index:1">
@@ -3874,7 +3891,7 @@ function renderHomepage() {
         <div class="lux-grad-divider"></div>
 
         <!-- ===== PRICING COMPARISON TABLE ===== -->
-        <section class="scroll-reveal" style="padding:80px 20px;background:var(--bg-secondary);position:relative">
+        <section class="scroll-reveal" style="padding:64px 20px;background:var(--bg-secondary);position:relative">
             <div class="decor-orb decor-orb-1" style="top:-100px;left:-200px"></div>
             <div class="morph-blob morph-blob-2" style="bottom:-10%;right:-5%"></div>
             <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
@@ -3935,7 +3952,7 @@ function renderHomepage() {
         </section>
 
         <!-- ===== FAQ + SECURITY ===== -->
-        <section class="scroll-reveal" style="padding:60px 20px 80px;position:relative">
+        <section class="scroll-reveal" style="padding:48px 20px 64px;position:relative">
             <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:32px">
                     <div>
@@ -3979,7 +3996,7 @@ function renderHomepage() {
         </section>
 
         <!-- ===== CHANGELOG ===== -->
-        <section class="scroll-reveal" style="padding:60px 20px;position:relative">
+        <section class="scroll-reveal" style="padding:48px 20px;position:relative">
             <div style="max-width:720px;margin:0 auto;position:relative;z-index:1">
                 <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
                     <div class="section-eyebrow"><i class="fas fa-code-branch"></i> ${isId?'Riwayat':'History'}</div>
@@ -4004,7 +4021,7 @@ function renderHomepage() {
         <div class="lux-grad-divider"></div>
 
         <!-- ===== NEWSLETTER ===== -->
-        <section class="scroll-reveal" style="padding:60px 20px;position:relative">
+        <section class="scroll-reveal" style="padding:48px 20px;position:relative">
             <div style="max-width:560px;margin:0 auto;text-align:center">
                 <div class="premium-newsletter" style="padding:48px 36px">
                     <div style="width:60px;height:60px;border-radius:16px;background:rgba(59,130,246,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 20px"><i class="fas fa-envelope" style="font-size:26px;color:var(--accent)"></i></div>
@@ -4020,7 +4037,7 @@ function renderHomepage() {
         </section>
 
         <!-- ===== CTA — Animated Border ===== -->
-        <section style="padding:20px 20px 80px">
+        <section style="padding:16px 20px 64px">
             <div style="max-width:900px;margin:0 auto">
                 <div class="animated-border" style="text-align:center;position:relative;z-index:1">
                     <div class="premium-cta" style="border-radius:28px">
@@ -4755,32 +4772,29 @@ function renderDashboard() {
                     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">${quickActionsHtml}</div>
 
                     <!-- ===== 3-COLUMN WIDGET ROW: Activity + Shares + Downloads ===== -->
-                    <div class="dash-3col-row" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
-                        <!-- Recent Activity Widget -->
-                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;overflow:hidden">
-                            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px"><i class="fas fa-clock-rotate-left" style="color:#10b981"></i> ${isId ? 'Aktivitas Terbaru' : 'Recent Activity'}</div>
+                    <div class="dash-3col-row">
+                        <div class="dash-card">
+                            <div class="dash-card-title"><i class="fas fa-clock-rotate-left" style="color:#10b981"></i> ${isId ? 'Aktivitas Terbaru' : 'Recent Activity'}</div>
                             <div style="max-height:240px;overflow-y:auto">${recentActivityHtml}</div>
-                            <div style="margin-top:8px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('recent')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
+                            <div style="margin-top:10px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('recent')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
                         </div>
-                        <!-- Recent Shared Links Widget -->
-                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;overflow:hidden">
-                            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px"><i class="fas fa-share-nodes" style="color:#8b5cf6"></i> ${isId ? 'Tautan Dibagikan' : 'Shared Links'}</div>
+                        <div class="dash-card">
+                            <div class="dash-card-title"><i class="fas fa-share-nodes" style="color:#8b5cf6"></i> ${isId ? 'Tautan Dibagikan' : 'Shared Links'}</div>
                             <div style="max-height:240px;overflow-y:auto">${recentSharesHtml}</div>
-                            <div style="margin-top:8px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('all')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
+                            <div style="margin-top:10px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('all')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
                         </div>
-                        <!-- Recent Downloads Widget -->
-                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;overflow:hidden">
-                            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px"><i class="fas fa-download" style="color:#3b82f6"></i> ${isId ? 'Unduhan Terbaru' : 'Recent Downloads'}</div>
+                        <div class="dash-card">
+                            <div class="dash-card-title"><i class="fas fa-download" style="color:#3b82f6"></i> ${isId ? 'Unduhan Terbaru' : 'Recent Downloads'}</div>
                             <div style="max-height:240px;overflow-y:auto">${recentDownloadsHtml}</div>
-                            <div style="margin-top:8px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('all')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
+                            <div style="margin-top:10px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('all')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
                         </div>
                     </div>
 
                     <!-- ===== 2-COLUMN ROW: Storage Analytics + Most Downloaded ===== -->
                     <div class="dash-cards-row">
                         <div class="dash-card" id="storage-analytics-card">${storageAnalyticsEnhanced}</div>
-                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;overflow:hidden">
-                            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px"><i class="fas fa-ranking-star" style="color:#f59e0b"></i> ${isId ? 'Paling Banyak Diunduh' : 'Most Downloaded'}</div>
+                        <div class="dash-card">
+                            <div class="dash-card-title"><i class="fas fa-ranking-star" style="color:#f59e0b"></i> ${isId ? 'Paling Banyak Diunduh' : 'Most Downloaded'}</div>
                             <div style="max-height:260px;overflow-y:auto">${mostDownloadedHtml}</div>
                         </div>
                     </div>
