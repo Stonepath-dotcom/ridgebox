@@ -1024,12 +1024,32 @@ body.no-transition,body.no-transition *{transition:none!important}
 .drive-select-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(59,130,246,.1)}
 .drive-select-card.selected{border-color:var(--accent);background:rgba(59,130,246,.04)}
 
+/* Google Drive Setup Banner */
+.gdrive-setup-banner{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;display:flex;gap:20px;position:relative;border-left:4px solid #4285f4;animation:fadeIn .3s ease}
+.gdrive-setup-banner .setup-banner-icon{width:48px;height:48px;border-radius:14px;background:rgba(66,133,244,.1);display:flex;align-items:center;justify-content:center;font-size:22px;color:#4285f4;flex-shrink:0}
+.gdrive-setup-banner .setup-banner-content{flex:1;min-width:0}
+.gdrive-setup-banner .setup-banner-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px}
+.gdrive-setup-banner .setup-banner-desc{font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.5}
+.gdrive-setup-banner .setup-steps{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.gdrive-setup-banner .setup-step{display:flex;align-items:flex-start;gap:10px}
+.gdrive-setup-banner .setup-step-num{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.gdrive-setup-banner .setup-step-text{font-size:12px;color:var(--text-secondary);line-height:1.6}
+.gdrive-setup-banner .setup-step-text a{color:var(--accent);text-decoration:underline}
+.gdrive-setup-banner .setup-step-text code{background:var(--bg-secondary);border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono',monospace;word-break:break-all}
+.gdrive-setup-banner .setup-banner-actions{display:flex;gap:8px;flex-wrap:wrap}
+.gdrive-setup-banner .setup-banner-close{position:absolute;top:12px;right:12px;background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:4px 8px;border-radius:6px;font-size:14px;transition:all .15s ease}
+.gdrive-setup-banner .setup-banner-close:hover{background:var(--bg-secondary);color:var(--text)}
+.dark .gdrive-setup-banner{border-left-color:#4285f4;background:#1e293b;border-color:#334155}
+.dark .gdrive-setup-banner .setup-step-text code{background:#0f172a;border-color:#334155}
+
 @media(max-width:768px){
     .storage-hero{padding:24px 18px}
     .storage-hero-stats{gap:16px}
     .storage-hero-stat-value{font-size:24px}
     .storage-chart-row{grid-template-columns:1fr}
     .storage-page{padding:16px 12px}
+    .gdrive-setup-banner{flex-direction:column;gap:12px;padding:16px}
+    .gdrive-setup-banner .setup-banner-actions{flex-direction:column}
 }
 
 /* 11. Live Demo Section */
@@ -5041,6 +5061,12 @@ function renderDashboardStatsBar() {
             <div class="stat-label">${isId ? 'Penyimpanan' : 'Storage Used'} · ${pct}%</div>
             <div class="stat-bg"><i class="fas fa-database"></i></div>
         </div>
+        <div class="dash-stat-card" onclick="location.hash='#/storage'" style="cursor:pointer">
+            <div class="stat-icon" style="background:${APP.gdriveConfig.configured ? 'rgba(66,133,244,.1)' : 'rgba(239,68,68,.08)'};color:${APP.gdriveConfig.configured ? '#4285f4' : '#ef4444'}"><i class="fab fa-google"></i></div>
+            <div class="stat-value">${APP.gdriveConfig.configured ? APP.gdriveAccounts.filter(a=>a.status==='connected').length : '—'}</div>
+            <div class="stat-label">${APP.gdriveConfig.configured ? (isId ? 'Google Drive Aktif' : 'Google Drive Active') : (isId ? 'GDrive Belum Setup' : 'GDrive Not Setup')}</div>
+            <div class="stat-bg"><i class="fab fa-google"></i></div>
+        </div>
     </div>`;
 }
 
@@ -8639,8 +8665,32 @@ function renderStorageManagement() {
         </div>`;
     }).join('');
 
+    // Setup guide banner when Google Drive not configured
+    const setupBanner = !APP.gdriveConfig.configured ? `
+        <div class="gdrive-setup-banner" id="gdrive-setup-banner">
+            <div class="setup-banner-icon"><i class="fab fa-google"></i></div>
+            <div class="setup-banner-content">
+                <div class="setup-banner-title">${isId ? 'Google Drive Belum Dikonfigurasi' : 'Google Drive Not Configured'}</div>
+                <div class="setup-banner-desc">${isId ? 'Tambahkan GOOGLE_CLIENT_ID dan GOOGLE_CLIENT_SECRET di Vercel untuk mengaktifkan integrasi Google Drive.' : 'Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel to enable Google Drive integration.'}</div>
+                <div class="setup-steps">
+                    <div class="setup-step"><div class="setup-step-num">1</div><div class="setup-step-text">${isId ? 'Buka <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console</a> → Buat OAuth 2.0 Client ID' : 'Open <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console</a> → Create OAuth 2.0 Client ID'}</div></div>
+                    <div class="setup-step"><div class="setup-step-num">2</div><div class="setup-step-text">${isId ? 'Tambahkan redirect URI: <code>${window.location.origin}/api/gdrive/callback</code>' : 'Add redirect URI: <code>${window.location.origin}/api/gdrive/callback</code>'}</div></div>
+                    <div class="setup-step"><div class="setup-step-num">3</div><div class="setup-step-text">${isId ? 'Buka <a href="https://vercel.com/dashboard" target="_blank" rel="noopener">Vercel Dashboard</a> → Ridgebox → Settings → Environment Variables' : 'Open <a href="https://vercel.com/dashboard" target="_blank" rel="noopener">Vercel Dashboard</a> → Ridgebox → Settings → Environment Variables'}</div></div>
+                    <div class="setup-step"><div class="setup-step-num">4</div><div class="setup-step-text">${isId ? 'Tambahkan <code>GOOGLE_CLIENT_ID</code> dan <code>GOOGLE_CLIENT_SECRET</code> lalu Redeploy' : 'Add <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> then Redeploy'}</div></div>
+                </div>
+                <div class="setup-banner-actions">
+                    <button class="account-action-btn primary" onclick="window.open('https://console.cloud.google.com/apis/credentials','_blank')"><i class="fab fa-google"></i> ${isId ? 'Buka Google Cloud Console' : 'Open Google Cloud Console'}</button>
+                    <button class="account-action-btn primary" onclick="window.open('https://vercel.com/dashboard','_blank')"><i class="fas fa-external-link-alt"></i> ${isId ? 'Buka Vercel Dashboard' : 'Open Vercel Dashboard'}</button>
+                    <button class="account-action-btn" onclick="checkGDriveConfig()"><i class="fas fa-sync-alt"></i> ${isId ? 'Cek Konfigurasi' : 'Check Config'}</button>
+                </div>
+            </div>
+            <button class="setup-banner-close" onclick="document.getElementById('gdrive-setup-banner').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>` : '';
+
     main.innerHTML = `<div class="page-transition storage-page"><div class="storage-page-inner">
         <a href="#/dashboard" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);text-decoration:none;margin-bottom:16px;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'"><i class="fas fa-arrow-left"></i> ${isId ? 'Kembali ke Dashboard' : 'Back to Dashboard'}</a>
+
+        ${setupBanner}
 
         <!-- Hero Section -->
         <div class="storage-hero">
@@ -8698,11 +8748,15 @@ function renderStorageManagement() {
         <div class="storage-section">
             <div class="storage-section-title"><i class="fab fa-google"></i> ${isId ? 'Akun Google Drive' : 'Google Drive Accounts'}</div>
             ${accountCardsHtml}
-            <div class="connect-card" onclick="APP.storageProviders.gdrive.connect()">
+            ${APP.gdriveConfig.configured ? `<div class="connect-card" onclick="APP.storageProviders.gdrive.connect()">
                 <i class="fab fa-google"></i>
                 <div class="connect-title">${isId ? 'Hubungkan Akun Google Drive' : 'Connect Google Drive Account'}</div>
                 <div class="connect-desc">${isId ? 'Tambahkan akun Google Drive untuk memperluas penyimpanan. Multi-akun didukung!' : 'Add a Google Drive account to expand storage. Multi-account supported!'}</div>
-            </div>
+            </div>` : `<div class="connect-card" style="cursor:default;border-color:var(--border)" onclick="showToast(APP.lang==='id'?'Konfigurasi GOOGLE_CLIENT_ID di Vercel terlebih dahulu':'Configure GOOGLE_CLIENT_ID in Vercel first','warning')">
+                <i class="fab fa-google" style="opacity:.4"></i>
+                <div class="connect-title" style="opacity:.6">${isId ? 'Hubungkan Akun Google Drive' : 'Connect Google Drive Account'}</div>
+                <div class="connect-desc" style="color:#ef4444">${isId ? 'Server belum dikonfigurasi. Tambahkan GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET di Vercel env vars.' : 'Server not configured. Add GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET to Vercel env vars.'}</div>
+            </div>`}
         </div>
 
         <!-- Charts -->
@@ -8876,6 +8930,19 @@ async function initGDriveConfig() {
         const data = await resp.json();
         APP.gdriveConfig = { configured: data.configured, clientId: data.clientId || '' };
     } catch (e) { APP.gdriveConfig = { configured: false, clientId: '' }; }
+}
+
+// ===== CHECK GDRIVE CONFIG (for setup wizard) =====
+async function checkGDriveConfig() {
+    const isId = APP.lang === 'id';
+    showToast(isId ? 'Memeriksa konfigurasi Google Drive...' : 'Checking Google Drive configuration...', 'info');
+    await initGDriveConfig();
+    if (APP.gdriveConfig.configured) {
+        showToast(isId ? 'Google Drive sudah dikonfigurasi! Menghubungkan...' : 'Google Drive is configured! Connecting...', 'success');
+        if (location.hash === '#/storage') renderStorageManagement();
+    } else {
+        showToast(isId ? 'Google Drive belum dikonfigurasi. Ikuti langkah-langkah di atas.' : 'Google Drive not yet configured. Follow the steps above.', 'warning');
+    }
 }
 
 // ===== GDRIVE SYNC — List and import files from Google Drive =====
