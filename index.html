@@ -3641,8 +3641,21 @@ async function emptyTrash() {
 
 // ===== DOWNLOAD =====
 // Helper: Save blob to device storage (Downloads folder on phone)
+// Direct download — navigates browser to API URL with Content-Disposition: attachment
+// This forces the browser to save the file directly to phone storage (like MediaFire)
+// instead of opening/previewing it in the browser
+function directDownload(url, fileName) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName || '';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { a.remove(); }, 1000);
+}
+
 async function saveToDevice(blob, fileName) {
-    // Method 1: File System Access API (Chrome/Edge Android & desktop) — saves directly to Downloads
+    // Method 1: File System Access API (Chrome/Edge desktop) — saves directly to Downloads
     if (window.showSaveFilePicker) {
         try {
             const handle = await window.showSaveFilePicker({
@@ -3654,7 +3667,6 @@ async function saveToDevice(blob, fileName) {
             await writable.close();
             return true;
         } catch (e) {
-            // User cancelled the picker or not supported — fall through
             if (e.name === 'AbortError') return false;
             console.warn('showSaveFilePicker failed, falling back:', e);
         }
@@ -3666,27 +3678,23 @@ async function saveToDevice(blob, fileName) {
             return true;
         } catch(e) { console.warn('msSaveBlob failed:', e); }
     }
-    // Method 3: <a download> with blob URL (works on most browsers)
-    // On iOS Safari, this opens the file — user must use share sheet to save
+    // Method 3: <a download> with blob URL
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = fileName;
     a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
-    // Delay cleanup so browser can process the download
-    setTimeout(() => {
-        URL.revokeObjectURL(a.href);
-        a.remove();
-    }, 5000);
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000);
     return true;
 }
 
 async function downloadFile(fileId) {
     const file = APP.files.find(f => f.id === fileId);
     if (!file) return;
+    logActivity('download', (APP.lang==='id'?'Mengunduh':'Downloaded') + ' ' + file.name);
     try {
-        // Resolve filePath if missing — call getFile API
+        // Resolve filePath if missing
         if (!file.filePath && file.fileId) {
             try {
                 const fileResp = await fetch('/api/file-info', {
@@ -3701,23 +3709,36 @@ async function downloadFile(fileId) {
                 }
             } catch(e) { console.warn('getFile resolve failed:', e); }
         }
-        let url;
-        if (APP.settings.proxyMode !== false) {
-            url = `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}&name=${encodeURIComponent(file.name)}`;
-        } else {
-            url = `https://api.telegram.org/file/bot${APP.bots[0]?.token}/${file.filePath}`;
-        }
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error('Download failed');
-        let blob = await resp.blob();
+
+        // If file is encrypted, we must fetch+blob+decrypt first
         if (file.encrypted) {
+            let url;
+            if (APP.settings.proxyMode !== false) {
+                url = '/api/download?path=' + encodeURIComponent(file.filePath) + '&bot_index=' + file.botIndex + '&name=' + encodeURIComponent(file.name);
+            } else {
+                url = 'https://api.telegram.org/file/bot' + (APP.bots[0]?.token||'') + '/' + file.filePath;
+            }
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error('Download failed');
+            let blob = await resp.blob();
             try {
                 const encData = new Uint8Array(await blob.arrayBuffer());
                 const decData = await decryptData(encData, 'ridgebox_' + file.chatId);
                 blob = new Blob([decData]);
             } catch(e) { console.warn('Decrypt failed, returning raw file'); }
+            await saveToDevice(blob, file.name);
+            showToast(t('download') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
+            return;
         }
-        await saveToDevice(blob, file.name);
+
+        // Non-encrypted: Direct download — browser navigates to API URL which has
+        // Content-Disposition: attachment → file saves directly to phone Downloads folder
+        // This is the MediaFire-style experience: click → save, no preview
+        // Always use proxy API for downloads — the Content-Disposition: attachment header
+        // forces the browser to save the file. Telegram direct URLs don't have this header
+        // and would open the file in the browser instead.
+        const dlUrl = '/api/download?path=' + encodeURIComponent(file.filePath) + '&bot_index=' + file.botIndex + '&name=' + encodeURIComponent(file.name);
+        directDownload(dlUrl, file.name);
         showToast(t('download') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
     } catch (err) {
         showToast('Download error: ' + err.message, 'error');
@@ -4156,30 +4177,36 @@ async function downloadSharedFile(encodedPath, encodedFileId, botIndex, encodedN
     const fileId = decodeURIComponent(encodedFileId);
     const fileName = decodeURIComponent(encodedName);
     try {
-        // Build download URL — use filePath if available, otherwise use file_id for server-side resolution
-        // Always include name parameter so the API sends Content-Disposition: attachment
+        // Build download URL — always include name for Content-Disposition: attachment
         let url;
         if (filePath) {
-            url = `/api/download?path=${encodeURIComponent(filePath)}&bot_index=${botIndex}&name=${encodeURIComponent(fileName)}`;
+            url = '/api/download?path=' + encodeURIComponent(filePath) + '&bot_index=' + botIndex + '&name=' + encodeURIComponent(fileName);
         } else if (fileId) {
-            url = `/api/download?file_id=${encodeURIComponent(fileId)}&bot_index=${botIndex}&name=${encodeURIComponent(fileName)}`;
+            url = '/api/download?file_id=' + encodeURIComponent(fileId) + '&bot_index=' + botIndex + '&name=' + encodeURIComponent(fileName);
         } else {
             throw new Error('No file path or ID available');
         }
-        const resp = await fetch(url);
-        if (!resp.ok) {
-            const errData = await resp.json().catch(() => ({}));
-            throw new Error(errData.error || 'Download failed (' + resp.status + ')');
-        }
-        let blob = await resp.blob();
+
+        // If encrypted, must fetch+blob+decrypt
         if (encrypted) {
+            const resp = await fetch(url);
+            if (!resp.ok) {
+                const errData = await resp.json().catch(() => ({}));
+                throw new Error(errData.error || 'Download failed (' + resp.status + ')');
+            }
+            let blob = await resp.blob();
             try {
                 const encData = new Uint8Array(await blob.arrayBuffer());
                 const decData = await decryptData(encData, 'ridgebox_' + chatId);
                 blob = new Blob([decData]);
             } catch(e) { console.warn('Decrypt failed, returning raw file'); }
+            await saveToDevice(blob, fileName);
+            showToast(t('download') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
+            return;
         }
-        await saveToDevice(blob, fileName);
+
+        // Non-encrypted: Direct download — MediaFire style, click → save to phone
+        directDownload(url, fileName);
         showToast(t('download') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
     } catch (err) {
         showToast('Download error: ' + err.message, 'error');
