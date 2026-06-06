@@ -985,6 +985,45 @@ body.no-transition,body.no-transition *{transition:none!important}
 .dark .gdrive-account-card{background:#1e293b;border-color:#334155}
 .dark .connect-card{border-color:#334155}
 .dark .connect-card:hover{border-color:rgba(59,130,246,.4)}
+
+/* Storage Provider Badge */
+.provider-badge{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;font-size:8px;vertical-align:middle;margin-right:3px;cursor:pointer;transition:all .15s ease}
+.provider-badge.gdrive{background:rgba(66,133,244,.12);color:#4285f4}
+.provider-badge.gdrive:hover{background:rgba(66,133,244,.22);transform:scale(1.15)}
+.provider-badge.telegram{background:rgba(0,136,204,.12);color:#0088cc}
+.provider-badge.telegram:hover{background:rgba(0,136,204,.22);transform:scale(1.15)}
+
+/* Provider Filter Bar */
+.provider-filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.provider-filter-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);transition:all .2s ease}
+.provider-filter-pill:hover{border-color:var(--accent);color:var(--accent)}
+.provider-filter-pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.provider-filter-pill i{font-size:10px}
+
+/* Sync Progress */
+.sync-progress-bar{height:4px;background:var(--bg-secondary);border-radius:2px;overflow:hidden;margin-top:8px}
+.sync-progress-bar .fill{height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);border-radius:2px;transition:width .3s ease}
+
+/* Enhanced Account Card */
+.gdrive-account-card .account-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.account-action-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);cursor:pointer;transition:all .2s ease;font-family:inherit}
+.account-action-btn:hover{border-color:var(--accent);color:var(--accent)}
+.account-action-btn.danger{color:#ef4444;border-color:rgba(239,68,68,.2)}
+.account-action-btn.danger:hover{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.4)}
+
+/* Storage Dashboard Grid */
+.storage-stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:24px}
+.storage-stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden;transition:all .2s ease}
+.storage-stat-card:hover{border-color:rgba(59,130,246,.3);box-shadow:0 4px 16px rgba(59,130,246,.06)}
+.storage-stat-card .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
+.storage-stat-card .stat-value{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--text);line-height:1.1}
+.storage-stat-card .stat-label{font-size:11px;color:var(--text-secondary);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Drive Select Modal */
+.drive-select-card{background:var(--bg-card);border:2px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease}
+.drive-select-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(59,130,246,.1)}
+.drive-select-card.selected{border-color:var(--accent);background:rgba(59,130,246,.04)}
+
 @media(max-width:768px){
     .storage-hero{padding:24px 18px}
     .storage-hero-stats{gap:16px}
@@ -1422,6 +1461,7 @@ const APP = {
     lastSelectedIndex: -1,
     activeSortPreset: localStorage.getItem('rb_sort_preset') || '',
     tagFilter: null,
+    providerFilter: null,
     carouselTimer: null,
     gSequence: false,
     uploadQueue: [],
@@ -3564,6 +3604,7 @@ function openDetailPanel(fileId) {
                         <div class="detail-stat"><div class="stat-label">${isId?'Ukuran':'Size'}</div><div class="stat-value">${formatSize(file.size)}</div></div>
                         <div class="detail-stat"><div class="stat-label">${isId?'Tipe':'Type'}</div><div class="stat-value">${ext}</div></div>
                         <div class="detail-stat"><div class="stat-label">${isId?'Diupload':'Uploaded'}</div><div class="stat-value" title="${fullDate}">${formatDate(file.uploadedAt)}</div></div>
+                        <div class="detail-stat"><div class="stat-label">${isId?'Penyimpanan':'Storage'}</div><div class="stat-value">${file.storageProvider === 'gdrive' ? '<i class="fab fa-google" style="color:#4285f4;margin-right:3px"></i>Google Drive' : '<i class="fas fa-paper-plane" style="color:#0088cc;margin-right:3px"></i>Telegram'}</div></div>
                         <div class="detail-stat"><div class="stat-label">${isId?'Folder':'Folder'}</div><div class="stat-value">${folderName}</div></div>
                     </div>
                     ${analyticsHtml}
@@ -4742,6 +4783,10 @@ function renderDashboard() {
         { icon: 'fa-share-from-square', label: isId ? 'Bagikan' : 'Share File', action: 'APP.batchMode=false;renderFileList()', primary: false },
         { icon: 'fa-link', label: isId ? 'Unggah URL' : 'URL Upload', action: 'openUrlUpload()', primary: false }
     ];
+    // Add "Pilih Drive" option when GDrive accounts are connected
+    if (APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0) {
+        quickActions.push({ icon: 'fa-hard-drive', label: isId ? 'Pilih Drive' : 'Select Drive', action: 'triggerUploadWithDriveSelect()', primary: false });
+    }
 
     const quickActionsHtml = quickActions.map(a => `
         <div onclick="${a.action}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:99px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s ease;${a.primary ? 'background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.3);' : 'background:var(--bg-card);border:1px solid var(--border);color:var(--text);'}white-space:nowrap" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
@@ -4844,6 +4889,7 @@ function renderDashboard() {
             <div id="breadcrumb-bar" class="breadcrumb-premium"></div>
             <!-- Quick Filter (F65) -->
             <div id="quick-filter-bar" style="padding:4px 20px 8px;display:flex;gap:6px;flex-wrap:wrap"></div>
+            <div id="provider-filter-bar" class="provider-filter-bar" style="padding:0 20px 8px"></div>
             <!-- Tag Filter Bar -->
             <div id="tag-filter-bar" class="tag-filter-bar" style="padding:0 20px 8px;display:flex;gap:6px;flex-wrap:wrap"></div>
             <!-- Upload Drop Zone (legacy, hidden) -->
@@ -5218,6 +5264,11 @@ function renderSidebarHTML() {
                     </div>
                 </div>
             </div>
+            ${APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0 ? `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg-secondary);border-radius:8px;font-size:10px;color:var(--text-secondary)">
+                <i class="fab fa-google" style="color:#4285f4;font-size:10px"></i>
+                <span>${APP.gdriveAccounts.filter(a => a.status === 'connected').length} Google Drive</span>
+                <span style="margin-left:auto;font-weight:600;color:var(--text)">${formatStorageBytes(getGDriveTotalStats().totalAvailable)}</span>
+            </div>` : ''}
         </div>
         <div id="auto-lock-countdown" style="display:none;align-items:center;gap:4px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--text-secondary);background:var(--bg-secondary);border-radius:8px"></div>`;
 }
@@ -5227,6 +5278,7 @@ function selectFolder(folderId) {
     APP.currentFolder = folderId;
     APP.quickFilter = null;
     APP.tagFilter = null;
+    APP.providerFilter = null;
     APP.selectedFiles.clear();
     APP.batchMode = false;
     // Update sidebar
@@ -5292,6 +5344,20 @@ function renderQuickFilter() {
             <i class="fas ${f.icon}" style="font-size:10px"></i> ${f.label}
         </button>
     `).join('');
+    renderProviderFilterBar();
+}
+
+function renderProviderFilterBar() {
+    const bar = document.getElementById('provider-filter-bar');
+    if (!bar) return;
+    const isId = APP.lang === 'id';
+    const gdriveCount = APP.files.filter(f => f.storageProvider === 'gdrive' && !f.trashed).length;
+    const telegramCount = APP.files.filter(f => (!f.storageProvider || f.storageProvider === 'telegram') && !f.trashed).length;
+    if (gdriveCount === 0) { bar.innerHTML = ''; return; }
+    bar.innerHTML = `
+        <span class="provider-filter-pill ${APP.providerFilter === 'telegram' ? 'active' : ''}" onclick="APP.providerFilter = APP.providerFilter === 'telegram' ? null : 'telegram'; renderProviderFilterBar(); renderFileList()"><i class="fas fa-paper-plane"></i> Telegram <span style="opacity:.6">${telegramCount}</span></span>
+        <span class="provider-filter-pill ${APP.providerFilter === 'gdrive' ? 'active' : ''}" onclick="APP.providerFilter = APP.providerFilter === 'gdrive' ? null : 'gdrive'; renderProviderFilterBar(); renderFileList()"><i class="fab fa-google"></i> Drive <span style="opacity:.6">${gdriveCount}</span></span>
+    `;
 }
 
 function setQuickFilter(key) {
@@ -5448,6 +5514,15 @@ function getFilteredFiles() {
         files = files.filter(f => f.tag === APP.tagFilter);
     }
 
+    // Storage provider filter
+    if (APP.providerFilter) {
+        if (APP.providerFilter === 'gdrive') {
+            files = files.filter(f => f.storageProvider === 'gdrive');
+        } else if (APP.providerFilter === 'telegram') {
+            files = files.filter(f => !f.storageProvider || f.storageProvider === 'telegram');
+        }
+    }
+
     // Feature 7: Advanced search filter
     files = applyAdvancedSearchFilter(files);
 
@@ -5562,6 +5637,7 @@ function renderFileGridItem(file, index) {
             <div class="grid-name" title="${file.name}">${file.name}${versionBadge}</div>
             <div class="grid-meta">
                 ${file.tag ? `<span class="tag-dot-inline" style="background:${file.tag}" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
+                ${file.storageProvider === 'gdrive' ? '<span class="provider-badge gdrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'gdrive\';renderFileList()" title="Google Drive"><i class="fab fa-google"></i></span>' : ''}
                 <span>${formatSize(file.size)} · ${formatDate(file.uploadedAt)}</span>
             </div>
             ${trashInfo}
@@ -5639,11 +5715,12 @@ function renderFileListRow(file, index) {
             <div class="list-name-row">
                 <span class="fname">${file.name}</span>
                 ${inlineStatus}
+                ${file.storageProvider === 'gdrive' ? '<span class="provider-badge gdrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'gdrive\';renderFileList()" title="Google Drive"><i class="fab fa-google"></i></span>' : ''}
                 ${file.tag ? `<span class="tag-dot-inline" style="background:${file.tag}" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
                 ${versionBadge}
                 ${trashBadge}
             </div>
-            <div class="list-sub-meta">${subMeta}</div>
+            <div class="list-sub-meta">${subMeta}${file.storageProvider === 'gdrive' ? ' · <i class="fab fa-google" style="font-size:9px;color:#4285f4"></i> Drive' : ''}</div>
             ${trashProgress}
         </div>
         <div class="list-col-size">${formatSize(file.size)}</div>
@@ -5912,6 +5989,20 @@ function setupDragDrop() {
 function triggerUpload() {
     const inp = document.getElementById('file-upload-input');
     if (inp) inp.click();
+}
+
+function triggerUploadWithDriveSelect() {
+    const inp = document.getElementById('file-upload-input');
+    if (!inp) return;
+    // Override the onchange to open drive select modal instead
+    const originalOnchange = inp.onchange;
+    inp.onchange = function() {
+        if (this.files && this.files.length > 0) {
+            openDriveSelectModal(this.files[0]);
+        }
+        inp.onchange = originalOnchange;
+    };
+    inp.click();
 }
 
 async function handleFileSelect(fileList) {
@@ -6292,16 +6383,32 @@ async function deletePermanently(fileId) {
             // Immediately remove from DOM for instant visual feedback
             removeFileElement(fileId);
             const file = APP.files.find(f => f.id === fileId);
-            // Try to delete message from Telegram server
-            if (file && file.messageId && file.chatId) {
-                try {
-                    const bot = APP.bots[file.botIndex || 0] || APP.bots[0];
-                    if (bot && bot.masked) {
-                        await fetch(`/api/proxy?method=deleteMessage&chat_id=${encodeURIComponent(file.chatId)}&message_id=${file.messageId}&bot_index=${file.botIndex || '0'}`);
-                    } else if (bot) {
-                        await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage?chat_id=${encodeURIComponent(file.chatId)}&message_id=${file.messageId}`);
-                    }
-                } catch(e) { console.warn('Telegram delete failed:', e); }
+            // Delete from storage provider (Telegram or Google Drive)
+            if (file) {
+                if (file.storageProvider === 'gdrive' && file.driveFileId) {
+                    // Delete from Google Drive
+                    try {
+                        const account = APP.gdriveAccounts.find(a => a.id === file.providerAccountId && a.status === 'connected') || APP.gdriveAccounts.find(a => a.status === 'connected');
+                        if (account) {
+                            const accessToken = await APP.storageProviders.gdrive.getAccessToken(account.id);
+                            if (accessToken) {
+                                await fetch('/api/gdrive/proxy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accessToken, method: 'DELETE', path: `/drive/v3/files/${file.driveFileId}` }) });
+                                // Update quota estimate
+                                if (account.quota) { account.quota.usage = Math.max(0, (parseInt(account.quota.usage) || 0) - (file.size || 0)); await dbPut('gdrive_accounts', account); }
+                            }
+                        }
+                    } catch(e) { console.warn('GDrive delete failed:', e); }
+                } else if (file.messageId && file.chatId) {
+                    // Delete from Telegram server
+                    try {
+                        const bot = APP.bots[file.botIndex || 0] || APP.bots[0];
+                        if (bot && bot.masked) {
+                            await fetch(`/api/proxy?method=deleteMessage&chat_id=${encodeURIComponent(file.chatId)}&message_id=${file.messageId}&bot_index=${file.botIndex || '0'}`);
+                        } else if (bot) {
+                            await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage?chat_id=${encodeURIComponent(file.chatId)}&message_id=${file.messageId}`);
+                        }
+                    } catch(e) { console.warn('Telegram delete failed:', e); }
+                }
             }
             await deleteFileDB(fileId);
             // Remove from memory immediately
@@ -6572,8 +6679,27 @@ async function saveToDevice(blob, fileName) {
 async function downloadFile(fileId) {
     const file = APP.files.find(f => f.id === fileId);
     if (!file) return;
-    logActivity('download', (APP.lang==='id'?'Mengunduh':'Downloaded') + ' ' + file.name);
+    const isId = APP.lang === 'id';
+    logActivity('download', (isId?'Mengunduh':'Downloaded') + ' ' + file.name);
     try {
+        // Google Drive files — download via GDrive provider
+        if (file.storageProvider === 'gdrive' && file.driveFileId) {
+            const account = APP.gdriveAccounts.find(a => a.id === file.providerAccountId);
+            if (!account || account.status !== 'connected') {
+                // Try to find any connected account
+                const anyAccount = APP.gdriveAccounts.find(a => a.status === 'connected');
+                if (!anyAccount) { showToast(isId ? 'Akun Google Drive tidak tersedia. Hubungkan ulang.' : 'Google Drive account unavailable. Please reconnect.', 'warning'); return; }
+            }
+            const activeAccount = APP.gdriveAccounts.find(a => a.id === file.providerAccountId && a.status === 'connected') || APP.gdriveAccounts.find(a => a.status === 'connected');
+            const accessToken = await APP.storageProviders.gdrive.getAccessToken(activeAccount.id);
+            if (!accessToken) { showToast(isId ? 'Gagal memperoleh token akses' : 'Failed to obtain access token', 'error'); return; }
+            const dlUrl = `/api/gdrive/download?accessToken=${encodeURIComponent(accessToken)}&fileId=${encodeURIComponent(file.driveFileId)}`;
+            directDownload(dlUrl, file.name);
+            showToast(t('download') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
+            logActivity('download', `${isId?'Mengunduh':'Downloaded'} ${file.name} (Google Drive)`);
+            return;
+        }
+
         // Resolve filePath if missing
         if (!file.filePath && file.fileId) {
             try {
@@ -8445,8 +8571,23 @@ function renderStorageManagement() {
     const isId = APP.lang === 'id';
     const stats = getGDriveTotalStats();
     const accounts = APP.gdriveAccounts || [];
+    const gdriveFiles = APP.files.filter(f => f.storageProvider === 'gdrive' && !f.trashed);
+    const telegramFiles = APP.files.filter(f => (!f.storageProvider || f.storageProvider === 'telegram') && !f.trashed);
+    const gdriveSize = gdriveFiles.reduce((s, f) => s + (f.size || 0), 0);
+    const telegramSize = telegramFiles.reduce((s, f) => s + (f.size || 0), 0);
+    const totalFiles = APP.files.filter(f => !f.trashed).length;
+    const totalSize = APP.files.filter(f => !f.trashed).reduce((s, f) => s + (f.size || 0), 0);
 
-    const accountCardsHtml = accounts.length > 0 ? accounts.map(a => {
+    // Unified storage bar with stacked segments per account
+    const accountColors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4'];
+    const unifiedPct = stats.totalLimit > 0 ? Math.min((stats.totalUsage / stats.totalLimit) * 100, 100) : 0;
+    const stackedSegments = accounts.filter(a => a.status === 'connected' && a.quota).map((a, i) => {
+        const usage = parseInt(a.quota.usage) || 0;
+        const pct = stats.totalLimit > 0 ? (usage / stats.totalLimit) * 100 : 0;
+        return `<div style="height:100%;width:${pct}%;background:${accountColors[i % accountColors.length]};position:absolute;left:${accounts.slice(0, i).reduce((sum, acc) => sum + (stats.totalLimit > 0 ? ((parseInt(acc.quota?.usage) || 0) / stats.totalLimit) * 100 : 0), 0)}%"></div>`;
+    }).join('');
+
+    const accountCardsHtml = accounts.length > 0 ? accounts.map((a, i) => {
         const limit = parseInt(a.quota?.limit) || 15 * 1024 * 1024 * 1024;
         const usage = parseInt(a.quota?.usage) || 0;
         const available = limit - usage;
@@ -8455,12 +8596,14 @@ function renderStorageManagement() {
         const statusClass = a.status === 'connected' ? 'connected' : a.status === 'expired' ? 'expired' : 'disconnected';
         const statusText = a.status === 'connected' ? (isId ? 'Terhubung' : 'Connected') : a.status === 'expired' ? (isId ? 'Kedaluwarsa' : 'Expired') : (isId ? 'Terputus' : 'Disconnected');
         const lastSyncStr = a.lastSync ? timeAgo(a.lastSync) : (isId ? 'Belum pernah' : 'Never');
+        const accFiles = gdriveFiles.filter(f => f.providerAccountId === a.id);
+        const accSize = accFiles.reduce((s, f) => s + (f.size || 0), 0);
         return `<div class="gdrive-account-card">
             <div class="account-header">
-                <div class="account-avatar">${(a.name || a.email || 'G').charAt(0).toUpperCase()}</div>
+                <div class="account-avatar" style="background:linear-gradient(135deg,${accountColors[i % accountColors.length]},${accountColors[(i + 1) % accountColors.length]})">${(a.name || a.email || 'G').charAt(0).toUpperCase()}</div>
                 <div class="account-info">
                     <div class="account-email">${a.email || 'Unknown'}</div>
-                    <div class="account-name">${a.name || ''} · ${isId ? 'Sinkronisasi terakhir' : 'Last sync'}: ${lastSyncStr}</div>
+                    <div class="account-name">${a.name || ''} · ${isId ? 'Sinkronisasi' : 'Sync'}: ${lastSyncStr}</div>
                 </div>
                 <div class="account-status ${statusClass}"><i class="fas fa-circle" style="font-size:6px"></i> ${statusText}</div>
             </div>
@@ -8472,31 +8615,37 @@ function renderStorageManagement() {
                 <div class="storage-bar-track"><div class="storage-bar-fill ${gradClass}" style="width:${pct}%"></div></div>
                 <div class="storage-bar-labels"><span>${pct.toFixed(1)}%</span><span>${formatStorageBytes(limit)}</span></div>
             </div>
+            <div style="display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--text-secondary)">
+                <span><i class="fas fa-file" style="margin-right:3px;color:${accountColors[i % accountColors.length]}"></i>${accFiles.length} ${isId ? 'file RidgeBox' : 'RidgeBox files'}</span>
+                <span><i class="fas fa-database" style="margin-right:3px;color:${accountColors[i % accountColors.length]}"></i>${formatStorageBytes(accSize)} ${isId ? 'di RidgeBox' : 'in RidgeBox'}</span>
+            </div>
             <div class="account-actions">
-                <button class="account-action-btn" onclick="APP.storageProviders.gdrive.refreshAccount('${a.id}')"><i class="fas fa-sync-alt"></i> ${isId ? 'Segarkan' : 'Refresh'}</button>
+                <button class="account-action-btn" onclick="syncGDriveAccount('${a.id}')"><i class="fas fa-sync-alt"></i> ${isId ? 'Sinkronkan' : 'Sync'}</button>
+                <button class="account-action-btn" onclick="APP.storageProviders.gdrive.refreshAccount('${a.id}')"><i class="fas fa-redo"></i> ${isId ? 'Segarkan' : 'Refresh'}</button>
                 <button class="account-action-btn danger" onclick="confirmDisconnectGDrive('${a.id}')"><i class="fas fa-unlink"></i> ${isId ? 'Putuskan' : 'Disconnect'}</button>
             </div>
         </div>`;
     }).join('') : '';
 
-    const unifiedPct = stats.totalLimit > 0 ? Math.min((stats.totalUsage / stats.totalLimit) * 100, 100) : 0;
+    // Distribution legend
     const donutSegments = accounts.map((a, i) => {
         if (a.status !== 'connected' || !a.quota) return '';
         const usage = parseInt(a.quota.usage) || 0;
         const pct = stats.totalUsage > 0 ? (usage / stats.totalUsage) * 100 : 0;
-        const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4'];
         return `<div style="display:flex;align-items:center;gap:8px;font-size:12px">
-            <div style="width:10px;height:10px;border-radius:50%;background:${colors[i % colors.length]};flex-shrink:0"></div>
-            <span style="color:var(--text-secondary)">${a.email}</span>
+            <div style="width:10px;height:10px;border-radius:50%;background:${accountColors[i % accountColors.length]};flex-shrink:0"></div>
+            <span style="color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px">${a.email}</span>
             <span style="margin-left:auto;font-weight:600;color:var(--text);font-family:'JetBrains Mono',monospace">${pct.toFixed(1)}%</span>
         </div>`;
     }).join('');
 
     main.innerHTML = `<div class="page-transition storage-page"><div class="storage-page-inner">
         <a href="#/dashboard" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);text-decoration:none;margin-bottom:16px;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'"><i class="fas fa-arrow-left"></i> ${isId ? 'Kembali ke Dashboard' : 'Back to Dashboard'}</a>
+
+        <!-- Hero Section -->
         <div class="storage-hero">
-            <div class="storage-hero-title"><i class="fas fa-server" style="margin-right:8px;opacity:.8"></i> ${isId ? 'Manajemen Penyimpanan' : 'Storage Management'}</div>
-            <div class="storage-hero-subtitle">${isId ? 'Kelola semua akun penyimpanan cloud dalam satu tempat' : 'Manage all cloud storage accounts in one place'}</div>
+            <div class="storage-hero-title"><i class="fas fa-cloud" style="margin-right:8px;opacity:.8"></i> ${isId ? 'Manajemen Penyimpanan' : 'Storage Management'}</div>
+            <div class="storage-hero-subtitle">${isId ? 'Kelola semua akun penyimpanan cloud dalam satu tempat. Penyimpanan terpadu otomatis.' : 'Manage all cloud storage accounts in one place. Automatic unified storage.'}</div>
             <div class="storage-hero-stats">
                 <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-blue">${stats.accountCount}</div><div class="storage-hero-stat-label">${isId ? 'Akun Terhubung' : 'Connected'}</div></div>
                 <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-green">${formatStorageBytes(stats.totalLimit)}</div><div class="storage-hero-stat-label">${isId ? 'Total Penyimpanan' : 'Total Storage'}</div></div>
@@ -8504,30 +8653,71 @@ function renderStorageManagement() {
                 <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-amber">${formatStorageBytes(stats.totalAvailable)}</div><div class="storage-hero-stat-label">${isId ? 'Tersedia' : 'Available'}</div></div>
             </div>
         </div>
+
+        <!-- Quick Stats Grid -->
+        <div class="storage-stats-grid">
+            <div class="storage-stat-card">
+                <div class="stat-icon" style="background:rgba(0,136,204,.1);color:#0088cc"><i class="fas fa-paper-plane"></i></div>
+                <div class="stat-value">${telegramFiles.length}</div>
+                <div class="stat-label">${isId ? 'File Telegram' : 'Telegram Files'} · ${formatStorageBytes(telegramSize)}</div>
+            </div>
+            <div class="storage-stat-card">
+                <div class="stat-icon" style="background:rgba(66,133,244,.1);color:#4285f4"><i class="fab fa-google"></i></div>
+                <div class="stat-value">${gdriveFiles.length}</div>
+                <div class="stat-label">${isId ? 'File Google Drive' : 'Google Drive Files'} · ${formatStorageBytes(gdriveSize)}</div>
+            </div>
+            <div class="storage-stat-card">
+                <div class="stat-icon" style="background:rgba(16,185,129,.1);color:#10b981"><i class="fas fa-layer-group"></i></div>
+                <div class="stat-value">${totalFiles}</div>
+                <div class="stat-label">${isId ? 'Total File' : 'Total Files'} · ${formatStorageBytes(totalSize)}</div>
+            </div>
+            <div class="storage-stat-card">
+                <div class="stat-icon" style="background:rgba(139,92,246,.1);color:#8b5cf6"><i class="fas fa-brain"></i></div>
+                <div class="stat-value">${isId ? 'Aktif' : 'Active'}</div>
+                <div class="stat-label">${isId ? 'Smart Allocation — otomatis pilih drive terbaik' : 'Smart Allocation — auto-select best drive'}</div>
+            </div>
+        </div>
+
+        <!-- Unified Storage Bar -->
         <div class="storage-section">
-            <div class="storage-section-title"><i class="fas fa-database"></i> ${isId ? 'Penyimpanan Terpadu' : 'Unified Storage'}</div>
+            <div class="storage-section-title"><i class="fas fa-database"></i> ${isId ? 'Penyimpanan Terpadu (Virtual Unified Storage)' : 'Unified Storage (Virtual Unified Storage)'}</div>
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px">
                 <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px">
                     <span style="color:var(--text);font-weight:600">${formatStorageBytes(stats.totalUsage)} / ${formatStorageBytes(stats.totalLimit)}</span>
                     <span style="color:var(--text-secondary)">${unifiedPct.toFixed(1)}% ${isId ? 'terpakai' : 'used'}</span>
                 </div>
-                <div class="storage-bar-track" style="height:12px;border-radius:6px"><div class="storage-bar-fill gradient-blue" style="width:${unifiedPct}%;border-radius:6px"></div></div>
-                ${accounts.length > 0 ? `<div style="margin-top:14px;display:flex;flex-direction:column;gap:6px">${donutSegments}</div>` : ''}
+                <div class="storage-bar-track" style="height:14px;border-radius:7px;position:relative;overflow:hidden">
+                    ${accounts.length > 0 && stats.totalLimit > 0 ? stackedSegments : `<div class="storage-bar-fill gradient-blue" style="width:${unifiedPct}%;border-radius:7px"></div>`}
+                </div>
+                ${accounts.length > 0 ? `<div style="margin-top:14px;display:flex;flex-direction:column;gap:6px">${donutSegments}</div>` : `<div style="margin-top:10px;font-size:12px;color:var(--text-secondary)">${isId ? 'Hubungkan akun Google Drive untuk melihat distribusi penyimpanan' : 'Connect Google Drive accounts to see storage distribution'}</div>`}
+                ${accounts.length > 1 ? `<div style="margin-top:12px;padding:10px 14px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.12);border-radius:10px;font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><i class="fas fa-info-circle" style="color:var(--accent)"></i> ${isId ? `<b>${accounts.length} akun</b> digabung menjadi <b>${formatStorageBytes(stats.totalLimit)}</b> penyimpanan virtual. Semua file tampil di satu dashboard.` : `<b>${accounts.length} accounts</b> combined into <b>${formatStorageBytes(stats.totalLimit)}</b> virtual storage. All files appear in one dashboard.`}</div>` : ''}
             </div>
         </div>
+
+        <!-- Google Drive Accounts -->
         <div class="storage-section">
             <div class="storage-section-title"><i class="fab fa-google"></i> ${isId ? 'Akun Google Drive' : 'Google Drive Accounts'}</div>
             ${accountCardsHtml}
             <div class="connect-card" onclick="APP.storageProviders.gdrive.connect()">
                 <i class="fab fa-google"></i>
                 <div class="connect-title">${isId ? 'Hubungkan Akun Google Drive' : 'Connect Google Drive Account'}</div>
-                <div class="connect-desc">${isId ? 'Tambahkan akun Google Drive untuk memperluas penyimpanan' : 'Add a Google Drive account to expand storage'}</div>
+                <div class="connect-desc">${isId ? 'Tambahkan akun Google Drive untuk memperluas penyimpanan. Multi-akun didukung!' : 'Add a Google Drive account to expand storage. Multi-account supported!'}</div>
             </div>
         </div>
+
+        <!-- Charts -->
         <div class="storage-chart-row">
             <div class="storage-chart-card"><div class="chart-title"><i class="fas fa-chart-pie" style="margin-right:4px"></i> ${isId ? 'Distribusi Penyimpanan' : 'Storage Distribution'}</div><canvas id="storage-donut-chart" width="280" height="200"></canvas></div>
             <div class="storage-chart-card"><div class="chart-title"><i class="fas fa-chart-bar" style="margin-right:4px"></i> ${isId ? 'Penggunaan Per Akun' : 'Per Account Usage'}</div><canvas id="storage-bar-chart" width="280" height="200"></canvas></div>
         </div>
+
+        <!-- Smart Allocation Info -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
+            <div style="font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;color:var(--text)"><i class="fas fa-brain" style="color:var(--accent)"></i> ${isId ? 'Smart Storage Allocation' : 'Smart Storage Allocation'}</div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">${isId ? `Saat Anda mengunggah file, RidgeBox otomatis memilih drive Google Drive yang memiliki <b>ruang tersedia paling besar</b>. Jika satu drive penuh, file secara otomatis diarahkan ke drive berikutnya. Anda juga bisa memilih drive secara manual melalui opsi upload.<br><br><b>Alur Upload:</b> Pilih file → RidgeBox cek semua drive terhubung → Pilih drive terbaik → Upload langsung → Simpan metadata → Tampil di dashboard sebagai file lokal` : `When you upload a file, RidgeBox automatically selects the Google Drive with the <b>most available space</b>. If one drive is full, the file is automatically directed to the next drive. You can also manually select a drive via the upload option.<br><br><b>Upload Flow:</b> Select file → RidgeBox checks all connected drives → Picks best drive → Upload directly → Save metadata → Shows in dashboard as local file`}</div>
+        </div>
+
+        <!-- Coming Soon Providers -->
         <div class="storage-section">
             <div class="storage-section-title"><i class="fas fa-rocket"></i> ${isId ? 'Penyedia Mendatang' : 'Coming Soon'}</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
@@ -8545,6 +8735,8 @@ function renderStorageManagement() {
                 </div>`).join('')}
             </div>
         </div>
+
+        <!-- Modular Architecture -->
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:16px">
             <div style="font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;color:var(--text)"><i class="fas fa-cubes" style="color:var(--accent)"></i> ${isId ? 'Arsitektur Modular' : 'Modular Architecture'}</div>
             <div style="font-size:12px;color:var(--text-secondary);line-height:1.7">${isId ? 'RidgeBox menggunakan <b>Storage Provider System</b> yang memungkinkan penambahan penyimpanan baru tanpa mengubah sistem utama. Setiap provider mengimplementasikan interface yang sama: <code>connect()</code>, <code>upload()</code>, <code>download()</code>, <code>getQuota()</code>. Smart Storage Allocation otomatis memilih drive terbaik, dan Virtual Unified Storage menyatukan semua file dalam satu tampilan.' : 'RidgeBox uses a <b>Storage Provider System</b> that allows adding new storage without changing the core. Each provider implements the same interface: <code>connect()</code>, <code>upload()</code>, <code>download()</code>, <code>getQuota()</code>. Smart Storage Allocation auto-selects the best drive, and Virtual Unified Storage merges all files into one view.'}</div>
@@ -8684,6 +8876,168 @@ async function initGDriveConfig() {
         const data = await resp.json();
         APP.gdriveConfig = { configured: data.configured, clientId: data.clientId || '' };
     } catch (e) { APP.gdriveConfig = { configured: false, clientId: '' }; }
+}
+
+// ===== GDRIVE SYNC — List and import files from Google Drive =====
+async function syncGDriveAccount(accountId) {
+    const isId = APP.lang === 'id';
+    const account = APP.gdriveAccounts.find(a => a.id === accountId);
+    if (!account || account.status !== 'connected') {
+        showToast(isId ? 'Akun tidak terhubung' : 'Account not connected', 'warning');
+        return;
+    }
+    showToast(isId ? 'Menyinkronkan file dari Google Drive...' : 'Syncing files from Google Drive...', 'info');
+    try {
+        const accessToken = await APP.storageProviders.gdrive.getAccessToken(accountId);
+        if (!accessToken) { showToast(isId ? 'Gagal memperoleh token' : 'Failed to get token', 'error'); return; }
+        // List files from Google Drive (not in trash, max 100)
+        const listResp = await fetch('/api/gdrive/proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accessToken, method: 'GET', path: '/drive/v3/files', params: { pageSize: '100', fields: 'files(id,name,mimeType,size,modifiedTime)', q: "trashed = false and 'me' in owners" } })
+        });
+        const listData = await listResp.json();
+        if (!listData.ok || !listData.data?.files) {
+            showToast(isId ? 'Gagal mengambil daftar file' : 'Failed to list files', 'error');
+            return;
+        }
+        const driveFiles = listData.data.files;
+        let importedCount = 0;
+        for (const df of driveFiles) {
+            // Skip if already imported
+            if (APP.files.some(f => f.driveFileId === df.id && !f.trashed)) continue;
+            // Skip Google Docs/Sheets/Slides (they have no real size and need export)
+            if (df.mimeType && df.mimeType.startsWith('application/vnd.google-apps')) continue;
+            const meta = {
+                id: genId(),
+                name: df.name || 'Unnamed',
+                size: parseInt(df.size) || 0,
+                mime: df.mimeType || 'application/octet-stream',
+                fileId: null,
+                filePath: '',
+                messageId: null,
+                botIndex: '0',
+                chatId: '',
+                folderId: null,
+                uploadedAt: df.modifiedTime ? new Date(df.modifiedTime).getTime() : Date.now(),
+                pinned: false,
+                starred: false,
+                trashed: false,
+                encrypted: false,
+                version: 1,
+                tag: getAutoTagColor(getFileType(df.name, df.mimeType)),
+                caption: '',
+                shareCount: 0,
+                storageProvider: 'gdrive',
+                providerAccountId: accountId,
+                driveFileId: df.id,
+                syncedAt: Date.now()
+            };
+            await saveFile(meta);
+            APP.files.push(meta);
+            importedCount++;
+        }
+        // Update last sync time
+        account.lastSync = Date.now();
+        await dbPut('gdrive_accounts', account);
+        if (importedCount > 0) {
+            showToast(isId ? `${importedCount} file berhasil disinkronkan dari Google Drive` : `${importedCount} files synced from Google Drive`, 'success');
+            logActivity('upload', isId ? `Sinkronisasi ${importedCount} file dari ${account.email}` : `Synced ${importedCount} files from ${account.email}`);
+        } else {
+            showToast(isId ? 'Semua file sudah tersinkronisasi' : 'All files already synced', 'info');
+        }
+        if (location.hash === '#/storage') renderStorageManagement();
+        else renderFileList();
+    } catch (e) {
+        showToast(isId ? 'Gagal menyinkronkan: ' + e.message : 'Sync failed: ' + e.message, 'error');
+    }
+}
+
+// ===== DRIVE SELECT MODAL — Manual drive selection for uploads =====
+function openDriveSelectModal(file) {
+    const isId = APP.lang === 'id';
+    const accounts = APP.gdriveAccounts.filter(a => a.status === 'connected');
+    const accountColors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4'];
+    const bestDrive = selectBestDrive(file.size);
+
+    const driveCards = accounts.map((a, i) => {
+        const limit = parseInt(a.quota?.limit) || 15 * 1024 * 1024 * 1024;
+        const usage = parseInt(a.quota?.usage) || 0;
+        const available = limit - usage;
+        const pct = limit > 0 ? Math.min((usage / limit) * 100, 100) : 0;
+        const isBest = bestDrive && bestDrive.id === a.id;
+        const canFit = available >= file.size;
+        return `<div class="drive-select-card ${isBest ? 'selected' : ''}" onclick="executeUploadToSpecificDrive('${a.id}', document.getElementById('drive-select-file-input').files[0])" style="${!canFit ? 'opacity:.5' : ''}">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,${accountColors[i % accountColors.length]},${accountColors[(i + 1) % accountColors.length]});display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700">${(a.name || a.email || 'G').charAt(0).toUpperCase()}</div>
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.email}</div>
+                    <div style="font-size:11px;color:var(--text-secondary)">${formatStorageBytes(available)} ${isId ? 'tersedia' : 'available'} · ${pct.toFixed(0)}% ${isId ? 'terpakai' : 'used'}</div>
+                </div>
+                ${isBest ? `<span style="font-size:10px;font-weight:700;color:var(--accent);background:rgba(59,130,246,.1);padding:2px 8px;border-radius:4px">${isId ? 'TERBAIK' : 'BEST'}</span>` : ''}
+            </div>
+            <div class="storage-bar-track" style="height:4px"><div class="storage-bar-fill ${pct > 80 ? 'gradient-red' : pct > 50 ? 'gradient-amber' : 'gradient-green'}" style="width:${pct}%"></div></div>
+            ${!canFit ? `<div style="font-size:10px;color:#ef4444;margin-top:4px">${isId ? 'Ruang tidak cukup' : 'Not enough space'}</div>` : ''}
+        </div>`;
+    }).join('');
+
+    const telegramCard = `<div class="drive-select-card" onclick="executeUploadToTelegramDirect(document.getElementById('drive-select-file-input').files[0])">
+        <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#0088cc,#00a8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px"><i class="fas fa-paper-plane"></i></div>
+            <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">Telegram Bot</div>
+                <div style="font-size:11px;color:var(--text-secondary)">${isId ? 'Upload via Telegram Bot API' : 'Upload via Telegram Bot API'}</div>
+            </div>
+        </div>
+    </div>`;
+
+    openModal(`<div style="padding:20px;max-width:480px;margin:0 auto">
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px"><i class="fas fa-cloud-upload-alt" style="color:var(--accent)"></i> ${isId ? 'Pilih Drive Tujuan' : 'Select Target Drive'}</h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${isId ? `File: <b>${file.name}</b> (${formatSize(file.size)})` : `File: <b>${file.name}</b> (${formatSize(file.size)})`}</p>
+        <input type="file" id="drive-select-file-input" style="display:none">
+        <div style="display:flex;flex-direction:column;gap:10px;max-height:400px;overflow-y:auto">
+            ${driveCards}
+            ${telegramCard}
+        </div>
+        <div style="margin-top:14px;text-align:center">
+            <button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
+        </div>
+    </div>`);
+}
+
+// Upload to specific drive (from manual selection)
+async function executeUploadToSpecificDrive(accountId, file) {
+    if (!file) { closeModal(); return; }
+    closeModal();
+    const isId = APP.lang === 'id';
+    APP.activeUploads++; updateGlobalProgress();
+    try {
+        const result = await APP.storageProviders.gdrive.upload(accountId, file, { parentFolderId: null });
+        const account = APP.gdriveAccounts.find(a => a.id === accountId);
+        const fileType = getFileType(file.name, file.type);
+        const autoTag = getAutoTagColor(fileType);
+        const fid = APP.currentFolder;
+        const effectiveFolderId = ['all', 'recent', 'favorites', 'trash', 'shared', 'encrypted'].includes(fid) ? null : fid;
+        const existing = APP.files.filter(f => f.name === file.name && f.folderId === effectiveFolderId && !f.trashed);
+        const version = existing.length + 1;
+        const meta = { id: genId(), name: file.name, size: file.size, mime: file.type || 'application/octet-stream', fileId: result.driveFileId, filePath: '', messageId: null, botIndex: '0', chatId: '', folderId: effectiveFolderId, uploadedAt: Date.now(), pinned: false, starred: false, trashed: false, encrypted: false, version, tag: autoTag, caption: '', shareCount: 0, storageProvider: 'gdrive', providerAccountId: accountId, driveFileId: result.driveFileId };
+        await saveFile(meta); APP.files.push(meta);
+        if (account?.quota) { account.quota.usage = (parseInt(account.quota.usage) || 0) + file.size; await dbPut('gdrive_accounts', account); }
+        showToast(`${file.name} → Google Drive (${account?.email?.split('@')[0] || 'Drive'})`, 'success');
+        logActivity('upload', `${isId ? 'Mengunggah' : 'Uploaded'} ${file.name} → GDrive (${account?.email || 'manual'})`);
+        APP.activeUploads--; updateGlobalProgress();
+        const suz = document.getElementById('smart-upload-zone');
+        if (suz && !suz.classList.contains('minimized')) suz.classList.add('minimized');
+        renderFileList();
+    } catch (e) { APP.activeUploads--; updateGlobalProgress(); showToast(`Upload failed: ${e.message}`, 'error'); }
+}
+
+// Upload to Telegram directly (from drive selection modal)
+async function executeUploadToTelegramDirect(file) {
+    if (!file) { closeModal(); return; }
+    closeModal();
+    // Delegate to existing upload flow
+    await executeUpload(file);
 }
 
 
