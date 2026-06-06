@@ -2818,15 +2818,7 @@ function renderSwipeRow(file, index) {
 
 // Swipe delete handler with animation
 async function swipeDeleteFile(fileId) {
-    const wrapper = document.querySelector(`.swipe-wrapper[data-file-id="${fileId}"]`);
-    if (wrapper) {
-        wrapper.classList.add('file-removing');
-        setTimeout(async () => {
-            await moveToTrash(fileId);
-        }, 300);
-    } else {
-        await moveToTrash(fileId);
-    }
+    await moveToTrash(fileId);
 }
 
 // ===== SWIPE GESTURES =====
@@ -2962,7 +2954,7 @@ async function clearRecentHistory() {
             closeDetailPanel();
             closeContextMenu();
             showToast(`${recentFiles.length} ${APP.lang==='id'?'file dipindahkan ke sampah':'files moved to trash'}`, 'info');
-            refreshUI();
+            await refreshUI();
         },
         true
     );
@@ -2982,7 +2974,7 @@ async function restoreAllTrash() {
             closeDetailPanel();
             closeContextMenu();
             showToast(`${trashFiles.length} ${APP.lang==='id'?'file dipulihkan':'files restored'}`, 'success');
-            refreshUI();
+            await refreshUI();
         },
         false
     );
@@ -3394,18 +3386,8 @@ async function moveToTrash(fileId) {
     APP.selectedFiles.delete(fileId);
     closeDetailPanel();
     closeContextMenu();
-    // Animate removal from view
-    const el = document.querySelector(`[data-file-id="${fileId}"]`) || document.querySelector(`.swipe-wrapper[data-file-id="${fileId}"]`);
-    if (el) {
-        el.classList.add('file-removing');
-        setTimeout(() => {
-            showUndoToast(t('movedToTrash'), () => { restoreFile(fileId); });
-            refreshUI();
-        }, 300);
-    } else {
-        showUndoToast(t('movedToTrash'), () => { restoreFile(fileId); });
-        refreshUI();
-    }
+    showUndoToast(t('movedToTrash'), () => { restoreFile(fileId); });
+    await refreshUI();
 }
 
 async function restoreFile(fileId) {
@@ -3417,7 +3399,7 @@ async function restoreFile(fileId) {
     closeDetailPanel();
     closeContextMenu();
     showToast(t('restored'), 'success');
-    refreshUI();
+    await refreshUI();
 }
 
 async function deletePermanently(fileId) {
@@ -3438,12 +3420,13 @@ async function deletePermanently(fileId) {
                 } catch(e) { console.warn('Telegram delete failed:', e); }
             }
             await deleteFileDB(fileId);
+            // Remove from memory immediately
             APP.files = APP.files.filter(f => f.id !== fileId);
             APP.selectedFiles.delete(fileId);
             closeDetailPanel();
             closeContextMenu();
             showToast(t('deletedForever'), 'info');
-            refreshUI();
+            await refreshUI();
         },
         true
     );
@@ -3633,7 +3616,7 @@ async function emptyTrash() {
             closeDetailPanel();
             closeContextMenu();
             showToast(t('emptyTrash'), 'info');
-            refreshUI();
+            await refreshUI();
         },
         true
     );
@@ -3750,10 +3733,10 @@ async function bulkDelete() {
                     f.trashedAt = null;
                     await saveFile(f);
                 });
-                refreshUI();
+                await refreshUI();
                 showToast(APP.lang === 'id' ? 'File dipulihkan' : 'Files restored', 'success');
             });
-            refreshUI();
+            await refreshUI();
         },
         true
     );
@@ -5003,7 +4986,7 @@ async function executeBulkMove(folderId) {
     APP.batchMode = false;
     closeModal();
     closeDetailPanel();
-    refreshUI();
+    await refreshUI();
     showToast(`${moveCount} ${APP.lang==='id'?'file dipindahkan ke':'files moved to'} ${targetName}`, 'success');
 }
 
