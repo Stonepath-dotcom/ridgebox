@@ -926,6 +926,73 @@ body.no-transition,body.no-transition *{transition:none!important}
 .sidebar-action-btn i{color:#64748b;transition:color .15s ease}
 .sidebar-action-btn:hover i{color:#3b82f6}
 
+/* ===== Storage Management Dashboard ===== */
+.storage-page{min-height:calc(100vh - var(--header-h));background:var(--bg);padding:24px 20px}
+.storage-page-inner{max-width:1100px;margin:0 auto}
+.storage-hero{background:linear-gradient(135deg,#1e3a5f,#0f172a 50%,#1a0f2e);border-radius:20px;padding:40px 32px;color:#fff;position:relative;overflow:hidden;margin-bottom:24px}
+.storage-hero::before{content:'';position:absolute;top:-50%;right:-20%;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.15),transparent 70%)}
+.storage-hero::after{content:'';position:absolute;bottom:-30%;left:-10%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.1),transparent 70%)}
+.storage-hero-title{font-size:28px;font-weight:800;margin-bottom:6px;position:relative;z-index:1}
+.storage-hero-subtitle{font-size:14px;opacity:.7;margin-bottom:24px;position:relative;z-index:1}
+.storage-hero-stats{display:flex;gap:24px;flex-wrap:wrap;position:relative;z-index:1}
+.storage-hero-stat{flex:1;min-width:140px}
+.storage-hero-stat-value{font-size:32px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1.1}
+.storage-hero-stat-label{font-size:12px;opacity:.6;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.storage-hero-stat-value.accent-blue{color:#60a5fa}
+.storage-hero-stat-value.accent-green{color:#34d399}
+.storage-hero-stat-value.accent-purple{color:#a78bfa}
+.storage-hero-stat-value.accent-amber{color:#fbbf24}
+.storage-section{margin-bottom:24px}
+.storage-section-title{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.storage-section-title i{color:var(--accent)}
+.gdrive-account-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;transition:all .2s ease;position:relative;overflow:hidden}
+.gdrive-account-card:hover{border-color:rgba(59,130,246,.3);box-shadow:0 4px 20px rgba(59,130,246,.08)}
+.gdrive-account-card .account-header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.gdrive-account-card .account-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#4285f4,#34a853);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;flex-shrink:0}
+.gdrive-account-card .account-info{flex:1;min-width:0}
+.gdrive-account-card .account-email{font-size:14px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gdrive-account-card .account-name{font-size:12px;color:var(--text-secondary)}
+.gdrive-account-card .account-status{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px}
+.gdrive-account-card .account-status.connected{background:rgba(16,185,129,.1);color:#10b981}
+.gdrive-account-card .account-status.disconnected{background:rgba(239,68,68,.1);color:#ef4444}
+.gdrive-account-card .account-status.expired{background:rgba(245,158,11,.1);color:#f59e0b}
+.storage-bar-wrap{margin-top:8px}
+.storage-bar-track{height:8px;background:var(--bg-secondary);border-radius:4px;overflow:hidden;position:relative}
+.storage-bar-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.storage-bar-fill.gradient-blue{background:linear-gradient(90deg,#3b82f6,#60a5fa)}
+.storage-bar-fill.gradient-green{background:linear-gradient(90deg,#10b981,#34d399)}
+.storage-bar-fill.gradient-purple{background:linear-gradient(90deg,#8b5cf6,#a78bfa)}
+.storage-bar-fill.gradient-amber{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.storage-bar-fill.gradient-red{background:linear-gradient(90deg,#ef4444,#f87171)}
+.storage-bar-labels{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text-secondary);font-family:'JetBrains Mono',monospace}
+.account-actions{display:flex;gap:8px;margin-top:14px}
+.account-action-btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text);transition:all .15s ease;display:inline-flex;align-items:center;gap:5px;font-family:inherit}
+.account-action-btn:hover{border-color:var(--accent);color:var(--accent)}
+.account-action-btn.danger{color:#ef4444;border-color:rgba(239,68,68,.2)}
+.account-action-btn.danger:hover{background:rgba(239,68,68,.06);border-color:#ef4444}
+.account-action-btn.primary{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;border:none}
+.account-action-btn.primary:hover{opacity:.9;box-shadow:0 4px 12px rgba(59,130,246,.3)}
+.connect-card{background:var(--bg-card);border:2px dashed var(--border);border-radius:16px;padding:32px;text-align:center;cursor:pointer;transition:all .25s ease}
+.connect-card:hover{border-color:var(--accent);background:rgba(59,130,246,.02)}
+.connect-card i{font-size:32px;color:var(--accent);margin-bottom:10px}
+.connect-card .connect-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px}
+.connect-card .connect-desc{font-size:12px;color:var(--text-secondary)}
+.storage-chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.storage-chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden}
+.storage-chart-card .chart-title{font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.dark .storage-hero{background:linear-gradient(135deg,#0f172a,#1e293b 50%,#1a0f2e)}
+.dark .storage-chart-card{background:#1e293b;border-color:#334155}
+.dark .gdrive-account-card{background:#1e293b;border-color:#334155}
+.dark .connect-card{border-color:#334155}
+.dark .connect-card:hover{border-color:rgba(59,130,246,.4)}
+@media(max-width:768px){
+    .storage-hero{padding:24px 18px}
+    .storage-hero-stats{gap:16px}
+    .storage-hero-stat-value{font-size:24px}
+    .storage-chart-row{grid-template-columns:1fr}
+    .storage-page{padding:16px 12px}
+}
+
 /* 11. Live Demo Section */
 .live-demo-mockup{position:relative;max-width:600px;margin:0 auto}
 .demo-mockup-inner{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.1)}
@@ -1361,7 +1428,11 @@ const APP = {
     activeUploads: 0,
     totalUploadProgress: 0,
     _activityCache: null,
-    viewMode: localStorage.getItem('rb_view_mode') || (window.innerWidth < 769 ? 'mobile' : 'desktop')
+    viewMode: localStorage.getItem('rb_view_mode') || (window.innerWidth < 769 ? 'mobile' : 'desktop'),
+    // Google Drive Integration
+    gdriveAccounts: [],
+    gdriveConfig: { configured: false, clientId: '' },
+    storageProviders: {} // Registry of storage providers
 };
 
 // ===== i18n (F105) =====
@@ -1967,7 +2038,7 @@ function startEditDescription(fileId) {
 
 // ===== INDEXEDDB (F15) =====
 const DB_NAME = 'RidgeboxDB';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 let _db = null;
 
 function openDB() {
@@ -1988,6 +2059,11 @@ function openDB() {
             if (!db.objectStoreNames.contains('shares')) db.createObjectStore('shares', { keyPath: 'id' });
             if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings', { keyPath: 'key' });
             if (!db.objectStoreNames.contains('thumbnails')) db.createObjectStore('thumbnails', { keyPath: 'fileId' });
+            if (!db.objectStoreNames.contains('gdrive_accounts')) {
+                const ga = db.createObjectStore('gdrive_accounts', { keyPath: 'id' });
+                ga.createIndex('email', 'email', { unique: false });
+                ga.createIndex('status', 'status', { unique: false });
+            }
         };
         req.onsuccess = (e) => { _db = e.target.result; resolve(_db); };
         req.onerror = (e) => reject(e.target.error);
@@ -2059,6 +2135,7 @@ async function loadAllData() {
         APP.shares = await dbGetAll('shares');
         const settings = await dbGetAll('settings');
         settings.forEach(s => { APP.settings[s.key] = s.value; });
+        APP.gdriveAccounts = await dbGetAll('gdrive_accounts');
     } catch(e) { console.error('Load data error:', e); }
 }
 
@@ -2694,6 +2771,8 @@ function checkUrlRouting() {
         renderHomepage();
     } else if (hash === '#/dashboard') {
         checkPinThenRender(() => renderDashboard());
+    } else if (hash === '#/storage') {
+        checkPinThenRender(() => renderStorageManagement());
     } else if (hash.startsWith('#/file/')) {
         const fileId = hash.replace('#/file/', '');
         checkPinThenRender(() => renderFileDetail(fileId));
@@ -5068,6 +5147,7 @@ function renderSidebarHTML() {
 
     // TOOLS nav items
     const toolItems = [
+        { id: 'storage-management', icon: 'fa-server', name: isId ? 'Kelola Penyimpanan' : 'Storage Manager', action: "location.hash='#/storage'" },
         { id: 'storage-analytics', icon: 'fa-chart-pie', name: isId ? 'Analisis Penyimpanan' : 'Storage Analytics', action: 'openStorageAnalytics()' },
         { id: 'trash', icon: 'fa-trash', name: isId ? 'Sampah' : 'Trash', action: `selectFolder('trash')`, count: trashCount },
         { id: 'settings', icon: 'fa-gear', name: isId ? 'Pengaturan' : 'Settings', action: 'openSettings()' }
@@ -5845,6 +5925,16 @@ async function handleFileSelect(fileList) {
 }
 
 async function executeUpload(file, folderParam) {
+    // Smart Storage Allocation: Try Google Drive first if connected
+    if (APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0) {
+        const gdriveResult = await executeUploadToGDrive(file, folderParam);
+        if (gdriveResult) {
+            renderFileList();
+            return; // Successfully uploaded to Google Drive
+        }
+        // If GDrive upload failed or no space, fall through to Telegram
+    }
+
     const bot = APP.bots[0];
     if (!bot) { showToast(t('uploadError') + ': No bot configured', 'error'); return; }
 
@@ -8177,7 +8267,426 @@ function showQRCode(url) {
     }, 100);
 }
 
-// ===== INITIALIZATION =====
+// ============================================================
+// STORAGE PROVIDER SYSTEM — Modular Provider Architecture
+// Future-ready: Telegram, Google Drive, R2, S3, OneDrive, Dropbox
+// ============================================================
+
+class StorageProvider {
+    constructor(id, name, icon, color) {
+        this.id = id; this.name = name; this.icon = icon; this.color = color;
+    }
+    async connect() { throw new Error('connect() not implemented'); }
+    async disconnect(accountId) { throw new Error('disconnect() not implemented'); }
+    async getQuota(accountId) { throw new Error('getQuota() not implemented'); }
+    async upload(accountId, file, metadata) { throw new Error('upload() not implemented'); }
+    async download(accountId, fileId) { throw new Error('download() not implemented'); }
+    async deleteFile(accountId, fileId) { throw new Error('deleteFile() not implemented'); }
+    async listFiles(accountId) { throw new Error('listFiles() not implemented'); }
+    async refreshAccount(accountId) { throw new Error('refreshAccount() not implemented'); }
+}
+
+// ===== Google Drive Provider =====
+class GoogleDriveProvider extends StorageProvider {
+    constructor() { super('gdrive', 'Google Drive', 'fa-google', '#4285f4'); }
+
+    async connect() {
+        const isId = APP.lang === 'id';
+        try {
+            const resp = await fetch('/api/gdrive/config');
+            const cfg = await resp.json();
+            if (!cfg.configured) {
+                showToast(isId ? 'Google Drive belum dikonfigurasi. Tambahkan GOOGLE_CLIENT_ID di Vercel env.' : 'Google Drive not configured. Add GOOGLE_CLIENT_ID to Vercel env.', 'warning', 5000);
+                return;
+            }
+            const width = 500, height = 600;
+            const left = (screen.width - width) / 2, top = (screen.height - height) / 2;
+            window.open('/api/gdrive/auth', 'gdrive_auth', `width=${width},height=${height},left=${left},top=${top},scrollbars=yes`);
+            const handler = async (event) => {
+                if (event.data && event.data.type === 'gdrive_connected') {
+                    window.removeEventListener('message', handler);
+                    const account = event.data.account;
+                    const existing = APP.gdriveAccounts.find(a => a.email === account.email);
+                    if (existing) {
+                        Object.assign(existing, { accessToken: account.accessToken, refreshToken: account.refreshToken, tokenExpiresAt: Date.now() + (account.expiresIn || 3600) * 1000, quota: account.quota, status: 'connected', lastSync: Date.now() });
+                        await dbPut('gdrive_accounts', existing);
+                    } else {
+                        const newAccount = { id: genId(), providerId: 'gdrive', email: account.email, name: account.name || account.email.split('@')[0], accessToken: account.accessToken, refreshToken: account.refreshToken, tokenExpiresAt: Date.now() + (account.expiresIn || 3600) * 1000, quota: account.quota, status: 'connected', connectedAt: Date.now(), lastSync: Date.now() };
+                        APP.gdriveAccounts.push(newAccount);
+                        await dbPut('gdrive_accounts', newAccount);
+                    }
+                    showToast(isId ? `Google Drive ${account.email} terhubung!` : `Google Drive ${account.email} connected!`, 'success');
+                    logActivity('upload', isId ? `Akun Google Drive ${account.email} terhubung` : `Google Drive ${account.email} connected`);
+                    if (location.hash === '#/storage') renderStorageManagement();
+                }
+                if (event.data && event.data.type === 'gdrive_error') {
+                    window.removeEventListener('message', handler);
+                    showToast(event.data.error || 'Google Drive connection failed', 'error');
+                }
+            };
+            window.addEventListener('message', handler);
+            setTimeout(() => window.removeEventListener('message', handler), 300000);
+        } catch (e) { showToast(isId ? 'Gagal menghubungkan Google Drive' : 'Failed to connect Google Drive', 'error'); }
+    }
+
+    async disconnect(accountId) {
+        const isId = APP.lang === 'id';
+        const idx = APP.gdriveAccounts.findIndex(a => a.id === accountId);
+        if (idx === -1) return;
+        const account = APP.gdriveAccounts[idx];
+        await dbDelete('gdrive_accounts', accountId);
+        APP.gdriveAccounts.splice(idx, 1);
+        showToast(isId ? `Google Drive ${account.email} terputus` : `Google Drive ${account.email} disconnected`, 'info');
+        if (location.hash === '#/storage') renderStorageManagement();
+    }
+
+    async refreshAccount(accountId) {
+        const isId = APP.lang === 'id';
+        const account = APP.gdriveAccounts.find(a => a.id === accountId);
+        if (!account) return;
+        try {
+            const resp = await fetch('/api/gdrive/refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: account.refreshToken }) });
+            const data = await resp.json();
+            if (data.ok) {
+                account.accessToken = data.accessToken;
+                account.tokenExpiresAt = Date.now() + (data.expiresIn || 3600) * 1000;
+                try {
+                    const quotaResp = await fetch('/api/gdrive/proxy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accessToken: account.accessToken, method: 'GET', path: '/drive/v3/about?fields=storageQuota' }) });
+                    const qd = await quotaResp.json();
+                    if (qd.ok && qd.data && qd.data.storageQuota) account.quota = qd.data.storageQuota;
+                } catch(e) {}
+                account.status = 'connected'; account.lastSync = Date.now();
+                await dbPut('gdrive_accounts', account);
+                showToast(isId ? `Akun ${account.email} diperbarui` : `Account ${account.email} refreshed`, 'success');
+            } else {
+                account.status = 'expired'; await dbPut('gdrive_accounts', account);
+                showToast(isId ? 'Token kedaluwarsa. Hubungkan ulang.' : 'Token expired. Please reconnect.', 'warning');
+            }
+        } catch (e) {
+            account.status = 'expired'; await dbPut('gdrive_accounts', account);
+            showToast(isId ? 'Gagal memperbarui akun' : 'Failed to refresh account', 'error');
+        }
+        if (location.hash === '#/storage') renderStorageManagement();
+    }
+
+    async getAccessToken(accountId) {
+        const account = APP.gdriveAccounts.find(a => a.id === accountId);
+        if (!account) return null;
+        if (account.tokenExpiresAt && Date.now() > account.tokenExpiresAt - 60000) await this.refreshAccount(accountId);
+        return account.accessToken;
+    }
+
+    async upload(accountId, file, metadata = {}) {
+        const accessToken = await this.getAccessToken(accountId);
+        if (!accessToken) throw new Error('Invalid token');
+        const formData = new FormData();
+        formData.append('accessToken', accessToken);
+        formData.append('file', file);
+        if (metadata.parentFolderId) formData.append('parentFolderId', metadata.parentFolderId);
+        const resp = await fetch('/api/gdrive/upload', { method: 'POST', body: formData });
+        const data = await resp.json();
+        if (!data.ok) throw new Error(data.error || 'Upload failed');
+        return { driveFileId: data.driveFileId, driveFileName: data.driveFileName, provider: 'gdrive', providerAccountId: accountId };
+    }
+
+    async download(accountId, fileId) {
+        const accessToken = await this.getAccessToken(accountId);
+        if (!accessToken) throw new Error('Invalid token');
+        const resp = await fetch(`/api/gdrive/download?accessToken=${encodeURIComponent(accessToken)}&fileId=${encodeURIComponent(fileId)}`);
+        if (!resp.ok) throw new Error('Download failed');
+        return resp;
+    }
+}
+
+// Register provider
+APP.storageProviders.gdrive = new GoogleDriveProvider();
+
+// ===== SMART STORAGE ALLOCATION =====
+function selectBestDrive(fileSize) {
+    const accounts = APP.gdriveAccounts.filter(a => {
+        if (a.status !== 'connected' || !a.quota) return false;
+        const limit = parseInt(a.quota.limit) || 15 * 1024 * 1024 * 1024;
+        const usage = parseInt(a.quota.usage) || 0;
+        return (limit - usage) > fileSize;
+    });
+    if (accounts.length === 0) return null;
+    accounts.sort((a, b) => {
+        const availA = (parseInt(a.quota.limit) || 15*1073741824) - (parseInt(a.quota.usage) || 0);
+        const availB = (parseInt(b.quota.limit) || 15*1073741824) - (parseInt(b.quota.usage) || 0);
+        return availB - availA;
+    });
+    return accounts[0];
+}
+
+function getGDriveTotalStats() {
+    const accounts = APP.gdriveAccounts.filter(a => a.status === 'connected');
+    let totalLimit = 0, totalUsage = 0;
+    accounts.forEach(a => {
+        if (a.quota) { totalLimit += parseInt(a.quota.limit) || 0; totalUsage += parseInt(a.quota.usage) || 0; }
+        else { totalLimit += 15 * 1024 * 1024 * 1024; }
+    });
+    return { totalLimit, totalUsage, totalAvailable: totalLimit - totalUsage, accountCount: accounts.length };
+}
+
+function formatStorageBytes(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+    if (bytes < 1099511627776) return (bytes / 1073741824).toFixed(2) + ' GB';
+    return (bytes / 1099511627776).toFixed(2) + ' TB';
+}
+
+// ===== STORAGE MANAGEMENT PAGE =====
+function renderStorageManagement() {
+    const main = document.getElementById('app-main');
+    if (!main) return;
+    renderHeader();
+    const isId = APP.lang === 'id';
+    const stats = getGDriveTotalStats();
+    const accounts = APP.gdriveAccounts || [];
+
+    const accountCardsHtml = accounts.length > 0 ? accounts.map(a => {
+        const limit = parseInt(a.quota?.limit) || 15 * 1024 * 1024 * 1024;
+        const usage = parseInt(a.quota?.usage) || 0;
+        const available = limit - usage;
+        const pct = limit > 0 ? Math.min((usage / limit) * 100, 100) : 0;
+        const gradClass = pct > 80 ? 'gradient-red' : pct > 50 ? 'gradient-amber' : 'gradient-green';
+        const statusClass = a.status === 'connected' ? 'connected' : a.status === 'expired' ? 'expired' : 'disconnected';
+        const statusText = a.status === 'connected' ? (isId ? 'Terhubung' : 'Connected') : a.status === 'expired' ? (isId ? 'Kedaluwarsa' : 'Expired') : (isId ? 'Terputus' : 'Disconnected');
+        const lastSyncStr = a.lastSync ? timeAgo(a.lastSync) : (isId ? 'Belum pernah' : 'Never');
+        return `<div class="gdrive-account-card">
+            <div class="account-header">
+                <div class="account-avatar">${(a.name || a.email || 'G').charAt(0).toUpperCase()}</div>
+                <div class="account-info">
+                    <div class="account-email">${a.email || 'Unknown'}</div>
+                    <div class="account-name">${a.name || ''} · ${isId ? 'Sinkronisasi terakhir' : 'Last sync'}: ${lastSyncStr}</div>
+                </div>
+                <div class="account-status ${statusClass}"><i class="fas fa-circle" style="font-size:6px"></i> ${statusText}</div>
+            </div>
+            <div class="storage-bar-wrap">
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:4px">
+                    <span>${formatStorageBytes(usage)} ${isId ? 'digunakan' : 'used'}</span>
+                    <span>${formatStorageBytes(available)} ${isId ? 'tersedia' : 'available'}</span>
+                </div>
+                <div class="storage-bar-track"><div class="storage-bar-fill ${gradClass}" style="width:${pct}%"></div></div>
+                <div class="storage-bar-labels"><span>${pct.toFixed(1)}%</span><span>${formatStorageBytes(limit)}</span></div>
+            </div>
+            <div class="account-actions">
+                <button class="account-action-btn" onclick="APP.storageProviders.gdrive.refreshAccount('${a.id}')"><i class="fas fa-sync-alt"></i> ${isId ? 'Segarkan' : 'Refresh'}</button>
+                <button class="account-action-btn danger" onclick="confirmDisconnectGDrive('${a.id}')"><i class="fas fa-unlink"></i> ${isId ? 'Putuskan' : 'Disconnect'}</button>
+            </div>
+        </div>`;
+    }).join('') : '';
+
+    const unifiedPct = stats.totalLimit > 0 ? Math.min((stats.totalUsage / stats.totalLimit) * 100, 100) : 0;
+    const donutSegments = accounts.map((a, i) => {
+        if (a.status !== 'connected' || !a.quota) return '';
+        const usage = parseInt(a.quota.usage) || 0;
+        const pct = stats.totalUsage > 0 ? (usage / stats.totalUsage) * 100 : 0;
+        const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4'];
+        return `<div style="display:flex;align-items:center;gap:8px;font-size:12px">
+            <div style="width:10px;height:10px;border-radius:50%;background:${colors[i % colors.length]};flex-shrink:0"></div>
+            <span style="color:var(--text-secondary)">${a.email}</span>
+            <span style="margin-left:auto;font-weight:600;color:var(--text);font-family:'JetBrains Mono',monospace">${pct.toFixed(1)}%</span>
+        </div>`;
+    }).join('');
+
+    main.innerHTML = `<div class="page-transition storage-page"><div class="storage-page-inner">
+        <a href="#/dashboard" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);text-decoration:none;margin-bottom:16px;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'"><i class="fas fa-arrow-left"></i> ${isId ? 'Kembali ke Dashboard' : 'Back to Dashboard'}</a>
+        <div class="storage-hero">
+            <div class="storage-hero-title"><i class="fas fa-server" style="margin-right:8px;opacity:.8"></i> ${isId ? 'Manajemen Penyimpanan' : 'Storage Management'}</div>
+            <div class="storage-hero-subtitle">${isId ? 'Kelola semua akun penyimpanan cloud dalam satu tempat' : 'Manage all cloud storage accounts in one place'}</div>
+            <div class="storage-hero-stats">
+                <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-blue">${stats.accountCount}</div><div class="storage-hero-stat-label">${isId ? 'Akun Terhubung' : 'Connected'}</div></div>
+                <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-green">${formatStorageBytes(stats.totalLimit)}</div><div class="storage-hero-stat-label">${isId ? 'Total Penyimpanan' : 'Total Storage'}</div></div>
+                <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-purple">${formatStorageBytes(stats.totalUsage)}</div><div class="storage-hero-stat-label">${isId ? 'Terpakai' : 'Used'}</div></div>
+                <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-amber">${formatStorageBytes(stats.totalAvailable)}</div><div class="storage-hero-stat-label">${isId ? 'Tersedia' : 'Available'}</div></div>
+            </div>
+        </div>
+        <div class="storage-section">
+            <div class="storage-section-title"><i class="fas fa-database"></i> ${isId ? 'Penyimpanan Terpadu' : 'Unified Storage'}</div>
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px">
+                    <span style="color:var(--text);font-weight:600">${formatStorageBytes(stats.totalUsage)} / ${formatStorageBytes(stats.totalLimit)}</span>
+                    <span style="color:var(--text-secondary)">${unifiedPct.toFixed(1)}% ${isId ? 'terpakai' : 'used'}</span>
+                </div>
+                <div class="storage-bar-track" style="height:12px;border-radius:6px"><div class="storage-bar-fill gradient-blue" style="width:${unifiedPct}%;border-radius:6px"></div></div>
+                ${accounts.length > 0 ? `<div style="margin-top:14px;display:flex;flex-direction:column;gap:6px">${donutSegments}</div>` : ''}
+            </div>
+        </div>
+        <div class="storage-section">
+            <div class="storage-section-title"><i class="fab fa-google"></i> ${isId ? 'Akun Google Drive' : 'Google Drive Accounts'}</div>
+            ${accountCardsHtml}
+            <div class="connect-card" onclick="APP.storageProviders.gdrive.connect()">
+                <i class="fab fa-google"></i>
+                <div class="connect-title">${isId ? 'Hubungkan Akun Google Drive' : 'Connect Google Drive Account'}</div>
+                <div class="connect-desc">${isId ? 'Tambahkan akun Google Drive untuk memperluas penyimpanan' : 'Add a Google Drive account to expand storage'}</div>
+            </div>
+        </div>
+        <div class="storage-chart-row">
+            <div class="storage-chart-card"><div class="chart-title"><i class="fas fa-chart-pie" style="margin-right:4px"></i> ${isId ? 'Distribusi Penyimpanan' : 'Storage Distribution'}</div><canvas id="storage-donut-chart" width="280" height="200"></canvas></div>
+            <div class="storage-chart-card"><div class="chart-title"><i class="fas fa-chart-bar" style="margin-right:4px"></i> ${isId ? 'Penggunaan Per Akun' : 'Per Account Usage'}</div><canvas id="storage-bar-chart" width="280" height="200"></canvas></div>
+        </div>
+        <div class="storage-section">
+            <div class="storage-section-title"><i class="fas fa-rocket"></i> ${isId ? 'Penyedia Mendatang' : 'Coming Soon'}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+                ${[
+                    { icon: 'fa-paper-plane', name: 'Telegram Storage', color: '#0088cc', desc: isId ? 'Menggunakan Telegram sebagai penyimpanan' : 'Use Telegram as storage' },
+                    { icon: 'fa-cloud', name: 'Cloudflare R2', color: '#f48120', desc: isId ? 'Object storage tanpa biaya egress' : 'Zero egress object storage' },
+                    { icon: 'fa-aws', name: 'AWS S3', color: '#ff9900', desc: isId ? 'Infrastruktur cloud terpercaya' : 'Trusted cloud infrastructure' },
+                    { icon: 'fa-box-archive', name: 'Backblaze B2', color: '#e21e25', desc: isId ? 'Penyimpanan cloud terjangkau' : 'Affordable cloud storage' },
+                    { icon: 'fa-microsoft', name: 'OneDrive', color: '#0078d4', desc: isId ? 'Integrasi Microsoft 365' : 'Microsoft 365 integration' },
+                    { icon: 'fa-dropbox', name: 'Dropbox', color: '#0061ff', desc: isId ? 'Sinkronisasi file yang andal' : 'Reliable file sync' }
+                ].map(p => `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;opacity:.5;cursor:not-allowed;transition:opacity .2s" onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='.5'">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i class="fas ${p.icon}" style="color:${p.color};font-size:16px"></i><span style="font-size:13px;font-weight:600;color:var(--text)">${p.name}</span></div>
+                    <div style="font-size:11px;color:var(--text-secondary)">${p.desc}</div>
+                    <div style="font-size:10px;color:var(--accent);margin-top:6px;font-weight:500">${isId ? 'Segera Hadir' : 'Coming Soon'}</div>
+                </div>`).join('')}
+            </div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:16px">
+            <div style="font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;color:var(--text)"><i class="fas fa-cubes" style="color:var(--accent)"></i> ${isId ? 'Arsitektur Modular' : 'Modular Architecture'}</div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.7">${isId ? 'RidgeBox menggunakan <b>Storage Provider System</b> yang memungkinkan penambahan penyimpanan baru tanpa mengubah sistem utama. Setiap provider mengimplementasikan interface yang sama: <code>connect()</code>, <code>upload()</code>, <code>download()</code>, <code>getQuota()</code>. Smart Storage Allocation otomatis memilih drive terbaik, dan Virtual Unified Storage menyatukan semua file dalam satu tampilan.' : 'RidgeBox uses a <b>Storage Provider System</b> that allows adding new storage without changing the core. Each provider implements the same interface: <code>connect()</code>, <code>upload()</code>, <code>download()</code>, <code>getQuota()</code>. Smart Storage Allocation auto-selects the best drive, and Virtual Unified Storage merges all files into one view.'}</div>
+        </div>
+    </div></div>`;
+
+    setTimeout(() => { drawStorageDonutChart(accounts, stats); drawStorageBarChart(accounts); }, 100);
+}
+
+function confirmDisconnectGDrive(accountId) {
+    const isId = APP.lang === 'id';
+    const account = APP.gdriveAccounts.find(a => a.id === accountId);
+    if (!account) return;
+    openModal(`<div style="text-align:center;padding:20px">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-unlink" style="color:#ef4444;font-size:22px"></i></div>
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:6px">${isId ? 'Putuskan Google Drive?' : 'Disconnect Google Drive?'}</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px">${isId ? `Akun <b>${account.email}</b> akan terputus. File yang sudah diupload tetap ada.` : `Account <b>${account.email}</b> will be disconnected. Uploaded files remain.`}</p>
+        <div style="display:flex;gap:10px;justify-content:center">
+            <button class="account-action-btn" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
+            <button class="account-action-btn danger" onclick="APP.storageProviders.gdrive.disconnect('${accountId}');closeModal()">${isId ? 'Putuskan' : 'Disconnect'}</button>
+        </div>
+    </div>`);
+}
+
+// ===== STORAGE CHARTS (Canvas-based) =====
+function drawStorageDonutChart(accounts, stats) {
+    const canvas = document.getElementById('storage-donut-chart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvas.clientWidth * dpr; canvas.height = canvas.clientHeight * dpr;
+    ctx.scale(dpr, dpr);
+    const w = canvas.clientWidth, h = canvas.clientHeight, cx = w / 2, cy = h / 2;
+    const radius = Math.min(w, h) / 2 - 20, innerRadius = radius * 0.6;
+    const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4'];
+    ctx.clearRect(0, 0, w, h);
+    if (accounts.length === 0 || stats.totalUsage === 0) {
+        ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2, true);
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim() || '#f1f5f9'; ctx.fill();
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#64748b';
+        ctx.font = '12px Space Grotesk, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(APP.lang === 'id' ? 'Belum ada data' : 'No data yet', cx, cy + 4); return;
+    }
+    let startAngle = -Math.PI / 2;
+    accounts.forEach((a, i) => {
+        if (a.status !== 'connected' || !a.quota) return;
+        const usage = parseInt(a.quota.usage) || 0;
+        const sliceAngle = (usage / stats.totalUsage) * Math.PI * 2;
+        ctx.beginPath(); ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
+        ctx.arc(cx, cy, innerRadius, startAngle + sliceAngle, startAngle, true); ctx.closePath();
+        ctx.fillStyle = colors[i % colors.length]; ctx.fill(); startAngle += sliceAngle;
+    });
+    const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#0f172a';
+    const subColor = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#64748b';
+    ctx.fillStyle = textColor; ctx.font = 'bold 20px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+    ctx.fillText(formatStorageBytes(stats.totalUsage), cx, cy - 2);
+    ctx.fillStyle = subColor; ctx.font = '10px Space Grotesk, sans-serif';
+    ctx.fillText(APP.lang === 'id' ? 'terpakai' : 'used', cx, cy + 14);
+}
+
+function drawStorageBarChart(accounts) {
+    const canvas = document.getElementById('storage-bar-chart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvas.clientWidth * dpr; canvas.height = canvas.clientHeight * dpr;
+    ctx.scale(dpr, dpr);
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+    const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#64748b';
+    const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#e2e8f0';
+    const barColors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4'];
+    if (accounts.length === 0) {
+        ctx.fillStyle = textColor; ctx.font = '12px Space Grotesk, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(APP.lang === 'id' ? 'Hubungkan akun untuk melihat chart' : 'Connect accounts to see chart', w / 2, h / 2); return;
+    }
+    const padding = { top: 10, right: 20, bottom: 40, left: 60 };
+    const chartW = w - padding.left - padding.right, chartH = h - padding.top - padding.bottom;
+    const barWidth = Math.min(40, chartW / accounts.length - 12);
+    const barGap = (chartW - barWidth * accounts.length) / (accounts.length + 1);
+    let maxVal = 0;
+    accounts.forEach(a => { const l = parseInt(a.quota?.limit) || 15 * 1073741824; if (l > maxVal) maxVal = l; });
+    if (maxVal === 0) maxVal = 15 * 1073741824;
+    ctx.strokeStyle = borderColor; ctx.lineWidth = 0.5;
+    for (let i = 0; i <= 4; i++) {
+        const y = padding.top + chartH - (chartH * i / 4);
+        ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(w - padding.right, y); ctx.stroke();
+        ctx.fillStyle = textColor; ctx.font = '9px JetBrains Mono, monospace'; ctx.textAlign = 'right';
+        ctx.fillText(formatStorageBytes(maxVal * i / 4), padding.left - 4, y + 3);
+    }
+    accounts.forEach((a, i) => {
+        const limit = parseInt(a.quota?.limit) || 15 * 1073741824, usage = parseInt(a.quota?.usage) || 0;
+        const x = padding.left + barGap + i * (barWidth + barGap);
+        const limitH = (limit / maxVal) * chartH, usageH = (usage / maxVal) * chartH;
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim() || '#f1f5f9';
+        ctx.beginPath(); ctx.roundRect(x, padding.top + chartH - limitH, barWidth, limitH, [4, 4, 0, 0]); ctx.fill();
+        ctx.fillStyle = barColors[i % barColors.length];
+        ctx.beginPath(); ctx.roundRect(x, padding.top + chartH - usageH, barWidth, usageH, [4, 4, 0, 0]); ctx.fill();
+        ctx.fillStyle = textColor; ctx.font = '9px Space Grotesk, sans-serif'; ctx.textAlign = 'center';
+        const label = a.email ? a.email.split('@')[0] : 'Drive ' + (i + 1);
+        ctx.fillText(label.length > 8 ? label.slice(0, 7) + '..' : label, x + barWidth / 2, h - padding.bottom + 14);
+    });
+}
+
+// ===== SMART UPLOAD WITH GDRIVE FALLBACK =====
+async function executeUploadToGDrive(file, folderId) {
+    const isId = APP.lang === 'id';
+    const bestDrive = selectBestDrive(file.size);
+    if (!bestDrive) return null; // Fallback to Telegram
+    APP.activeUploads++; updateGlobalProgress();
+    try {
+        const result = await APP.storageProviders.gdrive.upload(bestDrive.id, file, { parentFolderId: null });
+        const fileType = getFileType(file.name, file.type);
+        const autoTag = getAutoTagColor(fileType);
+        const fid = folderId || APP.currentFolder;
+        const effectiveFolderId = ['all', 'recent', 'favorites', 'trash', 'shared', 'encrypted'].includes(fid) ? null : fid;
+        const existing = APP.files.filter(f => f.name === file.name && f.folderId === effectiveFolderId && !f.trashed);
+        const version = existing.length + 1;
+        const meta = { id: genId(), name: file.name, size: file.size, mime: file.type || 'application/octet-stream', fileId: result.driveFileId, filePath: '', messageId: null, botIndex: '0', chatId: '', folderId: effectiveFolderId, uploadedAt: Date.now(), pinned: false, starred: false, trashed: false, encrypted: false, version, tag: autoTag, caption: '', shareCount: 0, storageProvider: 'gdrive', providerAccountId: bestDrive.id, driveFileId: result.driveFileId };
+        await saveFile(meta); APP.files.push(meta);
+        if (bestDrive.quota) { bestDrive.quota.usage = (parseInt(bestDrive.quota.usage) || 0) + file.size; await dbPut('gdrive_accounts', bestDrive); }
+        showToast(`${file.name} → Google Drive (${bestDrive.email.split('@')[0]})`, 'success');
+        logActivity('upload', `${isId ? 'Mengunggah' : 'Uploaded'} ${file.name} → GDrive`);
+        sendNotification('Ridgebox', `${file.name} uploaded to Google Drive`);
+        triggerWebhook('file.uploaded', { fileId: meta.id, fileName: meta.name, fileSize: meta.size, storageProvider: 'gdrive' });
+        checkStorageWarning(); updateUploadPreviewProgress(file.name, 100);
+        const suz = document.getElementById('smart-upload-zone');
+        if (suz && !suz.classList.contains('minimized')) suz.classList.add('minimized');
+        APP.activeUploads--; updateGlobalProgress(); return meta;
+    } catch (e) { APP.activeUploads--; updateGlobalProgress(); showToast(`Google Drive upload failed: ${e.message}`, 'error'); return null; }
+}
+
+// ===== INIT GDRIVE CONFIG =====
+async function initGDriveConfig() {
+    try {
+        const resp = await fetch('/api/gdrive/config');
+        const data = await resp.json();
+        APP.gdriveConfig = { configured: data.configured, clientId: data.clientId || '' };
+    } catch (e) { APP.gdriveConfig = { configured: false, clientId: '' }; }
+}
+
+
 async function init() {
     try {
         // Load theme
@@ -8190,6 +8699,9 @@ async function init() {
 
         // Load data from IndexedDB
         await loadAllData();
+
+        // Init Google Drive config
+        initGDriveConfig();
 
         // Fetch bot config
         try {
