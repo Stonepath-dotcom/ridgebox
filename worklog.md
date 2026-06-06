@@ -24,3 +24,29 @@ Stage Summary:
 - Fix: Added /api/config.js, set env vars, changed upload to direct Telegram API
 - All 25 features now working
 - Deployed to https://ridgebox.vercel.app
+---
+Task ID: 1
+Agent: Main
+Task: Optimize animations for mobile performance - fix HP lag/ngeleg
+
+Work Log:
+- Read current index.html (new version with ultra luxury animations)
+- Identified 20+ heavy animations: morphing blobs, aurora bg, glassmorphism blur, particle canvas, 3D transforms, parallax, spotlight, magnetic buttons, glow rings, etc.
+- Added mobile @media breakpoint to disable ALL heavy animations on <768px
+- Removed backdrop-filter:blur from header-glass and modal-backdrop
+- Throttled scroll handler with requestAnimationFrame + passive:true
+- Skip particle canvas, spotlight, magnetic buttons, parallax, 3D mockup on mobile
+- Reduced particles from 50 to 25, connection distance from 120 to 80
+- Replaced setInterval counter with requestAnimationFrame
+- Reduced box-shadow sizes across all elements
+- Changed hover effects from transform+shadow to border-color only
+- Reduced transition durations from 0.4s to 0.15-0.2s
+- Removed infinite logoPulse animation
+- Pushed to GitHub (auto-deploys to Vercel)
+
+Stage Summary:
+- All animations now mobile-aware - heavy effects disabled on mobile
+- Desktop still gets luxury animations
+- Major GPU/CPU savings on mobile devices
+- Commit: bd2c9fa pushed to main
+
