@@ -152,7 +152,9 @@ body.view-mobile .context-menu-handle{display:block!important}
 .file-list-row:hover{background:rgba(59,130,246,.04)}
 .file-list-row.selected{background:rgba(59,130,246,.08)}
 .sidebar-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;transition:var(--transition);font-size:14px;color:var(--text-secondary)}
+.sidebar-item i{color:var(--text-secondary);transition:color .15s ease}
 .sidebar-item:hover,.sidebar-item.active{background:var(--bg-secondary);color:var(--text)}
+.sidebar-item:hover i,.sidebar-item.active i{color:var(--accent)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;border-radius:8px;font-weight:500;font-size:14px;cursor:pointer;border:none;transition:var(--transition);font-family:inherit}
 .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-hover)}
 .btn-secondary{background:var(--bg-secondary);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{border-color:var(--accent)}
@@ -543,15 +545,15 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 .header-logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 8px rgba(59,130,246,.3)}
 .header-logo-icon::after{content:'';position:absolute;inset:-2px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6,#3b82f6);z-index:-1;opacity:.5;animation:logoGlow 3s ease infinite}
 @keyframes logoGlow{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.7;transform:scale(1.05)}}
-.header-pill-btn{padding:6px 14px;border-radius:99px;font-size:13px;cursor:pointer;border:none;background:rgba(59,130,246,.08);color:var(--text);transition:all .25s ease;font-family:inherit;font-weight:500;display:inline-flex;align-items:center;gap:6px}
-.header-pill-btn:hover{background:rgba(59,130,246,.15);color:var(--accent)}
-.dark .header-pill-btn{background:rgba(255,255,255,.08);color:#e2e8f0}
-.dark .header-pill-btn:hover{background:rgba(59,130,246,.25);color:#93c5fd}
+.header-pill-btn{padding:6px 14px;border-radius:99px;font-size:13px;cursor:pointer;border:none;background:rgba(59,130,246,.07);color:var(--text);transition:all .25s ease;font-family:inherit;font-weight:500;display:inline-flex;align-items:center;gap:6px}
+.header-pill-btn:hover{background:rgba(59,130,246,.14);color:var(--accent)}
+.dark .header-pill-btn{background:rgba(255,255,255,.07);color:#e2e8f0}
+.dark .header-pill-btn:hover{background:rgba(59,130,246,.2);color:#93c5fd}
 .header-pill-btn.active-pill{background:rgba(59,130,246,.15);color:var(--accent)}
-.header-pill-btn .theme-icon-sun{color:#fbbf24}
-.header-pill-btn .theme-icon-moon{color:#6366f1}
+.header-pill-btn .theme-icon-sun{color:#f59e0b}
+.header-pill-btn .theme-icon-moon{color:#3b82f6}
 .dark .header-pill-btn .theme-icon-sun{color:#fbbf24}
-.dark .header-pill-btn .theme-icon-moon{color:#a5b4fc}
+.dark .header-pill-btn .theme-icon-moon{color:#93c5fd}
 
 /* Premium Sidebar */
 .sidebar-premium{background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);border-right:1px solid var(--border);display:flex;flex-direction:column}
@@ -876,11 +878,53 @@ body.no-transition,body.no-transition *{transition:none!important}
 .scroll-reveal.reveal-delay-4{transition-delay:.4s}
 .scroll-reveal.reveal-delay-5{transition-delay:.5s}
 
-/* 10. Dark Mode Toggle */
-.dm-toggle{position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;box-shadow:0 4px 16px rgba(59,130,246,.35);cursor:pointer;z-index:90;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .3s ease;color:#fff}
-.dm-toggle:hover{transform:scale(1.1);box-shadow:0 6px 24px rgba(59,130,246,.5)}
-.dark .dm-toggle{background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 16px rgba(139,92,246,.35)}
-.dark .dm-toggle:hover{box-shadow:0 6px 24px rgba(139,92,246,.5)}
+/* 10. Dark Mode Toggle — Removed redundant floating button, header toggle is the single source of truth */
+
+/* ===== Comprehensive Dark Mode Icon & Contrast Fixes ===== */
+.dark .header-pill-btn i{color:#cbd5e1}
+.dark .header-pill-btn:hover i{color:#93c5fd}
+.dark .header-pill-btn .fa-wifi{color:inherit}
+.dark .sidebar-action-btn i{color:#94a3b8}
+.dark .sidebar-action-btn:hover i{color:#93c5fd}
+.dark .sidebar-section-label{color:#64748b}
+.dark .storage-widget-title{color:#64748b}
+.dark .storage-info{color:#94a3b8}
+.dark .search-premium i{color:#64748b}
+.dark .search-premium input{color:#e2e8f0;background:#1e293b;border-color:#334155}
+.dark .search-premium input::placeholder{color:#475569}
+.dark .search-premium input:focus{background:#0f172a;border-color:#3b82f6}
+.dark .breadcrumb-premium{color:#94a3b8}
+.dark .breadcrumb-premium .crumb-active{color:#93c5fd;background:rgba(59,130,246,.15)}
+.dark .dash-card{background:#1e293b;border-color:#334155}
+.dark .dash-card:hover{border-color:rgba(59,130,246,.3)}
+.dark .dash-card-title{color:#94a3b8}
+.dark .dash-widget-toggle{color:#94a3b8}
+.dark .dash-widget-toggle:hover{color:#93c5fd}
+.dark .smart-upload-zone{border-color:#334155;background:rgba(30,41,59,.5)}
+.dark .smart-upload-zone:hover{border-color:rgba(59,130,246,.4);background:rgba(30,41,59,.8)}
+.dark .smart-upload-zone .upload-title{color:#e2e8f0}
+.dark .smart-upload-zone .upload-sub{color:#94a3b8}
+.dark .smart-upload-zone .upload-method{background:rgba(51,65,85,.5);color:#cbd5e1;border-color:#475569}
+.dark .smart-upload-zone .upload-method:hover{background:rgba(59,130,246,.15);color:#93c5fd}
+.dark .back-to-top{background:#334155;color:#e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.dark .back-to-top:hover{background:#3b82f6;color:#fff}
+.dark .upload-progress-global .bar{background:linear-gradient(90deg,#3b82f6,#8b5cf6)}
+.dark .empty-premium i{color:#475569}
+.dark .empty-premium p{color:#94a3b8}
+/* Ensure file type icons have good contrast in dark mode */
+.dark .list-file-icon{color:#94a3b8}
+.dark .list-file-icon:hover{color:#93c5fd}
+/* Toast contrast fixes */
+.dark .toast{background:#1e293b;border-color:#334155;color:#e2e8f0}
+.dark .toast-success{border-left-color:#10b981}
+.dark .toast-error{border-left-color:#ef4444}
+.dark .toast-warning{border-left-color:#f59e0b}
+.dark .toast-info{border-left-color:#3b82f6}
+/* Light mode icon contrast improvements */
+.header-pill-btn i{color:#475569;transition:color .15s ease}
+.header-pill-btn:hover i{color:#3b82f6}
+.sidebar-action-btn i{color:#64748b;transition:color .15s ease}
+.sidebar-action-btn:hover i{color:#3b82f6}
 
 /* 11. Live Demo Section */
 .live-demo-mockup{position:relative;max-width:600px;margin:0 auto}
@@ -1252,7 +1296,7 @@ body.no-transition,body.no-transition *{transition:none!important}
 <div id="hover-preview" class="hover-preview"></div>
 <div id="toast-container" class="toast-container"></div>
 <div id="parallax-orbs" class="parallax-orbs"></div>
-<button id="dm-toggle" class="dm-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode"><i class="fas fa-moon"></i></button>
+
 <div id="quick-actions-bar" class="quick-actions-bar"></div><div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:110"></div>
 <div id="pin-lock-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(30,41,59,.97));backdrop-filter:blur(20px);align-items:center;justify-content:center"></div>
 
@@ -2585,6 +2629,9 @@ function toggleTheme() {
     APP.theme = APP.theme === 'dark' ? 'light' : 'dark';
     applyTheme();
     renderHeader();
+    // Sync all theme-dependent UI elements
+    const sidebar = document.getElementById('sidebar-panel');
+    if (sidebar) sidebar.innerHTML = renderSidebarHTML();
     showToast(APP.theme === 'dark' ? 'Tema gelap' : 'Tema terang', 'info', 2000);
 }
 
@@ -4115,7 +4162,6 @@ function renderHomepage() {
     initHeroCounterAnimation();
     initFeatureCarousel();
     initParallaxOrbs();
-    initDarkModeToggle();
     initScrollRevealEnhanced();
 }
 
@@ -4513,21 +4559,7 @@ function initParallaxOrbs() {
     window.addEventListener('scroll', handler, { passive: true });
 }
 
-// ===== DARK MODE TOGGLE =====
-function initDarkModeToggle() {
-    const btn = document.getElementById('dm-toggle');
-    if (!btn) return;
-    // Sync with current APP.theme state
-    btn.innerHTML = APP.theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-}
-function toggleDarkMode() {
-    const btn = document.getElementById('dm-toggle');
-    const isDark = document.documentElement.classList.contains('dark');
-    APP.theme = isDark ? 'light' : 'dark';
-    applyTheme();
-    localStorage.setItem('rb_dm_homepage', APP.theme);
-    if (btn) btn.innerHTML = APP.theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-}
+// ===== DARK MODE TOGGLE — consolidated into toggleTheme() =====
 
 // ===== SCROLL REVEAL ENHANCED (for .scroll-reveal) =====
 function initScrollRevealEnhanced() {

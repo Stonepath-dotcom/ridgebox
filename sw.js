@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ridgebox-v12';
+const CACHE_NAME = 'ridgebox-v13';
 const ASSETS_TO_CACHE = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', event => {
