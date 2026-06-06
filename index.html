@@ -123,7 +123,7 @@ body.view-mobile .sidebar-mobile.open{transform:translateX(0)}
 body.view-mobile .toolbar-wrap{flex-wrap:wrap!important;gap:4px!important;padding:8px 12px!important}
 body.view-mobile .toolbar-wrap .search-box{min-width:0!important;width:100%!important;order:-1}
 body.view-mobile .toolbar-wrap select{font-size:11px!important;padding:4px 6px!important}
-body.view-mobile .file-list-row .action-btns{display:none!important}
+body.view-mobile .file-list-row .action-btns,body.view-mobile .file-row-premium .action-btns{display:none!important}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 /* ===== ULTRA PREMIUM LUXURY HOMEPAGE ===== */
 /* Mobile Performance: Disable heavy animations */
@@ -537,12 +537,13 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 .swipe-action-restore i{font-size:18px}
 
 /* Mobile inline delete button in list rows */
-.mobile-delete-btn{display:none;width:36px;height:36px;border-radius:8px;background:rgba(239,68,68,.1);color:#ef4444;border:none;cursor:pointer;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-left:6px;transition:all .2s ease}
-.mobile-delete-btn:active{background:#ef4444;color:#fff;transform:scale(.9)}
-.mobile-restore-btn{display:none;width:36px;height:36px;border-radius:8px;background:rgba(16,185,129,.1);color:#10b981;border:none;cursor:pointer;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-left:6px;transition:all .2s ease}
-.mobile-restore-btn:active{background:#10b981;color:#fff;transform:scale(.9)}
-@media(max-width:768px){.mobile-delete-btn{display:flex!important}.mobile-restore-btn{display:flex!important}}
-@media(hover:none){.mobile-delete-btn{display:flex!important}.mobile-restore-btn{display:flex!important}}
+.mobile-delete-btn,.mobile-restore-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:none;cursor:pointer;font-size:13px;flex-shrink:0;margin-left:4px;transition:all .15s ease;-webkit-tap-highlight-color:transparent}
+.mobile-delete-btn{background:rgba(239,68,68,.1);color:#ef4444}
+.mobile-delete-btn:active{background:#ef4444;color:#fff;transform:scale(.92)}
+.mobile-restore-btn{background:rgba(16,185,129,.1);color:#10b981}
+.mobile-restore-btn:active{background:#10b981;color:#fff;transform:scale(.92)}
+@media(max-width:768px){.mobile-delete-btn,.mobile-restore-btn{display:flex!important}.file-row-premium .action-btns{display:none!important}}
+@media(hover:none) and (pointer:coarse){.mobile-delete-btn,.mobile-restore-btn{display:flex!important}.file-row-premium .action-btns{display:none!important}}
 
 /* Delete animation */
 @keyframes slideOutLeft{to{transform:translateX(-100%);opacity:0;height:0;padding:0;margin:0;border:0;overflow:hidden}}
@@ -553,9 +554,11 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 .clear-history-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:10px;background:rgba(239,68,68,.08);color:#ef4444;border:1px solid rgba(239,68,68,.2);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s ease;font-family:inherit}
 .clear-history-btn:hover{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3)}
 
-/* Show grid quick-delete on mobile */
+/* Grid quick-delete button */
+.grid-quick-delete{display:none;position:absolute;top:6px;left:6px;width:26px;height:26px;border-radius:50%;background:rgba(239,68,68,.9);color:#fff;border:2px solid rgba(255,255,255,.3);cursor:pointer;font-size:10px;align-items:center;justify-content:center;z-index:5;box-shadow:0 2px 8px rgba(239,68,68,.3);-webkit-tap-highlight-color:transparent;transition:transform .15s ease}
+.grid-quick-delete:active{transform:scale(.85)}
 @media(max-width:768px){.grid-quick-delete{display:flex!important}}
-@media(hover:none){.grid-quick-delete{display:flex!important}}
+@media(hover:none) and (pointer:coarse){.grid-quick-delete{display:flex!important}}
 
 /* Premium Search */
 .search-premium{position:relative;flex:1;min-width:200px}
@@ -1679,9 +1682,9 @@ async function refreshUI() {
         location.hash = '#/dashboard';
         return;
     }
-    // Reload data from IndexedDB to ensure consistency
+    // Use in-memory data directly (already updated by save/delete functions)
+    // Re-fetching from IndexedDB causes race conditions where stale data overwrites fresh changes
     try {
-        APP.files = await dbGetAll('files');
         const customFolders = await dbGetAll('folders');
         APP.folders = [
             { id: 'all', name: t('allFiles'), icon: 'fa-folder', system: true },
@@ -2752,7 +2755,7 @@ function renderFileGridItem(file, index) {
         ${file.pinned ? '<i class="fas fa-thumbtack" style="position:absolute;top:8px;right:8px;font-size:10px;color:var(--accent)"></i>' : ''}
         ${file.starred ? '<i class="fas fa-star" style="position:absolute;top:8px;right:24px;font-size:10px;color:#f59e0b"></i>' : ''}
         ${file.encrypted ? '<i class="fas fa-lock" style="position:absolute;top:8px;right:' + (file.pinned && file.starred ? '40px' : file.pinned || file.starred ? '24px' : '8px') + ';font-size:10px;color:#3b82f6"></i>' : ''}
-        <button class="grid-quick-delete" onclick="event.stopPropagation();quickDeleteFile('${file.id}')" style="position:absolute;top:6px;left:6px;width:24px;height:24px;border-radius:50%;background:rgba(239,68,68,.9);color:#fff;border:none;cursor:pointer;font-size:10px;display:none;align-items:center;justify-content:center;z-index:5;box-shadow:0 2px 8px rgba(239,68,68,.3)"><i class="fas fa-times"></i></button>
+        <button class="grid-quick-delete" onclick="event.stopPropagation();quickDeleteFile('${file.id}')"><i class="fas fa-times"></i></button>
         <div style="text-align:center;padding:8px 0">
             <div class="file-icon-circle" style="background:${icon.color}15">
                 <i class="fas ${icon.icon}" style="font-size:22px;color:${icon.color}"></i>
@@ -2812,11 +2815,14 @@ async function quickDeleteFile(fileId) {
     if (!file) return;
     file.trashed = true;
     file.trashedAt = Date.now();
-    await saveFile(file);
+    try { await saveFile(file); } catch(e) { console.error('quickDelete save error:', e); }
+    // Explicitly update in-memory state
+    const idx = APP.files.findIndex(f => f.id === fileId);
+    if (idx !== -1) { APP.files[idx].trashed = true; APP.files[idx].trashedAt = Date.now(); }
     APP.selectedFiles.delete(fileId);
     closeDetailPanel();
     closeContextMenu();
-    showUndoToast(t('movedToTrash'), () => { restoreFile(fileId); });
+    showUndoToast(t('movedToTrash'), async () => { await restoreFile(fileId); });
     await refreshUI();
 }
 
@@ -3310,11 +3316,14 @@ async function moveToTrash(fileId) {
     if (!file) return;
     file.trashed = true;
     file.trashedAt = Date.now();
-    await saveFile(file);
+    try { await saveFile(file); } catch(e) { console.error('moveToTrash save error:', e); }
+    // Explicitly update in-memory state (ensure mutation is applied)
+    const idx = APP.files.findIndex(f => f.id === fileId);
+    if (idx !== -1) { APP.files[idx].trashed = true; APP.files[idx].trashedAt = Date.now(); }
     APP.selectedFiles.delete(fileId);
     closeDetailPanel();
     closeContextMenu();
-    showUndoToast(t('movedToTrash'), () => { restoreFile(fileId); });
+    showUndoToast(t('movedToTrash'), async () => { await restoreFile(fileId); });
     await refreshUI();
 }
 
@@ -3323,7 +3332,9 @@ async function restoreFile(fileId) {
     if (!file) return;
     file.trashed = false;
     file.trashedAt = null;
-    await saveFile(file);
+    try { await saveFile(file); } catch(e) { console.error('restoreFile save error:', e); }
+    const idx = APP.files.findIndex(f => f.id === fileId);
+    if (idx !== -1) { APP.files[idx].trashed = false; APP.files[idx].trashedAt = null; }
     closeDetailPanel();
     closeContextMenu();
     showToast(t('restored'), 'success');
