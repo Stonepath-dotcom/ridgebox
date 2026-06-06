@@ -2755,7 +2755,7 @@ function renderFileGridItem(file, index) {
         ${file.pinned ? '<i class="fas fa-thumbtack" style="position:absolute;top:8px;right:8px;font-size:10px;color:var(--accent)"></i>' : ''}
         ${file.starred ? '<i class="fas fa-star" style="position:absolute;top:8px;right:24px;font-size:10px;color:#f59e0b"></i>' : ''}
         ${file.encrypted ? '<i class="fas fa-lock" style="position:absolute;top:8px;right:' + (file.pinned && file.starred ? '40px' : file.pinned || file.starred ? '24px' : '8px') + ';font-size:10px;color:#3b82f6"></i>' : ''}
-        <button class="grid-quick-delete" onclick="event.stopPropagation();quickDeleteFile('${file.id}')"><i class="fas fa-times"></i></button>
+        ${file.trashed ? `<button class="grid-quick-delete" style="background:rgba(239,68,68,.9)" onclick="event.stopPropagation();deletePermanently('${file.id}')"><i class="fas fa-times"></i></button>` : `<button class="grid-quick-delete" onclick="event.stopPropagation();quickDeleteFile('${file.id}')"><i class="fas fa-times"></i></button>`}
         <div style="text-align:center;padding:8px 0">
             <div class="file-icon-circle" style="background:${icon.color}15">
                 <i class="fas ${icon.icon}" style="font-size:22px;color:${icon.color}"></i>
@@ -2809,20 +2809,37 @@ function renderFileListRow(file, index) {
     </div>`;
 }
 
+// Immediately remove a file element from the DOM (visual feedback before IndexedDB save)
+function removeFileElement(fileId) {
+    // Remove grid card
+    const gridCard = document.querySelector(`[data-file-id="${fileId}"]`);
+    if (gridCard) gridCard.remove();
+    // Remove list row — it may not have data-file-id, so also check onclick attribute
+    document.querySelectorAll('.file-row-premium').forEach(row => {
+        if (row.getAttribute('onclick')?.includes(fileId)) row.remove();
+    });
+    // Also try by any element that references this file
+    document.querySelectorAll(`[onclick*="${fileId}"]`).forEach(el => {
+        if (el.classList.contains('file-row-premium') || el.classList.contains('file-card-premium')) el.remove();
+    });
+}
+
 // Quick delete handler for inline delete button
 async function quickDeleteFile(fileId) {
     const file = APP.files.find(f => f.id === fileId);
-    if (!file) return;
+    if (!file) { console.warn('quickDelete: file not found', fileId); return; }
+    // Immediately remove from DOM for instant visual feedback
+    removeFileElement(fileId);
     file.trashed = true;
     file.trashedAt = Date.now();
     try { await saveFile(file); } catch(e) { console.error('quickDelete save error:', e); }
-    // Explicitly update in-memory state
-    const idx = APP.files.findIndex(f => f.id === fileId);
-    if (idx !== -1) { APP.files[idx].trashed = true; APP.files[idx].trashedAt = Date.now(); }
     APP.selectedFiles.delete(fileId);
     closeDetailPanel();
     closeContextMenu();
     showUndoToast(t('movedToTrash'), async () => { await restoreFile(fileId); });
+    // Verify the file is marked trashed in memory
+    const check = APP.files.find(f => f.id === fileId);
+    if (check && !check.trashed) { check.trashed = true; check.trashedAt = Date.now(); }
     await refreshUI();
 }
 
@@ -3313,17 +3330,19 @@ function toggleRecording() {
 // ===== FILE OPERATIONS =====
 async function moveToTrash(fileId) {
     const file = APP.files.find(f => f.id === fileId);
-    if (!file) return;
+    if (!file) { console.warn('moveToTrash: file not found', fileId); return; }
+    // Immediately remove from DOM for instant visual feedback
+    removeFileElement(fileId);
     file.trashed = true;
     file.trashedAt = Date.now();
     try { await saveFile(file); } catch(e) { console.error('moveToTrash save error:', e); }
-    // Explicitly update in-memory state (ensure mutation is applied)
-    const idx = APP.files.findIndex(f => f.id === fileId);
-    if (idx !== -1) { APP.files[idx].trashed = true; APP.files[idx].trashedAt = Date.now(); }
     APP.selectedFiles.delete(fileId);
     closeDetailPanel();
     closeContextMenu();
     showUndoToast(t('movedToTrash'), async () => { await restoreFile(fileId); });
+    // Verify the file is marked trashed in memory
+    const check = APP.files.find(f => f.id === fileId);
+    if (check && !check.trashed) { check.trashed = true; check.trashedAt = Date.now(); }
     await refreshUI();
 }
 
@@ -3346,6 +3365,8 @@ async function deletePermanently(fileId) {
         APP.lang === 'id' ? 'Hapus Permanen?' : 'Delete Permanently?',
         APP.lang === 'id' ? 'Tidak bisa dikembalikan.' : 'Cannot be undone.',
         async () => {
+            // Immediately remove from DOM for instant visual feedback
+            removeFileElement(fileId);
             const file = APP.files.find(f => f.id === fileId);
             // Try to delete message from Telegram server
             if (file && file.messageId && file.chatId) {
@@ -4862,10 +4883,24 @@ async function init() {
             setTimeout(startOnboarding, 500);
         }
 
-        // Register service worker
+        // Register service worker with auto-update
         if ('serviceWorker' in navigator) {
             try {
-                await navigator.serviceWorker.register('sw.js');
+                const reg = await navigator.serviceWorker.register('sw.js');
+                // Force check for updates immediately
+                reg.update();
+                // Check for SW updates every 30 seconds
+                setInterval(() => reg.update(), 30000);
+                // When new SW activates, reload to get latest code
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'activated') {
+                            // New service worker activated — reload for latest code
+                            location.reload();
+                        }
+                    });
+                });
             } catch(e) { console.warn('SW registration failed:', e); }
         }
 
