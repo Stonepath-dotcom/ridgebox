@@ -16,7 +16,7 @@
 <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
-:root{--accent:#3b82f6;--accent-hover:#2563eb;--bg:#ffffff;--bg-secondary:#f8fafc;--bg-card:#ffffff;--text:#0f172a;--text-secondary:#64748b;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--shadow-lg:0 10px 40px rgba(0,0,0,.15);--radius:12px;--sidebar-w:260px;--header-h:60px;--transition:all .2s ease}
+:root{--accent:#3b82f6;--accent-hover:#2563eb;--bg:#ffffff;--bg-secondary:#f8fafc;--bg-card:#ffffff;--text:#0f172a;--text-secondary:#64748b;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--shadow-lg:0 10px 40px rgba(0,0,0,.15);--radius:12px;--sidebar-w:260px;--header-h:60px;--transition:all .2s ease}body[dir="rtl"] .sidebar-desktop{right:0;left:auto}body[dir="rtl"] .detail-panel{right:auto;left:0;transform:translateX(-100%)}body[dir="rtl"] .detail-panel.open{transform:translateX(0)}
 .dark{--bg:#0f172a;--bg-secondary:#1e293b;--bg-card:#1e293b;--text:#f1f5f9;--text-secondary:#94a3b8;--border:#334155;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 10px 40px rgba(0,0,0,.4)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh}
@@ -31,6 +31,8 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 @keyframes slideInLeft{from{transform:translateX(-100%)}to{transform:translateX(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pinShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@keyframes ptrRotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes countUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 .skeleton{background:linear-gradient(90deg,var(--bg-secondary) 25%,var(--border) 50%,var(--bg-secondary) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
@@ -1047,7 +1049,7 @@ body.no-transition,body.no-transition *{transition:none!important}
 <div id="parallax-orbs" class="parallax-orbs"></div>
 <button id="dm-toggle" class="dm-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode"><i class="fas fa-moon"></i></button>
 <div id="quick-actions-bar" class="quick-actions-bar"></div><div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:110"></div>
-<div id="pin-lock-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:var(--bg);align-items:center;justify-content:center"></div>
+<div id="pin-lock-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(30,41,59,.97));backdrop-filter:blur(20px);align-items:center;justify-content:center"></div>
 
 <script>
 /* ============================================================
@@ -1085,8 +1087,14 @@ const APP = {
         autoCleanup: 0,
         encryption: false,
         proxyMode: true,
-        trashPurgeDays: 30
+        trashPurgeDays: 30,
+        autoLockMinutes: 0,
+        notifications: false,
+        webhookUrl: ''
     },
+    autoLockTimer: null,
+    autoLockCountdown: null,
+    advancedSearch: { name:'', dateFrom:'', dateTo:'', sizeMin:'', sizeMax:'', sizeUnit:'MB', fileType:'all', tags:[] },
     shares: [],
     scheduledUploads: [],
     usedSelfDestructLinks: new Set(JSON.parse(localStorage.getItem('rb_used_links') || '[]')),
@@ -1296,7 +1304,48 @@ const T = {
         expires1h: '1 jam',
         expires24h: '24 jam',
         expires7d: '7 hari',
-        expires30d: '30 hari'
+        expires30d: '30 hari',
+        autoLock: 'Kunci Otomatis',
+        autoLockDesc: 'Kunci otomatis setelah idle',
+        autoLockIn: 'Kunci otomatis dalam',
+        minutes: 'menit',
+        disabled: 'Nonaktif',
+        notes: 'Catatan',
+        addNotes: 'Tambah catatan...',
+        bulkRename: 'Ganti Nama Massal',
+        prefix: 'Awalan',
+        suffix: 'Akhiran',
+        pattern: 'Pola',
+        preview: 'Pratinjau',
+        resumeUpload: 'Lanjutkan Unggah?',
+        resumeUploadDesc: 'Ada unggahan yang belum selesai',
+        retryingUpload: 'Mencoba ulang unggahan...',
+        chunkedUpload: 'Unggahan Terpotong',
+        uploadingChunk: 'Mengunggah bagian',
+        notificationsSetting: 'Notifikasi',
+        notifSettingDesc: 'Aktifkan notifikasi browser',
+        thumbnailCache: 'Cache Thumbnail',
+        advSearch: 'Pencarian Lanjutan',
+        nameContains: 'Nama mengandung',
+        dateRange: 'Rentang Tanggal',
+        sizeRange: 'Rentang Ukuran',
+        fileType: 'Tipe File',
+        documents: 'Dokumen',
+        photos: 'Foto',
+        videos: 'Video',
+        audio: 'Audio',
+        archives: 'Arsip',
+        applyFilter: 'Terapkan',
+        clearFilter: 'Bersihkan',
+        from: 'Dari',
+        to: 'Sampai',
+        themeColor: 'Warna Tema',
+        biometricUnlock: 'Kunci Biometrik',
+        biometricDesc: 'Buka kunci dengan sidik jari/wajah',
+        exportData: 'Ekspor Data',
+        importData: 'Impor Data',
+        exportDesc: 'Cadangkan pengaturan dan info file',
+        importDesc: 'Pulihkan data dari cadangan'
     },
     en: {
         appName: 'Ridgebox',
@@ -1488,15 +1537,185 @@ const T = {
         expires1h: '1 hour',
         expires24h: '24 hours',
         expires7d: '7 days',
-        expires30d: '30 days'
+        expires30d: '30 days',
+        autoLock: 'Auto-Lock',
+        autoLockDesc: 'Auto-lock when idle',
+        autoLockIn: 'Auto-lock in',
+        minutes: 'minutes',
+        disabled: 'Disabled',
+        notes: 'Notes',
+        addNotes: 'Add notes...',
+        bulkRename: 'Bulk Rename',
+        prefix: 'Prefix',
+        suffix: 'Suffix',
+        pattern: 'Pattern',
+        preview: 'Preview',
+        resumeUpload: 'Resume Upload?',
+        resumeUploadDesc: 'There are unfinished uploads',
+        retryingUpload: 'Retrying upload...',
+        chunkedUpload: 'Chunked Upload',
+        uploadingChunk: 'Uploading chunk',
+        notificationsSetting: 'Notifications',
+        notifSettingDesc: 'Enable browser notifications',
+        thumbnailCache: 'Thumbnail Cache',
+        advSearch: 'Advanced Search',
+        nameContains: 'Name contains',
+        dateRange: 'Date Range',
+        sizeRange: 'Size Range',
+        fileType: 'File Type',
+        documents: 'Documents',
+        photos: 'Photos',
+        videos: 'Videos',
+        audio: 'Audio',
+        archives: 'Archives',
+        applyFilter: 'Apply',
+        clearFilter: 'Clear',
+        from: 'From',
+        to: 'To',
+        themeColor: 'Theme Color',
+        biometricUnlock: 'Biometric Unlock',
+        biometricDesc: 'Unlock with fingerprint/face',
+        exportData: 'Export Data',
+        importData: 'Import Data',
+        exportDesc: 'Backup settings and file info',
+        importDesc: 'Restore data from backup'
+    },
+    ja: {
+        appName:'Ridgebox',appTagline:'無料＆安全なクラウドストレージ',appDesc:'無料サーバーレスファイルストレージ。無制限、エンドツーエンド暗号化。',dashboard:'ダッシュボード',home:'ホーム',settings:'設定',search:'ファイル検索...',upload:'アップロード',uploadDrop:'ファイルをドロップまたはクリック',uploadFromUrl:'URLからアップロード',uploadFromCamera:'カメラからアップロード',allFiles:'全ファイル',recent:'最近',favorites:'お気に入り',trash:'ゴミ箱',newFolder:'新規フォルダ',rename:'名前変更',delete:'削除',move:'移動',pin:'ピン留め',unpin:'ピン解除',star:'スター',unstar:'スター解除',share:'共有',download:'ダウンロード',preview:'プレビュー',encrypt:'暗号化',decrypt:'復号化',shareLink:'共有リンク',password:'パスワード',expiry:'有効期限',selfDestruct:'自己破壊',copyLink:'リンクコピー',cancel:'キャンセル',save:'保存',close:'閉じる',confirm:'確認',yes:'はい',no:'いいえ',addTag:'タグ追加',addCaption:'キャプション追加',version:'バージョン',versions:'バージョン',today:'今日',thisWeek:'今週',largeFiles:'大きいファイル',pinned:'ピン留め中',encrypted:'暗号化済み',batchMode:'バッチモード',selectAll:'全選択',bulkDelete:'選択削除',bulkDownload:'ZIPダウンロード',compare:'比較',analytics:'分析',storage:'ストレージ',noFiles:'ファイルなし',noFilesDesc:'最初のファイルをアップロード',noTrash:'ゴミ箱は空です',noFavorites:'お気に入りなし',noSearch:'見つかりません',purgeIn:'削除まで',days:'日',proxyMode:'プロキシモード',pinSetup:'PIN設定',autoCleanup:'自動クリーンアップ',encryptionSetting:'AES-256暗号化',theme:'テーマ',language:'言語',light:'ライト',dark:'ダーク',onboarding:'ようこそ！',onboardingDesc:'Ridgeboxの使い方をご案内',connectionOk:'接続済み',connectionOff:'未接続',folderName:'フォルダ名',create:'作成',movedToTrash:'ゴミ箱へ移動',restored:'復元済み',deletedForever:'完全削除',uploaded:'アップロード成功',uploadError:'アップロード失敗',linkCopied:'リンクコピー済み',shareCreated:'共有リンク作成',customAlias:'カスタムエイリアス',selfDestructUsed:'リンク使用済み',cameraCapture:'写真/動画撮影',startRecording:'録画開始',stopRecording:'録画停止',takePhoto:'写真撮影',scheduledUpload:'予約アップロード',versionHistory:'バージョン履歴',fileDescription:'ファイル説明',shareAnalytics:'共有統計',autoTag:'自動タグ',collaborativeFolder:'コラボフォルダ',uploadPortal:'アップロードポータル',storageAnalytics:'ストレージ分析',compareFiles:'ファイル比較',selectTwo:'2つのファイルを選択',difference:'差分',identical:'同一',qrCode:'QRコード',browseFiles:'ファイル閲覧',getStarted:'始めましょう',learnMore:'詳しく',features:'機能',pricing:'料金',faq:'FAQ',changelog:'変更履歴',security:'セキュリティ',testimonials:'レビュー',hero:'無料クラウドストレージ',heroSub:'無料＆無制限',heroDesc:'エンドツーエンド暗号化で無制限にファイル保存。サーバー不要、無料。',free:'無料',unlimited:'無制限',secure:'安全',fast:'高速',offline:'オフライン',openSource:'オープンソース',chatId:'チャットID',botToken:'ボットトークン',masked:'マスク済み',restore:'復元',emptyTrash:'ゴミ箱を空に',sortByDate:'日付',sortByName:'名前',sortBySize:'サイズ',sortById:'ID',listView:'リスト',gridView:'グリッド',backToHome:'ホームへ戻る',openDashboard:'ダッシュボード',pageNotFound:'ページが見つかりません',pageNotFoundDesc:'お探しのページは存在しません',sharedFile:'共有ファイル',downloadFile:'ファイルダウンロード',linkExpired:'リンク期限切れ',linkExpiredDesc:'このリンクは無効です',wrongPassword:'パスワードが間違っています',enterPassword:'パスワード入力',protectedFile:'保護ファイル',enterPin:'PIN入力',wrongPin:'PINが間違っています',notifications:'通知',enableNotif:'通知を有効化',notifEnabled:'通知有効',notifDenied:'通知拒否',downloadProgress:'ダウンロード進捗',uploadProgress:'アップロード進捗',prevStep:'前へ',nextStep:'次へ',done:'完了',skip:'スキップ',step1Title:'ファイルアップロード',step1Desc:'ドラッグ＆ドロップでアップロード',step2Title:'管理＆共有',step2Desc:'フォルダで整理して安全に共有',step3Title:'暗号化＆セキュリティ',step3Desc:'AES-256暗号化とPINで保護',step4Title:'コラボレーション',step4Desc:'チーム用フォルダを共有',qrCodeTab:'QRコード',linkTab:'リンク',downloadQR:'QRダウンロード',expiresIn:'有効期限',never:'なし',expired:'期限切れ',downloadCount:'ダウンロード数',times:'回',totalShares:'合計リンク',totalDownloads:'合計DL',lastAccessed:'最終アクセス',activeLinks:'アクティブリンク',expiredLinks:'期限切れリンク',shareStats:'共有統計',createGallery:'ギャラリー作成',galleryTitle:'公開ギャラリー',galleryDesc:'ギャラリー説明',galleryName:'ギャラリー名',viewGallery:'ギャラリー表示',galleryEmpty:'ギャラリーは空です',noFilesInGallery:'ファイルなし',galleryCreated:'ギャラリー作成済み',addToGallery:'ギャラリーに追加',expiresNever:'無期限',expires1h:'1時間',expires24h:'24時間',expires7d:'7日間',expires30d:'30日間',autoLock:'自動ロック',autoLockDesc:'アイドル時自動ロック',autoLockIn:'自動ロックまで',minutes:'分',disabled:'無効',notes:'メモ',addNotes:'メモ追加...',bulkRename:'一括名前変更',prefix:'プレフィックス',suffix:'サフィックス',pattern:'パターン',resumeUpload:'アップロード再開？',resumeUploadDesc:'未完了のアップロードがあります',retryingUpload:'アップロード再試行中...',chunkedUpload:'分割アップロード',uploadingChunk:'チャンクアップロード中',notificationsSetting:'通知',notifSettingDesc:'ブラウザ通知を有効化',thumbnailCache:'サムネイルキャッシュ',advSearch:'詳細検索',nameContains:'名前含む',dateRange:'日付範囲',sizeRange:'サイズ範囲',fileType:'ファイルタイプ',documents:'ドキュメント',photos:'写真',videos:'動画',audio:'音声',archives:'アーカイブ',applyFilter:'適用',clearFilter:'クリア',from:'開始',to:'終了',themeColor:'テーマカラー',biometricUnlock:'生体認証ロック',biometricDesc:'指紋・顔認証でロック解除',exportData:'データエクスポート',importData:'データインポート',exportDesc:'設定とファイル情報をバックアップ',importDesc:'バックアップからデータを復元'
+    },
+    ko: {
+        appName:'Ridgebox',appTagline:'무료 & 안전한 클라우드 스토리지',appDesc:'무료 서버리스 파일 스토리지. 무제한, 종단간 암호화.',dashboard:'대시보드',home:'홈',settings:'설정',search:'파일 검색...',upload:'업로드',uploadDrop:'파일을 드롭하거나 클릭',uploadFromUrl:'URL에서 업로드',uploadFromCamera:'카메라에서 업로드',allFiles:'전체 파일',recent:'최근',favorites:'즐겨찾기',trash:'휴지통',newFolder:'새 폴더',rename:'이름 변경',delete:'삭제',move:'이동',pin:'고정',unpin:'고정 해제',star:'즐겨찾기',unstar:'즐겨찾기 해제',share:'공유',download:'다운로드',preview:'미리보기',encrypt:'암호화',decrypt:'복호화',shareLink:'공유 링크',password:'비밀번호',expiry:'만료',selfDestruct:'자동 삭제',copyLink:'링크 복사',cancel:'취소',save:'저장',close:'닫기',confirm:'확인',yes:'예',no:'아니오',addTag:'태그 추가',addCaption:'캡션 추가',version:'버전',versions:'버전',today:'오늘',thisWeek:'이번 주',largeFiles:'큰 파일',pinned:'고정됨',encrypted:'암호화됨',batchMode:'배치 모드',selectAll:'전체 선택',bulkDelete:'선택 삭제',bulkDownload:'ZIP 다운로드',compare:'비교',analytics:'분석',storage:'스토리지',noFiles:'파일 없음',noFilesDesc:'첫 파일을 업로드하세요',noTrash:'휴지통이 비어있음',noFavorites:'즐겨찾기 없음',noSearch:'검색 결과 없음',purgeIn:'삭제까지',days:'일',proxyMode:'프록시 모드',pinSetup:'PIN 설정',autoCleanup:'자동 정리',encryptionSetting:'AES-256 암호화',theme:'테마',language:'언어',light:'라이트',dark:'다크',onboarding:'환영합니다!',onboardingDesc:'Ridgebox 사용법을 안내합니다',connectionOk:'연결됨',connectionOff:'연결 안 됨',folderName:'폴더 이름',create:'만들기',movedToTrash:'휴지통으로 이동',restored:'복원됨',deletedForever:'영구 삭제됨',uploaded:'업로드 성공',uploadError:'업로드 실패',linkCopied:'링크 복사됨',shareCreated:'공유 링크 생성됨',customAlias:'사용자 지정 별칭',selfDestructUsed:'링크 이미 사용됨',cameraCapture:'사진/동영상 촬영',startRecording:'녹화 시작',stopRecording:'녹화 중지',takePhoto:'사진 촬영',scheduledUpload:'예약 업로드',versionHistory:'버전 기록',fileDescription:'파일 설명',shareAnalytics:'공유 통계',autoTag:'자동 태그',collaborativeFolder:'협업 폴더',uploadPortal:'업로드 포털',storageAnalytics:'스토리지 분석',compareFiles:'파일 비교',selectTwo:'비교할 파일 2개 선택',difference:'차이',identical:'동일',qrCode:'QR 코드',browseFiles:'파일 탐색',getStarted:'시작하기',learnMore:'자세히',features:'기능',pricing:'요금',faq:'FAQ',changelog:'변경 로그',security:'보안',testimonials:'리뷰',hero:'무료 클라우드 스토리지',heroSub:'무료 & 무제한',heroDesc:'종단간 암호화로 무제한 파일 저장. 서버 없이, 무료.',free:'무료',unlimited:'무제한',secure:'안전',fast:'빠름',offline:'오프라인',openSource:'오픈소스',chatId:'채팅 ID',botToken:'봇 토큰',masked:'마스킹됨',restore:'복원',emptyTrash:'휴지통 비우기',sortByDate:'날짜',sortByName:'이름',sortBySize:'크기',sortById:'ID',listView:'목록',gridView:'그리드',backToHome:'홈으로',openDashboard:'대시보드',pageNotFound:'페이지를 찾을 수 없음',pageNotFoundDesc:'요청하신 페이지가 존재하지 않습니다',sharedFile:'공유 파일',downloadFile:'파일 다운로드',linkExpired:'링크 만료',linkExpiredDesc:'이 링크는 더 이상 유효하지 않습니다',wrongPassword:'잘못된 비밀번호',enterPassword:'비밀번호 입력',protectedFile:'보호된 파일',enterPin:'PIN 입력',wrongPin:'잘못된 PIN',notifications:'알림',enableNotif:'알림 활성화',notifEnabled:'알림 활성화됨',notifDenied:'알림 거부됨',downloadProgress:'다운로드 진행률',uploadProgress:'업로드 진행률',prevStep:'이전',nextStep:'다음',done:'완료',skip:'건너뛰기',step1Title:'파일 업로드',step1Desc:'드래그 앤 드롭으로 업로드',step2Title:'관리 & 공유',step2Desc:'폴더로 정리하고 안전하게 공유',step3Title:'암호화 & 보안',step3Desc:'AES-256 암호화와 PIN으로 보호',step4Title:'협업',step4Desc:'팀 업로드용 폴더 공유',qrCodeTab:'QR 코드',linkTab:'링크',downloadQR:'QR 다운로드',expiresIn:'만료',never:'없음',expired:'만료됨',downloadCount:'다운로드 수',times:'회',totalShares:'총 링크',totalDownloads:'총 다운로드',lastAccessed:'마지막 접근',activeLinks:'활성 링크',expiredLinks:'만료된 링크',shareStats:'공유 통계',createGallery:'갤러리 만들기',galleryTitle:'공개 갤러리',galleryDesc:'갤러리 설명',galleryName:'갤러리 이름',viewGallery:'갤러리 보기',galleryEmpty:'갤러리가 비어있음',noFilesInGallery:'파일 없음',galleryCreated:'갤러리 생성됨',addToGallery:'갤러리에 추가',expiresNever:'무기한',expires1h:'1시간',expires24h:'24시간',expires7d:'7일',expires30d:'30일',autoLock:'자동 잠금',autoLockDesc:'유휴 시 자동 잠금',autoLockIn:'자동 잠금까지',minutes:'분',disabled:'비활성',notes:'메모',addNotes:'메모 추가...',bulkRename:'일괄 이름 변경',prefix:'접두사',suffix:'접미사',pattern:'패턴',resumeUpload:'업로드 계속?',resumeUploadDesc:'완료되지 않은 업로드가 있습니다',retryingUpload:'업로드 재시도 중...',chunkedUpload:'청크 업로드',uploadingChunk:'청크 업로드 중',notificationsSetting:'알림',notifSettingDesc:'브라우저 알림 활성화',thumbnailCache:'섬네일 캐시',advSearch:'고급 검색',nameContains:'이름 포함',dateRange:'날짜 범위',sizeRange:'크기 범위',fileType:'파일 유형',documents:'문서',photos:'사진',videos:'동영상',audio:'오디오',archives:'아카이브',applyFilter:'적용',clearFilter:'초기화',from:'시작',to:'종료',themeColor:'테마 색상',biometricUnlock:'생체 인증 잠금',biometricDesc:'지문/얼굴 인식으로 잠금 해제',exportData:'데이터 내보내기',importData:'데이터 가져오기',exportDesc:'설정 및 파일 정보 백업',importDesc:'백업에서 데이터 복원'
+    },
+    ar: {
+        appName:'Ridgebox',appTagline:'تخزين سحابي مجاني وآمن',appDesc:'تخزين ملفات مجاني بدون خادم. غير محدود، تشفير شامل.',dashboard:'لوحة التحكم',home:'الرئيسية',settings:'الإعدادات',search:'بحث في الملفات...',upload:'رفع',uploadDrop:'أسقط الملفات هنا أو انقر للرفع',uploadFromUrl:'رفع من رابط',uploadFromCamera:'رفع من الكاميرا',allFiles:'جميع الملفات',recent:'الأخيرة',favorites:'المفضلة',trash:'سلة المهملات',newFolder:'مجلد جديد',rename:'إعادة تسمية',delete:'حذف',move:'نقل',pin:'تثبيت',unpin:'إلغاء التثبيت',star:'تمييز بنجمة',unstar:'إلغاء التمييز',share:'مشاركة',download:'تنزيل',preview:'معاينة',encrypt:'تشفير',decrypt:'فك التشفير',shareLink:'رابط المشاركة',password:'كلمة المرور',expiry:'انتهاء الصلاحية',selfDestruct:'تدمير ذاتي',copyLink:'نسخ الرابط',cancel:'إلغاء',save:'حفظ',close:'إغلاق',confirm:'تأكيد',yes:'نعم',no:'لا',addTag:'إضافة وسم',addCaption:'إضافة وصف',version:'الإصدار',versions:'إصدارات',today:'اليوم',thisWeek:'هذا الأسبوع',largeFiles:'ملفات كبيرة',pinned:'مثبت',encrypted:'مشفّر',batchMode:'وضع الدُفعات',selectAll:'تحديد الكل',bulkDelete:'حذف المحدد',bulkDownload:'تنزيل ZIP',compare:'مقارنة',analytics:'تحليلات',storage:'التخزين',noFiles:'لا ملفات',noFilesDesc:'ارفع أول ملف للبدء',noTrash:'سلة المهملات فارغة',noFavorites:'لا مفضلات',noSearch:'لا نتائج',purgeIn:'حذف خلال',days:'أيام',proxyMode:'وضع الوكيل',pinSetup:'إعداد رمز PIN',autoCleanup:'تنظيف تلقائي',encryptionSetting:'تشفير AES-256',theme:'السمة',language:'اللغة',light:'فاتح',dark:'داكن',onboarding:'مرحباً!',onboardingDesc:'دعنا نوضح لك كيفية استخدام Ridgebox',connectionOk:'متصل',connectionOff:'غير متصل',folderName:'اسم المجلد',create:'إنشاء',movedToTrash:'نقل إلى سلة المهملات',restored:'تم الاستعادة',deletedForever:'حذف نهائي',uploaded:'تم الرفع بنجاح',uploadError:'فشل الرفع',linkCopied:'تم نسخ الرابط',shareCreated:'تم إنشاء رابط المشاركة',customAlias:'اسم مستعار مخصص',selfDestructUsed:'الرابط مستخدم بالفعل',cameraCapture:'التقاط صورة/فيديو',startRecording:'بدء التسجيل',stopRecording:'إيقاف التسجيل',takePhoto:'التقاط صورة',scheduledUpload:'رفع مجدول',versionHistory:'سجل الإصدارات',fileDescription:'وصف الملف',shareAnalytics:'إحصائيات المشاركة',autoTag:'وسم تلقائي',collaborativeFolder:'مجلد تعاوني',uploadPortal:'بوابة الرفع',storageAnalytics:'تحليلات التخزين',compareFiles:'مقارنة الملفات',selectTwo:'اختر ملفين للمقارنة',difference:'اختلاف',identical:'متماثل',qrCode:'رمز QR',browseFiles:'تصفح الملفات',getStarted:'ابدأ الآن',learnMore:'اعرف المزيد',features:'الميزات',pricing:'الأسعار',faq:'الأسئلة الشائعة',changelog:'سجل التغييرات',security:'الأمان',testimonials:'آراء المستخدمين',hero:'تخزين سحابي مجاني',heroSub:'مجاني وغير محدود',heroDesc:'خزّن ملفات غير محدودة بتشفير شامل. بدون خادم، بدون تكلفة.',free:'مجاني',unlimited:'غير محدود',secure:'آمن',fast:'سريع',offline:'بدون اتصال',openSource:'مفتوح المصدر',chatId:'معرف الدردشة',botToken:'رمز البوت',masked:'مخفي',restore:'استعادة',emptyTrash:'إفراغ سلة المهملات',sortByDate:'التاريخ',sortByName:'الاسم',sortBySize:'الحجم',sortById:'المعرف',listView:'قائمة',gridView:'شبكة',backToHome:'العودة للرئيسية',openDashboard:'لوحة التحكم',pageNotFound:'الصفحة غير موجودة',pageNotFoundDesc:'الصفحة التي تبحث عنها غير موجودة',sharedFile:'ملف مشارك',downloadFile:'تنزيل الملف',linkExpired:'الرابط منتهي',linkExpiredDesc:'هذا الرابط لم يعد صالحاً',wrongPassword:'كلمة المرور خاطئة',enterPassword:'أدخل كلمة المرور',protectedFile:'ملف محمي',enterPin:'أدخل رمز PIN',wrongPin:'رمز PIN خاطئ',notifications:'الإشعارات',enableNotif:'تفعيل الإشعارات',notifEnabled:'تم تفعيل الإشعارات',notifDenied:'تم رفض الإشعارات',downloadProgress:'تقدم التنزيل',uploadProgress:'تقدم الرفع',prevStep:'السابق',nextStep:'التالي',done:'تم',skip:'تخطي',step1Title:'رفع الملفات',step1Desc:'اسحب وأفلت الملفات أو انقر للرفع',step2Title:'إدارة ومشاركة',step2Desc:'نظّم الملفات في مجلدات وشارك بأمان',step3Title:'تشفير وحماية',step3Desc:'احمِ ملفاتك بتشفير AES-256 ورمز PIN',step4Title:'تعاون',step4Desc:'شارك مجلدات لرفع الفريق',qrCodeTab:'رمز QR',linkTab:'رابط',downloadQR:'تنزيل QR',expiresIn:'ينتهي خلال',never:'أبداً',expired:'منتهي',downloadCount:'عدد التنزيلات',times:'مرة',totalShares:'إجمالي الروابط',totalDownloads:'إجمالي التنزيلات',lastAccessed:'آخر وصول',activeLinks:'روابط نشطة',expiredLinks:'روابط منتهية',shareStats:'إحصائيات المشاركة',createGallery:'إنشاء معرض',galleryTitle:'معرض عام',galleryDesc:'وصف المعرض',galleryName:'اسم المعرض',viewGallery:'عرض المعرض',galleryEmpty:'المعرض فارغ',noFilesInGallery:'لا ملفات في المعرض',galleryCreated:'تم إنشاء المعرض',addToGallery:'إضافة للمعرض',expiresNever:'لا ينتهي أبداً',expires1h:'ساعة واحدة',expires24h:'24 ساعة',expires7d:'7 أيام',expires30d:'30 يوماً',autoLock:'قفل تلقائي',autoLockDesc:'قفل تلقائي عند الخمول',autoLockIn:'قفل تلقائي خلال',minutes:'دقائق',disabled:'معطل',notes:'ملاحظات',addNotes:'أضف ملاحظات...',bulkRename:'إعادة تسمية جماعية',prefix:'بادئة',suffix:'لاحقة',pattern:'نمط',resumeUpload:'استئناف الرفع؟',resumeUploadDesc:'هناك رفع غير مكتمل',retryingUpload:'إعادة محاولة الرفع...',chunkedUpload:'رفع مقسم',uploadingChunk:'رفع الجزء',notificationsSetting:'الإشعارات',notifSettingDesc:'تفعيل إشعارات المتصفح',thumbnailCache:'ذاكرة المصغرات',advSearch:'بحث متقدم',nameContains:'الاسم يحتوي',dateRange:'نطاق التاريخ',sizeRange:'نطاق الحجم',fileType:'نوع الملف',documents:'مستندات',photos:'صور',videos:'فيديو',audio:'صوت',archives:'أرشيفات',applyFilter:'تطبيق',clearFilter:'مسح',from:'من',to:'إلى',themeColor:'لون السمة',biometricUnlock:'قفل البصمة',biometricDesc:'فتح القفل بالبصمة أو الوجه',exportData:'تصدير البيانات',importData:'استيراد البيانات',exportDesc:'نسخ احتياطي للإعدادات والملفات',importDesc:'استعادة البيانات من نسخة احتياطية'
     }
 };
 
-function t(key) { return (T[APP.lang] || T.id)[key] || (T.en[key]) || key; }
+function t(key) { return (T[APP.lang] && T[APP.lang][key]) || (T.en[key]) || key; }
+function applyLangDir() { document.body.dir = APP.lang === 'ar' ? 'rtl' : 'ltr'; document.documentElement.lang = APP.lang; }
+function setLang(lang) { APP.lang = lang; localStorage.setItem('rb_lang', lang); applyLangDir(); renderHeader(); checkUrlRouting(); }
+
+const ACCENT_PRESETS = [
+  {name:'Ocean Blue',color:'#3b82f6',hover:'#2563eb'},
+  {name:'Royal Purple',color:'#8b5cf6',hover:'#7c3aed'},
+  {name:'Emerald Green',color:'#10b981',hover:'#059669'},
+  {name:'Sunset Orange',color:'#f97316',hover:'#ea580c'},
+  {name:'Rose Pink',color:'#ec4899',hover:'#db2777'},
+  {name:'Crimson Red',color:'#ef4444',hover:'#dc2626'},
+  {name:'Golden Yellow',color:'#eab308',hover:'#ca8a04'},
+  {name:'Slate Gray',color:'#64748b',hover:'#475569'}
+];
+
+function setAccentColor(color, hover) {
+  document.documentElement.style.setProperty('--accent', color);
+  document.documentElement.style.setProperty('--accent-hover', hover || color);
+  localStorage.setItem('rb_accent', color);
+  localStorage.setItem('rb_accent_hover', hover || color);
+}
+function loadAccentColor() {
+  const c = localStorage.getItem('rb_accent');
+  const h = localStorage.getItem('rb_accent_hover');
+  if (c) { document.documentElement.style.setProperty('--accent', c); document.documentElement.style.setProperty('--accent-hover', h || c); }
+}
+
+async function exportAppData() {
+  const data = { version: 1, exportedAt: Date.now(), settings: APP.settings, folders: APP.folders.filter(f=>!f.system), files: APP.files.map(f => ({id:f.id,name:f.name,size:f.size,mime:f.mime,folderId:f.folderId,uploadedAt:f.uploadedAt,caption:f.caption,tag:f.tag,starred:f.starred,version:f.version,encrypted:f.encrypted})), shares: APP.shares };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const d = new Date().toISOString().slice(0,10);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ridgebox-backup-${d}.json`; a.click();
+  showToast(t('save'), 'success');
+}
+
+async function importAppData(jsonFile) {
+  try {
+    const text = await jsonFile.text();
+    const data = JSON.parse(text);
+    if (!data.version || !data.files) { showToast('Invalid backup file', 'error'); return; }
+    const fileCount = (data.files||[]).length;
+    const folderCount = (data.folders||[]).length;
+    const settingCount = Object.keys(data.settings||{}).length;
+    const isId = APP.lang === 'id';
+    showConfirm(
+      isId ? 'Impor Data?' : 'Import Data?',
+      isId ? `Ini akan menggabungkan ${fileCount} file, ${folderCount} folder, ${settingCount} pengaturan. Lanjutkan?` : `This will merge ${fileCount} files, ${folderCount} folders, ${settingCount} settings. Continue?`,
+      async () => {
+        let added = 0;
+        for (const f of (data.files||[])) { if (!APP.files.find(ef => ef.id === f.id)) { APP.files.push(f); await saveFile(f); added++; } }
+        for (const fo of (data.folders||[])) { if (!APP.folders.find(ef => ef.id === fo.id)) { APP.folders.push(fo); await saveFolder(fo); } }
+        if (data.settings) { for (const [k,v] of Object.entries(data.settings)) { APP.settings[k] = v; await saveSetting(k, v); } }
+        if (data.shares) { for (const s of data.shares) { if (!APP.shares.find(es => es.id === s.id)) { APP.shares.push(s); await saveShare(s); } } }
+        showToast(isId ? `${added} file diimpor` : `${added} files imported`, 'success');
+        await refreshUI();
+      }
+    );
+  } catch(e) { showToast('Import failed: ' + e.message, 'error'); }
+}
+
+async function setupBiometric() {
+  if (!window.PublicKeyCredential) { showToast(APP.lang==='id'?'Browser tidak mendukung WebAuthn':'Browser does not support WebAuthn', 'error'); return; }
+  try {
+    const avail = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    if (!avail) { showToast(APP.lang==='id'?'Tidak ada autentikator biometrik':'No biometric authenticator available', 'error'); return; }
+    const challenge = new Uint8Array(32); crypto.getRandomValues(challenge);
+    const cred = await navigator.credentials.create({ publicKey: { challenge, rp: { name: 'Ridgebox' }, user: { id: new Uint8Array(16), name: 'ridgebox-user', displayName: 'Ridgebox User' }, pubKeyCredParams: [{type:'public-key',alg:-7},{type:'public-key',alg:-257}], authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' }, timeout: 60000 } });
+    localStorage.setItem('rb_biometric_id', btoa(String.fromCharCode(...new Uint8Array(cred.rawId))));
+    showToast(APP.lang==='id'?'Biometrik terdaftar':'Biometric registered', 'success');
+    openSettings();
+  } catch(e) { if (e.name !== 'NotAllowedError') showToast('Error: ' + e.message, 'error'); }
+}
+
+async function verifyBiometric() {
+  const storedId = localStorage.getItem('rb_biometric_id');
+  if (!storedId || !window.PublicKeyCredential) return false;
+  try {
+    const rawId = Uint8Array.from(atob(storedId), c => c.charCodeAt(0));
+    const challenge = new Uint8Array(32); crypto.getRandomValues(challenge);
+    await navigator.credentials.get({ publicKey: { challenge, allowCredentials: [{ type: 'public-key', id: rawId }], userVerification: 'required', timeout: 60000 } });
+    return true;
+  } catch(e) { return false; }
+}
+
+function removeBiometric() { localStorage.removeItem('rb_biometric_id'); showToast(APP.lang==='id'?'Biometrik dihapus':'Biometric removed', 'info'); openSettings(); }
+
+async function saveFileDescription(fileId, description) {
+  const file = APP.files.find(f => f.id === fileId);
+  if (!file) return;
+  file.caption = description;
+  await saveFile(file);
+  const indicator = document.getElementById('desc-saved-indicator');
+  if (indicator) { indicator.style.opacity = '1'; setTimeout(() => { indicator.style.opacity = '0'; }, 1500); }
+}
+
+function startEditDescription(fileId) {
+  const el = document.getElementById('detail-desc-' + fileId);
+  if (!el) return;
+  const file = APP.files.find(f => f.id === fileId);
+  if (!file) return;
+  const oldVal = file.caption || '';
+  const ta = document.createElement('textarea');
+  ta.id = 'detail-desc-' + fileId;
+  ta.value = oldVal;
+  ta.style.cssText = 'width:100%;min-height:48px;padding:6px 8px;border:1px solid var(--accent);border-radius:6px;background:var(--bg);color:var(--text);font-size:12px;font-family:inherit;resize:vertical';
+  ta.placeholder = t('addCaption');
+  let saved = false;
+  ta.onblur = function() {
+    if (saved) return; saved = true;
+    saveFileDescription(fileId, ta.value);
+    const p = document.createElement('p');
+    p.id = 'detail-desc-' + fileId;
+    p.style.cssText = 'font-size:12px;color:var(--text-secondary);margin-top:4px;cursor:pointer;display:flex;align-items:center;gap:6px';
+    p.innerHTML = ta.value ? `${ta.value} <i class="fas fa-pen" style="font-size:10px;opacity:.5"></i>` : `<span style="font-style:italic;opacity:.6">${t('addCaption')} <i class="fas fa-pen" style="font-size:10px;opacity:.5"></i></span>`;
+    p.onclick = () => startEditDescription(fileId);
+    ta.replaceWith(p);
+  };
+  ta.onkeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ta.blur(); } if (e.key === 'Escape') { ta.value = oldVal; ta.blur(); } };
+  el.replaceWith(ta);
+  ta.focus();
+}
 
 // ===== INDEXEDDB (F15) =====
 const DB_NAME = 'RidgeboxDB';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 let _db = null;
 
 function openDB() {
@@ -1516,6 +1735,7 @@ function openDB() {
             if (!db.objectStoreNames.contains('folders')) db.createObjectStore('folders', { keyPath: 'id' });
             if (!db.objectStoreNames.contains('shares')) db.createObjectStore('shares', { keyPath: 'id' });
             if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings', { keyPath: 'key' });
+            if (!db.objectStoreNames.contains('thumbnails')) db.createObjectStore('thumbnails', { keyPath: 'fileId' });
         };
         req.onsuccess = (e) => { _db = e.target.result; resolve(_db); };
         req.onerror = (e) => reject(e.target.error);
@@ -1597,6 +1817,346 @@ async function deleteFolderDB(id) { await dbDelete('folders', id); }
 async function saveShare(share) { await dbPut('shares', share); }
 async function deleteShareDB(id) { await dbDelete('shares', id); }
 async function saveSetting(key, value) { await dbPut('settings', { key, value }); }
+
+// ===== FEATURE 1: AUTO-LOCK (IDLE TIMER) =====
+function initAutoLock() {
+    if (APP.autoLockTimer) clearTimeout(APP.autoLockTimer);
+    if (APP.autoLockCountdown) clearInterval(APP.autoLockCountdown);
+    const mins = APP.settings.autoLockMinutes;
+    if (!mins || mins <= 0 || !APP.settings.pinLock) { updateAutoLockDisplay(-1); return; }
+    let remaining = mins * 60 * 1000;
+    function startCountdown() {
+        if (APP.autoLockCountdown) clearInterval(APP.autoLockCountdown);
+        const startT = Date.now();
+        APP.autoLockCountdown = setInterval(() => {
+            const elapsed = Date.now() - startT;
+            const left = Math.max(0, remaining - elapsed);
+            updateAutoLockDisplay(left);
+            if (left <= 0) clearInterval(APP.autoLockCountdown);
+        }, 1000);
+    }
+    function resetTimer() {
+        if (APP.autoLockTimer) clearTimeout(APP.autoLockTimer);
+        if (APP.autoLockCountdown) clearInterval(APP.autoLockCountdown);
+        remaining = mins * 60 * 1000;
+        APP.autoLockTimer = setTimeout(() => { showLockScreen(); }, remaining);
+        startCountdown();
+    }
+    ['mousemove','keydown','touchstart','scroll','click'].forEach(e => document.removeEventListener(e, resetTimer));
+    ['mousemove','keydown','touchstart','scroll','click'].forEach(e => document.addEventListener(e, resetTimer, {passive:true}));
+    resetTimer();
+}
+function updateAutoLockDisplay(ms) {
+    const el = document.getElementById('auto-lock-countdown');
+    if (!el) return;
+    if (ms < 0) { el.style.display='none'; return; }
+    el.style.display='flex';
+    const sec = Math.ceil(ms/1000);
+    const m = Math.floor(sec/60), s = sec%60;
+    el.innerHTML = `<i class="fas fa-lock" style="font-size:9px"></i> ${t('autoLockIn')} ${m}:${s.toString().padStart(2,'0')}`;
+}
+
+// ===== FEATURE 2: FILE NOTES =====
+async function saveFileNote(fileId, noteText) {
+    const file = APP.files.find(f => f.id === fileId);
+    if (!file) return;
+    file.notes = noteText;
+    await saveFile(file);
+}
+function renderNotesSection(fileId) {
+    const file = APP.files.find(f => f.id === fileId);
+    const note = file?.notes || '';
+    return `<div style="margin-top:16px;padding:12px;background:var(--bg-secondary);border-radius:10px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+            <i class="fas fa-sticky-note" style="font-size:12px;color:var(--accent)"></i>
+            <span style="font-size:13px;font-weight:600">${t('notes')}</span>
+        </div>
+        <textarea id="file-note-input" style="width:100%;min-height:60px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:12px;resize:vertical;font-family:inherit" placeholder="${t('addNotes')}" onblur="saveFileNote('${fileId}',this.value)" onkeydown="if(event.ctrlKey&&event.key==='Enter'){this.blur()}">${note}</textarea>
+    </div>`;
+}
+
+// ===== FEATURE 3: BULK RENAME =====
+function openBulkRenameModal() {
+    if (APP.selectedFiles.size === 0) return;
+    const isId = APP.lang === 'id';
+    const ids = [...APP.selectedFiles];
+    const files = ids.map(id => APP.files.find(f => f.id === id)).filter(Boolean);
+    const previewFiles = files.slice(0, 3);
+    openModal(`<div style="padding:24px">
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:16px"><i class="fas fa-i-cursor" style="color:var(--accent)"></i> ${t('bulkRename')}</h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">${files.length} ${isId?'file dipilih':'files selected'}</p>
+        <div style="margin-bottom:12px">
+            <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('prefix')}</label>
+            <input type="text" id="rename-prefix" class="input" style="width:100%" oninput="updateBulkRenamePreview()">
+        </div>
+        <div style="margin-bottom:12px">
+            <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('suffix')}</label>
+            <input type="text" id="rename-suffix" class="input" style="width:100%" oninput="updateBulkRenamePreview()">
+        </div>
+        <div style="margin-bottom:12px">
+            <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('pattern')} ({name}, {index}, {date})</label>
+            <input type="text" id="rename-pattern" class="input" style="width:100%" placeholder="{name}" oninput="updateBulkRenamePreview()">
+        </div>
+        <div style="margin-bottom:16px;padding:10px;background:var(--bg-secondary);border-radius:8px">
+            <div style="font-size:12px;font-weight:600;margin-bottom:6px">${t('preview')}</div>
+            <div id="bulk-rename-preview" style="font-size:11px;color:var(--text-secondary)"></div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn btn-secondary" onclick="closeModal()">${t('cancel')}</button>
+            <button class="btn btn-primary" onclick="applyBulkRename()">${isId?'Terapkan':'Apply'}</button>
+        </div>
+    </div>`);
+    updateBulkRenamePreview();
+}
+function applyBulkRenamePattern(name, pattern, prefix, suffix, index) {
+    const ext = name.includes('.') ? '.' + name.split('.').pop() : '';
+    const baseName = name.includes('.') ? name.slice(0, name.lastIndexOf('.')) : name;
+    let result = pattern || '{name}';
+    result = result.replace('{name}', baseName).replace('{index}', String(index + 1).padStart(2, '0')).replace('{date}', new Date().toISOString().slice(0, 10));
+    result = (prefix || '') + result + (suffix || '');
+    if (ext) result += ext;
+    return result;
+}
+function updateBulkRenamePreview() {
+    const prefix = document.getElementById('rename-prefix')?.value || '';
+    const suffix = document.getElementById('rename-suffix')?.value || '';
+    const pattern = document.getElementById('rename-pattern')?.value || '';
+    const ids = [...APP.selectedFiles];
+    const files = ids.map(id => APP.files.find(f => f.id === id)).filter(Boolean);
+    const preview = files.slice(0, 3);
+    const el = document.getElementById('bulk-rename-preview');
+    if (!el) return;
+    el.innerHTML = preview.map((f, i) => {
+        const newName = applyBulkRenamePattern(f.name, pattern, prefix, suffix, i);
+        return `<div style="margin-bottom:4px">${f.name} → <strong style="color:var(--accent)">${newName}</strong></div>`;
+    }).join('') + (files.length > 3 ? `<div>... +${files.length - 3} ${APP.lang==='id'?'lainnya':'more'}</div>` : '');
+}
+async function applyBulkRename() {
+    const prefix = document.getElementById('rename-prefix')?.value || '';
+    const suffix = document.getElementById('rename-suffix')?.value || '';
+    const pattern = document.getElementById('rename-pattern')?.value || '';
+    const ids = [...APP.selectedFiles];
+    await bulkRename(ids, pattern, prefix, suffix);
+}
+async function bulkRename(fileIds, pattern, prefix, suffix) {
+    let count = 0;
+    for (let i = 0; i < fileIds.length; i++) {
+        const file = APP.files.find(f => f.id === fileIds[i]);
+        if (!file) continue;
+        file.name = applyBulkRenamePattern(file.name, pattern, prefix, suffix, i);
+        await saveFile(file);
+        count++;
+    }
+    closeModal();
+    showToast(`${count} ${APP.lang==='id'?'file diganti nama':'files renamed'}`, 'success');
+    renderFileList();
+}
+
+// ===== FEATURE 4: RESUME UPLOAD (CHUNKED UPLOAD) =====
+async function executeChunkedUpload(file, folderParam) {
+    const CHUNK = 5 * 1024 * 1024;
+    const totalChunks = Math.ceil(file.size / CHUNK);
+    const uploadId = genId();
+    const progress = { id: uploadId, fileName: file.name, totalChunks, uploadedChunks: 0, size: file.size, folderParam: folderParam || APP.currentFolder, startedAt: Date.now() };
+    await saveSetting('pendingUpload_' + uploadId, progress);
+    try {
+        for (let i = 0; i < totalChunks; i++) {
+            const start = i * CHUNK;
+            const end = Math.min(start + CHUNK, file.size);
+            const chunk = file.slice(start, end);
+            const bot = APP.bots[0];
+            if (!bot) throw new Error('No bot');
+            const formData = new FormData();
+            formData.append('document', chunk, `${file.name}.part${i}`);
+            formData.append('bot_index', bot.index);
+            formData.append('chat_id', bot.chatId);
+            const resp = await fetch('/api/upload', { method: 'POST', body: formData });
+            const result = await resp.json();
+            if (!result.ok && !(result.result && result.result.message_id)) throw new Error('Chunk upload failed');
+            progress.uploadedChunks = i + 1;
+            await saveSetting('pendingUpload_' + uploadId, progress);
+            const pct = Math.round(((i + 1) / totalChunks) * 100);
+            updateUploadPreviewProgress(file.name, pct);
+        }
+        await saveSetting('pendingUpload_' + uploadId, null);
+        await dbDelete('settings', 'pendingUpload_' + uploadId);
+    } catch (e) {
+        showToast(t('retryingUpload'), 'warning');
+        throw e;
+    }
+}
+async function checkPendingUploads() {
+    try {
+        const allSettings = await dbGetAll('settings');
+        const pending = allSettings.filter(s => s.key && s.key.startsWith('pendingUpload_') && s.value);
+        if (pending.length === 0) return;
+        showToast(`${t('resumeUpload')} ${pending.length} ${APP.lang==='id'?'unggahan':'upload(s)'}`, 'info', 6000);
+    } catch(e) {}
+}
+
+// ===== FEATURE 5: PUSH NOTIFICATIONS (enhanced) =====
+function initNotifications() {
+    if (APP.settings.notifications && 'Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+
+// ===== FEATURE 6: THUMBNAIL CACHE =====
+async function getThumbnail(fileId, fileUrl) {
+    try {
+        const cached = await dbGet('thumbnails', fileId);
+        if (cached && cached.dataUrl && (Date.now() - cached.cachedAt < 7 * 86400000)) return cached.dataUrl;
+    } catch(e) {}
+    if (!fileUrl) return null;
+    try {
+        const dataUrl = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const c = document.createElement('canvas');
+                c.width = 64; c.height = 64;
+                const ctx = c.getContext('2d');
+                const ratio = Math.min(64/img.width, 64/img.height);
+                const w = img.width * ratio, h = img.height * ratio;
+                ctx.drawImage(img, (64-w)/2, (64-h)/2, w, h);
+                resolve(c.toDataURL('image/jpeg', 0.7));
+            };
+            img.onerror = () => reject('img err');
+            img.src = fileUrl;
+        });
+        await dbPut('thumbnails', { fileId, dataUrl, cachedAt: Date.now() });
+        return dataUrl;
+    } catch(e) { return null; }
+}
+async function clearOldThumbnails() {
+    try {
+        const all = await dbGetAll('thumbnails');
+        const cutoff = Date.now() - 7 * 86400000;
+        for (const t of all) {
+            if (t.cachedAt < cutoff) await dbDelete('thumbnails', t.fileId);
+        }
+    } catch(e) {}
+}
+async function loadThumbnailsForVisibleFiles(files) {
+    const imageFiles = files.filter(f => getFileType(f.name, f.mime) === 'image' && f.filePath);
+    for (const file of imageFiles.slice(0, 20)) {
+        const fileUrl = APP.settings.proxyMode !== false
+            ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}&name=${encodeURIComponent(file.name)}`
+            : `https://api.telegram.org/file/bot${APP.bots[0]?.token}/${file.filePath}`;
+        const thumb = await getThumbnail(file.id, fileUrl);
+        if (!thumb) continue;
+        const card = document.querySelector(`[data-file-id="${file.id}"] .file-icon-circle`);
+        if (card) {
+            card.innerHTML = `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+        }
+        const row = document.querySelector(`.file-row-premium [data-file-id="${file.id}"]`);
+    }
+}
+
+// ===== FEATURE 7: ADVANCED SEARCH =====
+function openAdvancedSearch() {
+    const s = APP.advancedSearch;
+    const isId = APP.lang === 'id';
+    const tagColors = ['#ef4444','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899','#06b6d4','#f97316'];
+    openModal(`<div style="padding:24px">
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:16px"><i class="fas fa-search-plus" style="color:var(--accent)"></i> ${t('advSearch')}</h3>
+        <div style="display:flex;flex-direction:column;gap:12px">
+            <div>
+                <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('nameContains')}</label>
+                <input type="text" id="adv-name" class="input" style="width:100%" value="${s.name||''}">
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('dateRange')}</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="date" id="adv-date-from" class="input" style="flex:1" value="${s.dateFrom||''}" placeholder="${t('from')}">
+                    <span style="color:var(--text-secondary)">—</span>
+                    <input type="date" id="adv-date-to" class="input" style="flex:1" value="${s.dateTo||''}" placeholder="${t('to')}">
+                </div>
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('sizeRange')}</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="number" id="adv-size-min" class="input" style="flex:1" value="${s.sizeMin||''}" placeholder="${isId?'Minimum':'Min'}">
+                    <span style="color:var(--text-secondary)">—</span>
+                    <input type="number" id="adv-size-max" class="input" style="flex:1" value="${s.sizeMax||''}" placeholder="${isId?'Maksimum':'Max'}">
+                    <select id="adv-size-unit" class="input" style="width:auto">
+                        <option value="KB" ${s.sizeUnit==='KB'?'selected':''}>KB</option>
+                        <option value="MB" ${s.sizeUnit==='MB'?'selected':''}>MB</option>
+                        <option value="GB" ${s.sizeUnit==='GB'?'selected':''}>GB</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('fileType')}</label>
+                <select id="adv-file-type" class="input" style="width:100%">
+                    <option value="all" ${s.fileType==='all'?'selected':''}>${isId?'Semua':'All'}</option>
+                    <option value="document" ${s.fileType==='document'?'selected':''}>${t('documents')}</option>
+                    <option value="image" ${s.fileType==='image'?'selected':''}>${t('photos')}</option>
+                    <option value="video" ${s.fileType==='video'?'selected':''}>${t('videos')}</option>
+                    <option value="audio" ${s.fileType==='audio'?'selected':''}>${t('audio')}</option>
+                    <option value="archive" ${s.fileType==='archive'?'selected':''}>${t('archives')}</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${isId?'Tag':'Tags'}</label>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">${tagColors.map(c => `<span class="tag-dot" style="background:${c};width:24px;height:24px;cursor:pointer;border-radius:50%;border:2px solid ${(s.tags||[]).includes(c)?c:'transparent'};opacity:${(s.tags||[]).includes(c)?1:0.4}" onclick="this.style.opacity=this.style.opacity==='1'?'0.4':'1';this.style.borderColor=this.style.opacity==='1'?this.style.background:'transparent';this.dataset.selected=this.style.opacity==='1'?'1':'0'" data-tag="${c}" data-selected="${(s.tags||[]).includes(c)?'1':'0'}"></span>`).join('')}</div>
+            </div>
+            <div>
+                <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${isId?'Urutkan':'Sort By'}</label>
+                <select id="adv-sort" class="input" style="width:100%">
+                    <option value="">${isId?'Default':'Default'}</option>
+                    <option value="name-asc">${t('sortByName')} A-Z</option>
+                    <option value="name-desc">${t('sortByName')} Z-A</option>
+                    <option value="date-asc">${t('sortByDate')} ${isId?'Terlama':'Oldest'}</option>
+                    <option value="date-desc">${t('sortByDate')} ${isId?'Terbaru':'Newest'}</option>
+                    <option value="size-asc">${t('sortBySize')} ${isId?'Terkecil':'Smallest'}</option>
+                    <option value="size-desc">${t('sortBySize')} ${isId?'Terbesar':'Largest'}</option>
+                </select>
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+            <button class="btn btn-secondary" onclick="clearAdvancedSearch()">${t('clearFilter')}</button>
+            <button class="btn btn-primary" onclick="applyAdvancedSearch()">${t('applyFilter')}</button>
+        </div>
+    </div>`);
+}
+function applyAdvancedSearch() {
+    const s = APP.advancedSearch;
+    s.name = document.getElementById('adv-name')?.value || '';
+    s.dateFrom = document.getElementById('adv-date-from')?.value || '';
+    s.dateTo = document.getElementById('adv-date-to')?.value || '';
+    s.sizeMin = document.getElementById('adv-size-min')?.value || '';
+    s.sizeMax = document.getElementById('adv-size-max')?.value || '';
+    s.sizeUnit = document.getElementById('adv-size-unit')?.value || 'MB';
+    s.fileType = document.getElementById('adv-file-type')?.value || 'all';
+    s.tags = [];
+    document.querySelectorAll('[data-tag][data-selected="1"]').forEach(el => s.tags.push(el.dataset.tag));
+    const sortVal = document.getElementById('adv-sort')?.value || '';
+    if (sortVal) { const [by, order] = sortVal.split('-'); APP.sortBy = by; APP.sortOrder = order; }
+    closeModal();
+    renderFileList();
+}
+function clearAdvancedSearch() {
+    APP.advancedSearch = { name:'', dateFrom:'', dateTo:'', sizeMin:'', sizeMax:'', sizeUnit:'MB', fileType:'all', tags:[] };
+    closeModal();
+    renderFileList();
+}
+function applyAdvancedSearchFilter(files) {
+    const s = APP.advancedSearch;
+    if (!s.name && !s.dateFrom && !s.dateTo && !s.sizeMin && !s.sizeMax && s.fileType === 'all' && (!s.tags || s.tags.length === 0)) return files;
+    let result = files;
+    if (s.name) { const q = s.name.toLowerCase(); result = result.filter(f => (f.name||'').toLowerCase().includes(q)); }
+    if (s.dateFrom) { const from = new Date(s.dateFrom).getTime(); result = result.filter(f => f.uploadedAt >= from); }
+    if (s.dateTo) { const to = new Date(s.dateTo).getTime() + 86400000; result = result.filter(f => f.uploadedAt <= to); }
+    if (s.sizeMin || s.sizeMax) {
+        const mult = s.sizeUnit === 'KB' ? 1024 : s.sizeUnit === 'GB' ? 1073741824 : 1048576;
+        if (s.sizeMin) { const min = parseFloat(s.sizeMin) * mult; result = result.filter(f => (f.size||0) >= min); }
+        if (s.sizeMax) { const max = parseFloat(s.sizeMax) * mult; result = result.filter(f => (f.size||0) <= max); }
+    }
+    if (s.fileType !== 'all') { result = result.filter(f => getFileType(f.name, f.mime) === s.fileType); }
+    if (s.tags && s.tags.length > 0) { result = result.filter(f => s.tags.includes(f.tag)); }
+    return result;
+}
 
 // ===== UTILITIES =====
 function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 9); }
@@ -1794,10 +2354,14 @@ async function requestNotifications() {
     if (perm === 'granted') { showToast(t('notifEnabled'), 'success'); }
     else { showToast(t('notifDenied'), 'warning'); }
 }
-function sendNotification(title, body) {
-    if (Notification.permission === 'granted') {
-        new Notification(title, { body, icon: '/api/favicon' });
-    }
+function sendNotification(title, body, icon) {
+    if (!APP.settings.notifications) return;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    try {
+        const n = new Notification(title, { body, icon: icon || '/api/favicon', badge: '/api/favicon' });
+        if (navigator.setAppBadge) navigator.setAppBadge(1).catch(()=>{});
+        n.onclose = () => { if (navigator.clearAppBadge) navigator.clearAppBadge().catch(()=>{}); };
+    } catch(e) {}
 }
 
 
@@ -1849,50 +2413,188 @@ function checkUrlRouting() {
     }
 }
 
+// ===== PIN LOCK GATE (Enhanced) =====
+let _pinAttempts = 0, _pinLocked = false, _pinLockTimer = null, _pinCreateMode = false, _pinFirstInput = '';
+
 function checkPinThenRender(callback) {
-    if (APP.settings.pinLock) {
-        showPinLock(callback);
-    } else {
-        callback();
-    }
+    if (APP.settings.pinLock) { showLockScreen(callback); }
+    else { callback(); }
 }
 
-function showPinLock(callback) {
+function showLockScreen(callback) {
     const overlay = document.getElementById('pin-lock-overlay');
     overlay.style.display = 'flex';
     overlay.style.opacity = '0';
-    requestAnimationFrame(() => { overlay.style.transition = 'opacity .3s ease'; overlay.style.opacity = '1'; });
-    overlay.innerHTML = `
-        <div style="text-align:center;max-width:320px;padding:24px">
-            <div style="width:64px;height:64px;border-radius:16px;background:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            </div>
-            <h2 style="margin-bottom:8px">${t('enterPin')}</h2>
-            <input type="password" id="pin-input" class="input" maxlength="6" placeholder="......" style="text-align:center;font-size:24px;letter-spacing:8px" onkeydown="if(event.key==='Enter')verifyPin()">
-            <p id="pin-error" style="color:#ef4444;font-size:13px;margin-top:8px;display:none">${t('wrongPin')}</p>
-            <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="verifyPin()">${t('confirm')}</button>
-        </div>`;
-    setTimeout(() => { const inp = document.getElementById('pin-input'); if (inp) inp.focus(); }, 100);
     overlay._callback = callback;
+    requestAnimationFrame(() => { overlay.style.transition = 'opacity .3s ease'; overlay.style.opacity = '1'; });
+    _pinAttempts = 0;
+    _pinCreateMode = false;
+    renderPinPad();
 }
 
-async function verifyPin() {
-    const inp = document.getElementById('pin-input');
-    const errEl = document.getElementById('pin-error');
-    if (!inp) return;
-    const hashed = await hashPin(inp.value);
-    if (hashed === APP.settings.pinLock) {
-        const ov = document.getElementById('pin-lock-overlay');
-        ov.style.opacity = '0';
-        setTimeout(() => { ov.style.display = 'none'; }, 300);
-        if (document.getElementById('pin-lock-overlay')._callback) {
-            document.getElementById('pin-lock-overlay')._callback();
-        }
-    } else {
-        if (errEl) errEl.style.display = 'block';
-        inp.value = '';
-        inp.focus();
+function hideLockScreen() {
+    const ov = document.getElementById('pin-lock-overlay');
+    ov.style.opacity = '0';
+    setTimeout(() => { ov.style.display = 'none'; }, 300);
+    initAutoLock(); // Reset auto-lock timer after unlock
+}
+
+function renderPinPad() {
+    const overlay = document.getElementById('pin-lock-overlay');
+    const isId = APP.lang === 'id';
+    const title = _pinCreateMode ? (isId ? 'Buat PIN' : 'Create PIN') : t('enterPin');
+    const subtitle = _pinCreateMode && _pinFirstInput ? (isId ? 'Konfirmasi PIN' : 'Confirm PIN') : (_pinCreateMode ? (isId ? 'Masukkan 4 digit PIN' : 'Enter 4-digit PIN') : '');
+    overlay.innerHTML = `
+    <div style="text-align:center;max-width:320px;padding:24px;position:relative;color:#e2e8f0">
+        <div style="width:64px;height:64px;border-radius:16px;background:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </div>
+        <h2 style="margin-bottom:4px;color:#f1f5f9">${title}</h2>
+        ${subtitle ? `<p style="font-size:13px;color:#94a3b8;margin-bottom:12px">${subtitle}</p>` : ''}
+        <div id="pin-dots" style="display:flex;gap:12px;justify-content:center;margin:20px 0">
+            ${[0,1,2,3].map(i => `<div id="pin-dot-${i}" style="width:14px;height:14px;border-radius:50%;border:2px solid #475569;transition:all .15s ease"></div>`).join('')}
+        </div>
+        <p id="pin-error" style="color:#ef4444;font-size:13px;margin:0 0 8px;min-height:18px"></p>
+        <div id="pin-lockout-msg" style="display:none;color:#ef4444;font-size:14px;font-weight:600;margin-bottom:8px"></div>
+        <div id="pin-numpad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:0 auto">
+            ${[1,2,3,4,5,6,7,8,9,'',0,'del'].map(k => {
+                if (k === '') return '<div></div>';
+                if (k === 'del') return `<button class="btn btn-ghost" style="font-size:18px;padding:14px;color:#94a3b8" onclick="pinBackspace()"><i class="fas fa-backspace"></i></button>`;
+                return `<button style="width:56px;height:56px;border-radius:50%;border:1px solid #475569;background:rgba(30,41,59,.8);font-size:22px;font-weight:500;cursor:pointer;transition:all .1s;color:#e2e8f0" onmousedown="this.style.background='var(--accent)';this.style.color='#fff'" onmouseup="this.style.background='rgba(30,41,59,.8)';this.style.color='#e2e8f0'" onmouseleave="this.style.background='rgba(30,41,59,.8)';this.style.color='#e2e8f0'" onclick="pinDigit(${k})">${k}</button>`;
+            }).join('')}
+        </div>
+        ${_pinCreateMode ? `<button class="btn btn-ghost" style="margin-top:16px;font-size:13px;color:#94a3b8" onclick="cancelPinCreate()">${t('cancel')}</button>` : ''}
+        ${(!_pinCreateMode && localStorage.getItem('rb_biometric_id') && window.PublicKeyCredential) ? `<button style="margin-top:12px;width:56px;height:56px;border-radius:50%;border:2px solid #475569;background:rgba(30,41,59,.8);font-size:24px;cursor:pointer;transition:all .15s;color:#e2e8f0" onclick="verifyBiometric().then(ok=>{if(ok){hideLockScreen();const cb=document.getElementById('pin-lock-overlay')._callback;if(cb)cb()}else{showToast(t('wrongPin'),'error')}})" title="${t('biometricUnlock')}"><i class="fas fa-fingerprint"></i></button>` : ''}
+    </div>`;
+    overlay._pinValue = '';
+    if (_pinLocked) showPinLockout();
+}
+
+let _pinValue = '';
+function pinDigit(d) {
+    if (_pinLocked) return;
+    const overlay = document.getElementById('pin-lock-overlay');
+    if (!overlay._pinValue) overlay._pinValue = '';
+    if (overlay._pinValue.length >= 4) return;
+    overlay._pinValue += d;
+    updatePinDots(overlay._pinValue.length);
+    if (overlay._pinValue.length === 4) {
+        setTimeout(() => checkPin(overlay._pinValue), 150);
     }
+}
+
+function pinBackspace() {
+    if (_pinLocked) return;
+    const overlay = document.getElementById('pin-lock-overlay');
+    if (!overlay._pinValue) return;
+    overlay._pinValue = overlay._pinValue.slice(0, -1);
+    updatePinDots(overlay._pinValue.length);
+}
+
+function updatePinDots(count) {
+    for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById(`pin-dot-${i}`);
+        if (!dot) continue;
+        if (i < count) { dot.style.background = 'var(--accent)'; dot.style.borderColor = 'var(--accent)'; dot.style.transform = 'scale(1.2)'; }
+        else { dot.style.background = 'transparent'; dot.style.borderColor = '#475569'; dot.style.transform = 'scale(1)'; }
+    }
+}
+
+async function checkPin(input) {
+    if (_pinCreateMode) {
+        if (!_pinFirstInput) {
+            _pinFirstInput = input;
+            const overlay = document.getElementById('pin-lock-overlay');
+            overlay._pinValue = '';
+            renderPinPad(); // Re-render with confirm subtitle
+        } else {
+            if (input === _pinFirstInput) {
+                APP.settings.pinLock = await hashPin(input);
+                await saveSetting('pinLock', APP.settings.pinLock);
+                _pinCreateMode = false;
+                _pinFirstInput = '';
+                hideLockScreen();
+                const cb = document.getElementById('pin-lock-overlay')._callback;
+                if (cb) cb();
+                showToast(APP.lang==='id'?'PIN berhasil dibuat':'PIN created successfully', 'success');
+            } else {
+                _pinFirstInput = '';
+                document.getElementById('pin-error').textContent = APP.lang==='id'?'PIN tidak cocok, coba lagi':'PINs do not match, try again';
+                shakePinDots();
+                const overlay = document.getElementById('pin-lock-overlay');
+                overlay._pinValue = '';
+                setTimeout(() => renderPinPad(), 800);
+            }
+        }
+        return;
+    }
+    const hashed = await hashPin(input);
+    if (hashed === APP.settings.pinLock) {
+        _pinAttempts = 0;
+        hideLockScreen();
+        const cb = document.getElementById('pin-lock-overlay')._callback;
+        if (cb) cb();
+    } else {
+        _pinAttempts++;
+        const errEl = document.getElementById('pin-error');
+        if (errEl) errEl.textContent = t('wrongPin') + ` (${_pinAttempts}/5)`;
+        shakePinDots();
+        const overlay = document.getElementById('pin-lock-overlay');
+        overlay._pinValue = '';
+        updatePinDots(0);
+        if (_pinAttempts >= 5) {
+            _pinLocked = true;
+            _pinLockTimer = Date.now() + 30000;
+            showPinLockout();
+        }
+    }
+}
+
+function shakePinDots() {
+    const dots = document.getElementById('pin-dots');
+    if (!dots) return;
+    dots.style.animation = 'none'; dots.offsetHeight;
+    dots.style.animation = 'pinShake .4s ease';
+}
+
+function showPinLockout() {
+    const numpad = document.getElementById('pin-numpad');
+    const msg = document.getElementById('pin-lockout-msg');
+    if (numpad) numpad.style.opacity = '0.3'; numpad && (numpad.style.pointerEvents = 'none');
+    if (msg) msg.style.display = 'block';
+    const tick = () => {
+        const remain = Math.max(0, Math.ceil((_pinLockTimer - Date.now()) / 1000));
+        if (msg) msg.textContent = (APP.lang==='id'?'Coba lagi dalam':'Try again in') + ` ${remain}s`;
+        if (remain <= 0) {
+            _pinLocked = false; _pinAttempts = 0;
+            if (numpad) { numpad.style.opacity = '1'; numpad.style.pointerEvents = 'auto'; }
+            if (msg) msg.style.display = 'none';
+            const overlay = document.getElementById('pin-lock-overlay');
+            overlay._pinValue = '';
+            updatePinDots(0);
+            const errEl = document.getElementById('pin-error');
+            if (errEl) errEl.textContent = '';
+            return;
+        }
+        requestAnimationFrame(tick);
+    };
+    tick();
+}
+
+function cancelPinCreate() {
+    _pinCreateMode = false; _pinFirstInput = '';
+    const overlay = document.getElementById('pin-lock-overlay');
+    overlay.style.display = 'none';
+}
+
+function startPinCreate() {
+    _pinCreateMode = true; _pinFirstInput = '';
+    closeModal();
+    const overlay = document.getElementById('pin-lock-overlay');
+    overlay.style.display = 'flex';
+    overlay.style.opacity = '1';
+    overlay._callback = null;
+    renderPinPad();
 }
 
 // ===== HEADER =====
@@ -1923,19 +2625,18 @@ function renderHeader() {
             <button class="header-pill-btn" onclick="toggleTheme()" title="${t('theme')}">
                 <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'}"></i>
             </button>
-            <button class="header-pill-btn" onclick="toggleLang()" title="${t('language')}">
-                <span style="font-size:11px;font-weight:600">${APP.lang === 'id' ? 'ID' : 'EN'}</span>
+            <button class="header-pill-btn" onclick="cycleLang()" title="${t('language')}">
+                <span style="font-size:11px;font-weight:600">${APP.lang.toUpperCase()}</span>
             </button>
             ${!isHome ? `<a href="#/" class="header-pill-btn"><i class="fas fa-home"></i></a>` : ''}
             ${isHome ? `<a href="#/dashboard" class="header-pill-btn" style="background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;border:none;box-shadow:0 2px 10px rgba(59,130,246,.3)"><i class="fas fa-rocket"></i> <span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
         </header>`;
 }
 
-function toggleLang() {
-    APP.lang = APP.lang === 'id' ? 'en' : 'id';
-    localStorage.setItem('rb_lang', APP.lang);
-    renderHeader();
-    checkUrlRouting();
+function cycleLang() {
+    const langs = ['id','en','ja','ko','ar'];
+    const idx = langs.indexOf(APP.lang);
+    setLang(langs[(idx + 1) % langs.length]);
 }
 
 // ===== VIEW MODE TOGGLE (Mobile/Desktop) =====
@@ -2204,10 +2905,7 @@ function hideHoverPreview() {
 }
 
 // ===== STORAGE WARNING SYSTEM =====
-function getStorageLimitBytes() {
-    const customLimit = parseInt(localStorage.getItem('rb_storage_limit_gb'));
-    return (customLimit > 0 ? customLimit : 2) * 1024 * 1024 * 1024;
-}
+// getStorageLimitBytes() defined at end of file
 function getStorageWarningLevel(usedBytes) {
     const limit = getStorageLimitBytes();
     const pct = limit > 0 ? (usedBytes / limit) * 100 : 0;
@@ -2237,6 +2935,7 @@ function renderStorageWarningBanner() {
     const msg = level === 'red'
         ? (isId ? `Penyimpanan hampir penuh! ${pct.toFixed(1)}% terpakai (${formatSize(totalUsed)} / ${formatSize(limit)})` : `Storage almost full! ${pct.toFixed(1)}% used (${formatSize(totalUsed)} / ${formatSize(limit)})`)
         : (isId ? `Penyimpanan tinggi: ${pct.toFixed(1)}% terpakai (${formatSize(totalUsed)} / ${formatSize(limit)})` : `Storage usage high: ${pct.toFixed(1)}% used (${formatSize(totalUsed)} / ${formatSize(limit)})`);
+    if (!localStorage.getItem('rb_storage_notif_sent')) { sendNotification('Ridgebox', isId ? `Peringatan penyimpanan: ${pct.toFixed(1)}% terpakai` : `Storage warning: ${pct.toFixed(1)}% used`); localStorage.setItem('rb_storage_notif_sent', '1'); }
     return `<div class="storage-warning-banner ${levelClass}">
         <i class="fas ${icon}"></i>
         <span>${msg}</span>
@@ -2394,7 +3093,8 @@ function openDetailPanel(fileId) {
                         <i class="fas ${icon.icon}" style="font-size:32px;color:${icon.color}"></i>
                     </div>
                     <h4 style="font-size:15px;font-weight:600;word-break:break-all">${file.name}</h4>
-                    ${file.caption ? `<p style="font-size:12px;color:var(--text-secondary);margin-top:4px">${file.caption}</p>` : ''}
+                    ${file.caption ? `<p id="detail-desc-${file.id}" style="font-size:12px;color:var(--text-secondary);margin-top:4px;cursor:pointer;display:flex;align-items:center;gap:6px" onclick="startEditDescription('${file.id}')">${file.caption} <i class="fas fa-pen" style="font-size:10px;opacity:.5"></i></p>` : `<p id="detail-desc-${file.id}" style="font-size:12px;color:var(--text-secondary);margin-top:4px;cursor:pointer;font-style:italic;opacity:.6" onclick="startEditDescription('${file.id}')">${t('addCaption')} <i class="fas fa-pen" style="font-size:10px;opacity:.5"></i></p>`}
+                    <span id="desc-saved-indicator" style="font-size:11px;color:#10b981;opacity:0;transition:opacity .3s ease">✓ ${t('save')}</span>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:20px">
                     <div class="detail-stat"><span style="color:var(--text-secondary);font-size:11px">${APP.lang==='id'?'Ukuran':'Size'}</span><br><strong>${formatSize(file.size)}</strong></div>
@@ -2405,8 +3105,9 @@ function openDetailPanel(fileId) {
                 ${file.tag ? `<div style="margin-bottom:14px"><span class="detail-badge" style="background:${file.tag}15;color:${file.tag};cursor:pointer" onclick="toggleTagFilter('${file.tag}')"><span class="tag-dot" style="background:${file.tag};margin-right:4px;width:8px;height:8px"></span>${type}</span></div>` : ''}
                 ${file.encrypted ? `<div style="margin-bottom:14px"><span class="detail-badge" style="background:rgba(59,130,246,.1);color:#3b82f6"><i class="fas fa-lock" style="margin-right:4px"></i>${t('encrypted')}</span></div>` : ''}
                 ${renderDetailTagPicker(fileId)}
+                ${renderNotesSection(fileId)}
                 <div style="display:flex;flex-direction:column;gap:8px">
-                    <button class="detail-action detail-action-primary" onclick="openPreview('${fileId}');closeDetailPanel()"><i class="fas fa-eye"></i> ${t('preview')}</button>
+                    ${(type==='video'||type==='audio')?`<button class="detail-action detail-action-primary" onclick="openMediaPlayer('${fileId}');closeDetailPanel()"><i class="fas fa-play"></i> ${APP.lang==='id'?'Putar':'Play'}</button>`:`<button class="detail-action detail-action-primary" onclick="openPreview('${fileId}');closeDetailPanel()"><i class="fas fa-eye"></i> ${t('preview')}</button>`}
                     <button class="detail-action detail-action-secondary" onclick="openShareModal('${fileId}');closeDetailPanel()"><i class="fas fa-share-alt"></i> ${t('share')}</button>
                     <button class="detail-action detail-action-secondary" onclick="downloadFile('${fileId}');closeDetailPanel()"><i class="fas fa-download"></i> ${t('download')}</button>
                     ${!file.trashed ? `<button class="detail-action detail-action-danger" onclick="moveToTrash('${fileId}')"><i class="fas fa-trash"></i> ${t('delete')}</button>` : `<button class="detail-action detail-action-secondary" onclick="restoreFile('${fileId}')"><i class="fas fa-undo"></i> ${t('restore')}</button> <button class="detail-action detail-action-danger" onclick="deletePermanently('${fileId}')"><i class="fas fa-times-circle"></i> ${t('delete')}</button>`}
@@ -2478,6 +3179,7 @@ function updateQuickActions() {
     bar.classList.add('visible');
     bar.innerHTML = `
         <span style="font-size:13px;color:var(--text-secondary)">${APP.selectedFiles.size} ${APP.lang==='id'?'dipilih':'selected'}</span>
+        <button class="btn btn-secondary btn-sm" onclick="openBulkRenameModal()"><i class="fas fa-i-cursor"></i> ${t('bulkRename')}</button>
         <button class="btn btn-secondary btn-sm" onclick="bulkMoveToFolder()"><i class="fas fa-folder-open"></i> ${APP.lang==='id'?'Pindah':'Move'}</button>
         <button class="btn btn-danger btn-sm" onclick="bulkDelete()"><i class="fas fa-trash"></i> ${t('bulkDelete')}</button>
         <button class="btn btn-secondary btn-sm" onclick="bulkDownloadZip()"><i class="fas fa-download"></i> ${t('bulkDownload')}</button>
@@ -3563,6 +4265,7 @@ function renderDashboard() {
                 <div class="search-premium" style="flex:1;min-width:200px">
                     <i class="fas fa-search"></i>
                     <input type="text" placeholder="${t('search')}" value="${APP.searchQuery}" oninput="APP.searchQuery=this.value;renderFileList()">
+                    <button class="toolbar-action-btn" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);padding:4px 6px;font-size:11px" onclick="openAdvancedSearch()" title="${t('advSearch')}"><i class="fas fa-search-plus"></i></button>
                 </div>
                 <button class="toolbar-upload-btn" onclick="triggerUpload()"><i class="fas fa-plus"></i> ${t('upload')}</button>
                 <div class="toolbar-group">
@@ -3621,6 +4324,7 @@ function renderDashboard() {
                         <div class="quick-action-pill" onclick="openVideoRecord()"><i class="fas fa-video"></i> ${APP.lang==='id'?'Rekam':'Record'}</div>
                         <div class="quick-action-pill" onclick="openUrlUpload()"><i class="fas fa-link"></i> URL</div>
                         <div class="quick-action-pill" onclick="openQrScan()"><i class="fas fa-qrcode"></i> ${APP.lang==='id'?'Pindai':'Scan'}</div>
+                        <div class="quick-action-pill" onclick="openDuplicateChecker()"><i class="fas fa-clone"></i> ${APP.lang==='id'?'Cek Duplikat':'Duplicates'}</div>
                     </div>
                     <!-- Cards Row: Storage + Weekly + Top Files -->
                     <div class="dash-cards-row" id="dash-cards-row">
@@ -3638,6 +4342,7 @@ function renderDashboard() {
                 </div>
             </div>
             <!-- File List -->
+            <div id="ptr-indicator" style="text-align:center;padding:0;height:0;overflow:hidden;transition:height .2s ease"><div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);margin:8px auto;box-shadow:var(--shadow-sm)"><i class="fas fa-arrow-down" id="ptr-arrow" style="font-size:12px;color:var(--text-secondary);transition:transform .2s ease"></i></div></div>
             <div id="file-list-container" style="flex:1;overflow-y:auto;padding:0 20px 20px"></div>
         </div>
         <!-- Right Sidebar: Activity Timeline -->
@@ -3659,6 +4364,7 @@ function renderDashboard() {
     restoreScheduledUploads(); // F80
     initHoverPreview();
     checkStorageWarningToast();
+    setupPullToRefresh();
     // Start carousel auto-scroll
     if (APP.files.filter(f => !f.trashed).length > 0) {
         setTimeout(() => startCarouselAutoScroll(), 1000);
@@ -3686,7 +4392,7 @@ function renderSidebarHTML() {
 
     // Storage calculation
     const totalUsed = APP.files.filter(f => !f.trashed).reduce((sum, f) => sum + (f.size || 0), 0);
-    const maxStorage = APP.settings.maxUploadSize * 1024 * 1024 * 100; // Approximate
+    const maxStorage = getStorageLimitBytes();
     const usedPercent = maxStorage > 0 ? Math.min((totalUsed / maxStorage) * 100, 100) : 0;
 
     return `
@@ -3713,7 +4419,8 @@ function renderSidebarHTML() {
                 <span>${formatSize(totalUsed)} ${APP.lang==='id'?'digunakan':'used'}</span>
                 <span>${usedPercent.toFixed(1)}%</span>
             </div>
-        </div>`;
+        </div>
+        <div id="auto-lock-countdown" style="display:none;align-items:center;gap:4px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--text-secondary);background:var(--bg-secondary);border-radius:8px"></div>`;
 }
 
 // ===== SELECT FOLDER (integrated) =====
@@ -3838,10 +4545,29 @@ async function renderFileList() {
     // Clear history / empty trash buttons
     let actionBtns = '';
     if (APP.currentFolder === 'trash' && files.length > 0) {
+        const isId = APP.lang === 'id';
+        const purgeDays = APP.settings.trashPurgeDays;
+        const now = Date.now();
         actionBtns = `<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-            <button class="clear-history-btn" onclick="emptyTrash()"><i class="fas fa-trash-alt"></i> ${APP.lang==='id'?'Kosongkan Sampah':'Empty Trash'}</button>
-            <button class="clear-history-btn" style="background:rgba(16,185,129,.08);color:#10b981;border-color:rgba(16,185,129,.2)" onclick="restoreAllTrash()"><i class="fas fa-undo"></i> ${APP.lang==='id'?'Pulihkan Semua':'Restore All'}</button>
+            <button class="clear-history-btn" onclick="emptyTrash()"><i class="fas fa-trash-alt"></i> ${isId?'Kosongkan Sampah':'Empty Trash'}</button>
+            <button class="clear-history-btn" style="background:rgba(16,185,129,.08);color:#10b981;border-color:rgba(16,185,129,.2)" onclick="restoreAllTrash()"><i class="fas fa-undo"></i> ${isId?'Pulihkan Semua':'Restore All'}</button>
         </div>`;
+        if (purgeDays > 0) {
+            const urgentFiles = files.filter(f => {
+                const daysLeft = Math.max(0, purgeDays - Math.floor((now - (f.trashedAt || 0)) / 86400000));
+                return daysLeft < 3;
+            });
+            if (urgentFiles.length > 0) {
+                const minDays = files.reduce((min, f) => {
+                    const d = Math.max(0, purgeDays - Math.floor((now - (f.trashedAt || 0)) / 86400000));
+                    return d < min ? d : min;
+                }, Infinity);
+                actionBtns = `<div style="padding:10px 14px;background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(249,115,22,.08));border:1px solid rgba(239,68,68,.2);border-radius:10px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+                    <i class="fas fa-exclamation-triangle" style="color:#ef4444"></i>
+                    <span style="font-size:13px;color:#ef4444;font-weight:500">${urgentFiles.length} ${isId?'file akan dihapus permanen dalam':'file(s) will be permanently deleted in'} ${minDays} ${isId?'hari':'day(s)'}</span>
+                </div>` + actionBtns;
+            }
+        }
     } else if (APP.currentFolder === 'recent' && files.length > 0) {
         actionBtns = `<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
             <button class="clear-history-btn" onclick="clearRecentHistory()"><i class="fas fa-broom"></i> ${APP.lang==='id'?'Hapus Riwayat':'Clear History'}</button>
@@ -3862,6 +4588,7 @@ async function renderFileList() {
     updateQuickActions();
     initSwipeGestures();
     initLongPressGestures();
+    loadThumbnailsForVisibleFiles(files);
 }
 
 function getFilteredFiles() {
@@ -3902,6 +4629,7 @@ function getFilteredFiles() {
         files = files.filter(f =>
             (f.name || '').toLowerCase().includes(q) ||
             (f.caption || '').toLowerCase().includes(q) ||
+            (f.notes || '').toLowerCase().includes(q) ||
             (f.folderId || '').toLowerCase().includes(q) ||
             getFileType(f.name, f.mime).includes(q)
         );
@@ -3912,6 +4640,9 @@ function getFilteredFiles() {
         files = files.filter(f => f.tag === APP.tagFilter);
     }
 
+    // Feature 7: Advanced search filter
+    files = applyAdvancedSearchFilter(files);
+
     return files;
 }
 
@@ -3920,7 +4651,7 @@ function renderFileGridItem(file, index) {
     const icon = getFileIcon(type);
     const selected = APP.selectedFiles.has(file.id);
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
-    const trashDays = file.trashed ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : 0;
+    const trashDays = file.trashed && APP.settings.trashPurgeDays > 0 ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : -1;
 
     return `<div class="file-card-premium file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''}" 
         onclick="handleFileClick(event, '${file.id}', ${index})"
@@ -3933,6 +4664,7 @@ function renderFileGridItem(file, index) {
         ${file.pinned ? '<i class="fas fa-thumbtack" style="position:absolute;top:8px;right:8px;font-size:10px;color:var(--accent)"></i>' : ''}
         ${file.starred ? '<i class="fas fa-star" style="position:absolute;top:8px;right:24px;font-size:10px;color:#f59e0b"></i>' : ''}
         ${file.encrypted ? '<i class="fas fa-lock" style="position:absolute;top:8px;right:' + (file.pinned && file.starred ? '40px' : file.pinned || file.starred ? '24px' : '8px') + ';font-size:10px;color:#3b82f6"></i>' : ''}
+        ${file.notes ? '<i class="fas fa-sticky-note" style="position:absolute;top:8px;right:' + (file.pinned && file.starred && file.encrypted ? '56px' : (file.pinned && file.starred) || (file.pinned && file.encrypted) || (file.starred && file.encrypted) ? '40px' : file.pinned || file.starred || file.encrypted ? '24px' : '8px') + ';font-size:10px;color:#f59e0b;opacity:.7"></i>' : ''}
         ${file.trashed ? `<button class="grid-quick-delete" style="background:rgba(239,68,68,.9)" onclick="event.stopPropagation();deletePermanently('${file.id}')"><i class="fas fa-times"></i></button>` : `<button class="grid-quick-delete" onclick="event.stopPropagation();quickDeleteFile('${file.id}')"><i class="fas fa-times"></i></button>`}
         <div style="text-align:center;padding:8px 0">
             <div class="file-icon-circle" style="background:${icon.color}15">
@@ -3942,7 +4674,17 @@ function renderFileGridItem(file, index) {
             <div style="font-size:11px;color:var(--text-secondary);margin-top:3px">${formatSize(file.size)} · ${formatDate(file.uploadedAt)}</div>
             ${versions.length > 1 ? `<span class="badge" style="background:#8b5cf620;color:#8b5cf6;margin-top:6px">v${file.version || 1}/${versions.length}</span>` : ''}
             ${file.tag ? `<span class="tag-dot" style="background:${file.tag};margin-top:4px" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
-            ${file.trashed && trashDays > 0 ? `<div style="font-size:10px;color:#ef4444;margin-top:4px"><i class="fas fa-clock"></i> ${trashDays}d</div>` : ''}
+            ${file.trashed && trashDays >= 0 ? (() => {
+                const isId = APP.lang === 'id';
+                const urgent = trashDays < 1;
+                const warn = trashDays < 3;
+                const pct = APP.settings.trashPurgeDays > 0 ? Math.max(0, Math.min(100, ((APP.settings.trashPurgeDays - trashDays) / APP.settings.trashPurgeDays) * 100)) : 0;
+                const color = urgent ? '#ef4444' : warn ? '#f97316' : '#f59e0b';
+                return `<div style="margin-top:6px;width:100%">
+                    <div style="font-size:10px;color:${color};font-weight:${urgent?'700':'400'}"><i class="fas fa-clock"></i> ${isId?'Dihapus dalam':'Deleted in'} ${trashDays} ${isId?'hari':'day(s)'}</div>
+                    <div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:2px;transition:width .3s ease"></div></div>
+                </div>`;
+            })() : ''}
         </div>
         ${APP.batchMode ? `<div style="position:absolute;top:8px;left:8px;width:20px;height:20px;border-radius:4px;border:2px solid ${selected ? 'var(--accent)' : 'var(--border)'};background:${selected ? 'var(--accent)' : 'transparent'};display:flex;align-items:center;justify-content:center">${selected ? '<i class="fas fa-check" style="color:#fff;font-size:10px"></i>' : ''}</div>` : ''}
     </div>`;
@@ -3953,7 +4695,7 @@ function renderFileListRow(file, index) {
     const icon = getFileIcon(type);
     const selected = APP.selectedFiles.has(file.id);
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
-    const trashDays = file.trashed ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : 0;
+    const trashDays = file.trashed && APP.settings.trashPurgeDays > 0 ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : -1;
 
     return `<div class="file-row-premium file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''}"
         onclick="handleFileClick(event, '${file.id}', ${index})"
@@ -3972,11 +4714,22 @@ function renderFileListRow(file, index) {
                 ${file.pinned ? '<i class="fas fa-thumbtack" style="font-size:10px;color:var(--accent)"></i>' : ''}
                 ${file.starred ? '<i class="fas fa-star" style="font-size:10px;color:#f59e0b"></i>' : ''}
                 ${file.encrypted ? '<i class="fas fa-lock" style="font-size:10px;color:#3b82f6"></i>' : ''}
+                ${file.notes ? '<i class="fas fa-sticky-note" style="font-size:10px;color:#f59e0b;opacity:.7" title="Has notes"></i>' : ''}
                 ${file.tag ? `<span class="tag-dot" style="background:${file.tag};width:8px;height:8px" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
                 ${versions.length > 1 ? `<span class="badge" style="background:#8b5cf620;color:#8b5cf6;font-size:10px">v${file.version || 1}</span>` : ''}
-                ${trashDays > 0 ? `<span style="font-size:10px;color:#ef4444"><i class="fas fa-clock"></i>${trashDays}d</span>` : ''}
+                ${file.trashed && trashDays >= 0 ? (() => {
+                    const urgent = trashDays < 1;
+                    const warn = trashDays < 3;
+                    const color = urgent ? '#ef4444' : warn ? '#f97316' : '#f59e0b';
+                    return `<span style="font-size:10px;color:${color};font-weight:${urgent?'700':'400'}"><i class="fas fa-clock"></i> ${trashDays}d</span>`;
+                })() : ''}
             </div>
             <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">${formatSize(file.size)} · ${formatDate(file.uploadedAt)}${file.caption ? ' · ' + file.caption.substring(0, 30) : ''}</div>
+            ${file.trashed && trashDays >= 0 ? (() => {
+                const pct = APP.settings.trashPurgeDays > 0 ? Math.max(0, Math.min(100, ((APP.settings.trashPurgeDays - trashDays) / APP.settings.trashPurgeDays) * 100)) : 0;
+                const color = trashDays < 1 ? '#ef4444' : trashDays < 3 ? '#f97316' : '#f59e0b';
+                return `<div style="height:3px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:2px;transition:width .3s ease"></div></div>`;
+            })() : ''}
         </div>
         <div class="row-actions action-btns">
             <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openPreview('${file.id}')" title="${t('preview')}"><i class="fas fa-eye"></i></button>
@@ -4258,6 +5011,27 @@ async function executeUpload(file, folderParam) {
     const bot = APP.bots[0];
     if (!bot) { showToast(t('uploadError') + ': No bot configured', 'error'); return; }
 
+    // Feature 4: Chunked upload for large files (>10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        APP.activeUploads++;
+        updateGlobalProgress();
+        try {
+            await executeChunkedUpload(file, folderParam);
+            APP.activeUploads--;
+            updateGlobalProgress();
+            showToast(`${file.name} ${t('uploaded')}`, 'success');
+            sendNotification('Ridgebox', `${file.name} uploaded`);
+            logActivity('upload', `${APP.lang==='id'?'Mengunggah':'Uploaded'} ${file.name}`);
+            triggerWebhook('file.uploaded', { fileId: file.name, fileName: file.name, fileSize: file.size, fileType: getFileType(file.name, file.type) });
+            checkStorageWarning();
+        } catch(e) {
+            APP.activeUploads--;
+            updateGlobalProgress();
+            showToast(t('uploadError') + ': ' + e.message, 'error');
+        }
+        return;
+    }
+
     APP.activeUploads++;
     updateGlobalProgress();
 
@@ -4351,6 +5125,8 @@ async function executeUpload(file, folderParam) {
             showToast(t('uploaded'), 'success');
             sendNotification('Ridgebox', `${file.name} ${t('uploaded').toLowerCase()}`);
             logActivity('upload', `${APP.lang==='id'?'Mengunggah':'Uploaded'} ${file.name}`);
+            triggerWebhook('file.uploaded', { fileId: meta.id, fileName: meta.name, fileSize: meta.size, fileType: fileType, folderId: meta.folderId });
+            checkStorageWarning();
             updateUploadPreviewProgress(file.name, 100);
             setTimeout(clearUploadPreview, 2000);
             // Minimize smart upload zone after first upload
@@ -4606,6 +5382,7 @@ async function deletePermanently(fileId) {
             APP.selectedFiles.delete(fileId);
             closeDetailPanel();
             closeContextMenu();
+            if (file) triggerWebhook('file.deleted', { fileId, fileName: file.name, fileSize: file.size });
             showToast(t('deletedForever'), 'info');
             await refreshUI();
         },
@@ -5249,6 +6026,7 @@ async function createShareLink(fileId) {
     await saveShare(share);
     APP.shares.push(share);
     if (file) { file.shareCount = (file.shareCount || 0) + 1; await saveFile(file); }
+    triggerWebhook('file.shared', { fileId, fileName: file.name, fileSize: file.size, shareId: share.id, permission });
     // Encode file info into the share URL so it works cross-device
     const payload = {
         fn: file.name,
@@ -5540,6 +6318,8 @@ function incrementShareDownloadCount(shareId) {
         localShare.lastAccessedAt = Date.now();
         localShare.lastAccess = Date.now();
         saveShare(localShare);
+        const file = APP.files.find(f => f.id === localShare.fileId);
+        sendNotification('Ridgebox', APP.lang==='id'?`Link bagikan "${file?.name||'file'}" diakses`:`Share link for "${file?.name||'file'}" accessed`);
     }
 }
 
@@ -5739,14 +6519,8 @@ function openPreview(fileId) {
         : `https://api.telegram.org/file/bot${APP.bots[0]?.token}/${file.filePath}`;
     if (type === 'image') {
         previewContent = `<div style="text-align:center"><img src="${downloadUrl}" style="max-width:100%;max-height:60vh;border-radius:8px" alt="${file.name}" onerror="this.src='';this.alt='Failed to load'"></div>`;
-    } else if (type === 'video') {
-        previewContent = `<video controls style="width:100%;max-height:60vh;border-radius:8px" src="${downloadUrl}">Browser tidak mendukung video</video>`;
-    } else if (type === 'audio') {
-        previewContent = `
-            <div style="text-align:center">
-                <div id="waveform-container" style="height:60px;display:flex;align-items:flex-end;justify-content:center;gap:1px;margin-bottom:16px"></div>
-                <audio controls style="width:100%" src="${downloadUrl}" id="audio-preview" onloadedmetadata="generateWaveform(this)">Browser tidak mendukung audio</audio>
-            </div>`;
+    } else if (type === 'video' || type === 'audio') {
+        openMediaPlayer(fileId); return;
     } else if (type === 'pdf') {
         previewContent = `<iframe src="${downloadUrl}" style="width:100%;height:60vh;border:none;border-radius:8px"></iframe>`;
     } else if (type === 'code' || (file.name && file.name.endsWith('.md'))) {
@@ -5982,13 +6756,16 @@ function openSettings() {
 
             <!-- F77: PIN Lock -->
             <div style="margin-bottom:20px">
-                <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px">${t('pinSetup')}</label>
-                <div style="display:flex;gap:8px">
-                    <input type="password" id="setting-pin" class="input" placeholder="${APP.settings.pinLock ? '••••' : '••••'}" maxlength="6" style="flex:1">
-                    <button class="btn btn-primary btn-sm" onclick="setPinLock()">${t('save')}</button>
-                    ${APP.settings.pinLock ? `<button class="btn btn-danger btn-sm" onclick="removePinLock()"><i class="fas fa-trash"></i></button>` : ''}
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <label style="font-size:14px;font-weight:500">${APP.lang==='id'?'Kunci PIN':'PIN Lock'}</label>
+                        <p style="font-size:12px;color:var(--text-secondary)">${APP.settings.pinLock ? (APP.lang==='id'?'PIN aktif · Ketuk untuk mengubah':'PIN active · Tap to change') : (APP.lang==='id'?'Aktifkan kunci PIN 4 digit':'Enable 4-digit PIN lock')}</p>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn ${APP.settings.pinLock ? 'btn-secondary' : 'btn-primary'} btn-sm" onclick="startPinCreate()">${APP.settings.pinLock ? (APP.lang==='id'?'Ubah':'Change') : (APP.lang==='id'?'Buat':'Create')}</button>
+                        ${APP.settings.pinLock ? `<button class="btn btn-danger btn-sm" onclick="removePinLock()"><i class="fas fa-trash"></i></button>` : ''}
+                    </div>
                 </div>
-                <p style="font-size:12px;color:var(--text-secondary);margin-top:4px">${APP.lang==='id'?'PIN di-hash SHA-256 sebelum disimpan':'PIN is SHA-256 hashed before storing'}</p>
             </div>
 
             <!-- F82: Trash Purge Days -->
@@ -6055,7 +6832,36 @@ function openSettings() {
 
             <!-- Notifications -->
             <div style="margin-bottom:20px">
-                <button class="btn btn-secondary" onclick="requestNotifications()"><i class="fas fa-bell"></i> ${t('enableNotif')}</button>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <label style="font-size:14px;font-weight:500">${t('notificationsSetting')}</label>
+                        <p style="font-size:12px;color:var(--text-secondary)">${t('notifSettingDesc')}</p>
+                    </div>
+                    <label style="position:relative;width:44px;height:24px">
+                        <input type="checkbox" id="setting-notifications" ${APP.settings.notifications?'checked':''} onchange="updateSetting('notifications',this.checked);initNotifications()" style="display:none">
+                        <span style="position:absolute;inset:0;background:${APP.settings.notifications?'var(--accent)':'var(--border)'};border-radius:12px;cursor:pointer;transition:var(--transition)" onclick="this.previousElementSibling.click();this.style.background=this.previousElementSibling.checked?'var(--accent)':'var(--border)';this.querySelector('span').style.transform=this.previousElementSibling.checked?'translateX(20px)':'translateX(0)'">
+                            <span style="position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:var(--transition);transform:${APP.settings.notifications?'translateX(20px)':'translateX(0)'}"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Auto-Lock -->
+            <div style="margin-bottom:20px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                    <div>
+                        <label style="font-size:14px;font-weight:500">${t('autoLock')}</label>
+                        <p style="font-size:12px;color:var(--text-secondary)">${t('autoLockDesc')}</p>
+                    </div>
+                </div>
+                <select class="input" style="width:auto" onchange="updateSetting('autoLockMinutes',parseInt(this.value));initAutoLock()">
+                    <option value="0" ${APP.settings.autoLockMinutes===0?'selected':''}>${t('disabled')}</option>
+                    <option value="1" ${APP.settings.autoLockMinutes===1?'selected':''}>1 ${t('minutes')}</option>
+                    <option value="3" ${APP.settings.autoLockMinutes===3?'selected':''}>3 ${t('minutes')}</option>
+                    <option value="5" ${APP.settings.autoLockMinutes===5?'selected':''}>5 ${t('minutes')}</option>
+                    <option value="10" ${APP.settings.autoLockMinutes===10?'selected':''}>10 ${t('minutes')}</option>
+                    <option value="15" ${APP.settings.autoLockMinutes===15?'selected':''}>15 ${t('minutes')}</option>
+                </select>
             </div>
 
             <!-- Collaborative Folder (F104) -->
@@ -6064,12 +6870,77 @@ function openSettings() {
                 <button class="btn btn-secondary" onclick="createCollaborativeFolder()"><i class="fas fa-users"></i> ${APP.lang==='id'?'Buat Folder Kolaboratif':'Create Collaborative Folder'}</button>
             </div>
 
+            <!-- Biometric Unlock -->
+            ${window.PublicKeyCredential ? `<div style="margin-bottom:20px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <label style="font-size:14px;font-weight:500"><i class="fas fa-fingerprint" style="color:var(--accent);margin-right:6px"></i>${t('biometricUnlock')}</label>
+                        <p style="font-size:12px;color:var(--text-secondary)">${localStorage.getItem('rb_biometric_id') ? (APP.lang==='id'?'Biometrik aktif':'Biometric active') : t('biometricDesc')}</p>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn ${localStorage.getItem('rb_biometric_id') ? 'btn-secondary' : 'btn-primary'} btn-sm" onclick="setupBiometric()">${localStorage.getItem('rb_biometric_id') ? (APP.lang==='id'?'Ubah':'Change') : (APP.lang==='id'?'Daftar':'Setup')}</button>
+                        ${localStorage.getItem('rb_biometric_id') ? `<button class="btn btn-danger btn-sm" onclick="removeBiometric()"><i class="fas fa-trash"></i></button>` : ''}
+                    </div>
+                </div>
+            </div>` : ''}
+
+            <!-- Theme Color / Accent -->
+            <div style="margin-bottom:20px">
+                <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px"><i class="fas fa-palette" style="color:var(--accent);margin-right:6px"></i>${t('themeColor') || (APP.lang==='id'?'Warna Tema':'Theme Color')}</label>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                    ${ACCENT_PRESETS.map(p => `<div onclick="setAccentColor('${p.color}','${p.hover}');openSettings()" style="width:32px;height:32px;border-radius:50%;background:${p.color};cursor:pointer;border:3px solid ${localStorage.getItem('rb_accent')===p.color?'var(--text)':'transparent'};transition:all .2s ease" title="${p.name}"></div>`).join('')}
+                </div>
+            </div>
+
+            <!-- Language Selector -->
+            <div style="margin-bottom:20px">
+                <label style="font-size:14px;font-weight:500;display:block;margin-bottom:4px"><i class="fas fa-globe" style="color:var(--accent);margin-right:6px"></i>${t('language')}</label>
+                <select class="input" style="width:auto" onchange="setLang(this.value);openSettings()">
+                    <option value="id" ${APP.lang==='id'?'selected':''}>Bahasa Indonesia</option>
+                    <option value="en" ${APP.lang==='en'?'selected':''}>English</option>
+                    <option value="ja" ${APP.lang==='ja'?'selected':''}>日本語</option>
+                    <option value="ko" ${APP.lang==='ko'?'selected':''}>한국어</option>
+                    <option value="ar" ${APP.lang==='ar'?'selected':''}>العربية</option>
+                </select>
+            </div>
+
+            <!-- Export/Import Data -->
+            <div style="margin-bottom:20px">
+                <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px"><i class="fas fa-database" style="color:var(--accent);margin-right:6px"></i>${t('exportData') || (APP.lang==='id'?'Ekspor Data':'Export Data')}</label>
+                <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">${t('exportDesc') || (APP.lang==='id'?'Cadangkan pengaturan dan info file':'Backup settings and file info')}</p>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-secondary btn-sm" onclick="exportAppData()"><i class="fas fa-download"></i> ${t('exportData') || 'Export'}</button>
+                    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('import-file-input').click()"><i class="fas fa-upload"></i> ${t('importData') || 'Import'}</button>
+                    <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importAppData(this.files[0]);this.value=''">
+                </div>
+            </div>
+
             <!-- Scheduled Upload (F80) -->
             <div style="margin-bottom:20px">
                 <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px">${t('scheduledUpload')}</label>
                 <div style="display:flex;gap:8px">
                     <input type="datetime-local" id="scheduled-time" class="input" style="flex:1">
                     <button class="btn btn-primary btn-sm" onclick="scheduleUpload()">${t('save')}</button>
+                </div>
+            </div>
+
+            <!-- Webhook Integration -->
+            <div style="margin-bottom:20px">
+                <label style="font-size:14px;font-weight:500;display:block;margin-bottom:4px"><i class="fas fa-bolt" style="color:var(--accent);margin-right:6px"></i>Webhook</label>
+                <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">${APP.lang==='id'?'Kirim notifikasi saat ada event file':'Send notifications on file events'}</p>
+                <div style="display:flex;gap:8px;margin-bottom:8px">
+                    <input type="url" id="setting-webhook-url" class="input" placeholder="https://example.com/webhook" value="${APP.settings.webhookUrl||''}" style="flex:1">
+                    <button class="btn btn-primary btn-sm" onclick="testWebhook()">${APP.lang==='id'?'Tes':'Test'}</button>
+                </div>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-secondary btn-sm" onclick="updateSetting('webhookUrl',document.getElementById('setting-webhook-url').value)">${t('save')}</button>
+                    ${APP.settings.webhookUrl?`<button class="btn btn-danger btn-sm" onclick="updateSetting('webhookUrl','');openSettings()">${APP.lang==='id'?'Hapus':'Clear'}</button>`:''}
+                </div>
+                <div style="margin-top:10px;font-size:11px;color:var(--text-secondary);line-height:1.6">
+                    <div><code style="background:var(--bg-secondary);padding:1px 4px;border-radius:3px">file.uploaded</code> — ${APP.lang==='id'?'File diunggah':'File uploaded'}</div>
+                    <div><code style="background:var(--bg-secondary);padding:1px 4px;border-radius:3px">file.deleted</code> — ${APP.lang==='id'?'File dihapus permanen':'File permanently deleted'}</div>
+                    <div><code style="background:var(--bg-secondary);padding:1px 4px;border-radius:3px">file.shared</code> — ${APP.lang==='id'?'Link berbagi dibuat':'Share link created'}</div>
+                    <div><code style="background:var(--bg-secondary);padding:1px 4px;border-radius:3px">storage.warning</code> — ${APP.lang==='id'?'Penyimpanan > 75%':'Storage > 75%'}</div>
                 </div>
             </div>
 
@@ -6092,15 +6963,8 @@ function updateStorageLimit(gb) {
 }
 
 async function setPinLock() {
-    const input = document.getElementById('setting-pin');
-    if (!input || !input.value) return;
-    if (input.value.length < 4) { showToast(APP.lang==='id'?'PIN minimal 4 digit':'PIN must be at least 4 digits', 'warning'); return; }
-    APP.settings.pinLock = await hashPin(input.value);
-    await saveSetting('pinLock', APP.settings.pinLock);
-    showToast(t('save') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
-    input.value = '';
+    // Legacy - now handled by startPinCreate / checkPin flow
 }
-
 async function removePinLock() {
     APP.settings.pinLock = '';
     await saveSetting('pinLock', '');
@@ -6162,6 +7026,9 @@ function restoreScheduledUploads() { // F80
 function openStorageAnalytics() {
     const totalFiles = APP.files.filter(f => !f.trashed).length;
     const totalSize = APP.files.filter(f => !f.trashed).reduce((sum, f) => sum + (f.size || 0), 0);
+    const quotaLimit = getStorageLimitBytes();
+    const botCount = Math.max(APP.bots.length || 1, 1);
+    const isId = APP.lang === 'id';
     const typeStats = {};
     APP.files.filter(f => !f.trashed).forEach(f => {
         const type = getFileType(f.name, f.mime);
@@ -6179,19 +7046,26 @@ function openStorageAnalytics() {
             <h3 style="font-size:18px;font-weight:600;margin-bottom:20px"><i class="fas fa-chart-pie" style="color:var(--accent)"></i> ${t('storageAnalytics')}</h3>
             
             <!-- Summary Cards -->
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px">
                 <div style="padding:12px;background:var(--bg-secondary);border-radius:8px;text-align:center">
                     <div style="font-size:20px;font-weight:700;color:var(--accent)">${totalFiles}</div>
-                    <div style="font-size:11px;color:var(--text-secondary)">${APP.lang==='id'?'Total File':'Total Files'}</div>
+                    <div style="font-size:11px;color:var(--text-secondary)">${isId?'Total File':'Total Files'}</div>
                 </div>
                 <div style="padding:12px;background:var(--bg-secondary);border-radius:8px;text-align:center">
                     <div style="font-size:20px;font-weight:700;color:#10b981">${formatSize(totalSize)}</div>
                     <div style="font-size:11px;color:var(--text-secondary)">${t('storage')}</div>
                 </div>
                 <div style="padding:12px;background:var(--bg-secondary);border-radius:8px;text-align:center">
-                    <div style="font-size:20px;font-weight:700;color:#8b5cf6">${APP.shares.length}</div>
-                    <div style="font-size:11px;color:var(--text-secondary)">${t('shareLink')}</div>
+                    <div style="font-size:20px;font-weight:700;color:#8b5cf6">${formatSize(quotaLimit)}</div>
+                    <div style="font-size:11px;color:var(--text-secondary)">${isId?'Kuota':'Quota'}</div>
                 </div>
+                <div style="padding:12px;background:var(--bg-secondary);border-radius:8px;text-align:center">
+                    <div style="font-size:20px;font-weight:700;color:#f59e0b">${botCount}</div>
+                    <div style="font-size:11px;color:var(--text-secondary)">${isId?'Bot Aktif':'Active Bots'}</div>
+                </div>
+            </div>
+            <div style="padding:10px 12px;background:var(--bg-secondary);border-radius:8px;margin-bottom:16px;font-size:12px;color:var(--text-secondary)">
+                <i class="fas fa-info-circle" style="color:var(--accent)"></i> ${isId?`Kuota: ${botCount} bot × 2 GB = ${formatSize(quotaLimit)}`:`Quota: ${botCount} bot(s) × 2 GB = ${formatSize(quotaLimit)}`}
             </div>
 
             <!-- Type Distribution (Donut) -->
@@ -6446,6 +7320,8 @@ async function init() {
         APP.theme = localStorage.getItem('rb_theme') || 'light';
         APP.lang = localStorage.getItem('rb_lang') || 'id';
         applyTheme();
+        applyLangDir();
+        loadAccentColor();
         applyViewMode();
 
         // Load data from IndexedDB
@@ -6472,6 +7348,18 @@ async function init() {
 
         // Auto purge trash
         await autoPurgeTrash();
+
+        // Feature 6: Clear old thumbnails
+        await clearOldThumbnails();
+
+        // Feature 1: Init auto-lock
+        initAutoLock();
+
+        // Feature 5: Init notifications
+        initNotifications();
+
+        // Feature 4: Check pending uploads
+        await checkPendingUploads();
 
         // Route
         checkUrlRouting();
@@ -6727,7 +7615,9 @@ function renderStorageAnalyticsCard() {
         </div>`;
     }).join('');
 
+    const botCount = Math.max(APP.bots.length || 1, 1);
     return `<div class="dash-card-title"><i class="fas fa-chart-pie"></i> ${APP.lang==='id'?'Penyimpanan':'Storage'}</div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">${botCount} bot · 2 GB/bot = ${formatSize(maxStorage)}</div>
         <div class="storage-ring-wrap">
             <svg class="storage-ring-svg" viewBox="0 0 100 100">
                 <circle class="storage-ring-bg" cx="50" cy="50" r="${r}"/>
@@ -7277,6 +8167,383 @@ function cycleViewMode() {
     const idx = views.indexOf(APP.currentView);
     APP.currentView = views[(idx + 1) % views.length];
     renderFileList();
+}
+
+// ===== PULL-TO-REFRESH =====
+let _ptrActive = false, _ptrStartY = 0, _ptrPulling = false;
+function setupPullToRefresh() {
+    const container = document.getElementById('file-list-container');
+    if (!container || container._ptrInit) return;
+    container._ptrInit = true;
+    container.addEventListener('touchstart', (e) => {
+        if (container.scrollTop > 0) return;
+        _ptrStartY = e.touches[0].clientY;
+        _ptrPulling = true;
+    }, { passive: true });
+    container.addEventListener('touchmove', (e) => {
+        if (!_ptrPulling || _ptrActive) return;
+        const dy = e.touches[0].clientY - _ptrStartY;
+        if (dy < 0 || container.scrollTop > 0) { _ptrPulling = false; return; }
+        const ptr = document.getElementById('ptr-indicator');
+        const arrow = document.getElementById('ptr-arrow');
+        if (!ptr) return;
+        const h = Math.min(dy * 0.5, 80);
+        ptr.style.height = h + 'px';
+        if (arrow) arrow.style.transform = dy > 60 ? 'rotate(180deg)' : 'rotate(0deg)';
+    }, { passive: true });
+    container.addEventListener('touchend', async () => {
+        if (!_ptrPulling) return;
+        _ptrPulling = false;
+        const ptr = document.getElementById('ptr-indicator');
+        const arrow = document.getElementById('ptr-arrow');
+        if (!ptr) return;
+        const h = parseInt(ptr.style.height) || 0;
+        if (h >= 60 && !_ptrActive) {
+            _ptrActive = true;
+            ptr.style.height = '40px';
+            if (arrow) { arrow.style.transform = 'rotate(360deg)'; arrow.style.animation = 'ptrRotate .6s linear infinite'; arrow.className = 'fas fa-spinner'; }
+            await refreshUI();
+            if (arrow) { arrow.style.animation = ''; arrow.className = 'fas fa-arrow-down'; arrow.style.transform = 'rotate(0deg)'; }
+            ptr.style.height = '0';
+            _ptrActive = false;
+            showToast(APP.lang === 'id' ? 'Diperbarui' : 'Refreshed', 'success', 2000);
+        } else {
+            ptr.style.height = '0';
+            if (arrow) arrow.style.transform = 'rotate(0deg)';
+        }
+    }, { passive: true });
+}
+
+// ===== FILE DUPLICATE CHECKER =====
+function findDuplicates() {
+    const files = APP.files.filter(f => !f.trashed);
+    const map = {};
+    files.forEach(f => {
+        const key = f.name + '::' + f.size;
+        if (!map[key]) map[key] = [];
+        map[key].push(f);
+    });
+    return Object.entries(map).filter(([, arr]) => arr.length > 1).map(([key, arr]) => {
+        arr.sort((a, b) => (b.uploadedAt || 0) - (a.uploadedAt || 0));
+        return { key, files: arr, newest: arr[0], duplicates: arr.slice(1), savings: arr.slice(1).reduce((s, f) => s + (f.size || 0), 0) };
+    });
+}
+
+function openDuplicateChecker() {
+    const groups = findDuplicates();
+    const isId = APP.lang === 'id';
+    const totalSavings = groups.reduce((s, g) => s + g.savings, 0);
+    if (groups.length === 0) {
+        showToast(isId ? 'Tidak ada file duplikat' : 'No duplicate files found', 'success');
+        return;
+    }
+    openModal(`<div style="padding:24px;max-width:560px">
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:4px"><i class="fas fa-clone" style="color:var(--accent)"></i> ${isId ? 'Cek Duplikat' : 'Duplicate Checker'}</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">${groups.length} ${isId ? 'grup duplikat ditemukan' : 'duplicate groups found'} · ${isId ? 'Hemat' : 'Save'} ${formatSize(totalSavings)}</p>
+        <div style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:12px">
+            ${groups.map((g, gi) => `
+                <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">
+                    <div style="padding:10px 12px;background:var(--bg-secondary);display:flex;justify-content:space-between;align-items:center">
+                        <span style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${g.newest.name}</span>
+                        <span style="font-size:11px;color:var(--text-secondary)">${g.files.length}x · ${isId ? 'hemat' : 'save'} ${formatSize(g.savings)}</span>
+                    </div>
+                    <div style="padding:8px 12px">
+                        <div style="font-size:12px;color:var(--accent);margin-bottom:4px"><i class="fas fa-check-circle"></i> ${isId ? 'Pertahankan (terbaru)' : 'Keep (newest)'}: ${formatSize(g.newest.size)} · ${formatDate(g.newest.uploadedAt)}</div>
+                        ${g.duplicates.map(f => `
+                            <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+                                <span style="font-size:12px;color:var(--text-secondary);flex:1">${formatSize(f.size)} · ${formatDate(f.uploadedAt)}</span>
+                                <button class="btn btn-danger btn-sm" style="font-size:11px;padding:2px 8px" onclick="deleteDuplicateFile('${f.id}',${gi})"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
+            <button class="btn btn-danger" onclick="deleteAllDuplicates()">${isId ? 'Hapus Semua Duplikat' : 'Delete All Duplicates'}</button>
+        </div>
+    </div>`);
+}
+
+async function deleteDuplicateFile(fileId, groupIdx) {
+    await moveToTrash(fileId);
+    showToast(APP.lang === 'id' ? 'Duplikat dihapus' : 'Duplicate removed', 'success');
+    openDuplicateChecker();
+}
+
+async function deleteAllDuplicates() {
+    const groups = findDuplicates();
+    let count = 0;
+    for (const g of groups) {
+        for (const f of g.duplicates) {
+            await moveToTrash(f.id);
+            count++;
+        }
+    }
+    closeModal();
+    showToast(`${count} ${APP.lang === 'id' ? 'duplikat dihapus' : 'duplicates removed'}`, 'success');
+    await refreshUI();
+}
+
+// ===== REAL STORAGE QUOTA =====
+let _quotaCache = null, _quotaCacheTime = 0;
+async function getStorageQuota() {
+    const now = Date.now();
+    if (_quotaCache && (now - _quotaCacheTime) < 300000) return _quotaCache;
+    try {
+        const allFiles = await dbGetAll('files');
+        const totalUsed = allFiles.reduce((sum, f) => sum + (f.size || 0), 0);
+        const botCount = Math.max(APP.bots.length || 1, 1);
+        const totalQuota = botCount * 2 * 1024 * 1024 * 1024;
+        _quotaCache = { totalUsed, totalQuota, botCount };
+        _quotaCacheTime = now;
+        return _quotaCache;
+    } catch (e) {
+        const totalUsed = APP.files.reduce((sum, f) => sum + (f.size || 0), 0);
+        const botCount = Math.max(APP.bots.length || 1, 1);
+        const totalQuota = botCount * 2 * 1024 * 1024 * 1024;
+        return { totalUsed, totalQuota, botCount };
+    }
+}
+
+function getStorageLimitBytes() {
+    const botCount = Math.max(APP.bots.length || 1, 1);
+    const customLimit = parseInt(localStorage.getItem('rb_storage_limit_gb'));
+    return (customLimit > 0 ? customLimit : botCount * 2) * 1024 * 1024 * 1024;
+}
+
+// ===== WEBHOOK INTEGRATION =====
+const _webhookRateLimit = {};
+function triggerWebhook(event, data) {
+    if (!APP.settings.webhookUrl) return;
+    const now = Date.now();
+    const key = event;
+    if (_webhookRateLimit[key] && (now - _webhookRateLimit[key]) < 5000) return;
+    _webhookRateLimit[key] = now;
+    const payload = { event, timestamp: new Date().toISOString(), data };
+    fetch(APP.settings.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(() => showToast(APP.lang==='id'?'Webhook terkirim':'Webhook sent', 'success'))
+      .catch(() => showToast(APP.lang==='id'?'Webhook gagal':'Webhook failed', 'error'));
+}
+async function testWebhook() {
+    const url = document.getElementById('setting-webhook-url')?.value;
+    if (!url) { showToast(APP.lang==='id'?'Masukkan URL webhook':'Enter webhook URL', 'warning'); return; }
+    await updateSetting('webhookUrl', url);
+    triggerWebhook('test', { message: 'Test webhook from Ridgebox' });
+}
+async function checkStorageWarning() {
+    try {
+        const q = await getStorageQuota();
+        const pct = q.totalUsed / q.totalQuota;
+        if (pct > 0.75) triggerWebhook('storage.warning', { usedBytes: q.totalUsed, totalBytes: q.totalQuota, percentage: Math.round(pct*100) });
+    } catch(e) {}
+}
+
+// ===== SCREENSHOT UPLOAD (CLIPBOARD) =====
+function handleClipboardImage(blob, fileName) {
+    const url = URL.createObjectURL(blob);
+    const folderOpts = APP.folders.filter(f => !f.system).map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+    openModal(`
+        <div style="padding:24px">
+            <h3 style="font-size:18px;font-weight:600;margin-bottom:4px"><i class="fas fa-camera" style="color:var(--accent);margin-right:8px"></i>${APP.lang==='id'?'Screenshot Terdeteksi!':'Screenshot Detected!'}</h3>
+            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">${APP.lang==='id'?'Upload ke Ridgebox?':'Upload to Ridgebox?'}</p>
+            <div style="text-align:center;margin-bottom:16px;background:var(--bg-secondary);border-radius:12px;padding:12px;max-height:300px;overflow:auto">
+                <img src="${url}" style="max-width:100%;max-height:280px;border-radius:8px" alt="Screenshot preview">
+            </div>
+            <div style="margin-bottom:12px">
+                <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${APP.lang==='id'?'Folder':'Folder'}</label>
+                <select id="screenshot-folder" class="input">
+                    <option value="">${APP.lang==='id'?'Semua File':'All Files'}</option>
+                    ${folderOpts}
+                </select>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button class="btn btn-secondary" onclick="closeModal();URL.revokeObjectURL('${url}')">${t('cancel')}</button>
+                <button class="btn btn-primary" onclick="uploadScreenshot()"><i class="fas fa-upload"></i> ${t('upload')}</button>
+            </div>
+        </div>`);
+    window._screenshotBlob = blob;
+    window._screenshotFileName = fileName;
+    window._screenshotUrl = url;
+}
+async function uploadScreenshot() {
+    if (!window._screenshotBlob) return;
+    const folder = document.getElementById('screenshot-folder')?.value || null;
+    const file = new File([window._screenshotBlob], window._screenshotFileName, { type: 'image/png' });
+    closeModal();
+    if (window._screenshotUrl) URL.revokeObjectURL(window._screenshotUrl);
+    window._screenshotBlob = null;
+    window._screenshotUrl = null;
+    await executeUpload(file, folder || undefined);
+}
+function showClipboardIndicator() {
+    let el = document.getElementById('clipboard-indicator');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'clipboard-indicator';
+        el.style.cssText = 'position:fixed;bottom:80px;right:24px;background:var(--accent);color:#fff;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);opacity:0;transform:scale(0);transition:all .3s ease';
+        el.innerHTML = '<i class="fas fa-camera" style="font-size:18px"></i>';
+        document.body.appendChild(el);
+    }
+    requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'scale(1)'; });
+    setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'scale(0)'; }, 2000);
+}
+document.addEventListener('paste', function(e) {
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+        if (item.type.startsWith('image/')) {
+            e.preventDefault();
+            const blob = item.getAsFile();
+            const ts = new Date().toISOString().replace(/[:.]/g, '-');
+            const fileName = `screenshot_${ts}.png`;
+            showClipboardIndicator();
+            handleClipboardImage(blob, fileName);
+            return;
+        }
+    }
+    const text = e.clipboardData?.getData('text');
+    if (text && /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(text.trim())) {
+        e.preventDefault();
+        fetch(text.trim()).then(r => r.blob()).then(blob => {
+            const ts = new Date().toISOString().replace(/[:.]/g, '-');
+            const ext = text.trim().split('.').pop().split('?')[0].toLowerCase();
+            const fileName = `screenshot_${ts}.${ext}`;
+            showClipboardIndicator();
+            handleClipboardImage(blob, fileName);
+        }).catch(() => {});
+    }
+});
+
+// ===== VIDEO/AUDIO PLAYER =====
+function getMediaType(name, mime) {
+    const ext = (name||'').split('.').pop().toLowerCase();
+    const vidExts = ['mp4','webm','mov','avi','mkv'];
+    const audExts = ['mp3','wav','ogg','flac','aac','m4a'];
+    if (mime) {
+        if (mime.startsWith('video/')) return 'video';
+        if (mime.startsWith('audio/')) return 'audio';
+    }
+    if (vidExts.includes(ext)) return 'video';
+    if (audExts.includes(ext)) return 'audio';
+    return null;
+}
+function formatTime(s) {
+    if (!s || isNaN(s)) return '0:00';
+    const m = Math.floor(s/60), sec = Math.floor(s%60);
+    return m+':'+(sec<10?'0':'')+sec;
+}
+function openMediaPlayer(fileId) {
+    const file = APP.files.find(f => f.id === fileId);
+    if (!file) return;
+    const type = getMediaType(file.name, file.mime);
+    if (!type) { downloadFile(fileId); return; }
+    const downloadUrl = APP.settings.proxyMode !== false
+        ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`
+        : `https://api.telegram.org/file/bot${APP.bots[0]?.token}/${file.filePath}`;
+    const icon = getFileIcon(getFileType(file.name, file.mime));
+    if (type === 'video') {
+        openModal(`
+        <div style="padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
+                    <i class="fas fa-film" style="color:#8b5cf6"></i>
+                    <span style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</span>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:12px;overflow:hidden;margin-bottom:8px">
+                <video id="media-video" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain" src="${downloadUrl}" controls playsinline>
+                    ${APP.lang==='id'?'Browser tidak mendukung video ini':'Browser cannot play this video'}
+                </video>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)">
+                <span>${formatSize(file.size)} · ${file.name.split('.').pop().toUpperCase()}</span>
+                <span>${formatDate(file.uploadedAt)}</span>
+            </div>
+            <div style="margin-top:8px" id="video-fallback"></div>
+            <script>
+                (function(){
+                    var v=document.getElementById('media-video');
+                    v.onerror=function(){document.getElementById('video-fallback').innerHTML='<button class="btn btn-primary" style="width:100%" onclick="downloadFile(\\'${fileId}\\');closeModal()"><i class="fas fa-download"></i> ${APP.lang==='id'?'Download untuk memutar':'Download to play'}</button>';};
+                })();
+            </script>
+        </div>`);
+    } else if (type === 'audio') {
+        const pid = 'ap-'+Date.now();
+        openModal(`
+        <div style="padding:20px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
+                    <i class="fas fa-music" style="color:#f59e0b"></i>
+                    <span style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</span>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="text-align:center;margin-bottom:20px">
+                <div style="width:120px;height:120px;border-radius:20px;background:linear-gradient(135deg,#f59e0b20,#8b5cf620);display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 8px 32px rgba(245,158,11,.15)">
+                    <i class="fas fa-music" style="font-size:48px;color:#f59e0b"></i>
+                </div>
+            </div>
+            <div style="margin-bottom:8px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:4px">
+                    <span id="${pid}-cur">0:00</span>
+                    <span id="${pid}-dur">0:00</span>
+                </div>
+                <div style="position:relative;height:6px;background:var(--border);border-radius:3px;cursor:pointer" onclick="audioSeek_${pid}(event)" id="${pid}-bar">
+                    <div id="${pid}-prog" style="height:100%;background:var(--accent);border-radius:3px;width:0%;transition:width .1s linear"></div>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px">
+                <button onclick="audioSkip_${pid}(-10)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px"><i class="fas fa-backward"></i></button>
+                <button id="${pid}-play" onclick="audioToggle_${pid}()" style="width:48px;height:48px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(59,130,246,.3)"><i class="fas fa-play"></i></button>
+                <button onclick="audioSkip_${pid}(10)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px"><i class="fas fa-forward"></i></button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:12px">
+                <i class="fas fa-volume-down" style="color:var(--text-secondary);font-size:13px"></i>
+                <input type="range" min="0" max="1" step="0.05" value="1" oninput="audioVol_${pid}(this.value)" style="width:100px;accent-color:var(--accent)">
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)">
+                <span>${formatSize(file.size)} · ${file.name.split('.').pop().toUpperCase()}</span>
+                <span>${formatDate(file.uploadedAt)}</span>
+            </div>
+            <div id="${pid}-fallback" style="margin-top:8px"></div>
+            <audio id="${pid}" src="${downloadUrl}" preload="metadata"></audio>
+            <script>
+            (function(){
+                var a=document.getElementById('${pid}'),playing=false;
+                var playBtn=document.getElementById('${pid}-play');
+                var progBar=document.getElementById('${pid}-prog');
+                var curEl=document.getElementById('${pid}-cur');
+                var durEl=document.getElementById('${pid}-dur');
+                a.addEventListener('timeupdate',function(){
+                    if(a.duration){progBar.style.width=(a.currentTime/a.duration*100)+'%';curEl.textContent=formatTime(a.currentTime);}
+                });
+                a.addEventListener('loadedmetadata',function(){durEl.textContent=formatTime(a.duration);});
+                a.addEventListener('ended',function(){playing=false;playBtn.innerHTML='<i class="fas fa-play"></i>';});
+                a.onerror=function(){document.getElementById('${pid}-fallback').innerHTML='<button class="btn btn-primary" style="width:100%" onclick="downloadFile(\\'${fileId}\\');closeModal()"><i class="fas fa-download"></i> ${APP.lang==='id'?'Download untuk memutar':'Download to play'}</button>';};
+                window['audioToggle_${pid}']=function(){
+                    if(playing){a.pause();playing=false;playBtn.innerHTML='<i class="fas fa-play"></i>';}
+                    else{a.play().catch(function(){});playing=true;playBtn.innerHTML='<i class="fas fa-pause"></i>';}
+                };
+                window['audioSkip_${pid}']=function(s){a.currentTime=Math.max(0,Math.min(a.duration||0,a.currentTime+s));};
+                window['audioVol_${pid}']=function(v){a.volume=v;};
+                window['audioSeek_${pid}']=function(e){
+                    var bar=document.getElementById('${pid}-bar');
+                    var rect=bar.getBoundingClientRect();
+                    var pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+                    if(a.duration)a.currentTime=pct*a.duration;
+                };
+            })();
+            </script>
+        </div>`);
+    }
 }
 
 </script>
