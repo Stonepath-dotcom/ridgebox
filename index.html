@@ -528,17 +528,21 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 
 /* ===== SWIPE TO DELETE ===== */
 .swipe-wrapper{position:relative;overflow:hidden}
-.swipe-content{position:relative;z-index:1;transition:transform .25s cubic-bezier(.4,0,.2,1);will-change:transform;touch-action:pan-y}
+.swipe-content{position:relative;z-index:1;transition:transform .25s cubic-bezier(.4,0,.2,1);will-change:transform;touch-action:pan-y;background:var(--bg-card)}
 .swipe-content.swiping{transition:none}
-.swipe-action{position:absolute;top:0;bottom:0;right:0;display:flex;align-items:center;justify-content:center;width:80px;z-index:0;gap:0}
-.swipe-action-delete{background:#ef4444;color:#fff;width:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:600;gap:4px;border:none;cursor:pointer}
+.swipe-action{position:absolute;top:0;bottom:0;right:0;display:flex;align-items:center;justify-content:center;width:80px;z-index:0}
+.swipe-action-delete{background:#ef4444;color:#fff;width:80px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:600;gap:4px;border:none;cursor:pointer}
 .swipe-action-delete i{font-size:18px}
-.swipe-action-restore{background:#10b981;color:#fff;width:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:600;gap:4px;border:none;cursor:pointer}
+.swipe-action-restore{background:#10b981;color:#fff;width:80px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:600;gap:4px;border:none;cursor:pointer}
 .swipe-action-restore i{font-size:18px}
-.swipe-hint{position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--text-secondary);opacity:.15;font-size:14px;pointer-events:none;transition:opacity .3s ease}
 
-/* Long-press visual feedback */
-.long-press-active{background:rgba(59,130,246,.08)!important;transform:scale(.98);transition:transform .1s ease,background .1s ease}
+/* Mobile inline delete button in list rows */
+.mobile-delete-btn{display:none;width:36px;height:36px;border-radius:8px;background:rgba(239,68,68,.1);color:#ef4444;border:none;cursor:pointer;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-left:6px;transition:all .2s ease}
+.mobile-delete-btn:active{background:#ef4444;color:#fff;transform:scale(.9)}
+.mobile-restore-btn{display:none;width:36px;height:36px;border-radius:8px;background:rgba(16,185,129,.1);color:#10b981;border:none;cursor:pointer;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-left:6px;transition:all .2s ease}
+.mobile-restore-btn:active{background:#10b981;color:#fff;transform:scale(.9)}
+@media(max-width:768px){.mobile-delete-btn{display:flex!important}.mobile-restore-btn{display:flex!important}}
+@media(hover:none){.mobile-delete-btn{display:flex!important}.mobile-restore-btn{display:flex!important}}
 
 /* Delete animation */
 @keyframes slideOutLeft{to{transform:translateX(-100%);opacity:0;height:0;padding:0;margin:0;border:0;overflow:hidden}}
@@ -2680,7 +2684,7 @@ function renderFileList() {
         </div>`;
     } else {
         container.innerHTML = `${actionBtns}<div style="border:1px solid var(--border);border-radius:14px;overflow:hidden">
-            ${files.map((f, i) => renderSwipeRow(f, i)).join('')}
+            ${files.map((f, i) => renderFileListRow(f, i)).join('')}
         </div>`;
     }
     updateQuickActions();
@@ -2748,7 +2752,7 @@ function renderFileGridItem(file, index) {
         ${file.pinned ? '<i class="fas fa-thumbtack" style="position:absolute;top:8px;right:8px;font-size:10px;color:var(--accent)"></i>' : ''}
         ${file.starred ? '<i class="fas fa-star" style="position:absolute;top:8px;right:24px;font-size:10px;color:#f59e0b"></i>' : ''}
         ${file.encrypted ? '<i class="fas fa-lock" style="position:absolute;top:8px;right:' + (file.pinned && file.starred ? '40px' : file.pinned || file.starred ? '24px' : '8px') + ';font-size:10px;color:#3b82f6"></i>' : ''}
-        <button class="grid-quick-delete" onclick="event.stopPropagation();swipeDeleteFile('${file.id}')" style="position:absolute;top:6px;left:6px;width:24px;height:24px;border-radius:50%;background:rgba(239,68,68,.9);color:#fff;border:none;cursor:pointer;font-size:10px;display:none;align-items:center;justify-content:center;z-index:5;box-shadow:0 2px 8px rgba(239,68,68,.3)"><i class="fas fa-times"></i></button>
+        <button class="grid-quick-delete" onclick="event.stopPropagation();quickDeleteFile('${file.id}')" style="position:absolute;top:6px;left:6px;width:24px;height:24px;border-radius:50%;background:rgba(239,68,68,.9);color:#fff;border:none;cursor:pointer;font-size:10px;display:none;align-items:center;justify-content:center;z-index:5;box-shadow:0 2px 8px rgba(239,68,68,.3)"><i class="fas fa-times"></i></button>
         <div style="text-align:center;padding:8px 0">
             <div class="file-icon-circle" style="background:${icon.color}15">
                 <i class="fas ${icon.icon}" style="font-size:22px;color:${icon.color}"></i>
@@ -2798,22 +2802,27 @@ function renderFileListRow(file, index) {
             <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openShareModal('${file.id}')" title="${t('share')}"><i class="fas fa-share-alt"></i></button>
             <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();downloadFile('${file.id}')" title="${t('download')}"><i class="fas fa-download"></i></button>
         </div>
+        ${!file.trashed ? `<button class="mobile-delete-btn" onclick="event.stopPropagation();quickDeleteFile('${file.id}')" title="${t('delete')}"><i class="fas fa-trash"></i></button>` : `<button class="mobile-restore-btn" onclick="event.stopPropagation();restoreFile('${file.id}')" title="${t('restore')}"><i class="fas fa-undo"></i></button>`}
     </div>`;
 }
 
-// ===== SWIPE ROW WRAPPER =====
-function renderSwipeRow(file, index) {
-    const isTrash = file.trashed;
-    const actionBtn = isTrash
-        ? `<button class="swipe-action-restore" onclick="event.stopPropagation();restoreFile('${file.id}')"><i class="fas fa-undo"></i>${APP.lang==='id'?'Pulihkan':'Restore'}</button>`
-        : `<button class="swipe-action-delete" onclick="event.stopPropagation();swipeDeleteFile('${file.id}')"><i class="fas fa-trash"></i>${APP.lang==='id'?'Hapus':'Delete'}</button>`;
+// Quick delete handler for inline delete button
+async function quickDeleteFile(fileId) {
+    const file = APP.files.find(f => f.id === fileId);
+    if (!file) return;
+    file.trashed = true;
+    file.trashedAt = Date.now();
+    await saveFile(file);
+    APP.selectedFiles.delete(fileId);
+    closeDetailPanel();
+    closeContextMenu();
+    showUndoToast(t('movedToTrash'), () => { restoreFile(fileId); });
+    await refreshUI();
+}
 
-    return `<div class="swipe-wrapper" data-file-id="${file.id}">
-        <div class="swipe-action">${actionBtn}</div>
-        <div class="swipe-content" data-swipeable="true">
-            ${renderFileListRow(file, index)}
-        </div>
-    </div>`;
+// ===== SWIPE ROW WRAPPER (unused - using inline delete buttons instead) =====
+function renderSwipeRow(file, index) {
+    return renderFileListRow(file, index);
 }
 
 // Swipe delete handler with animation
@@ -2821,81 +2830,8 @@ async function swipeDeleteFile(fileId) {
     await moveToTrash(fileId);
 }
 
-// ===== SWIPE GESTURES =====
-function initSwipeGestures() {
-    const swipeables = document.querySelectorAll('[data-swipeable]');
-    swipeables.forEach(el => {
-        if (el._swipeInit) return;
-        el._swipeInit = true;
-        let startX = 0, startY = 0, currentX = 0, isSwiping = false, isScrolling = false;
-        const threshold = 60;
-
-        el.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            currentX = 0;
-            isSwiping = false;
-            isScrolling = false;
-            el.classList.add('swiping');
-        }, { passive: true });
-
-        el.addEventListener('touchmove', (e) => {
-            if (isScrolling) return;
-            const dx = e.touches[0].clientX - startX;
-            const dy = e.touches[0].clientY - startY;
-
-            // Determine if scrolling vertically or swiping horizontally
-            if (!isSwiping && !isScrolling) {
-                if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
-                    isScrolling = true;
-                    return;
-                }
-                if (Math.abs(dx) > 10) {
-                    isSwiping = true;
-                }
-            }
-
-            if (isSwiping) {
-                // Only allow left swipe (negative dx), spring back for right swipe
-                currentX = Math.min(0, dx);
-                el.style.transform = `translateX(${currentX}px)`;
-            }
-        }, { passive: true });
-
-        el.addEventListener('touchend', () => {
-            el.classList.remove('swiping');
-            if (isSwiping) {
-                if (currentX < -threshold) {
-                    // Snap to show delete button (80px)
-                    el.style.transform = 'translateX(-80px)';
-                } else {
-                    // Snap back
-                    el.style.transform = 'translateX(0)';
-                }
-            } else {
-                el.style.transform = 'translateX(0)';
-            }
-        }, { passive: true });
-
-        // Close swipe on tap outside
-        el.addEventListener('click', () => {
-            if (el.style.transform && el.style.transform !== 'translateX(0px)') {
-                el.style.transform = 'translateX(0)';
-            }
-        });
-    });
-
-    // Close all open swipes when tapping elsewhere
-    document.addEventListener('touchstart', (e) => {
-        if (!e.target.closest('.swipe-wrapper')) {
-            document.querySelectorAll('.swipe-content').forEach(sc => {
-                sc.style.transform = 'translateX(0)';
-            });
-        }
-    }, { passive: true });
-}
-
-// ===== LONG-PRESS GESTURES =====
+// ===== GESTURES (Long-press for context menu) =====
+function initSwipeGestures() { /* No longer using swipe - using inline delete buttons */ }
 function initLongPressGestures() {
     const fileCards = document.querySelectorAll('.file-card-premium, .file-row-premium');
     fileCards.forEach(el => {
@@ -2905,10 +2841,10 @@ function initLongPressGestures() {
         const longPressDuration = 500;
 
         el.addEventListener('touchstart', (e) => {
+            // Don't trigger long-press on delete/restore buttons
+            if (e.target.closest('.mobile-delete-btn, .mobile-restore-btn, .grid-quick-delete')) return;
             timer = setTimeout(() => {
-                // Haptic feedback if available
                 if (navigator.vibrate) navigator.vibrate(30);
-                // Show context menu
                 const fileId = el.getAttribute('onclick')?.match(/'([^']+)'/)?.[1]
                     || el.closest('[data-file-id]')?.getAttribute('data-file-id');
                 if (fileId) {
@@ -2924,17 +2860,9 @@ function initLongPressGestures() {
             }, longPressDuration);
         }, { passive: true });
 
-        el.addEventListener('touchmove', () => {
-            clearTimeout(timer);
-        }, { passive: true });
-
-        el.addEventListener('touchend', () => {
-            clearTimeout(timer);
-        }, { passive: true });
-
-        el.addEventListener('touchcancel', () => {
-            clearTimeout(timer);
-        }, { passive: true });
+        el.addEventListener('touchmove', () => { clearTimeout(timer); }, { passive: true });
+        el.addEventListener('touchend', () => { clearTimeout(timer); }, { passive: true });
+        el.addEventListener('touchcancel', () => { clearTimeout(timer); }, { passive: true });
     });
 }
 
