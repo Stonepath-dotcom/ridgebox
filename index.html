@@ -3442,8 +3442,8 @@ function initSupabaseAuth() {
 }
 
 function isAuthRequired() {
-    // Auth is required if Supabase is configured
-    return !!APP.supabase;
+    // Auth is ALWAYS required — RidgeBox requires login for all protected routes
+    return true;
 }
 
 function isLoggedIn() {
@@ -3876,7 +3876,7 @@ function checkUrlRouting() {
     if (header && !['#/login', '#/register'].includes(hash)) header.style.display = '';
 
     // Auth guard for protected routes — show dedicated login page
-    const protectedRoutes = ['#/dashboard', '#/storage', '#/file/', '#/analytics'];
+    const protectedRoutes = ['#/dashboard', '#/storage', '#/file/', '#/analytics', '#/admin'];
     const isProtected = protectedRoutes.some(r => hash.startsWith(r));
     if (isProtected && isAuthRequired() && !isLoggedIn()) {
         _authRedirectTo = hash;
@@ -3895,6 +3895,20 @@ function checkUrlRouting() {
         _authMode = 'register';
         _authRedirectTo = '#/dashboard';
         renderAuthPage();
+    } else if (hash === '#/admin') {
+        // Admin panel — separate page with PIN verification
+        if (!_adminVerified || !_adminVerifyTimeout || Date.now() >= _adminVerifyTimeout) {
+            if (APP.settings.pinLock) {
+                _pinCallback = () => { _adminVerified = true; _adminVerifyTimeout = Date.now() + 5 * 60 * 1000; renderAdminPanel(); };
+                showPinGate();
+            } else {
+                _adminVerified = true;
+                _adminVerifyTimeout = Date.now() + 5 * 60 * 1000;
+                renderAdminPanel();
+            }
+        } else {
+            renderAdminPanel();
+        }
     } else if (hash === '#/dashboard') {
         checkPinThenRender(() => renderDashboard());
     } else if (hash === '#/storage') {
@@ -9650,7 +9664,7 @@ function openSettings() {
                         <div style="font-size:11px;color:var(--text-secondary)">${APP.lang==='id'?'Kelola API key, token, dan kredensial':'Manage API keys, tokens, and credentials'}</div>
                     </div>
                 </div>
-                <button class="btn btn-primary btn-sm" style="width:100%" onclick="openAdminPanel()"><i class="fas fa-lock" style="margin-right:4px"></i> ${APP.lang==='id'?'Buka Panel Admin':'Open Admin Panel'}</button>
+                <a href="#/admin" class="btn btn-primary btn-sm" style="width:100%;text-decoration:none"><i class="fas fa-lock" style="margin-right:4px"></i> ${APP.lang==='id'?'Buka Panel Admin':'Open Admin Panel'}</a>
             </div>
 
             <!-- 2FA / TOTP -->
@@ -9726,21 +9740,8 @@ let _adminVerified = false;
 let _adminVerifyTimeout = null;
 
 function openAdminPanel() {
-    const isId = APP.lang === 'id';
-    // If already verified (within 5 min), skip PIN
-    if (_adminVerified && _adminVerifyTimeout && Date.now() < _adminVerifyTimeout) {
-        renderAdminPanel();
-        return;
-    }
-    // Require PIN if set, otherwise direct access
-    if (APP.settings.pinLock) {
-        _pinCallback = () => { _adminVerified = true; _adminVerifyTimeout = Date.now() + 5 * 60 * 1000; renderAdminPanel(); };
-        showPinGate();
-    } else {
-        _adminVerified = true;
-        _adminVerifyTimeout = Date.now() + 5 * 60 * 1000;
-        renderAdminPanel();
-    }
+    // Navigate to admin page route
+    location.hash = '#/admin';
 }
 
 function showPinGate() {
@@ -9762,6 +9763,9 @@ let _pinCallback = null;
 function renderAdminPanel() {
     const isId = APP.lang === 'id';
     const bot = APP.bots[0];
+    const main = document.getElementById('app-main');
+    if (!main) return;
+    renderHeader();
 
     // S3/Token accounts with credentials
     const s3AccountsHtml = APP.s3Accounts.map(a => {
@@ -9788,16 +9792,17 @@ function renderAdminPanel() {
                 <div>Token: <span style="color:var(--text)">${a.accessToken ? a.accessToken.slice(0, 6) + '••••••••' : '-'}</span></div>
             </div>`}
             <div style="margin-top:8px;display:flex;gap:6px">
-                <button class="btn btn-danger btn-sm" style="font-size:10px;padding:3px 8px" onclick="confirmDisconnectS3Account('${a.id}');closeModal();setTimeout(()=>renderAdminPanel(),500)"><i class="fas fa-unlink"></i> ${isId ? 'Putuskan' : 'Disconnect'}</button>
+                <button class="btn btn-danger btn-sm" style="font-size:10px;padding:3px 8px" onclick="confirmDisconnectS3Account('${a.id}');setTimeout(()=>renderAdminPanel(),500)"><i class="fas fa-unlink"></i> ${isId ? 'Putuskan' : 'Disconnect'}</button>
             </div>
         </div>`;
     }).join('');
 
-    openModal(`<div style="padding:24px;max-width:560px;margin:0 auto">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+    main.innerHTML = `<div class="page-transition fade-in" style="max-width:640px;margin:0 auto;padding:24px 16px 48px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+            <button class="btn btn-ghost btn-sm" onclick="location.hash='#/dashboard'"><i class="fas fa-arrow-left"></i></button>
             <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(245,158,11,.1));display:flex;align-items:center;justify-content:center"><i class="fas fa-shield-halved" style="color:#ef4444;font-size:18px"></i></div>
             <div>
-                <h3 style="font-size:18px;font-weight:700">${isId ? 'Panel Admin' : 'Admin Panel'}</h3>
+                <h2 style="font-size:20px;font-weight:700">${isId ? 'Panel Admin' : 'Admin Panel'}</h2>
                 <p style="font-size:12px;color:var(--text-secondary)">${isId ? 'Kelola kredensial dan API key — Hanya untuk admin' : 'Manage credentials and API keys — Admin only'}</p>
             </div>
         </div>
@@ -9866,7 +9871,7 @@ function renderAdminPanel() {
         </div>
 
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
+            <button class="btn btn-secondary" onclick="location.hash='#/dashboard'">${t('close')}</button>
         </div>
     </div>`);
 }
@@ -12444,13 +12449,22 @@ async function init() {
                 APP.settings.proxyMode = data.proxyMode !== false;
                 APP.connected = true;
             }
-            // Load Supabase config from server
+            // Load Supabase config from server env vars
             if (data.supabaseUrl && data.supabaseAnonKey) {
                 window.__supabaseConfig = { url: data.supabaseUrl, anonKey: data.supabaseAnonKey };
             }
         } catch (e) {
             console.warn('Config fetch failed:', e);
             APP.connected = navigator.onLine;
+        }
+
+        // Fallback: Hardcode Supabase config if server env vars not set
+        // (anon key is safe for client-side — it's designed to be public)
+        if (!window.__supabaseConfig || !window.__supabaseConfig.url) {
+            window.__supabaseConfig = {
+                url: 'https://tztpwbasrajvkjbrvwfu.supabase.co',
+                anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHB3YmFzcmFqdmtqYnJ2d2Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NzQ1OTMsImV4cCI6MjA5NjM1MDU5M30.3O4-5PbSlRC8cro8hbbIgkxdnUOIXmWHa2mA5NVnhxc'
+            };
         }
 
         // Init Supabase Auth
