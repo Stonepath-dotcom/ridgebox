@@ -545,7 +545,7 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 /* Glassmorphism Header */
 .header-glass{background:rgba(255,255,255,.92);border-bottom:1px solid transparent;border-image:linear-gradient(90deg,transparent,rgba(59,130,246,.3),rgba(139,92,246,.3),transparent) 1}
 .dark .header-glass{background:rgba(15,23,42,.95)}
-.header-logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 8px rgba(59,130,246,.3)}
+.header-logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 8px rgba(59,130,246,.3)}.header-logo-icon i{transform:translateX(1px)}
 .header-logo-icon::after{content:'';position:absolute;inset:-2px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6,#3b82f6);z-index:-1;opacity:.5;animation:logoGlow 3s ease infinite}
 @keyframes logoGlow{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.7;transform:scale(1.05)}}
 .header-pill-btn{padding:6px 14px;border-radius:99px;font-size:13px;cursor:pointer;border:none;background:rgba(59,130,246,.07);color:var(--text);transition:all .25s ease;font-family:inherit;font-weight:500;display:inline-flex;align-items:center;gap:6px}
@@ -985,6 +985,7 @@ body.no-transition,body.no-transition *{transition:none!important}
 .storage-chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
 .storage-chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden}
 .storage-chart-card .chart-title{font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.storage-chart-card canvas{width:100%!important;height:auto!important;max-width:100%;display:block}
 .dark .storage-hero{background:linear-gradient(135deg,#0f172a,#1e293b 50%,#1a0f2e)}
 .dark .storage-chart-card{background:#1e293b;border-color:#334155}
 .dark .storage-stat-card{background:#1e293b;border-color:#334155}
@@ -1054,6 +1055,8 @@ body.no-transition,body.no-transition *{transition:none!important}
     .storage-hero-stats{gap:10px}
     .storage-hero-stat-value{font-size:20px}
     .storage-chart-row{grid-template-columns:1fr}
+    .storage-chart-card{padding:14px!important;overflow:hidden}
+    .storage-chart-card canvas{max-width:100%!important;height:180px!important}
     .storage-page{padding:12px}
     .gdrive-setup-banner{flex-direction:column;gap:12px;padding:16px}
     .gdrive-setup-banner .setup-banner-actions{flex-direction:column}
@@ -3978,7 +3981,7 @@ function renderHomepage() {
                 </div>
                 <div class="sr sr-delay-1" style="position:relative;width:120px;height:120px;margin:0 auto 36px">
                     <div class="logo-animated" style="width:120px;height:120px;border-radius:30px;background:rgba(255,255,255,.06);backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 60px rgba(59,130,246,.25),inset 0 0 30px rgba(59,130,246,.08)">
-                        <i class="fas fa-cloud" style="color:#fff;font-size:52px;filter:drop-shadow(0 0 12px rgba(59,130,246,.5))"></i>
+                        <i class="fas fa-cloud" style="color:#fff;font-size:52px;filter:drop-shadow(0 0 12px rgba(59,130,246,.5));transform:translateX(2px)"></i>
                     </div>
                     <div class="orbit-ring" style="width:160px;height:160px;top:-20px;left:-20px"><div class="orbit-dot"></div></div>
                     <div class="orbit-ring" style="width:200px;height:200px;top:-40px;left:-40px;animation-duration:30s;animation-direction:reverse;border-color:rgba(139,92,246,.08)"><div class="orbit-dot" style="background:#8b5cf6;box-shadow:0 0 8px #8b5cf6"></div></div>
@@ -5423,7 +5426,7 @@ function renderSidebarHTML() {
         <!-- RidgeBox Branding -->
         <div style="display:flex;align-items:center;gap:10px;padding:6px 8px 18px;border-bottom:1px solid var(--border);margin-bottom:14px">
             <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(59,130,246,.25)">
-                <i class="fas fa-cloud" style="color:#fff;font-size:16px"></i>
+                <i class="fas fa-cloud" style="color:#fff;font-size:16px;transform:translateX(1px)"></i>
             </div>
             <div>
                 <div style="font-size:16px;font-weight:700;color:var(--text);line-height:1.2">RidgeBox</div>
@@ -8945,8 +8948,8 @@ function renderStorageManagement() {
 
         <!-- Charts -->
         <div class="storage-chart-row">
-            <div class="storage-chart-card"><div class="chart-title"><i class="fas fa-chart-pie" style="margin-right:4px"></i> ${isId ? 'Distribusi Penyimpanan' : 'Storage Distribution'}</div><canvas id="storage-donut-chart" width="280" height="200"></canvas></div>
-            <div class="storage-chart-card"><div class="chart-title"><i class="fas fa-chart-bar" style="margin-right:4px"></i> ${isId ? 'Penggunaan Per Akun' : 'Per Account Usage'}</div><canvas id="storage-bar-chart" width="280" height="200"></canvas></div>
+            <div class="storage-chart-card"><div class="chart-title"><i class="fas fa-chart-pie" style="margin-right:4px"></i> ${isId ? 'Distribusi Penyimpanan' : 'Storage Distribution'}</div><canvas id="storage-donut-chart" style="width:100%;max-width:280px;height:200px;display:block;margin:0 auto"></canvas></div>
+            <div class="storage-chart-card"><div class="chart-title"><i class="fas fa-chart-bar" style="margin-right:4px"></i> ${isId ? 'Penggunaan Per Akun' : 'Per Account Usage'}</div><canvas id="storage-bar-chart" style="width:100%;max-width:280px;height:200px;display:block;margin:0 auto"></canvas></div>
         </div>
 
         <!-- Smart Allocation Info -->
@@ -9003,12 +9006,15 @@ function confirmDisconnectGDrive(accountId) {
 function drawStorageDonutChart(accounts, stats) {
     const canvas = document.getElementById('storage-donut-chart');
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const displayW = Math.max(1, Math.floor(rect.width));
+    const displayH = Math.max(1, Math.floor(rect.height));
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = canvas.clientWidth * dpr; canvas.height = canvas.clientHeight * dpr;
+    canvas.width = displayW * dpr; canvas.height = displayH * dpr;
+    const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
-    const w = canvas.clientWidth, h = canvas.clientHeight, cx = w / 2, cy = h / 2;
-    const radius = Math.min(w, h) / 2 - 20, innerRadius = radius * 0.6;
+    const w = displayW, h = displayH, cx = w / 2, cy = h / 2;
+    const radius = Math.max(10, Math.min(w, h) / 2 - 16), innerRadius = radius * 0.6;
     const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4'];
     ctx.clearRect(0, 0, w, h);
     if (accounts.length === 0 || stats.totalUsage === 0) {
@@ -9029,20 +9035,23 @@ function drawStorageDonutChart(accounts, stats) {
     });
     const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#0f172a';
     const subColor = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#64748b';
-    ctx.fillStyle = textColor; ctx.font = 'bold 20px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = textColor; ctx.font = 'bold 14px JetBrains Mono, monospace'; ctx.textAlign = 'center';
     ctx.fillText(formatStorageBytes(stats.totalUsage), cx, cy - 2);
-    ctx.fillStyle = subColor; ctx.font = '10px Space Grotesk, sans-serif';
-    ctx.fillText(APP.lang === 'id' ? 'terpakai' : 'used', cx, cy + 14);
+    ctx.fillStyle = subColor; ctx.font = '9px Space Grotesk, sans-serif';
+    ctx.fillText(APP.lang === 'id' ? 'terpakai' : 'used', cx, cy + 12);
 }
 
 function drawStorageBarChart(accounts) {
     const canvas = document.getElementById('storage-bar-chart');
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const displayW = Math.max(1, Math.floor(rect.width));
+    const displayH = Math.max(1, Math.floor(rect.height));
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = canvas.clientWidth * dpr; canvas.height = canvas.clientHeight * dpr;
+    canvas.width = displayW * dpr; canvas.height = displayH * dpr;
+    const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
-    const w = canvas.clientWidth, h = canvas.clientHeight;
+    const w = displayW, h = displayH;
     ctx.clearRect(0, 0, w, h);
     const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#64748b';
     const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#e2e8f0';
@@ -9051,20 +9060,13 @@ function drawStorageBarChart(accounts) {
         ctx.fillStyle = textColor; ctx.font = '12px Space Grotesk, sans-serif'; ctx.textAlign = 'center';
         ctx.fillText(APP.lang === 'id' ? 'Hubungkan akun untuk melihat chart' : 'Connect accounts to see chart', w / 2, h / 2); return;
     }
-    const padding = { top: 10, right: 20, bottom: 40, left: 60 };
+    const padding = { top: 10, right: 10, bottom: 30, left: 10 };
     const chartW = w - padding.left - padding.right, chartH = h - padding.top - padding.bottom;
-    const barWidth = Math.min(40, chartW / accounts.length - 12);
+    const barWidth = Math.min(30, chartW / accounts.length - 8);
     const barGap = (chartW - barWidth * accounts.length) / (accounts.length + 1);
     let maxVal = 0;
     accounts.forEach(a => { const l = parseInt(a.quota?.limit) || 15 * 1073741824; if (l > maxVal) maxVal = l; });
     if (maxVal === 0) maxVal = 15 * 1073741824;
-    ctx.strokeStyle = borderColor; ctx.lineWidth = 0.5;
-    for (let i = 0; i <= 4; i++) {
-        const y = padding.top + chartH - (chartH * i / 4);
-        ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(w - padding.right, y); ctx.stroke();
-        ctx.fillStyle = textColor; ctx.font = '9px JetBrains Mono, monospace'; ctx.textAlign = 'right';
-        ctx.fillText(formatStorageBytes(maxVal * i / 4), padding.left - 4, y + 3);
-    }
     accounts.forEach((a, i) => {
         const limit = parseInt(a.quota?.limit) || 15 * 1073741824, usage = parseInt(a.quota?.usage) || 0;
         const x = padding.left + barGap + i * (barWidth + barGap);
@@ -9073,9 +9075,9 @@ function drawStorageBarChart(accounts) {
         ctx.beginPath(); ctx.roundRect(x, padding.top + chartH - limitH, barWidth, limitH, [4, 4, 0, 0]); ctx.fill();
         ctx.fillStyle = barColors[i % barColors.length];
         ctx.beginPath(); ctx.roundRect(x, padding.top + chartH - usageH, barWidth, usageH, [4, 4, 0, 0]); ctx.fill();
-        ctx.fillStyle = textColor; ctx.font = '9px Space Grotesk, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = textColor; ctx.font = '8px Space Grotesk, sans-serif'; ctx.textAlign = 'center';
         const label = a.email ? a.email.split('@')[0] : 'Drive ' + (i + 1);
-        ctx.fillText(label.length > 8 ? label.slice(0, 7) + '..' : label, x + barWidth / 2, h - padding.bottom + 14);
+        ctx.fillText(label.length > 6 ? label.slice(0, 5) + '..' : label, x + barWidth / 2, h - padding.bottom + 12);
     });
 }
 
