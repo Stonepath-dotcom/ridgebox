@@ -1,10 +1,7 @@
-export const config = { runtime: 'edge' };
+import { checkRateLimit, rateLimitHeaders } from '../_rateLimit.js';
+import { getCORSHeaders } from '../_cors.js';
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+export const config = { runtime: 'edge' };
 
 // AWS Signature V4 signing using Web Crypto API
 async function sha256(data) {
@@ -69,13 +66,22 @@ async function signRequest(method, url, headers, body, accessKeyId, secretAccess
 }
 
 export default async function (request) {
+  const CORS = getCORSHeaders(request);
+  const rl = checkRateLimit(request);
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({ ok: false, error: 'Rate limit exceeded', retryAfter: rl.retryAfter }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
+    });
+  }
+
   if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: CORS });
+    return new Response(null, { status: 204, headers: { ...CORS, ...rateLimitHeaders(rl) } });
   }
 
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ ok: false, error: 'Method not allowed. Use POST.' }), {
-      status: 405, headers: { 'Content-Type': 'application/json', ...CORS },
+      status: 405, headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 
@@ -84,7 +90,7 @@ export default async function (request) {
 
     if (!endpoint || !accessKeyId || !secretAccessKey || !bucket || !region) {
       return new Response(JSON.stringify({ ok: false, error: 'Missing required S3 configuration' }), {
-        status: 400, headers: { 'Content-Type': 'application/json', ...CORS },
+        status: 400, headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -113,12 +119,12 @@ export default async function (request) {
       headers: Object.fromEntries(resp.headers.entries()),
     }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json', ...CORS },
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   } catch (error) {
     console.error('[S3 Proxy Error]', error);
     return new Response(JSON.stringify({ ok: false, error: error.message }), {
-      status: 500, headers: { 'Content-Type': 'application/json', ...CORS },
+      status: 500, headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 }

@@ -1,10 +1,7 @@
-export const config = { runtime: 'edge' };
+import { checkRateLimit, rateLimitHeaders } from '../_rateLimit.js';
+import { getCORSHeaders } from '../_cors.js';
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+export const config = { runtime: 'edge' };
 
 // AWS Signature V4 signing using Web Crypto API
 async function sha256(data) {
@@ -69,29 +66,35 @@ async function signRequest(method, url, headers, accessKeyId, secretAccessKey, r
 }
 
 export default async function (request) {
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: CORS });
+  const CORS = getCORSHeaders(request);
+  const rl = checkRateLimit(request);
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({ ok: false, error: 'Rate limit exceeded', retryAfter: rl.retryAfter }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
+    });
   }
 
-  if (request.method !== 'GET') {
-    return new Response(JSON.stringify({ ok: false, error: 'Method not allowed. Use GET.' }), {
-      status: 405, headers: { 'Content-Type': 'application/json', ...CORS },
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: { ...CORS, ...rateLimitHeaders(rl) } });
+  }
+
+  // Changed from GET to POST for security - credentials in body, not URL
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ ok: false, error: 'Method not allowed. Use POST.' }), {
+      status: 405, headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 
   try {
-    const urlObj = new URL(request.url);
-    const endpoint = urlObj.searchParams.get('endpoint');
-    const accessKeyId = urlObj.searchParams.get('accessKeyId');
-    const secretAccessKey = urlObj.searchParams.get('secretAccessKey');
-    const bucket = urlObj.searchParams.get('bucket');
-    const region = urlObj.searchParams.get('region');
-    const key = urlObj.searchParams.get('key');
-    const name = urlObj.searchParams.get('name') || key?.split('/').pop() || 'download';
+    // Read credentials from JSON body instead of URL searchParams
+    const body = await request.json();
+    const { endpoint, accessKeyId, secretAccessKey, bucket, region, key, name } = body;
+    const downloadName = name || key?.split('/').pop() || 'download';
 
     if (!endpoint || !accessKeyId || !secretAccessKey || !bucket || !region || !key) {
       return new Response(JSON.stringify({ ok: false, error: 'Missing required fields' }), {
-        status: 400, headers: { 'Content-Type': 'application/json', ...CORS },
+        status: 400, headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -106,24 +109,25 @@ export default async function (request) {
       const errText = await resp.text();
       return new Response(JSON.stringify({
         ok: false, error: 'S3 download failed: ' + resp.status, details: errText,
-      }), { status: resp.status, headers: { 'Content-Type': 'application/json', ...CORS } });
+      }), { status: resp.status, headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS } });
     }
 
     const contentType = resp.headers.get('Content-Type') || 'application/octet-stream';
-    const body = await resp.arrayBuffer();
+    const respBody = await resp.arrayBuffer();
 
-    return new Response(body, {
+    return new Response(respBody, {
       headers: {
         'Content-Type': contentType,
-        'Content-Disposition': 'attachment; filename="' + name.replace(/"/g, '\\"') + '"',
-        'Content-Length': body.byteLength.toString(),
+        'Content-Disposition': 'attachment; filename="' + downloadName.replace(/"/g, '\\"') + '"',
+        'Content-Length': respBody.byteLength.toString(),
+        ...rateLimitHeaders(rl),
         ...CORS,
       },
     });
   } catch (error) {
     console.error('[S3 Download Error]', error);
     return new Response(JSON.stringify({ ok: false, error: error.message }), {
-      status: 500, headers: { 'Content-Type': 'application/json', ...CORS },
+      status: 500, headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 }

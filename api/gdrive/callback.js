@@ -1,10 +1,7 @@
-export const config = { runtime: 'edge' };
+import { checkRateLimit, rateLimitHeaders } from '../_rateLimit.js';
+import { getCORSHeaders } from '../_cors.js';
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+export const config = { runtime: 'edge' };
 
 function htmlPage(title, body, script = '') {
   return `<!DOCTYPE html>
@@ -82,9 +79,40 @@ function htmlPage(title, body, script = '') {
 </html>`;
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function escapeJs(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/</g, '\\x3c')
+    .replace(/>/g, '\\x3e');
+}
+
 export default async function (request) {
+  const CORS = getCORSHeaders(request);
+  const rl = checkRateLimit(request);
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({ ok: false, error: 'Rate limit exceeded', retryAfter: rl.retryAfter }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
+    });
+  }
+
   if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: CORS });
+    return new Response(null, { status: 204, headers: { ...CORS, ...rateLimitHeaders(rl) } });
   }
 
   try {
@@ -107,7 +135,7 @@ export default async function (request) {
         }
       </script>`);
       return new Response(html, {
-        headers: { 'Content-Type': 'text/html', ...CORS },
+        headers: { 'Content-Type': 'text/html', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -122,7 +150,7 @@ export default async function (request) {
         }
       </script>`);
       return new Response(html, {
-        headers: { 'Content-Type': 'text/html', ...CORS },
+        headers: { 'Content-Type': 'text/html', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -142,7 +170,7 @@ export default async function (request) {
         }
       </script>`);
       return new Response(html, {
-        headers: { 'Content-Type': 'text/html', ...CORS },
+        headers: { 'Content-Type': 'text/html', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -178,7 +206,7 @@ export default async function (request) {
         }
       </script>`);
       return new Response(html, {
-        headers: { 'Content-Type': 'text/html', ...CORS },
+        headers: { 'Content-Type': 'text/html', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -274,7 +302,7 @@ export default async function (request) {
     </script>`);
 
     return new Response(html, {
-      headers: { 'Content-Type': 'text/html', ...CORS },
+      headers: { 'Content-Type': 'text/html', ...rateLimitHeaders(rl), ...CORS },
     });
   } catch (error) {
     console.error('[GDrive Callback Error]', error);
@@ -290,29 +318,7 @@ export default async function (request) {
     </script>`);
     return new Response(html, {
       status: 500,
-      headers: { 'Content-Type': 'text/html', ...CORS },
+      headers: { 'Content-Type': 'text/html', ...rateLimitHeaders(rl), ...CORS },
     });
   }
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-function escapeJs(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r')
-    .replace(/</g, '\\x3c')
-    .replace(/>/g, '\\x3e');
 }

@@ -1,10 +1,7 @@
-export const config = { runtime: 'edge' };
+import { checkRateLimit, rateLimitHeaders } from '../_rateLimit.js';
+import { getCORSHeaders } from '../_cors.js';
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+export const config = { runtime: 'edge' };
 
 const SCOPES = [
   'https://www.googleapis.com/auth/drive.file',
@@ -13,8 +10,17 @@ const SCOPES = [
 ].join(' ');
 
 export default async function (request) {
+  const CORS = getCORSHeaders(request);
+  const rl = checkRateLimit(request);
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({ ok: false, error: 'Rate limit exceeded', retryAfter: rl.retryAfter }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
+    });
+  }
+
   if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: CORS });
+    return new Response(null, { status: 204, headers: { ...CORS, ...rateLimitHeaders(rl) } });
   }
 
   try {
@@ -29,7 +35,7 @@ export default async function (request) {
         error: 'Google Drive is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.',
       }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -59,13 +65,14 @@ export default async function (request) {
       status: 302,
       headers: {
         Location: authUrl,
+        ...rateLimitHeaders(rl),
         ...CORS,
       },
     });
   } catch (error) {
     return new Response(JSON.stringify({ ok: false, error: error.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...CORS },
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 }

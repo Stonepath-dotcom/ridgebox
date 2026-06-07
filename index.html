@@ -1825,7 +1825,10 @@ const APP = {
         trashPurgeDays: 30,
         autoLockMinutes: 0,
         notifications: false,
-        webhookUrl: ''
+        webhookUrl: '',
+        totpEnabled: false,
+        totpSecret: '',
+        pushSubscription: ''
     },
     autoLockTimer: null,
     autoLockCountdown: null,
@@ -3190,17 +3193,32 @@ function showUndoToast(message, undoCallback) {
 
 // ===== THEME (F12) =====
 function applyTheme() {
-    document.documentElement.className = APP.theme;
+    // F21: Auto theme — follow system preference if set to 'auto'
+    if (APP.theme === 'auto') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.className = prefersDark ? 'dark' : 'light';
+    } else {
+        document.documentElement.className = APP.theme;
+    }
     localStorage.setItem('rb_theme', APP.theme);
 }
 function toggleTheme() {
-    APP.theme = APP.theme === 'dark' ? 'light' : 'dark';
+    const themes = ['light', 'dark', 'auto'];
+    const idx = themes.indexOf(APP.theme);
+    APP.theme = themes[(idx + 1) % themes.length];
     applyTheme();
     renderHeader();
-    // Sync all theme-dependent UI elements
     const sidebar = document.getElementById('sidebar-panel');
     if (sidebar) sidebar.innerHTML = renderSidebarHTML();
-    showToast(APP.theme === 'dark' ? 'Tema gelap' : 'Tema terang', 'info', 2000);
+    const isId = APP.lang === 'id';
+    const names = { light: isId ? 'Tema Terang' : 'Light Theme', dark: isId ? 'Tema Gelap' : 'Dark Theme', auto: isId ? 'Otomatis (Sistem)' : 'Auto (System)' };
+    showToast(names[APP.theme], 'info', 2000);
+}
+// Listen for system theme changes when in auto mode
+if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (APP.theme === 'auto') applyTheme();
+    });
 }
 
 // ===== CONNECTION STATUS (F14) =====
@@ -3725,7 +3743,7 @@ function checkUrlRouting() {
     }
 
     // Auth guard for protected routes — show overlay on top of homepage
-    const protectedRoutes = ['#/dashboard', '#/storage', '#/file/'];
+    const protectedRoutes = ['#/dashboard', '#/storage', '#/file/', '#/analytics'];
     const isProtected = protectedRoutes.some(r => hash.startsWith(r));
     if (isProtected && isAuthRequired() && !isLoggedIn()) {
         _authRedirectTo = hash;
@@ -3753,6 +3771,8 @@ function checkUrlRouting() {
     } else if (hash.startsWith('#/gallery/')) {
         const galleryId = hash.replace('#/gallery/', '');
         renderGallery(galleryId);
+    } else if (hash === '#/analytics') {
+        checkPinThenRender(() => renderAnalytics());
     } else {
         render404();
     }
@@ -5262,7 +5282,7 @@ function renderHomepage() {
                             <li><i class="fas fa-times feat-no"></i> ${isId?'Enkripsi':'Encryption'}</li>
                             <li><i class="fas fa-times feat-no"></i> ${isId?'Dukungan prioritas':'Priority support'}</li>
                         </ul>
-                        <a href="#/dashboard" class="pricing-cta pricing-cta-secondary">${isId?'Mulai Gratis':'Start Free'}</a>
+                        <a href="#/dashboard" class="pricing-cta pricing-cta-secondary" onclick="event.preventDefault();openPricingModal('free')">${isId?'Mulai Gratis':'Start Free'}</a>
                     </div>
                     <!-- Pro Tier -->
                     <div class="pricing-card popular scroll-reveal reveal-delay-2">
@@ -5278,7 +5298,7 @@ function renderHomepage() {
                             <li><i class="fas fa-check feat-yes"></i> ${isId?'Enkripsi E2E':'E2E Encryption'}</li>
                             <li><i class="fas fa-check feat-yes"></i> ${isId?'Dukungan prioritas':'Priority support'}</li>
                         </ul>
-                        <a href="#/dashboard" class="pricing-cta pricing-cta-primary">${isId?'Coba Pro':'Try Pro'}</a>
+                        <a href="#/dashboard" class="pricing-cta pricing-cta-primary" onclick="event.preventDefault();openPricingModal('pro')">${isId?'Coba Pro':'Try Pro'}</a>
                     </div>
                     <!-- Premium Tier -->
                     <div class="pricing-card scroll-reveal reveal-delay-3">
@@ -5293,7 +5313,7 @@ function renderHomepage() {
                             <li><i class="fas fa-check feat-yes"></i> API access</li>
                             <li><i class="fas fa-check feat-yes"></i> White label</li>
                         </ul>
-                        <a href="#/dashboard" class="pricing-cta pricing-cta-secondary">${isId?'Pilih Premium':'Choose Premium'}</a>
+                        <a href="#/dashboard" class="pricing-cta pricing-cta-secondary" onclick="event.preventDefault();openPricingModal('premium')">${isId?'Pilih Premium':'Choose Premium'}</a>
                     </div>
                 </div>
             </div>
@@ -6609,7 +6629,9 @@ function renderSidebarHTML() {
     const toolItems = [
         { id: 'storage-management', icon: 'fa-server', name: isId ? 'Kelola Penyimpanan' : 'Storage Manager', action: "location.hash='#/storage'" },
         { id: 'storage-analytics', icon: 'fa-chart-pie', name: isId ? 'Analisis Penyimpanan' : 'Storage Analytics', action: 'openStorageAnalytics()' },
+        { id: 'analytics', icon: 'fa-chart-line', name: isId ? 'Dashboard Analitik' : 'Analytics Dashboard', action: "location.hash='#/analytics'" },
         { id: 'trash', icon: 'fa-trash', name: isId ? 'Sampah' : 'Trash', action: `selectFolder('trash')`, count: trashCount },
+        { id: 'shortcuts', icon: 'fa-keyboard', name: isId ? 'Pintasan Keyboard' : 'Shortcuts', action: 'openKeyboardShortcuts()' },
         { id: 'settings', icon: 'fa-gear', name: isId ? 'Pengaturan' : 'Settings', action: 'openSettings()' }
     ];
 
@@ -9487,6 +9509,68 @@ function openSettings() {
                 <button class="btn btn-primary btn-sm" style="width:100%" onclick="openAdminPanel()"><i class="fas fa-lock" style="margin-right:4px"></i> ${APP.lang==='id'?'Buka Panel Admin':'Open Admin Panel'}</button>
             </div>
 
+            <!-- 2FA / TOTP -->
+            <div style="margin-bottom:20px;padding:16px;background:linear-gradient(135deg,rgba(139,92,246,.06),rgba(59,130,246,.06));border:1px solid rgba(139,92,246,.15);border-radius:12px">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center"><i class="fas fa-shield-halved" style="color:#8b5cf6;font-size:16px"></i></div>
+                    <div>
+                        <div style="font-size:14px;font-weight:600;color:var(--text)">2FA ${APP.lang==='id'?'Autentikasi':'Authentication'}</div>
+                        <div style="font-size:11px;color:var(--text-secondary)">${APP.settings.totpEnabled ? (APP.lang==='id'?'2FA aktif · Kode TOTP diperlukan saat login':'2FA active · TOTP code required on login') : (APP.lang==='id'?'Tambahkan lapisan keamanan dengan TOTP':'Add extra security with TOTP')}</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px">
+                    ${APP.settings.totpEnabled ? `<button class="btn btn-danger btn-sm" onclick="disable2FA()"><i class="fas fa-trash"></i> ${APP.lang==='id'?'Nonaktifkan':'Disable'}</button>` : `<button class="btn btn-primary btn-sm" style="flex:1" onclick="setup2FA()"><i class="fas fa-qrcode"></i> ${APP.lang==='id'?'Setup 2FA':'Setup 2FA'}</button>`}
+                </div>
+            </div>
+
+            <!-- Push Notifications -->
+            <div style="margin-bottom:20px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <label style="font-size:14px;font-weight:500"><i class="fas fa-bell" style="color:var(--accent);margin-right:6px"></i>${APP.lang==='id'?'Notifikasi Push':'Push Notifications'}</label>
+                        <p style="font-size:12px;color:var(--text-secondary)">${_pushSubscription ? (APP.lang==='id'?'Push aktif':'Push active') : (APP.lang==='id'?'Terima notifikasi di browser':'Receive browser notifications')}</p>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        ${_pushSubscription ? `<button class="btn btn-danger btn-sm" onclick="unsubscribePush()"><i class="fas fa-bell-slash"></i></button>` : `<button class="btn btn-primary btn-sm" onclick="subscribePush()"><i class="fas fa-bell"></i></button>`}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme Auto -->
+            <div style="margin-bottom:20px">
+                <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px"><i class="fas fa-circle-half-stroke" style="color:var(--accent);margin-right:6px"></i>${APP.lang==='id'?'Mode Tema':'Theme Mode'}</label>
+                <div style="display:flex;gap:8px">
+                    ${['light','dark','auto'].map(t => `<div onclick="APP.theme='${t}';applyTheme();openSettings()" style="flex:1;padding:10px;border-radius:10px;border:2px solid ${APP.theme===t?'var(--accent)':'var(--border)'};cursor:pointer;text-align:center;transition:all .15s;background:${APP.theme===t?'rgba(59,130,246,.06)':'transparent'}">
+                        <i class="fas ${t==='light'?'fa-sun':t==='dark'?'fa-moon':'fa-circle-half-stroke'}" style="font-size:16px;color:${APP.theme===t?'var(--accent)':'var(--text-secondary)'};margin-bottom:4px;display:block"></i>
+                        <span style="font-size:11px;font-weight:600;color:${APP.theme===t?'var(--accent)':'var(--text-secondary)'}">${t==='light'?(APP.lang==='id'?'Terang':'Light'):t==='dark'?(APP.lang==='id'?'Gelap':'Dark'):(APP.lang==='id'?'Otomatis':'Auto')}</span>
+                    </div>`).join('')}
+                </div>
+            </div>
+
+            <!-- Cloud Sync -->
+            ${APP.supabase && isLoggedIn() ? `<div style="margin-bottom:20px">
+                <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px"><i class="fas fa-cloud-arrow-up" style="color:var(--accent);margin-right:6px"></i>${APP.lang==='id'?'Sinkronisasi Cloud':'Cloud Sync'}</label>
+                <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">${APP.lang==='id'?'Sinkronkan metadata file ke Supabase':'Sync file metadata to Supabase'}</p>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-secondary btn-sm" onclick="syncAllFilesToServer()"><i class="fas fa-upload"></i> ${APP.lang==='id'?'Sinkronkan':'Sync Up'}</button>
+                    <button class="btn btn-secondary btn-sm" onclick="loadFilesFromServer();renderFileList()"><i class="fas fa-download"></i> ${APP.lang==='id'?'Sinkron Turun':'Sync Down'}</button>
+                </div>
+            </div>` : ''}
+
+            <!-- Keyboard Shortcuts -->
+            <div style="margin-bottom:20px">
+                <button class="btn btn-secondary" style="width:100%" onclick="openKeyboardShortcuts()"><i class="fas fa-keyboard" style="margin-right:6px"></i>${APP.lang==='id'?'Lihat Pintasan Keyboard':'View Keyboard Shortcuts'}</button>
+            </div>
+
+            <!-- Export Report -->
+            <div style="margin-bottom:20px">
+                <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px"><i class="fas fa-file-export" style="color:var(--accent);margin-right:6px"></i>${APP.lang==='id'?'Ekspor Laporan':'Export Report'}</label>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-secondary btn-sm" onclick="exportReport('csv')"><i class="fas fa-file-csv"></i> CSV</button>
+                    <button class="btn btn-secondary btn-sm" onclick="exportReport('pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+                </div>
+            </div>
+
             <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
                 <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
             </div>
@@ -9822,6 +9906,821 @@ function openStorageAnalytics() {
                 <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
             </div>
         </div>`);
+}
+
+// ===== 2FA / TOTP AUTHENTICATION (F106) =====
+let _totpSecret = null;
+let _totpVerified = false;
+
+function generateTOTPSecret() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'; // Base32
+    let secret = '';
+    const arr = new Uint8Array(20);
+    crypto.getRandomValues(arr);
+    for (let i = 0; i < 20; i++) secret += chars[arr[i] % 32];
+    return secret;
+}
+
+function getTOTPUri(secret) {
+    const account = APP.user?.email || 'ridgebox@user';
+    return `otpauth://totp/RidgeBox:${account}?secret=${secret}&issuer=RidgeBox&algorithm=SHA1&digits=6&period=30`;
+}
+
+async function setup2FA() {
+    const isId = APP.lang === 'id';
+    if (!APP.supabase || !isLoggedIn()) {
+        showToast(isId ? 'Login diperlukan untuk 2FA' : 'Login required for 2FA', 'warning');
+        return;
+    }
+    const secret = generateTOTPSecret();
+    _totpSecret = secret;
+    const uri = getTOTPUri(secret);
+    // Generate QR code
+    let qrDataUrl = '';
+    try { const qr = new QRious({ value: uri, size: 200, background: 'var(--bg)', foreground: 'var(--text)', level: 'M' }); qrDataUrl = qr.toDataURL(); } catch(e) { qrDataUrl = ''; }
+    openModal(`<div style="padding:24px;text-align:center">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-shield-halved" style="color:#8b5cf6;font-size:22px"></i></div>
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">${isId ? 'Setup 2FA' : 'Setup 2FA'}</h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${isId ? 'Scan QR code dengan app authenticator (Google Authenticator, Authy)' : 'Scan QR code with authenticator app (Google Authenticator, Authy)'}</p>
+        ${qrDataUrl ? `<img src="${qrDataUrl}" style="border-radius:12px;border:1px solid var(--border);margin:0 auto 16px;display:block" alt="2FA QR">` : ''}
+        <div style="background:var(--bg-secondary);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-family:'JetBrains Mono',monospace;font-size:13px;word-break:break-all;user-select:all">${secret}</div>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">${isId ? 'Masukkan kode 6 digit dari app authenticator:' : 'Enter 6-digit code from authenticator app:'}</p>
+        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:16px">
+            <input type="text" id="totp-verify-code" class="input" style="width:160px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:18px;letter-spacing:6px" maxlength="6" placeholder="000000" oninput="this.value=this.value.replace(/\\D/g,'')">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center">
+            <button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
+            <button class="btn btn-primary" onclick="verifyAndEnable2FA()">${isId ? 'Aktifkan 2FA' : 'Enable 2FA'}</button>
+        </div>
+    </div>`);
+}
+
+async function verifyAndEnable2FA() {
+    const isId = APP.lang === 'id';
+    const code = document.getElementById('totp-verify-code')?.value;
+    if (!code || code.length !== 6) { showToast(isId ? 'Kode harus 6 digit' : 'Code must be 6 digits', 'warning'); return; }
+    // Verify TOTP code
+    const valid = await verifyTOTP(_totpSecret, code);
+    if (valid) {
+        APP.settings.totpSecret = _totpSecret;
+        APP.settings.totpEnabled = true;
+        await updateSetting('totpSecret', _totpSecret);
+        await updateSetting('totpEnabled', true);
+        closeModal();
+        showToast(isId ? '2FA berhasil diaktifkan!' : '2FA enabled successfully!', 'success');
+    } else {
+        showToast(isId ? 'Kode salah, coba lagi' : 'Invalid code, try again', 'error');
+    }
+}
+
+async function verifyTOTP(secret, code) {
+    // Simple TOTP verification using Web Crypto
+    try {
+        const key = base32Decode(secret);
+        const timeStep = Math.floor(Date.now() / 30000);
+        for (let offset = -1; offset <= 1; offset++) {
+            const step = timeStep + offset;
+            const timeBuf = new ArrayBuffer(8);
+            const view = new DataView(timeBuf);
+            view.setBigUint64(0, BigInt(step));
+            const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+            const hmac = await crypto.subtle.sign('HMAC', cryptoKey, timeBuf);
+            const hmacArr = new Uint8Array(hmac);
+            const offsetByte = hmacArr[hmacArr.length - 1] & 0xf;
+            const otp = ((hmacArr[offsetByte] & 0x7f) << 24 | (hmacArr[offsetByte+1] & 0xff) << 16 | (hmacArr[offsetByte+2] & 0xff) << 8 | (hmacArr[offsetByte+3] & 0xff)) % 1000000;
+            if (String(otp).padStart(6, '0') === code) return true;
+        }
+    } catch(e) { console.error('TOTP verify error:', e); }
+    return false;
+}
+
+function base32Decode(str) {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let bits = '', bytes = [];
+    for (const c of str) { const val = alphabet.indexOf(c.toUpperCase()); if (val === -1) continue; bits += val.toString(2).padStart(5, '0'); }
+    for (let i = 0; i + 8 <= bits.length; i += 8) bytes.push(parseInt(bits.substr(i, 8), 2));
+    return new Uint8Array(bytes);
+}
+
+async function disable2FA() {
+    const isId = APP.lang === 'id';
+    APP.settings.totpSecret = '';
+    APP.settings.totpEnabled = false;
+    await updateSetting('totpSecret', '');
+    await updateSetting('totpEnabled', false);
+    showToast(isId ? '2FA dinonaktifkan' : '2FA disabled', 'info');
+    openSettings();
+}
+
+async function show2FAChallenge(callback) {
+    const isId = APP.lang === 'id';
+    openModal(`<div style="padding:24px;text-align:center">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-shield-halved" style="color:#8b5cf6;font-size:22px"></i></div>
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">2FA ${isId ? 'Verifikasi' : 'Verification'}</h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${isId ? 'Masukkan kode dari app authenticator' : 'Enter code from authenticator app'}</p>
+        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:16px">
+            <input type="text" id="totp-challenge-code" class="input" style="width:160px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:18px;letter-spacing:6px" maxlength="6" placeholder="000000" oninput="this.value=this.value.replace(/\\D/g,'')">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center">
+            <button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
+            <button class="btn btn-primary" onclick="verify2FAChallenge(${callback.toString()})">${isId ? 'Verifikasi' : 'Verify'}</button>
+        </div>
+    </div>`);
+}
+
+async function verify2FAChallenge(callback) {
+    const code = document.getElementById('totp-challenge-code')?.value;
+    if (!code || code.length !== 6) return;
+    const valid = await verifyTOTP(APP.settings.totpSecret, code);
+    if (valid) { closeModal(); _totpVerified = true; callback(); }
+    else { showToast(APP.lang==='id'?'Kode salah':'Invalid code', 'error'); }
+}
+
+// ===== ANALYTICS DASHBOARD (#/analytics) (F107) =====
+function renderAnalytics() {
+    const main = document.getElementById('app-main');
+    if (!main) return;
+    renderHeader();
+    const isId = APP.lang === 'id';
+    const activeFiles = APP.files.filter(f => !f.trashed);
+    const totalFiles = activeFiles.length;
+    const totalSize = activeFiles.reduce((s, f) => s + (f.size || 0), 0);
+    const totalShares = APP.shares.length;
+    const totalDownloads = APP.shares.reduce((s, sh) => s + (sh.downloadCount || 0), 0);
+    const totalEncrypted = activeFiles.filter(f => f.encrypted).length;
+
+    // File type distribution
+    const typeMap = {};
+    activeFiles.forEach(f => { const t = getFileType(f.name, f.mime); typeMap[t] = (typeMap[t] || 0) + 1; });
+    const typeEntries = Object.entries(typeMap).sort((a, b) => b[1] - a[1]);
+
+    // Storage by provider
+    const providerMap = {};
+    activeFiles.forEach(f => {
+        const p = f.storageProvider || 'telegram';
+        providerMap[p] = (providerMap[p] || 0) + (f.size || 0);
+    });
+
+    // Upload trend (last 30 days)
+    const now = Date.now();
+    const dayBuckets = {};
+    for (let i = 29; i >= 0; i--) {
+        const d = new Date(now - i * 86400000);
+        const key = d.toISOString().slice(0, 10);
+        dayBuckets[key] = { count: 0, size: 0 };
+    }
+    activeFiles.forEach(f => {
+        const key = new Date(f.uploadedAt).toISOString().slice(0, 10);
+        if (dayBuckets[key]) { dayBuckets[key].count++; dayBuckets[key].size += (f.size || 0); }
+    });
+    const trendData = Object.values(dayBuckets);
+    const maxCount = Math.max(...trendData.map(d => d.count), 1);
+
+    // Activity log stats
+    const activityLog = APP._activityCache || [];
+    const activityByType = {};
+    activityLog.forEach(a => { activityByType[a.type] = (activityByType[a.type] || 0) + 1; });
+
+    const typeColors = { image: '#3b82f6', video: '#ef4444', audio: '#10b981', document: '#f59e0b', archive: '#8b5cf6', code: '#06b6d4', other: '#6b7280' };
+    const providerColors = { telegram: '#0088cc', gdrive: '#4285f4', s3: '#f48120' };
+    const providerNames = { telegram: 'Telegram', gdrive: 'Google Drive', s3: 'S3 Storage' };
+
+    main.innerHTML = `<div class="page-transition" style="padding:24px;max-width:1200px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(139,92,246,.15));display:flex;align-items:center;justify-content:center"><i class="fas fa-chart-line" style="color:var(--accent);font-size:18px"></i></div>
+            <div>
+                <h2 style="font-size:22px;font-weight:700">${isId ? 'Dashboard Analitik' : 'Analytics Dashboard'}</h2>
+                <p style="font-size:13px;color:var(--text-secondary)">${isId ? 'Statistik dan tren penggunaan RidgeBox' : 'RidgeBox usage statistics and trends'}</p>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:8px">
+                <button class="btn btn-secondary btn-sm" onclick="exportReport('csv')"><i class="fas fa-file-csv"></i> CSV</button>
+                <button class="btn btn-secondary btn-sm" onclick="exportReport('pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+                <button class="btn btn-ghost btn-sm" onclick="location.hash='#/dashboard'"><i class="fas fa-arrow-left"></i></button>
+            </div>
+        </div>
+
+        <!-- Hero Stats -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px">
+            ${[
+                { icon: 'fa-folder-open', label: isId?'Total File':'Total Files', value: totalFiles, color: '#3b82f6' },
+                { icon: 'fa-hard-drive', label: isId?'Total Ukuran':'Total Size', value: formatSize(totalSize), color: '#8b5cf6' },
+                { icon: 'fa-share-nodes', label: isId?'Link Dibagikan':'Shared Links', value: totalShares, color: '#10b981' },
+                { icon: 'fa-download', label: isId?'Total Unduhan':'Total Downloads', value: totalDownloads, color: '#f59e0b' },
+                { icon: 'fa-shield-halved', label: isId?'Terenkripsi':'Encrypted', value: totalEncrypted, color: '#ef4444' },
+                { icon: 'fa-users', label: isId?'Akun Terhubung':'Connected Accounts', value: APP.gdriveAccounts.filter(a=>a.status==='connected').length + APP.s3Accounts.filter(a=>a.status==='connected').length, color: '#06b6d4' }
+            ].map(s => `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden">
+                <div style="position:absolute;top:-10px;right:-10px;width:50px;height:50px;border-radius:50%;background:${s.color}08"></div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:32px;height:32px;border-radius:8px;background:${s.color}15;display:flex;align-items:center;justify-content:center"><i class="fas ${s.icon}" style="color:${s.color};font-size:13px"></i></div></div>
+                <div style="font-size:24px;font-weight:700;color:var(--text)">${s.value}</div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">${s.label}</div>
+            </div>`).join('')}
+        </div>
+
+        <!-- Upload Trend Chart -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:24px">
+            <div style="font-size:14px;font-weight:600;margin-bottom:16px"><i class="fas fa-chart-bar" style="color:var(--accent);margin-right:6px"></i>${isId ? 'Tren Unggah (30 Hari)' : 'Upload Trend (30 Days)'}</div>
+            <div style="display:flex;align-items:flex-end;gap:2px;height:120px">
+                ${trendData.map((d, i) => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+                    <div style="width:100%;max-width:16px;height:${Math.max(2, (d.count / maxCount) * 100)}px;background:linear-gradient(180deg,var(--accent),#8b5cf6);border-radius:3px 3px 0 0;transition:height .3s ease" title="${d.count} ${isId?'file':'files'}"></div>
+                    ${i % 5 === 0 ? `<div style="font-size:9px;color:var(--text-secondary)">${new Date(now - (29 - i) * 86400000).getDate()}</div>` : ''}
+                </div>`).join('')}
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:24px">
+            <!-- File Type Distribution -->
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px">
+                <div style="font-size:14px;font-weight:600;margin-bottom:16px"><i class="fas fa-file-alt" style="color:#3b82f6;margin-right:6px"></i>${isId ? 'Distribusi Tipe File' : 'File Type Distribution'}</div>
+                ${typeEntries.length > 0 ? typeEntries.map(([type, count]) => {
+                    const pct = Math.round((count / totalFiles) * 100);
+                    const color = typeColors[type] || typeColors.other;
+                    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                        <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></div>
+                        <span style="font-size:12px;font-weight:500;min-width:80px;text-transform:capitalize">${type}</span>
+                        <div style="flex:1;height:6px;background:var(--bg-secondary);border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .6s ease"></div></div>
+                        <span style="font-size:11px;color:var(--text-secondary);font-family:'JetBrains Mono',monospace;min-width:50px;text-align:right">${count} (${pct}%)</span>
+                    </div>`;
+                }).join('') : `<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:12px">${isId?'Belum ada file':'No files yet'}</div>`}
+            </div>
+
+            <!-- Storage by Provider -->
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px">
+                <div style="font-size:14px;font-weight:600;margin-bottom:16px"><i class="fas fa-cloud" style="color:#8b5cf6;margin-right:6px"></i>${isId ? 'Penyimpanan per Provider' : 'Storage by Provider'}</div>
+                ${Object.entries(providerMap).map(([p, size]) => {
+                    const pct = totalSize > 0 ? Math.round((size / totalSize) * 100) : 0;
+                    const color = providerColors[p] || '#6b7280';
+                    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                        <div style="width:28px;height:28px;border-radius:6px;background:${color}15;display:flex;align-items:center;justify-content:center"><i class="fas ${p==='telegram'?'fa-paper-plane':p==='gdrive'?'fa-google':'fa-database'}" style="color:${color};font-size:11px"></i></div>
+                        <div style="flex:1"><div style="font-size:12px;font-weight:500">${providerNames[p] || p}</div><div style="height:4px;background:var(--bg-secondary);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:2px"></div></div></div>
+                        <span style="font-size:11px;color:var(--text-secondary);font-family:'JetBrains Mono',monospace">${formatSize(size)}</span>
+                    </div>`;
+                }).join('')}
+                ${Object.keys(providerMap).length === 0 ? `<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:12px">${isId?'Belum ada data':'No data yet'}</div>` : ''}
+            </div>
+        </div>
+
+        <!-- Activity Breakdown -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:24px">
+            <div style="font-size:14px;font-weight:600;margin-bottom:16px"><i class="fas fa-bolt" style="color:#f59e0b;margin-right:6px"></i>${isId ? 'Ringkasan Aktivitas' : 'Activity Summary'}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px">
+                ${Object.entries({ upload: { icon: 'fa-cloud-arrow-up', color: '#10b981', name: isId?'Unggah':'Upload' }, download: { icon: 'fa-download', color: '#3b82f6', name: isId?'Unduh':'Download' }, share: { icon: 'fa-share-alt', color: '#8b5cf6', name: isId?'Bagikan':'Share' }, delete: { icon: 'fa-trash', color: '#ef4444', name: isId?'Hapus':'Delete' }, rename: { icon: 'fa-pen', color: '#f59e0b', name: isId?'Ganti Nama':'Rename' }, move: { icon: 'fa-arrows-alt', color: '#06b6d4', name: isId?'Pindah':'Move' } }).map(([type, cfg]) => `<div style="text-align:center;padding:12px;background:var(--bg-secondary);border-radius:10px">
+                    <div style="width:32px;height:32px;border-radius:8px;background:${cfg.color}15;display:flex;align-items:center;justify-content:center;margin:0 auto 6px"><i class="fas ${cfg.icon}" style="color:${cfg.color};font-size:12px"></i></div>
+                    <div style="font-size:20px;font-weight:700;color:var(--text)">${activityByType[type] || 0}</div>
+                    <div style="font-size:10px;color:var(--text-secondary)">${cfg.name}</div>
+                </div>`).join('')}
+            </div>
+        </div>
+
+        <!-- Top Files -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px">
+            <div style="font-size:14px;font-weight:600;margin-bottom:16px"><i class="fas fa-trophy" style="color:#f59e0b;margin-right:6px"></i>${isId ? 'File Terpopuler' : 'Top Files'}</div>
+            ${activeFiles.sort((a,b) => (b.shareCount||0) - (a.shareCount||0)).slice(0, 10).map((f, i) => `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i<9?'border-bottom:1px solid var(--border);border-bottom-style:dashed':''}">
+                <span style="font-size:13px;font-weight:700;color:${i<3?'#f59e0b':'var(--text-secondary)'};width:24px;text-align:center">${i+1}</span>
+                <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</div><div style="font-size:10px;color:var(--text-secondary)">${formatSize(f.size||0)}</div></div>
+                <span style="font-size:11px;color:var(--text-secondary)">${f.shareCount||0} <i class="fas fa-share-alt" style="font-size:9px"></i></span>
+            </div>`).join('')}
+            ${activeFiles.length === 0 ? `<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:12px">${isId?'Belum ada file':'No files yet'}</div>` : ''}
+        </div>
+    </div>`;
+}
+
+// ===== EXPORT REPORT (F108) =====
+async function exportReport(format) {
+    const isId = APP.lang === 'id';
+    const activeFiles = APP.files.filter(f => !f.trashed);
+    const totalSize = activeFiles.reduce((s, f) => s + (f.size || 0), 0);
+    const totalShares = APP.shares.length;
+    const totalDownloads = APP.shares.reduce((s, sh) => s + (sh.downloadCount || 0), 0);
+
+    if (format === 'csv') {
+        let csv = 'Name,Size,Type,Provider,Uploaded,Encrypted,ShareCount\n';
+        activeFiles.forEach(f => {
+            csv += `"${f.name}",${f.size||0},"${getFileType(f.name,f.mime)}","${f.storageProvider||'telegram'}","${new Date(f.uploadedAt).toISOString()}",${f.encrypted},${f.shareCount||0}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = `ridgebox-report-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+        URL.revokeObjectURL(url);
+        showToast(isId ? 'Laporan CSV diekspor' : 'CSV report exported', 'success');
+    } else {
+        // PDF export using browser print
+        const printWin = window.open('', '_blank');
+        printWin.document.write(`<!DOCTYPE html><html><head><title>RidgeBox Report</title><style>body{font-family:system-ui;margin:40px;color:#1a1a2e}h1{color:#3b82f6}table{border-collapse:collapse;width:100%;margin:16px 0}th,td{border:1px solid #e2e8f0;padding:8px 12px;text-align:left;font-size:13px}th{background:#f8fafc;font-weight:600}.stat{display:inline-block;padding:16px 24px;background:#f8fafc;border-radius:12px;margin:8px 8px 8px 0;text-align:center}.stat-num{font-size:28px;font-weight:700;color:#3b82f6}.stat-label{font-size:12px;color:#64748b}</style></head><body>
+        <h1>RidgeBox Analytics Report</h1>
+        <p>Generated: ${new Date().toLocaleString()}</p>
+        <div style="margin:20px 0">
+            <div class="stat"><div class="stat-num">${activeFiles.length}</div><div class="stat-label">Total Files</div></div>
+            <div class="stat"><div class="stat-num">${formatSize(totalSize)}</div><div class="stat-label">Total Size</div></div>
+            <div class="stat"><div class="stat-num">${totalShares}</div><div class="stat-label">Shared Links</div></div>
+            <div class="stat"><div class="stat-num">${totalDownloads}</div><div class="stat-label">Downloads</div></div>
+        </div>
+        <h2>File List</h2>
+        <table><thead><tr><th>Name</th><th>Size</th><th>Type</th><th>Provider</th><th>Uploaded</th><th>Encrypted</th></tr></thead><tbody>
+        ${activeFiles.map(f => `<tr><td>${f.name}</td><td>${formatSize(f.size||0)}</td><td>${getFileType(f.name,f.mime)}</td><td>${f.storageProvider||'telegram'}</td><td>${new Date(f.uploadedAt).toLocaleDateString()}</td><td>${f.encrypted?'Yes':'No'}</td></tr>`).join('')}
+        </tbody></table></body></html>`);
+        printWin.document.close();
+        setTimeout(() => { printWin.print(); }, 500);
+        showToast(isId ? 'Laporan PDF dibuka' : 'PDF report opened', 'success');
+    }
+}
+
+// ===== PUSH NOTIFICATIONS (F109) =====
+let _pushSubscription = null;
+
+async function initPushNotifications() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        _pushSubscription = sub;
+    } catch(e) { console.warn('Push not supported:', e); }
+}
+
+async function subscribePush() {
+    const isId = APP.lang === 'id';
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        showToast(isId ? 'Browser tidak mendukung push notification' : 'Browser does not support push notifications', 'warning');
+        return;
+    }
+    try {
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') { showToast(isId ? 'Izin notifikasi ditolak' : 'Notification permission denied', 'warning'); return; }
+        const reg = await navigator.serviceWorker.ready;
+        // Use a placeholder key — in production, generate from server
+        const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkOs-GV3WVBRnO6GgGJJ5h7lH3BpcCE1fvRnDv0cBA' });
+        _pushSubscription = sub;
+        APP.settings.pushSubscription = JSON.stringify(sub);
+        updateSetting('pushSubscription', APP.settings.pushSubscription);
+        showToast(isId ? 'Push notification aktif!' : 'Push notifications enabled!', 'success');
+    } catch(e) { showToast(isId ? 'Gagal mendaftar push: ' + e.message : 'Push subscription failed: ' + e.message, 'error'); }
+}
+
+async function unsubscribePush() {
+    const isId = APP.lang === 'id';
+    if (_pushSubscription) { await _pushSubscription.unsubscribe(); _pushSubscription = null; }
+    APP.settings.pushSubscription = '';
+    updateSetting('pushSubscription', '');
+    showToast(isId ? 'Push notification dinonaktifkan' : 'Push notifications disabled', 'info');
+    openSettings();
+}
+
+// ===== KEYBOARD SHORTCUT PANEL (F110) =====
+function openKeyboardShortcuts() {
+    const isId = APP.lang === 'id';
+    const shortcuts = [
+        { keys: 'Ctrl + N', desc: isId ? 'Unggah file baru' : 'Upload new file' },
+        { keys: 'Ctrl + F', desc: isId ? 'Cari file' : 'Search files' },
+        { keys: 'Ctrl + A', desc: isId ? 'Pilih semua file' : 'Select all files' },
+        { keys: 'Delete', desc: isId ? 'Hapus file terpilih' : 'Delete selected files' },
+        { keys: 'Ctrl + Shift + N', desc: isId ? 'Buat folder baru' : 'Create new folder' },
+        { keys: 'F2', desc: isId ? 'Ganti nama file' : 'Rename file' },
+        { keys: 'Ctrl + C', desc: isId ? 'Salin file' : 'Copy file' },
+        { keys: 'Ctrl + V', desc: isId ? 'Tempel file' : 'Paste file' },
+        { keys: 'Ctrl + .', desc: isId ? 'Toggle mode batch' : 'Toggle batch mode' },
+        { keys: 'Escape', desc: isId ? 'Tutup panel / batal' : 'Close panel / cancel' },
+        { keys: '?', desc: isId ? 'Buka pintasan keyboard' : 'Open keyboard shortcuts' },
+        { keys: 'Ctrl + /', desc: isId ? 'Buka pengaturan' : 'Open settings' },
+        { keys: 'G then D', desc: isId ? 'Ke Dashboard' : 'Go to Dashboard' },
+        { keys: 'G then S', desc: isId ? 'Ke Penyimpanan' : 'Go to Storage' },
+    ];
+    openModal(`<div style="padding:24px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+            <div style="width:40px;height:40px;border-radius:10px;background:rgba(59,130,246,.1);display:flex;align-items:center;justify-content:center"><i class="fas fa-keyboard" style="color:var(--accent);font-size:16px"></i></div>
+            <h3 style="font-size:18px;font-weight:700">${isId ? 'Pintasan Keyboard' : 'Keyboard Shortcuts'}</h3>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+            ${shortcuts.map(s => `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:8px;transition:background .15s" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background=''">
+                <span style="font-size:13px;color:var(--text)">${s.desc}</span>
+                <kbd style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text-secondary)">${s.keys}</kbd>
+            </div>`).join('')}
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+            <button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Tutup' : 'Close'}</button>
+        </div>
+    </div>`);
+}
+
+// Keyboard shortcut handler
+document.addEventListener('keydown', e => {
+    // Skip if typing in input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    if (e.key === '?' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); openKeyboardShortcuts(); }
+    else if (e.ctrlKey && e.key === 'n') { e.preventDefault(); triggerUpload(); }
+    else if (e.ctrlKey && e.key === 'f' && location.hash.startsWith('#/dashboard')) { e.preventDefault(); document.querySelector('.search-premium input')?.focus(); }
+    else if (e.ctrlKey && e.key === '.' ) { e.preventDefault(); APP.batchMode = !APP.batchMode; renderFileList(); }
+    else if (e.ctrlKey && e.key === '/') { e.preventDefault(); openSettings(); }
+    else if (e.key === 'F2' && APP.selectedFiles.size === 1) { e.preventDefault(); const fid = [...APP.selectedFiles][0]; renameFile(fid); }
+});
+
+// ===== FILE METADATA SERVER-SIDE SYNC (F111) =====
+async function syncFileToServer(file) {
+    if (!APP.supabase || !isLoggedIn()) return;
+    try {
+        const { error } = await APP.supabase.from('files').upsert({
+            id: file.id,
+            user_id: APP.user.id,
+            name: file.name,
+            size: file.size,
+            mime: file.mime,
+            folder_id: file.folderId,
+            storage_provider: file.storageProvider || 'telegram',
+            provider_account_id: file.providerAccountId,
+            drive_file_id: file.driveFileId,
+            encrypted: file.encrypted,
+            starred: file.starred,
+            pinned: file.pinned,
+            tags: file.tag ? [file.tag] : [],
+            caption: file.caption || '',
+            trashed: file.trashed || false,
+            uploaded_at: new Date(file.uploadedAt).toISOString(),
+            updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+        if (error) console.warn('File sync error:', error.message);
+    } catch(e) { console.warn('File sync failed:', e); }
+}
+
+async function syncAllFilesToServer() {
+    if (!APP.supabase || !isLoggedIn()) return;
+    const isId = APP.lang === 'id';
+    showToast(isId ? 'Menyinkronkan file...' : 'Syncing files...', 'info', 3000);
+    let synced = 0;
+    for (const f of APP.files) {
+        await syncFileToServer(f);
+        synced++;
+    }
+    showToast(isId ? `${synced} file disinkronkan` : `${synced} files synced`, 'success');
+}
+
+async function loadFilesFromServer() {
+    if (!APP.supabase || !isLoggedIn()) return;
+    try {
+        const { data, error } = await APP.supabase.from('files').select('*').eq('user_id', APP.user.id).eq('trashed', false);
+        if (error || !data) return;
+        // Merge server data with local
+        data.forEach(sf => {
+            const localIdx = APP.files.findIndex(f => f.id === sf.id);
+            if (localIdx === -1) {
+                // New file from server
+                APP.files.push({
+                    id: sf.id, name: sf.name, size: sf.size, mime: sf.mime,
+                    folderId: sf.folder_id, storageProvider: sf.storage_provider,
+                    providerAccountId: sf.provider_account_id, driveFileId: sf.drive_file_id,
+                    encrypted: sf.encrypted, starred: sf.starred, pinned: sf.pinned,
+                    tag: sf.tags?.[0] || '', caption: sf.caption || '',
+                    trashed: sf.trashed || false, uploadedAt: new Date(sf.uploaded_at).getTime(),
+                    botIndex: '0', chatId: '', filePath: '', fileId: '', messageId: null,
+                    version: 1, shareCount: 0
+                });
+            }
+        });
+    } catch(e) { console.warn('Load from server failed:', e); }
+}
+
+// ===== REALTIME SYNC VIA SUPABASE (F112) =====
+let _realtimeSubscription = null;
+
+function initRealtimeSync() {
+    if (!APP.supabase || !isLoggedIn()) return;
+    try {
+        _realtimeSubscription = APP.supabase.channel('files-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'files', filter: `user_id=eq.${APP.user.id}` }, payload => {
+                if (payload.eventType === 'INSERT') {
+                    const sf = payload.new;
+                    if (!APP.files.find(f => f.id === sf.id)) {
+                        APP.files.push({
+                            id: sf.id, name: sf.name, size: sf.size, mime: sf.mime,
+                            folderId: sf.folder_id, storageProvider: sf.storage_provider,
+                            providerAccountId: sf.provider_account_id, driveFileId: sf.drive_file_id,
+                            encrypted: sf.encrypted, starred: sf.starred, pinned: sf.pinned,
+                            tag: sf.tags?.[0] || '', caption: sf.caption || '',
+                            trashed: sf.trashed || false, uploadedAt: new Date(sf.uploaded_at).getTime(),
+                            botIndex: '0', chatId: '', filePath: '', fileId: '', messageId: null,
+                            version: 1, shareCount: 0
+                        });
+                        if (location.hash === '#/dashboard') renderFileList();
+                    }
+                } else if (payload.eventType === 'UPDATE') {
+                    const sf = payload.new;
+                    const idx = APP.files.findIndex(f => f.id === sf.id);
+                    if (idx !== -1) {
+                        APP.files[idx] = { ...APP.files[idx], name: sf.name, starred: sf.starred, pinned: sf.pinned, trashed: sf.trashed, encrypted: sf.encrypted, tag: sf.tags?.[0] || '' };
+                        if (location.hash === '#/dashboard') renderFileList();
+                    }
+                } else if (payload.eventType === 'DELETE') {
+                    APP.files = APP.files.filter(f => f.id !== payload.old.id);
+                    if (location.hash === '#/dashboard') renderFileList();
+                }
+            })
+            .subscribe();
+    } catch(e) { console.warn('Realtime sync failed:', e); }
+}
+
+// ===== ACTIVITY LOG ENHANCED (F113) =====
+async function logActivityToServer(type, description, metadata = {}) {
+    // Add to local cache
+    if (!APP._activityCache) APP._activityCache = [];
+    APP._activityCache.unshift({ type, description, timestamp: Date.now(), metadata });
+    if (APP._activityCache.length > 500) APP._activityCache = APP._activityCache.slice(0, 500);
+    // Save to IndexedDB
+    try {
+        const db = await openDB();
+        const tx = db.transaction('activity_log', 'readwrite');
+        const store = tx.objectStore('activity_log');
+        store.put({ id: genId(), type, description, timestamp: Date.now(), metadata, userId: APP.user?.id });
+    } catch(e) {}
+    // Sync to Supabase
+    if (APP.supabase && isLoggedIn()) {
+        try {
+            await APP.supabase.from('activity_log').insert({
+                user_id: APP.user.id, type, description, metadata, created_at: new Date().toISOString()
+            });
+        } catch(e) {}
+    }
+    // Fire webhook
+    fireWebhook(type, { description, ...metadata });
+}
+
+// ===== EMAIL NOTIFICATION (F114) =====
+async function sendEmailNotification(subject, body) {
+    if (!APP.settings.webhookUrl) return;
+    try {
+        await fetch(APP.settings.webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ event: 'email', subject, body, timestamp: new Date().toISOString() })
+        });
+    } catch(e) { console.warn('Email notification failed:', e); }
+}
+
+// ===== COLLABORATIVE FOLDER (F115) =====
+async function createCollaborativeFolder() {
+    const isId = APP.lang === 'id';
+    const name = prompt(isId ? 'Nama folder kolaboratif:' : 'Collaborative folder name:');
+    if (!name) return;
+    const folderId = genId();
+    // Create folder with collaboration token
+    const token = crypto.randomUUID ? crypto.randomUUID() : genId() + genId();
+    APP.folders.push({ id: folderId, name, icon: 'fa-users', system: false, collaborationToken: token, isCollaborative: true });
+    await saveFolder({ id: folderId, name, icon: 'fa-users', system: false, collaborationToken: token, isCollaborative: true });
+    // Create upload portal for this folder
+    const portalUrl = `${location.origin}/#/upload/${token}`;
+    showToast(isId ? `Folder kolaboratif dibuat! Bagikan: ${portalUrl}` : `Collaborative folder created! Share: ${portalUrl}`, 'success');
+    // Copy link
+    try { await navigator.clipboard.writeText(portalUrl); showToast(isId ? 'Link disalin!' : 'Link copied!', 'success'); } catch(e) {}
+    closeModal();
+    if (location.hash === '#/dashboard') renderDashboard();
+}
+
+// ===== STRIPE PAYMENT INTEGRATION (F116) =====
+function openPricingModal(tier) {
+    const isId = APP.lang === 'id';
+    const plans = {
+        free: { name: isId ? 'Gratis' : 'Free', price: '$0', features: ['2 GB Storage', '5 File Shares', 'Basic Encryption', '1 Provider'] },
+        pro: { name: 'Pro', price: '$4.99/mo', features: ['50 GB Storage', 'Unlimited Shares', 'AES-256 Encryption', '5 Providers', 'Priority Support', 'Real-time Sync'] },
+        premium: { name: 'Premium', price: '$9.99/mo', features: ['Unlimited Storage', 'Unlimited Everything', 'E2E Encryption', 'All Providers', '24/7 Support', 'API Access', 'Custom Domain', 'Team Features'] }
+    };
+    const plan = plans[tier] || plans.free;
+    openModal(`<div style="padding:24px;text-align:center">
+        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(139,92,246,.15));display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-crown" style="color:var(--accent);font-size:22px"></i></div>
+        <h3 style="font-size:22px;font-weight:700;margin-bottom:4px">${plan.name}</h3>
+        <div style="font-size:32px;font-weight:800;color:var(--accent);margin-bottom:16px">${plan.price}</div>
+        <div style="text-align:left;margin-bottom:20px">${plan.features.map(f => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px"><i class="fas fa-check" style="color:#10b981;font-size:11px"></i>${f}</div>`).join('')}</div>
+        ${tier !== 'free' ? `<button class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;font-weight:600" onclick="initStripeCheckout('${tier}')"><i class="fas fa-credit-card" style="margin-right:6px"></i>${isId ? 'Berlangganan' : 'Subscribe'}</button>` : `<button class="btn btn-secondary" style="width:100%" onclick="closeModal()">${isId ? 'Paket Saat Ini' : 'Current Plan'}</button>`}
+        <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
+    </div>`);
+}
+
+function initStripeCheckout(tier) {
+    const isId = APP.lang === 'id';
+    // In production, this would redirect to Stripe Checkout
+    // For now, show a placeholder
+    showToast(isId ? 'Mengarahkan ke pembayaran...' : 'Redirecting to payment...', 'info');
+    // Simulated: In production, create a checkout session via API
+    // window.location.href = `/api/checkout?tier=${tier}&user=${APP.user?.id}`;
+    openModal(`<div style="padding:24px;text-align:center">
+        <i class="fas fa-credit-card" style="font-size:48px;color:var(--accent);margin-bottom:16px"></i>
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">${isId ? 'Pembayaran Stripe' : 'Stripe Payment'}</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">${isId ? 'Integrasi Stripe akan tersedia setelah konfigurasi server. Hubungi admin untuk mengaktifkan.' : 'Stripe integration will be available after server configuration. Contact admin to enable.'}</p>
+        <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;text-align:left;margin-bottom:16px">
+            <div>Plan: <b>${tier.toUpperCase()}</b></div>
+            <div>Amount: <b>${tier === 'pro' ? '$4.99' : '$9.99'}/mo</b></div>
+        </div>
+        <button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Tutup' : 'Close'}</button>
+    </div>`);
+}
+
+// ===== FILE PREVIEW ENHANCEMENT (F117) =====
+function openEnhancedPreview(file) {
+    const isId = APP.lang === 'id';
+    const fType = getFileType(file.name, file.mime);
+
+    if (fType === 'audio') {
+        openModal(`<div style="padding:24px;text-align:center">
+            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;animation:pulse 2s ease infinite"><i class="fas fa-music" style="color:#fff;font-size:32px"></i></div>
+            <h3 style="font-size:16px;font-weight:600;margin-bottom:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</h3>
+            <audio controls style="width:100%;margin-bottom:12px" src="/api/download?path=${file.filePath || ''}&file_id=${file.fileId || ''}&bot_index=${file.botIndex || '0'}&name=${encodeURIComponent(file.name)}"><p>${isId?'Browser tidak mendukung audio':'Browser does not support audio'}</p></audio>
+            <div style="font-size:12px;color:var(--text-secondary)">${formatSize(file.size || 0)} · ${file.mime || 'audio'}</div>
+        </div>`);
+    } else if (fType === 'video') {
+        openModal(`<div style="padding:16px;max-width:640px">
+            <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
+                <div style="width:36px;height:36px;border-radius:8px;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center"><i class="fas fa-play" style="color:#ef4444;font-size:13px"></i></div>
+                <h3 style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${file.name}</h3>
+            </div>
+            <video controls style="width:100%;border-radius:10px;max-height:400px;background:#000" src="/api/download?path=${file.filePath || ''}&file_id=${file.fileId || ''}&bot_index=${file.botIndex || '0'}&name=${encodeURIComponent(file.name)}"><p>${isId?'Browser tidak mendukung video':'Browser does not support video'}</p></video>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:8px">${formatSize(file.size || 0)} · ${file.mime || 'video'}</div>
+        </div>`);
+    } else if (file.mime === 'application/pdf' || file.name.endsWith('.pdf')) {
+        openModal(`<div style="padding:16px;max-width:800px">
+            <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
+                <div style="width:36px;height:36px;border-radius:8px;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center"><i class="fas fa-file-pdf" style="color:#ef4444;font-size:13px"></i></div>
+                <h3 style="font-size:14px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</h3>
+            </div>
+            <iframe src="/api/download?path=${file.filePath || ''}&file_id=${file.fileId || ''}&bot_index=${file.botIndex || '0'}&name=${encodeURIComponent(file.name)}" style="width:100%;height:500px;border:1px solid var(--border);border-radius:10px" title="PDF Preview"></iframe>
+        </div>`);
+    } else {
+        // Fallback to existing preview
+        openDetailPanel(file.id);
+    }
+}
+
+// ===== MOBILE PWA IMPROVEMENTS (F118) =====
+function renderMobileBottomNav() {
+    const isId = APP.lang === 'id';
+    const items = [
+        { icon: 'fa-house', label: isId ? 'Beranda' : 'Home', action: "selectFolder('all')", active: APP.currentFolder === 'all' },
+        { icon: 'fa-folder-open', label: isId ? 'File' : 'Files', action: "location.hash='#/dashboard'", active: location.hash === '#/dashboard' },
+        { icon: 'fa-cloud-arrow-up', label: isId ? 'Unggah' : 'Upload', action: 'triggerUpload()', active: false },
+        { icon: 'fa-chart-pie', label: isId ? 'Analitik' : 'Analytics', action: "location.hash='#/analytics'", active: location.hash === '#/analytics' },
+        { icon: 'fa-gear', label: isId ? 'Pengaturan' : 'Settings', action: 'openSettings()', active: false }
+    ];
+    return `<div id="mobile-bottom-nav" style="position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);border-top:1px solid var(--border);display:flex;z-index:80;padding:6px 0 env(safe-area-inset-bottom,8px);box-shadow:0 -2px 12px rgba(0,0,0,.08)">
+        ${items.map(i => `<div onclick="${i.action}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;opacity:${i.active ? 1 : 0.5};transition:opacity .15s">
+            <i class="fas ${i.icon}" style="font-size:18px;color:${i.active ? 'var(--accent)' : 'var(--text-secondary)'}"></i>
+            <span style="font-size:9px;font-weight:600;color:${i.active ? 'var(--accent)' : 'var(--text-secondary)'}">${i.label}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+// Pull-to-refresh
+let _pullStartY = 0, _pulling = false;
+document.addEventListener('touchstart', e => {
+    if (window.scrollY === 0 && location.hash.startsWith('#/dashboard')) _pullStartY = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchmove', e => {
+    if (_pullStartY > 0 && e.touches[0].clientY - _pullStartY > 80 && !_pulling && window.scrollY === 0) {
+        _pulling = true;
+        showToast(APP.lang === 'id' ? 'Menyegarkan...' : 'Refreshing...', 'info', 2000);
+        setTimeout(() => { checkUrlRouting(); _pulling = false; _pullStartY = 0; }, 1000);
+    }
+}, { passive: true });
+document.addEventListener('touchend', () => { _pullStartY = 0; }, { passive: true });
+
+// ===== DRAG & DROP ENHANCEMENT (F119) =====
+function initEnhancedDragDrop() {
+    const main = document.getElementById('app-main');
+    if (!main) return;
+    let dragCounter = 0;
+    let overlay = null;
+
+    main.addEventListener('dragenter', e => {
+        e.preventDefault();
+        dragCounter++;
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'drag-overlay';
+            overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(59,130,246,.08);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;pointer-events:none';
+            overlay.innerHTML = `<div style="background:var(--bg-card);border:2px dashed var(--accent);border-radius:20px;padding:40px 60px;text-align:center;animation:fadeIn .2s ease">
+                <i class="fas fa-cloud-arrow-up" style="font-size:48px;color:var(--accent);margin-bottom:12px;display:block"></i>
+                <div style="font-size:18px;font-weight:700;color:var(--text)">${APP.lang==='id'?'Lepas untuk Mengunggah':'Drop to Upload'}</div>
+                <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">${APP.lang==='id'?'File akan diunggah ke folder saat ini':'Files will be uploaded to current folder'}</div>
+            </div>`;
+            document.body.appendChild(overlay);
+        }
+    });
+    main.addEventListener('dragleave', e => { e.preventDefault(); dragCounter--; if (dragCounter <= 0) { dragCounter = 0; overlay?.remove(); overlay = null; } });
+    main.addEventListener('dragover', e => e.preventDefault());
+    main.addEventListener('drop', e => {
+        e.preventDefault();
+        dragCounter = 0;
+        overlay?.remove();
+        overlay = null;
+        if (e.dataTransfer?.files?.length > 0) {
+            Array.from(e.dataTransfer.files).forEach(f => handleFileUpload(f));
+        }
+    });
+}
+
+// ===== ENHANCED FILE TAGGING (F120) =====
+const CUSTOM_TAG_COLORS = [
+    { name: 'Red', color: '#ef4444' }, { name: 'Orange', color: '#f97316' },
+    { name: 'Amber', color: '#f59e0b' }, { name: 'Green', color: '#10b981' },
+    { name: 'Cyan', color: '#06b6d4' }, { name: 'Blue', color: '#3b82f6' },
+    { name: 'Purple', color: '#8b5cf6' }, { name: 'Pink', color: '#ec4899' }
+];
+
+function openTagManager(fileId) {
+    const isId = APP.lang === 'id';
+    const file = APP.files.find(f => f.id === fileId);
+    if (!file) return;
+    const customTags = JSON.parse(localStorage.getItem('rb_custom_tags') || '[]');
+    openModal(`<div style="padding:24px">
+        <h3 style="font-size:16px;font-weight:600;margin-bottom:16px"><i class="fas fa-tags" style="color:var(--accent);margin-right:6px"></i>${isId ? 'Kelola Tag' : 'Manage Tags'}</h3>
+        <div style="margin-bottom:16px">
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">${isId ? 'TAG CEPAT' : 'QUICK TAGS'}</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                ${CUSTOM_TAG_COLORS.map(c => `<div onclick="setFileTag('${fileId}','${c.color}');closeModal()" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;border:2px solid ${file.tag === c.color ? c.color : 'var(--border)'};cursor:pointer;background:${file.tag === c.color ? c.color + '15' : 'transparent'};transition:all .15s" onmouseover="this.style.borderColor='${c.color}'" onmouseout="this.style.borderColor='${file.tag === c.color ? c.color : 'var(--border)'}'">
+                    <div style="width:12px;height:12px;border-radius:50%;background:${c.color}"></div>
+                    <span style="font-size:12px;font-weight:500">${c.name}</span>
+                </div>`).join('')}
+            </div>
+        </div>
+        <div style="margin-bottom:16px">
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">${isId ? 'TAG KUSTOM' : 'CUSTOM TAGS'}</div>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+                <input type="text" id="custom-tag-name" class="input" placeholder="${isId ? 'Nama tag...' : 'Tag name...'}" style="flex:1">
+                <input type="color" id="custom-tag-color" value="#3b82f6" style="width:36px;height:36px;border:none;border-radius:8px;cursor:pointer;background:none">
+                <button class="btn btn-primary btn-sm" onclick="addCustomTag()"><i class="fas fa-plus"></i></button>
+            </div>
+            ${customTags.map(t => `<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:${t.color}15;border:1px solid ${t.color}30;margin:2px">
+                <div style="width:8px;height:8px;border-radius:50%;background:${t.color}"></div>
+                <span style="font-size:11px;font-weight:500">${t.name}</span>
+                <button style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:10px;padding:0 2px" onclick="removeCustomTag('${t.id}')"><i class="fas fa-times"></i></button>
+            </div>`).join('')}
+        </div>
+        ${file.tag ? `<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">${isId ? 'TAG SAAT INI' : 'CURRENT TAG'}</div>
+            <div style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;background:${file.tag}15;border:1px solid ${file.tag}30">
+                <div style="width:10px;height:10px;border-radius:50%;background:${file.tag}"></div>
+                <span style="font-size:12px;font-weight:500">${CUSTOM_TAG_COLORS.find(c=>c.color===file.tag)?.name || 'Custom'}</span>
+                <button style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:11px;padding:0 4px" onclick="setFileTag('${fileId}','');closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+        </div>` : ''}
+        <div style="display:flex;justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Tutup' : 'Close'}</button></div>
+    </div>`);
+}
+
+function addCustomTag() {
+    const name = document.getElementById('custom-tag-name')?.value;
+    const color = document.getElementById('custom-tag-color')?.value;
+    if (!name) return;
+    const tags = JSON.parse(localStorage.getItem('rb_custom_tags') || '[]');
+    tags.push({ id: genId(), name, color });
+    localStorage.setItem('rb_custom_tags', JSON.stringify(tags));
+    openTagManager(APP.selectedFiles.values().next().value); // Refresh
+}
+
+function removeCustomTag(tagId) {
+    const tags = JSON.parse(localStorage.getItem('rb_custom_tags') || '[]').filter(t => t.id !== tagId);
+    localStorage.setItem('rb_custom_tags', JSON.stringify(tags));
+}
+
+async function setFileTag(fileId, tagColor) {
+    const file = APP.files.find(f => f.id === fileId);
+    if (!file) return;
+    file.tag = tagColor;
+    await saveFile(file);
+    if (location.hash === '#/dashboard') renderFileList();
+}
+
+// ===== ONEDRIVE OAUTH (F121) =====
+function connectOneDrive() {
+    const isId = APP.lang === 'id';
+    const clientId = ''; // Would need Microsoft App registration
+    if (!clientId) {
+        showToast(isId ? 'OneDrive OAuth belum dikonfigurasi. Hubungi admin.' : 'OneDrive OAuth not configured. Contact admin.', 'warning');
+        return;
+    }
+    const redirectUri = encodeURIComponent(`${location.origin}/api/gdrive/callback`);
+    const scope = encodeURIComponent('Files.ReadWrite.All offline_access');
+    window.open(`https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=${scope}`, '_blank');
+}
+
+function connectDropbox() {
+    const isId = APP.lang === 'id';
+    const clientId = ''; // Would need Dropbox App registration
+    if (!clientId) {
+        showToast(isId ? 'Dropbox OAuth belum dikonfigurasi. Hubungi admin.' : 'Dropbox OAuth not configured. Contact admin.', 'warning');
+        return;
+    }
+    const redirectUri = encodeURIComponent(`${location.origin}/api/gdrive/callback`);
+    window.open(`https://www.dropbox.com/oauth2/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}`, '_blank');
+}
+
+// ===== LOADING SKELETON (F122) =====
+function renderLoadingSkeleton() {
+    return `<div class="page-transition" style="padding:20px">
+        <div style="display:flex;gap:12px;margin-bottom:20px">
+            ${[1,2,3,4].map(() => `<div style="flex:1;height:80px;border-radius:14px" class="skeleton"></div>`).join('')}
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+            ${[1,2,3,4,5].map(() => `<div style="width:100px;height:36px;border-radius:99px" class="skeleton"></div>`).join('')}
+        </div>
+        ${[1,2,3,4,5,6,7,8].map(() => `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+            <div style="width:36px;height:36px;border-radius:8px" class="skeleton"></div>
+            <div style="flex:1"><div style="width:60%;height:14px;border-radius:4px;margin-bottom:6px" class="skeleton"></div><div style="width:40%;height:10px;border-radius:4px" class="skeleton"></div></div>
+            <div style="width:60px;height:10px;border-radius:4px" class="skeleton"></div>
+        </div>`).join('')}
+    </div>`;
 }
 
 // ===== 404 PAGE (F73) =====
@@ -10191,12 +11090,19 @@ class S3Provider extends StorageProvider {
     async download(accountId, key) {
         const account = APP.s3Accounts.find(a => a.id === accountId);
         if (!account) throw new Error('Account not found');
-        const dlUrl = '/api/s3/download?' + new URLSearchParams({
-            endpoint: account.endpoint, accessKeyId: account.accessKeyId,
-            secretAccessKey: account.secretAccessKey, bucket: account.bucket,
-            region: account.region, key: key, name: key.split('/').pop()
-        }).toString();
-        return dlUrl;
+        // Use POST to avoid credentials in URL (security improvement)
+        const resp = await fetch('/api/s3/download', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                endpoint: account.endpoint, accessKeyId: account.accessKeyId,
+                secretAccessKey: account.secretAccessKey, bucket: account.bucket,
+                region: account.region, key: key, name: key.split('/').pop()
+            })
+        });
+        if (!resp.ok) throw new Error('S3 download failed');
+        const blob = await resp.blob();
+        return URL.createObjectURL(blob);
     }
 
     async deleteFile(accountId, key) {
@@ -11427,6 +12333,18 @@ async function init() {
 
         // Feature 5: Init notifications
         initNotifications();
+
+        // F109: Init push notifications
+        initPushNotifications();
+
+        // F111: Init file metadata server sync
+        if (APP.supabase && isLoggedIn()) {
+            loadFilesFromServer();
+            initRealtimeSync();
+        }
+
+        // F118: Init enhanced drag & drop
+        initEnhancedDragDrop();
 
         // Feature 4: Check pending uploads
         await checkPendingUploads();

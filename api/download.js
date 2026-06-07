@@ -1,20 +1,26 @@
+import { checkRateLimit, rateLimitHeaders } from './_rateLimit.js';
+import { getCORSHeaders } from './_cors.js';
+
 export const config = { runtime: 'edge' };
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
 export default async function (request) {
+  const CORS = getCORSHeaders(request);
+  const rl = checkRateLimit(request);
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({ ok: false, error: 'Rate limit exceeded', retryAfter: rl.retryAfter }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
+    });
+  }
+
   if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: CORS });
+    return new Response(null, { status: 204, headers: { ...CORS, ...rateLimitHeaders(rl) } });
   }
 
   if (request.method !== 'GET') {
     return new Response(JSON.stringify({ ok: false, error: 'Method not allowed' }), {
       status: 405,
-      headers: { 'Content-Type': 'application/json', ...CORS },
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 
@@ -32,7 +38,7 @@ export default async function (request) {
     if (!token) {
       return new Response(JSON.stringify({ ok: false, error: 'Bot not configured' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -47,7 +53,7 @@ export default async function (request) {
       } else {
         return new Response(JSON.stringify({ ok: false, error: 'Could not resolve file_path from file_id', details: getFileData }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json', ...CORS },
+          headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
         });
       }
     }
@@ -55,7 +61,7 @@ export default async function (request) {
     if (!filePath) {
       return new Response(JSON.stringify({ ok: false, error: 'Missing path or file_id parameter' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -65,12 +71,12 @@ export default async function (request) {
     if (!response.ok) {
       return new Response(JSON.stringify({ ok: false, error: 'Telegram download failed' }), {
         status: response.status,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
     // Stream the file through with Content-Disposition for proper phone storage saving
-    const headers = new Headers(CORS);
+    const headers = new Headers({ ...CORS, ...rateLimitHeaders(rl) });
     const contentType = response.headers.get('Content-Type');
     const contentLength = response.headers.get('Content-Length');
     if (contentType) headers.set('Content-Type', contentType);
@@ -96,7 +102,7 @@ export default async function (request) {
   } catch (error) {
     return new Response(JSON.stringify({ ok: false, error: error.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...CORS },
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 }

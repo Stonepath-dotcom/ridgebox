@@ -1,10 +1,7 @@
-export const config = { runtime: 'edge' };
+import { checkRateLimit, rateLimitHeaders } from './_rateLimit.js';
+import { getCORSHeaders } from './_cors.js';
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+export const config = { runtime: 'edge' };
 
 // F76: Mask bot tokens before sending to client
 function maskToken(token) {
@@ -13,8 +10,17 @@ function maskToken(token) {
 }
 
 export default async function (request) {
+  const CORS = getCORSHeaders(request);
+  const rl = checkRateLimit(request);
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({ ok: false, error: 'Rate limit exceeded', retryAfter: rl.retryAfter }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
+    });
+  }
+
   if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: CORS });
+    return new Response(null, { status: 204, headers: { ...CORS, ...rateLimitHeaders(rl) } });
   }
 
   try {
@@ -58,17 +64,26 @@ export default async function (request) {
       masked: proxyMode,
     }));
 
-    // Supabase Auth config (safe to expose - anon key is public)
-    const supabaseUrl = process.env.SUPABASE_URL || 'https://tztpwbasrajvkjbrvwfu.supabase.co';
-    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHB3YmFzcmFqdmtqYnJ2d2Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NzQ1OTMsImV4cCI6MjA5NjM1MDU5M30.3O4-5PbSlRC8cro8hbbIgkxdnUOIXmWHa2mA5NVnhxc';
+    // Supabase Auth config - only use env vars, no hardcoded fallbacks
+    const supabaseUrl = process.env.SUPABASE_URL || '';
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+    const supabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 
-    return new Response(JSON.stringify({ ok: true, bots: safeBots, proxyMode, supabaseUrl, supabaseAnonKey }), {
-      headers: { 'Content-Type': 'application/json', ...CORS },
+    const responseBody = {
+      ok: true,
+      bots: safeBots,
+      proxyMode,
+      supabaseConfigured,
+      ...(supabaseConfigured ? { supabaseUrl, supabaseAnonKey } : {}),
+    };
+
+    return new Response(JSON.stringify(responseBody), {
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   } catch (error) {
     return new Response(JSON.stringify({ ok: false, error: error.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...CORS },
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 }

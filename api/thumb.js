@@ -1,14 +1,20 @@
+import { checkRateLimit, rateLimitHeaders } from './_rateLimit.js';
+import { getCORSHeaders } from './_cors.js';
+
 export const config = { runtime: 'edge' };
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
 export default async function (request) {
+  const CORS = getCORSHeaders(request);
+  const rl = checkRateLimit(request);
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({ ok: false, error: 'Rate limit exceeded', retryAfter: rl.retryAfter }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
+    });
+  }
+
   if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: CORS });
+    return new Response(null, { status: 204, headers: { ...CORS, ...rateLimitHeaders(rl) } });
   }
 
   try {
@@ -19,7 +25,7 @@ export default async function (request) {
     if (!fileId) {
       return new Response(JSON.stringify({ ok: false, error: 'Missing file_id' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -30,7 +36,7 @@ export default async function (request) {
     if (!token) {
       return new Response(JSON.stringify({ ok: false, error: 'Bot not configured' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -43,7 +49,7 @@ export default async function (request) {
     if (!infoData.ok) {
       return new Response(JSON.stringify({ ok: false, error: 'File not found' }), {
         status: 404,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -54,11 +60,11 @@ export default async function (request) {
     if (!imgRes.ok) {
       return new Response(JSON.stringify({ ok: false, error: 'Download failed' }), {
         status: imgRes.status,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
-    const headers = new Headers(CORS);
+    const headers = new Headers({ ...CORS, ...rateLimitHeaders(rl) });
     const ct = imgRes.headers.get('Content-Type');
     if (ct) headers.set('Content-Type', ct);
     headers.set('Cache-Control', 'public, max-age=86400');
@@ -67,7 +73,7 @@ export default async function (request) {
   } catch (error) {
     return new Response(JSON.stringify({ ok: false, error: error.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...CORS },
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 }

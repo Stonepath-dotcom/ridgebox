@@ -1,20 +1,26 @@
+import { checkRateLimit, rateLimitHeaders } from './_rateLimit.js';
+import { getCORSHeaders } from './_cors.js';
+
 export const config = { runtime: 'edge' };
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
 export default async function (request) {
+  const CORS = getCORSHeaders(request);
+  const rl = checkRateLimit(request);
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({ ok: false, error: 'Rate limit exceeded', retryAfter: rl.retryAfter }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
+    });
+  }
+
   if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: CORS });
+    return new Response(null, { status: 204, headers: { ...CORS, ...rateLimitHeaders(rl) } });
   }
 
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ ok: false, error: 'Method not allowed' }), {
       status: 405,
-      headers: { 'Content-Type': 'application/json', ...CORS },
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 
@@ -26,7 +32,7 @@ export default async function (request) {
     if (!url) {
       return new Response(JSON.stringify({ ok: false, error: 'URL tidak boleh kosong' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -34,7 +40,7 @@ export default async function (request) {
     try { new URL(url); } catch { 
       return new Response(JSON.stringify({ ok: false, error: 'Format URL tidak valid' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -48,7 +54,7 @@ export default async function (request) {
     if (!token || !chatId) {
       return new Response(JSON.stringify({ ok: false, error: 'Bot belum dikonfigurasi di server' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -63,7 +69,7 @@ export default async function (request) {
       clearTimeout(timeoutId);
       return new Response(JSON.stringify({ ok: false, error: 'Gagal mengunduh dari URL: ' + (fetchErr.message || 'timeout') }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
     clearTimeout(timeoutId);
@@ -71,7 +77,7 @@ export default async function (request) {
     if (!fileResponse.ok) {
       return new Response(JSON.stringify({ ok: false, error: `Gagal mengunduh (HTTP ${fileResponse.status}). Pastikan URL mengarah ke file yang bisa diunduh.` }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -80,7 +86,7 @@ export default async function (request) {
     if (contentLength > 50 * 1024 * 1024) {
       return new Response(JSON.stringify({ ok: false, error: `File terlalu besar (${Math.round(contentLength/1024/1024)} MB). Maksimal 50 MB untuk URL upload.` }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -103,19 +109,19 @@ export default async function (request) {
     if (!data.ok) {
       return new Response(JSON.stringify({ ok: false, error: data.description || 'Telegram API menolak upload' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
     return new Response(JSON.stringify(data), {
       status: 200,
-      headers: { 'Content-Type': 'application/json', ...CORS },
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   } catch (error) {
     console.error('[URL Upload API Error]', error);
     return new Response(JSON.stringify({ ok: false, error: error.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...CORS },
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 }

@@ -1,20 +1,26 @@
+import { checkRateLimit, rateLimitHeaders } from '../_rateLimit.js';
+import { getCORSHeaders } from '../_cors.js';
+
 export const config = { runtime: 'edge' };
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
 export default async function (request) {
+  const CORS = getCORSHeaders(request);
+  const rl = checkRateLimit(request);
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({ ok: false, error: 'Rate limit exceeded', retryAfter: rl.retryAfter }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
+    });
+  }
+
   if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: CORS });
+    return new Response(null, { status: 204, headers: { ...CORS, ...rateLimitHeaders(rl) } });
   }
 
   if (request.method !== 'GET') {
     return new Response(JSON.stringify({ ok: false, error: 'Method not allowed. Use GET.' }), {
       status: 405,
-      headers: { 'Content-Type': 'application/json', ...CORS },
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 
@@ -26,14 +32,14 @@ export default async function (request) {
     if (!accessToken) {
       return new Response(JSON.stringify({ ok: false, error: 'Access token is required' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
     if (!fileId) {
       return new Response(JSON.stringify({ ok: false, error: 'File ID is required' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -52,7 +58,7 @@ export default async function (request) {
         error: metaError.error?.message || 'Failed to get file metadata',
       }), {
         status: metaResponse.status,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -71,7 +77,7 @@ export default async function (request) {
         error: dlError.error?.message || 'Failed to download file',
       }), {
         status: downloadResponse.status,
-        headers: { 'Content-Type': 'application/json', ...CORS },
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
       });
     }
 
@@ -79,6 +85,7 @@ export default async function (request) {
     const responseHeaders = {
       'Content-Type': metadata.mimeType || 'application/octet-stream',
       'Content-Disposition': `attachment; filename="${(metadata.name || fileId).replace(/"/g, '\\"')}"`,
+      ...rateLimitHeaders(rl),
       ...CORS,
     };
 
@@ -95,7 +102,7 @@ export default async function (request) {
     console.error('[GDrive Download Error]', error);
     return new Response(JSON.stringify({ ok: false, error: error.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...CORS },
+      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   }
 }
