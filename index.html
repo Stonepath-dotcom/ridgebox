@@ -181,7 +181,8 @@ body.view-mobile .quick-actions-bar{bottom:16px!important;left:16px!important;ri
 body.view-mobile .file-list-row{min-height:56px;padding:12px 16px!important}
 body.view-mobile .file-grid-item{padding:12px!important}
 body.view-mobile .btn{min-height:36px}
-body.view-mobile .back-to-top{bottom:20px!important;left:16px!important}
+body.view-mobile .back-to-top{bottom:20px!important;left:16px!important;opacity:.6;z-index:50;pointer-events:auto}
+body.view-mobile .back-to-top:hover{opacity:1}
 body.view-mobile .hide-mobile-small{display:none!important}
 body.view-mobile .sidebar-mobile{position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;transform:translateX(-100%);transition:transform .3s ease}
 body.view-mobile .sidebar-mobile.open{transform:translateX(0)}
@@ -4126,7 +4127,7 @@ function renderHomepage() {
                     <h2 class="section-title">${isId?'Bandingkan dengan Lainnya':'Compare with Others'}</h2>
                     <p class="section-desc">${isId?'Mengapa Ridgebox pilihan terbaik untuk penyimpanan file Anda':'Why Ridgebox is the best choice for your file storage'}</p>
                 </div>
-                <div class="premium-card animated-border scroll-reveal" style="overflow-x:auto;padding:0">
+                <div class="premium-card animated-border scroll-reveal" style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0">
                     <table class="cmp-table" style="width:100%;border-collapse:collapse;font-size:14px">
                         <thead>
                             <tr style="background:var(--bg)">
