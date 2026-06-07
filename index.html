@@ -3273,11 +3273,14 @@ function initSupabaseAuth() {
                 // Close auth overlay if open
                 const overlay = document.getElementById('auth-overlay');
                 if (overlay) { overlay.classList.remove('active'); document.body.style.overflow = ''; }
-                // If on homepage after Google OAuth redirect, go to dashboard
+                // Route to appropriate page after sign-in
                 const hash = location.hash || '#/';
                 if (hash === '#/' || hash === '') {
                     showToast(t('authLoginSuccess'), 'success');
                     location.hash = '#/dashboard';
+                } else {
+                    // Already on a protected route hash — force re-render since hashchange won't fire
+                    checkUrlRouting();
                 }
             } else if (event === 'SIGNED_OUT') {
                 APP.user = null;
@@ -3632,7 +3635,12 @@ async function handleLogin() {
         if (overlay) { overlay.classList.remove('active'); document.body.style.overflow = ''; }
         const redirectTo = _authRedirectTo || '#/dashboard';
         _authRedirectTo = '';
-        location.hash = redirectTo;
+        if (location.hash === redirectTo) {
+            // Hash already set (e.g. user navigated to #/dashboard before login), force re-render
+            checkUrlRouting();
+        } else {
+            location.hash = redirectTo;
+        }
     } catch(e) {
         showAuthError(e.message || (APP.lang === 'id' ? 'Email atau kata sandi salah' : 'Invalid email or password'));
     } finally { setAuthLoading(false); }
