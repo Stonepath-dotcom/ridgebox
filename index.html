@@ -3873,10 +3873,10 @@ function checkUrlRouting() {
 
     // Restore header when navigating away from auth pages
     const header = document.getElementById('app-header');
-    if (header && !['#/login', '#/register'].includes(hash)) header.style.display = '';
+    if (header && !['#/login', '#/register', '#/admin-login'].includes(hash)) header.style.display = '';
 
     // Auth guard for protected routes — show dedicated login page
-    const protectedRoutes = ['#/dashboard', '#/storage', '#/file/', '#/analytics', '#/admin'];
+    const protectedRoutes = ['#/dashboard', '#/storage', '#/file/', '#/analytics'];
     const isProtected = protectedRoutes.some(r => hash.startsWith(r));
     if (isProtected && isAuthRequired() && !isLoggedIn()) {
         _authRedirectTo = hash;
@@ -3895,20 +3895,16 @@ function checkUrlRouting() {
         _authMode = 'register';
         _authRedirectTo = '#/dashboard';
         renderAuthPage();
+    } else if (hash === '#/admin-login') {
+        // Admin login page — separate from user auth
+        renderAdminLoginPage();
     } else if (hash === '#/admin') {
-        // Admin panel — separate page with PIN verification
-        if (!_adminVerified || !_adminVerifyTimeout || Date.now() >= _adminVerifyTimeout) {
-            if (APP.settings.pinLock) {
-                _pinCallback = () => { _adminVerified = true; _adminVerifyTimeout = Date.now() + 5 * 60 * 1000; renderAdminPanel(); };
-                showPinGate();
-            } else {
-                _adminVerified = true;
-                _adminVerifyTimeout = Date.now() + 5 * 60 * 1000;
-                renderAdminPanel();
-            }
-        } else {
-            renderAdminPanel();
+        // Admin panel — requires admin login (separate from Supabase auth)
+        if (!isAdminLoggedIn()) {
+            location.hash = '#/admin-login';
+            return;
         }
+        renderAdminPanel();
     } else if (hash === '#/dashboard') {
         checkPinThenRender(() => renderDashboard());
     } else if (hash === '#/storage') {
@@ -5596,6 +5592,7 @@ function renderHomepage() {
                         <a href="#/dashboard" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">Dashboard</a>
                         <a href="#/login" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Masuk':'Sign In'}</a>
                         <a href="#/register" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Daftar':'Register'}</a>
+                        <a href="#/admin-login" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Admin':'Admin'}</a>
                         <a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Harga':'Pricing'}</a>
                         <a href="#blog-section" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Blog & Update':'Blog & Updates'}</a>
                     </div>
@@ -9655,18 +9652,6 @@ function openSettings() {
                 </div>
             </div>
 
-            <!-- Admin Panel Access -->
-            <div style="margin-bottom:20px;padding:16px;background:linear-gradient(135deg,rgba(239,68,68,.06),rgba(245,158,11,.06));border:1px solid rgba(239,68,68,.15);border-radius:12px">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center"><i class="fas fa-shield-halved" style="color:#ef4444;font-size:16px"></i></div>
-                    <div>
-                        <div style="font-size:14px;font-weight:600;color:var(--text)">${APP.lang==='id'?'Panel Admin':'Admin Panel'}</div>
-                        <div style="font-size:11px;color:var(--text-secondary)">${APP.lang==='id'?'Kelola API key, token, dan kredensial':'Manage API keys, tokens, and credentials'}</div>
-                    </div>
-                </div>
-                <a href="#/admin" class="btn btn-primary btn-sm" style="width:100%;text-decoration:none"><i class="fas fa-lock" style="margin-right:4px"></i> ${APP.lang==='id'?'Buka Panel Admin':'Open Admin Panel'}</a>
-            </div>
-
             <!-- 2FA / TOTP -->
             <div style="margin-bottom:20px;padding:16px;background:linear-gradient(135deg,rgba(139,92,246,.06),rgba(59,130,246,.06));border:1px solid rgba(139,92,246,.15);border-radius:12px">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
@@ -9735,12 +9720,151 @@ function openSettings() {
         </div>`);
 }
 
-// ===== ADMIN PANEL — Secure credential management =====
+// ===== ADMIN PANEL — Separate admin login & credential management =====
 let _adminVerified = false;
 let _adminVerifyTimeout = null;
 
+// Default admin credentials (can be changed via admin panel)
+const DEFAULT_ADMIN_EMAIL = 'ardiidonovan@gmail.com';
+const DEFAULT_ADMIN_PASSWORD = 'admin123';
+
+function getAdminCredentials() {
+    const stored = localStorage.getItem('rb_admin_cred');
+    if (stored) {
+        try { return JSON.parse(stored); } catch(e) {}
+    }
+    return { email: DEFAULT_ADMIN_EMAIL, password: DEFAULT_ADMIN_PASSWORD };
+}
+
+function setAdminCredentials(email, password) {
+    localStorage.setItem('rb_admin_cred', JSON.stringify({ email, password }));
+}
+
+function isAdminLoggedIn() {
+    return _adminVerified && _adminVerifyTimeout && Date.now() < _adminVerifyTimeout;
+}
+
+function renderAdminLoginPage() {
+    const isId = APP.lang === 'id';
+    const isDark = document.documentElement.classList.contains('dark');
+    const main = document.getElementById('app-main');
+    if (!main) return;
+
+    // Hide header
+    const header = document.getElementById('app-header');
+    if (header) header.style.display = 'none';
+
+    const adminCred = getAdminCredentials();
+
+    main.innerHTML = `
+    <div class="auth-fullpage fade-in">
+        <div class="auth-fullpage-left">
+            <div class="auth-form-particles">
+                <i class="fas fa-shield-halved auth-form-particle" style="left:15%;font-size:24px;animation-duration:15s;animation-delay:-3s"></i>
+                <i class="fas fa-lock auth-form-particle" style="left:45%;font-size:18px;animation-duration:18s;animation-delay:-7s"></i>
+                <i class="fas fa-key auth-form-particle" style="left:75%;font-size:20px;animation-duration:20s;animation-delay:-12s"></i>
+                <i class="fas fa-user-shield auth-form-particle" style="left:30%;font-size:16px;animation-duration:22s;animation-delay:-5s"></i>
+                <i class="fas fa-fingerprint auth-form-particle" style="left:60%;font-size:22px;animation-duration:16s;animation-delay:-9s"></i>
+            </div>
+            <div class="auth-brand-section">
+                <div class="auth-brand-logo" style="background:linear-gradient(135deg,#ef4444,#f59e0b);box-shadow:0 12px 40px rgba(239,68,68,.4)"><i class="fas fa-shield-halved"></i></div>
+                <div class="auth-brand-title">${isId ? 'Panel Admin' : 'Admin Panel'}</div>
+                <div class="auth-brand-subtitle">${isId ? 'Area khusus administrator. Kelola kredensial, API key, dan konfigurasi sistem.' : 'Administrator area only. Manage credentials, API keys, and system configuration.'}</div>
+                <div class="auth-brand-features">
+                    <div class="auth-brand-feature">
+                        <div class="auth-brand-feature-icon" style="background:rgba(239,68,68,.15);color:#ef4444"><i class="fas fa-key"></i></div>
+                        <div class="auth-brand-feature-text"><strong>${isId ? 'Akses Terbatas' : 'Restricted Access'}</strong>${isId ? 'Hanya admin yang bisa mengakses panel ini' : 'Only admins can access this panel'}</div>
+                    </div>
+                    <div class="auth-brand-feature">
+                        <div class="auth-brand-feature-icon" style="background:rgba(245,158,11,.15);color:#f59e0b"><i class="fas fa-database"></i></div>
+                        <div class="auth-brand-feature-text"><strong>${isId ? 'Kelola API Key' : 'Manage API Keys'}</strong>${isId ? 'Bot token, S3 credentials, dan webhook' : 'Bot tokens, S3 credentials, and webhooks'}</div>
+                    </div>
+                    <div class="auth-brand-feature">
+                        <div class="auth-brand-feature-icon" style="background:rgba(16,185,129,.15);color:#10b981"><i class="fas fa-user-lock"></i></div>
+                        <div class="auth-brand-feature-text"><strong>${isId ? 'Ubah Password' : 'Change Password'}</strong>${isId ? 'Ganti kredensial admin kapan saja' : 'Change admin credentials anytime'}</div>
+                    </div>
+                </div>
+                <div class="auth-brand-quote">${isId ? '"Keamanan data dimulai dari akses yang terkontrol." — <span>RidgeBox</span>' : '"Data security starts with controlled access." — <span>RidgeBox</span>'}</div>
+            </div>
+        </div>
+        <div class="auth-fullpage-right">
+            <button class="auth-form-theme-toggle" onclick="toggleAuthTheme()" title="${isId ? 'Ganti tema' : 'Toggle theme'}"><i class="fas fa-${isDark ? 'sun' : 'moon'}"></i></button>
+            <div class="auth-form-section">
+                <button class="auth-form-back" onclick="location.hash='#/'"><i class="fas fa-arrow-left"></i> ${isId ? 'Kembali' : 'Back'}</button>
+                <div class="auth-form-header">
+                    <div class="auth-form-logo" style="background:linear-gradient(135deg,#ef4444,#f59e0b);box-shadow:0 8px 24px rgba(239,68,68,.3)"><i class="fas fa-shield-halved"></i></div>
+                    <div class="auth-form-title">${isId ? 'Login Admin' : 'Admin Login'}</div>
+                    <div class="auth-form-subtitle">${isId ? 'Masukkan kredensial admin untuk mengakses panel' : 'Enter admin credentials to access the panel'}</div>
+                </div>
+                <div id="admin-login-error" class="auth-form-error" style="display:none"><i class="fas fa-exclamation-circle"></i><span id="admin-login-error-text"></span></div>
+                <div class="auth-form-input-group">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" id="admin-email" class="auth-form-input" placeholder="${isId ? 'Email Admin' : 'Admin Email'}" autocomplete="email">
+                </div>
+                <div class="auth-form-input-group">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" id="admin-password" class="auth-form-input" placeholder="${isId ? 'Password Admin' : 'Admin Password'}" autocomplete="current-password">
+                    <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('admin-password',this)"><i class="fas fa-eye"></i></button>
+                </div>
+                <button id="admin-login-submit" class="auth-form-btn auth-form-btn-primary" style="background:linear-gradient(135deg,#ef4444,#f59e0b);box-shadow:0 6px 24px rgba(239,68,68,.3)" onclick="handleAdminLogin()">
+                    <i class="fas fa-sign-in-alt"></i> ${isId ? 'Masuk ke Admin' : 'Login as Admin'}
+                </button>
+                <div class="auth-form-trust">
+                    <div class="auth-form-trust-badge"><i class="fas fa-shield-halved" style="color:#ef4444"></i> ${isId ? 'Khusus Admin' : 'Admin Only'}</div>
+                    <div class="auth-form-trust-badge"><i class="fas fa-lock" style="color:#f59e0b"></i> ${isId ? 'Sesi 5 Menit' : '5 Min Session'}</div>
+                </div>
+                <div style="text-align:center;margin-top:20px;font-size:12px;color:var(--text-secondary)">
+                    ${isId ? 'Bukan admin? <a href="#/login" style="color:var(--accent);cursor:pointer">Login pengguna</a>' : 'Not an admin? <a href="#/login" style="color:var(--accent);cursor:pointer">User login</a>'}
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    // Add enter key support
+    setTimeout(() => {
+        const emailInput = document.getElementById('admin-email');
+        const passInput = document.getElementById('admin-password');
+        [emailInput, passInput].forEach(inp => {
+            if (inp) inp.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    const btn = document.getElementById('admin-login-submit');
+                    if (btn) btn.click();
+                }
+            });
+        });
+        if (emailInput) emailInput.focus();
+    }, 300);
+}
+
+function handleAdminLogin() {
+    const isId = APP.lang === 'id';
+    const email = document.getElementById('admin-email')?.value?.trim();
+    const password = document.getElementById('admin-password')?.value;
+    const errorEl = document.getElementById('admin-login-error');
+    const errorText = document.getElementById('admin-login-error-text');
+
+    const adminCred = getAdminCredentials();
+
+    if (!email || !password) {
+        if (errorEl) errorEl.style.display = 'flex';
+        if (errorText) errorText.textContent = isId ? 'Email dan password wajib diisi' : 'Email and password are required';
+        return;
+    }
+
+    if (email !== adminCred.email || password !== adminCred.password) {
+        if (errorEl) errorEl.style.display = 'flex';
+        if (errorText) errorText.textContent = isId ? 'Email atau password admin salah' : 'Invalid admin email or password';
+        return;
+    }
+
+    // Success
+    _adminVerified = true;
+    _adminVerifyTimeout = Date.now() + 5 * 60 * 1000; // 5 minute session
+    showToast(isId ? 'Berhasil masuk sebagai admin' : 'Logged in as admin', 'success');
+    location.hash = '#/admin';
+}
+
 function openAdminPanel() {
-    // Navigate to admin page route
     location.hash = '#/admin';
 }
 
@@ -9797,14 +9921,36 @@ function renderAdminPanel() {
         </div>`;
     }).join('');
 
+    const adminCred = getAdminCredentials();
+    const sessionRemaining = _adminVerifyTimeout ? Math.max(0, Math.round((_adminVerifyTimeout - Date.now()) / 1000)) : 0;
+    const sessionMin = Math.floor(sessionRemaining / 60);
+    const sessionSec = sessionRemaining % 60;
+
     main.innerHTML = `<div class="page-transition fade-in" style="max-width:640px;margin:0 auto;padding:24px 16px 48px">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
-            <button class="btn btn-ghost btn-sm" onclick="location.hash='#/dashboard'"><i class="fas fa-arrow-left"></i></button>
+            <button class="btn btn-ghost btn-sm" onclick="_adminVerified=false;location.hash='#/'"><i class="fas fa-arrow-left"></i></button>
             <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(245,158,11,.1));display:flex;align-items:center;justify-content:center"><i class="fas fa-shield-halved" style="color:#ef4444;font-size:18px"></i></div>
-            <div>
+            <div style="flex:1">
                 <h2 style="font-size:20px;font-weight:700">${isId ? 'Panel Admin' : 'Admin Panel'}</h2>
                 <p style="font-size:12px;color:var(--text-secondary)">${isId ? 'Kelola kredensial dan API key — Hanya untuk admin' : 'Manage credentials and API keys — Admin only'}</p>
             </div>
+            <div style="text-align:right">
+                <div style="font-size:11px;color:var(--text-secondary)">${isId ? 'Sesi berakhir' : 'Session ends'}</div>
+                <div id="admin-session-timer" style="font-size:14px;font-weight:600;color:#f59e0b;font-family:'JetBrains Mono',monospace">${sessionMin}:${String(sessionSec).padStart(2,'0')}</div>
+            </div>
+        </div>
+
+        <!-- Admin Account Info -->
+        <div style="margin-bottom:20px;padding:16px;background:linear-gradient(135deg,rgba(59,130,246,.06),rgba(139,92,246,.06));border:1px solid rgba(59,130,246,.15);border-radius:12px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center"><i class="fas fa-user-shield" style="color:#fff;font-size:16px"></i></div>
+                <div>
+                    <div style="font-size:14px;font-weight:600;color:var(--text)">${isId ? 'Akun Admin' : 'Admin Account'}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);font-family:'JetBrains Mono',monospace">${adminCred.email}</div>
+                </div>
+                <div style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;background:rgba(16,185,129,.1);color:#10b981"><i class="fas fa-circle" style="font-size:6px"></i> ${isId ? 'Aktif' : 'Active'}</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="width:100%" onclick="showChangeAdminPasswordModal()"><i class="fas fa-key"></i> ${isId ? 'Ubah Password Admin' : 'Change Admin Password'}</button>
         </div>
 
         <!-- Bot Credentials -->
@@ -9871,9 +10017,30 @@ function renderAdminPanel() {
         </div>
 
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-            <button class="btn btn-secondary" onclick="location.hash='#/dashboard'">${t('close')}</button>
+            <button class="btn btn-danger btn-sm" onclick="handleAdminLogout()"><i class="fas fa-sign-out-alt"></i> ${isId ? 'Keluar Admin' : 'Logout Admin'}</button>
+            <button class="btn btn-secondary" onclick="_adminVerified=false;location.hash='#/'">${t('close')}</button>
         </div>
     </div>`;
+
+    // Start session timer countdown
+    if (window._adminTimerInterval) clearInterval(window._adminTimerInterval);
+    window._adminTimerInterval = setInterval(() => {
+        if (!_adminVerifyTimeout) { clearInterval(window._adminTimerInterval); return; }
+        const remaining = Math.max(0, Math.round((_adminVerifyTimeout - Date.now()) / 1000));
+        const min = Math.floor(remaining / 60);
+        const sec = remaining % 60;
+        const timerEl = document.getElementById('admin-session-timer');
+        if (timerEl) {
+            timerEl.textContent = min + ':' + String(sec).padStart(2, '0');
+            if (remaining <= 60) timerEl.style.color = '#ef4444';
+        }
+        if (remaining <= 0) {
+            clearInterval(window._adminTimerInterval);
+            _adminVerified = false;
+            showToast(isId ? 'Sesi admin berakhir, silakan login kembali' : 'Admin session expired, please login again', 'warning');
+            location.hash = '#/admin-login';
+        }
+    }, 1000);
 }
 
 function toggleAdminCredential(elementId, value, mode) {
@@ -9886,6 +10053,102 @@ function toggleAdminCredential(elementId, value, mode) {
         el.textContent = value;
         el.dataset.revealed = 'true';
     }
+}
+
+function handleAdminLogout() {
+    _adminVerified = false;
+    _adminVerifyTimeout = null;
+    if (window._adminTimerInterval) { clearInterval(window._adminTimerInterval); window._adminTimerInterval = null; }
+    const isId = APP.lang === 'id';
+    showToast(isId ? 'Berhasil keluar dari admin panel' : 'Logged out from admin panel', 'success');
+    location.hash = '#/';
+}
+
+function showChangeAdminPasswordModal() {
+    const isId = APP.lang === 'id';
+    const adminCred = getAdminCredentials();
+    openModal(`<div style="padding:24px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(139,92,246,.1));display:flex;align-items:center;justify-content:center"><i class="fas fa-key" style="color:var(--accent);font-size:18px"></i></div>
+            <div>
+                <h3 style="font-size:17px;font-weight:600">${isId ? 'Ubah Password Admin' : 'Change Admin Password'}</h3>
+                <p style="font-size:12px;color:var(--text-secondary)">${isId ? 'Perbarui kredensial untuk mengakses panel admin' : 'Update credentials to access the admin panel'}</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom:16px">
+            <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Email Admin Saat Ini' : 'Current Admin Email'}</label>
+            <div style="padding:10px 12px;background:var(--bg-secondary);border-radius:8px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--text)">${adminCred.email}</div>
+        </div>
+
+        <div style="margin-bottom:16px">
+            <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Password Lama' : 'Current Password'}</label>
+            <input type="password" id="admin-old-password" class="input" placeholder="${isId ? 'Masukkan password lama' : 'Enter current password'}">
+        </div>
+
+        <div style="margin-bottom:16px">
+            <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Email Baru (opsional)' : 'New Email (optional)'}</label>
+            <input type="email" id="admin-new-email" class="input" placeholder="${isId ? 'Kosongkan jika tidak diubah' : 'Leave empty to keep current'}" value="${adminCred.email}">
+        </div>
+
+        <div style="margin-bottom:16px">
+            <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Password Baru' : 'New Password'}</label>
+            <input type="password" id="admin-new-password" class="input" placeholder="${isId ? 'Masukkan password baru (min. 6 karakter)' : 'Enter new password (min. 6 characters)'}">
+        </div>
+
+        <div style="margin-bottom:20px">
+            <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Konfirmasi Password Baru' : 'Confirm New Password'}</label>
+            <input type="password" id="admin-confirm-new-password" class="input" placeholder="${isId ? 'Ulangi password baru' : 'Repeat new password'}">
+        </div>
+
+        <div id="admin-change-error" style="display:none;padding:10px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:8px;font-size:12px;color:#ef4444;margin-bottom:16px"></div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn btn-secondary" onclick="closeModal()">${t('cancel')}</button>
+            <button class="btn btn-primary" onclick="handleChangeAdminPassword()"><i class="fas fa-save"></i> ${isId ? 'Simpan Perubahan' : 'Save Changes'}</button>
+        </div>
+    </div>`);
+}
+
+function handleChangeAdminPassword() {
+    const isId = APP.lang === 'id';
+    const oldPassword = document.getElementById('admin-old-password')?.value;
+    const newEmail = document.getElementById('admin-new-email')?.value?.trim();
+    const newPassword = document.getElementById('admin-new-password')?.value;
+    const confirmPassword = document.getElementById('admin-confirm-new-password')?.value;
+    const errorEl = document.getElementById('admin-change-error');
+    const adminCred = getAdminCredentials();
+
+    // Validate old password
+    if (!oldPassword || oldPassword !== adminCred.password) {
+        if (errorEl) { errorEl.style.display = 'block'; errorEl.textContent = isId ? 'Password lama salah' : 'Current password is incorrect'; }
+        return;
+    }
+
+    // Validate new email
+    const finalEmail = newEmail || adminCred.email;
+    if (newEmail && (!newEmail.includes('@') || !newEmail.includes('.'))) {
+        if (errorEl) { errorEl.style.display = 'block'; errorEl.textContent = isId ? 'Format email tidak valid' : 'Invalid email format'; }
+        return;
+    }
+
+    // Validate new password
+    if (!newPassword || newPassword.length < 6) {
+        if (errorEl) { errorEl.style.display = 'block'; errorEl.textContent = isId ? 'Password baru minimal 6 karakter' : 'New password must be at least 6 characters'; }
+        return;
+    }
+
+    // Confirm password match
+    if (newPassword !== confirmPassword) {
+        if (errorEl) { errorEl.style.display = 'block'; errorEl.textContent = isId ? 'Konfirmasi password tidak cocok' : 'Password confirmation does not match'; }
+        return;
+    }
+
+    // Save new credentials
+    setAdminCredentials(finalEmail, newPassword);
+    closeModal();
+    showToast(isId ? 'Kredensial admin berhasil diperbarui!' : 'Admin credentials updated successfully!', 'success');
+    renderAdminPanel();
 }
 
 async function updateSetting(key, value) {
