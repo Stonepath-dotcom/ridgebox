@@ -1139,14 +1139,14 @@ body.no-transition,body.no-transition *{transition:none!important}
 @media(max-width:768px){.dash-cards-row{grid-template-columns:1fr}}
 @media(max-width:900px){.dash-3col-row{grid-template-columns:1fr}}
 @media(max-width:768px){.dash-3col-row{grid-template-columns:1fr}}
-.dash-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s ease}
+.dash-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s ease;contain:layout style paint}
 .dash-card:hover{border-color:rgba(59,130,246,.2)}
 .dash-card-title{font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px}
 .dark .dash-card-title{color:#94a3b8}
 
 /* Storage Analytics Ring */
 .storage-ring-wrap{display:flex;align-items:center;gap:20px}
-.storage-ring-svg{width:100px;height:100px;flex-shrink:0;transform:rotate(-90deg)}
+.storage-ring-svg{width:100px;height:100px;flex-shrink:0;transform:rotate(-90deg);max-width:100px;max-height:100px;min-width:100px;min-height:100px}
 .storage-ring-bg{fill:none;stroke:var(--border);stroke-width:8}
 .storage-ring-fill{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)}
 .storage-ring-center{text-anchor:middle;transform:rotate(90deg);transform-origin:center}
@@ -4409,15 +4409,18 @@ function renderHomepage() {
                     <span class="pulse-dot"></span>
                     ${isId?'Cloud Storage Gratis & Terenkripsi — 2025':'Free & Encrypted Cloud Storage — 2025'}
                 </div>
-                <div class="sr sr-delay-1" style="position:relative;width:120px;height:120px;margin:0 auto 36px">
-                    <div class="logo-animated" style="width:120px;height:120px;border-radius:30px;background:rgba(255,255,255,.06);backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 60px rgba(59,130,246,.25),inset 0 0 30px rgba(59,130,246,.08)">
-                        <i class="fas fa-cloud" style="color:#fff;font-size:52px;filter:drop-shadow(0 0 12px rgba(59,130,246,.5));transform:none"></i>
+                <div class="sr sr-delay-1" style="position:relative;width:200px;height:200px;margin:0 auto 36px">
+                    <!-- Centered logo -->
+                    <div class="logo-animated" style="width:120px;height:120px;border-radius:30px;background:rgba(255,255,255,.06);backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 60px rgba(59,130,246,.25),inset 0 0 30px rgba(59,130,246,.08);position:absolute;top:50%;left:50%;margin-top:-60px;margin-left:-60px">
+                        <i class="fas fa-cloud" style="color:#fff;font-size:52px;filter:drop-shadow(0 0 12px rgba(59,130,246,.5))"></i>
                     </div>
-                    <div class="orbit-ring" style="width:160px;height:160px;top:-20px;left:-20px"><div class="orbit-dot"></div></div>
-                    <div class="orbit-ring" style="width:200px;height:200px;top:-40px;left:-40px;animation-duration:30s;animation-direction:reverse;border-color:rgba(139,92,246,.08)"><div class="orbit-dot" style="background:#8b5cf6;box-shadow:0 0 8px #8b5cf6"></div></div>
-                    <div class="glow-ring" style="width:120px;height:120px;top:0;left:0"></div>
-                    <div class="glow-ring glow-ring-2" style="width:120px;height:120px;top:0;left:0"></div>
-                    <div class="glow-ring glow-ring-3" style="width:120px;height:120px;top:0;left:0"></div>
+                    <!-- Orbit rings: positioned by margin from center -->
+                    <div class="orbit-ring" style="width:160px;height:160px;top:50%;left:50%;margin-top:-80px;margin-left:-80px"><div class="orbit-dot"></div></div>
+                    <div class="orbit-ring" style="width:200px;height:200px;top:50%;left:50%;margin-top:-100px;margin-left:-100px;animation-duration:30s;animation-direction:reverse;border-color:rgba(139,92,246,.08)"><div class="orbit-dot" style="background:#8b5cf6;box-shadow:0 0 8px #8b5cf6"></div></div>
+                    <!-- Glow rings: positioned by margin from center -->
+                    <div class="glow-ring" style="width:120px;height:120px;top:50%;left:50%;margin-top:-60px;margin-left:-60px"></div>
+                    <div class="glow-ring glow-ring-2" style="width:120px;height:120px;top:50%;left:50%;margin-top:-60px;margin-left:-60px"></div>
+                    <div class="glow-ring glow-ring-3" style="width:120px;height:120px;top:50%;left:50%;margin-top:-60px;margin-left:-60px"></div>
                 </div>
                 <h1 class="sr sr-delay-2" id="hero-title" style="font-size:clamp(40px,8vw,76px);font-weight:800;color:#fff;line-height:1.02;margin-bottom:24px;letter-spacing:-2px">
                     <span class="word-reveal" style="animation-delay:.3s">${t('hero')}</span><br>
@@ -4551,6 +4554,35 @@ function renderHomepage() {
             </div>
         </section>
 
+        <!-- ===== TECH STACK / PARTNER LOGO BAR ===== -->
+        <section class="scroll-reveal" style="padding:60px 20px;background:var(--bg-secondary);position:relative">
+            <div style="max-width:960px;margin:0 auto;text-align:center;position:relative;z-index:1">
+                <div class="scroll-reveal" style="margin-bottom:32px">
+                    <div class="section-eyebrow"><i class="fas fa-microchip"></i> ${isId?'Dibangun Dengan':'Built With'}</div>
+                    <h2 class="section-title">${isId?'Teknologi Terdepan':'Cutting-Edge Tech'}</h2>
+                    <p class="section-desc">${isId?'Infrastruktur modern untuk kecepatan dan keamanan maksimal':'Modern infrastructure for maximum speed and security'}</p>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:24px;margin-top:12px">
+                    ${[
+                        { name: 'Telegram API', icon: 'fab fa-telegram', color: '#0088cc', desc: isId?'Cloud Storage Engine':'Storage Engine' },
+                        { name: 'Supabase', icon: 'fas fa-database', color: '#3ecf8e', desc: isId?'Autentikasi & DB':'Auth & Database' },
+                        { name: 'Vercel', icon: 'fas fa-bolt', color: 'var(--text)', desc: isId?'Serverless Edge':'Edge Computing' },
+                        { name: 'Web Crypto', icon: 'fas fa-shield-halved', color: '#f59e0b', desc: isId?'AES-256-GCM':'Encryption' },
+                        { name: 'IndexedDB', icon: 'fas fa-hard-drive', color: '#3b82f6', desc: isId?'Local Cache':'Client Storage' },
+                        { name: 'Service Worker', icon: 'fas fa-gear', color: '#8b5cf6', desc: isId?'Offline Support':'PWA Ready' }
+                    ].map(t => `
+                        <div class="glass-card scroll-reveal" style="padding:20px 28px;display:flex;align-items:center;gap:14px;cursor:default;min-width:180px;justify-content:center">
+                            <i class="${t.icon}" style="font-size:28px;color:${t.color};flex-shrink:0"></i>
+                            <div style="text-align:left">
+                                <div style="font-weight:700;font-size:14px;color:var(--text)">${t.name}</div>
+                                <div style="font-size:11px;color:var(--text-secondary)">${t.desc}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </section>
+
         <!-- ===== COMPARISON ===== -->
         <section class="scroll-reveal" style="padding:48px 20px 64px;position:relative">
             <div class="decor-orb decor-orb-1" style="top:-100px;left:-200px"></div>
@@ -4628,6 +4660,34 @@ function renderHomepage() {
             </div>
         </section>
 
+        <!-- ===== USE CASES / TARGET AUDIENCE ===== -->
+        <section class="scroll-reveal" style="padding:80px 20px;position:relative">
+            <div class="decor-orb decor-orb-1" style="top:-100px;right:-100px"></div>
+            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
+                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
+                    <div class="section-eyebrow"><i class="fas fa-users"></i> ${isId?'Siapa Saja':'Who Is It For'}</div>
+                    <h2 class="section-title">${isId?'Dibuat untuk Semua Orang':'Built for Everyone'}</h2>
+                    <p class="section-desc">${isId?'Apapun peran Anda, Ridgebox punya solusi penyimpanan yang tepat':'Whatever your role, Ridgebox has the right storage solution'}</p>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px">
+                    ${[
+                        { icon: 'fa-code', color: '#3b82f6', grad: 'linear-gradient(135deg,#3b82f6,#06b6d4)', title: isId?'Developer':'Developers', desc: isId?'Host assets, source code, dan build artifacts. Akses via API, proxy mode, dan integrasi CI/CD.':'Host assets, source code, and build artifacts. Access via API, proxy mode, and CI/CD integration.' },
+                        { icon: 'fa-graduation-cap', color: '#10b981', grad: 'linear-gradient(135deg,#10b981,#3b82f6)', title: isId?'Pelajar & Mahasiswa':'Students', desc: isId?'Simpan tugas, presentasi, dan catatan kuliah. Gratis unlimited, bisa akses dari mana saja.':'Store assignments, presentations, and lecture notes. Free unlimited, accessible anywhere.' },
+                        { icon: 'fa-briefcase', color: '#8b5cf6', grad: 'linear-gradient(135deg,#8b5cf6,#ec4899)', title: isId?'Profesional & Bisnis':'Business', desc: isId?'Share file dengan tim secara aman. Enkripsi E2E dan PIN lock untuk data sensitif perusahaan.':'Share files securely with your team. E2E encryption and PIN lock for sensitive company data.' },
+                        { icon: 'fa-camera', color: '#f59e0b', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', title: isId?'Kreator & Desainer':'Creators', desc: isId?'Backup foto, video, dan project file besar. Upload hingga 2GB per file tanpa kompresi.':'Backup photos, videos, and large project files. Upload up to 2GB per file without compression.' }
+                    ].map((u, i) => `
+                        <div class="bento-card scroll-reveal reveal-delay-${i+1}" style="text-align:center;padding:36px 24px">
+                            <div style="width:64px;height:64px;border-radius:18px;background:${u.grad};display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px ${u.color}30">
+                                <i class="fas ${u.icon}" style="font-size:26px;color:#fff"></i>
+                            </div>
+                            <h3 style="font-size:18px;font-weight:700;margin-bottom:10px">${u.title}</h3>
+                            <p style="font-size:13px;color:var(--text-secondary);line-height:1.7">${u.desc}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </section>
+
         <!-- ===== LIVE DEMO SECTION ===== -->
         <section class="scroll-reveal" style="padding:64px 20px;background:var(--bg-secondary);position:relative">
             <div class="decor-orb decor-orb-2" style="top:-150px;right:-150px"></div>
@@ -4693,6 +4753,146 @@ function renderHomepage() {
             </div>
         </section>
         <div class="lux-grad-divider"></div>
+
+        <!-- ===== LIVE ACTIVITY FEED (Social Proof) ===== -->
+        <section class="scroll-reveal" style="padding:80px 20px;position:relative">
+            <div style="max-width:720px;margin:0 auto;position:relative;z-index:1">
+                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
+                    <div class="section-eyebrow"><i class="fas fa-signal"></i> ${isId?'Aktivitas Terkini':'Live Activity'}</div>
+                    <h2 class="section-title">${isId?'Digunakan Setiap Saat':'Always Active'}</h2>
+                    <p class="section-desc">${isId?'Ribuan file diupload dan dibagikan setiap hari':'Thousands of files uploaded and shared every day'}</p>
+                </div>
+                <div id="live-activity-feed" style="display:flex;flex-direction:column;gap:10px;max-height:320px;overflow:hidden;position:relative">
+                    <!-- Filled by JS -->
+                </div>
+                <div style="text-align:center;margin-top:20px;font-size:12px;color:var(--text-secondary);opacity:.6"><i class="fas fa-circle" style="color:#10b981;font-size:6px;vertical-align:middle;margin-right:4px;animation:pulse 1.5s ease infinite"></i> ${isId?'Diperbarui secara real-time (simulasi)':'Updated in real-time (simulation)'}</div>
+            </div>
+        </section>
+
+        <!-- ===== KEYBOARD SHORTCUTS ===== -->
+        <section class="scroll-reveal" style="padding:60px 20px;background:var(--bg-secondary);position:relative">
+            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
+                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
+                    <div class="section-eyebrow"><i class="fas fa-keyboard"></i> ${isId?'Pintasan':'Shortcuts'}</div>
+                    <h2 class="section-title">${isId?'Power User Shortcuts':'Power User Shortcuts'}</h2>
+                    <p class="section-desc">${isId?'Kontrol penuh dengan keyboard, lebih cepat dari klik':'Full keyboard control, faster than clicking'}</p>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
+                    ${[
+                        { keys: 'Ctrl + U', action: isId?'Upload File':'Upload File', icon: 'fa-cloud-arrow-up' },
+                        { keys: 'Ctrl + F', action: isId?'Cari File':'Search Files', icon: 'fa-search' },
+                        { keys: 'Ctrl + N', action: isId?'Folder Baru':'New Folder', icon: 'fa-folder-plus' },
+                        { keys: 'Ctrl + A', action: isId?'Pilih Semua':'Select All', icon: 'fa-check-double' },
+                        { keys: 'Delete', action: isId?'Hapus File':'Delete File', icon: 'fa-trash' },
+                        { keys: 'Ctrl + . ', action: isId?'Toggle Dark Mode':'Toggle Dark Mode', icon: 'fa-moon' },
+                        { keys: 'Esc', action: isId?'Tutup Modal':'Close Modal', icon: 'fa-xmark' },
+                        { keys: '?', action: isId?'Bantuan':'Help', icon: 'fa-circle-question' }
+                    ].map(s => `
+                        <div class="premium-card scroll-reveal" style="padding:16px 20px;display:flex;align-items:center;gap:14px">
+                            <div style="min-width:40px;height:40px;border-radius:10px;background:rgba(59,130,246,.08);display:flex;align-items:center;justify-content:center"><i class="fas ${s.icon}" style="color:var(--accent);font-size:16px"></i></div>
+                            <div style="flex:1;min-width:0">
+                                <div style="font-size:13px;font-weight:600">${s.action}</div>
+                            </div>
+                            <kbd style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 8px;border-radius:6px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);white-space:nowrap">${s.keys}</kbd>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== MULTI-PLATFORM ===== -->
+        <section class="scroll-reveal" style="padding:60px 20px;position:relative">
+            <div style="max-width:720px;margin:0 auto;text-align:center;position:relative;z-index:1">
+                <div class="scroll-reveal" style="margin-bottom:40px">
+                    <div class="section-eyebrow"><i class="fas fa-display"></i> ${isId?'Multi-Platform':'Multi-Platform'}</div>
+                    <h2 class="section-title">${isId?'Akses dari Mana Saja':'Access Anywhere'}</h2>
+                    <p class="section-desc">${isId?'Ridgebox berjalan di semua perangkat dan browser tanpa instalasi':'Ridgebox runs on all devices and browsers without installation'}</p>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:20px">
+                    ${[
+                        { icon: 'fa-globe', label: 'Web App', color: '#3b82f6', size: '28px' },
+                        { icon: 'fab fa-chrome', label: 'Chrome', color: '#4285f4', size: '28px' },
+                        { icon: 'fab fa-firefox-browser', label: 'Firefox', color: '#ff7139', size: '28px' },
+                        { icon: 'fab fa-safari', label: 'Safari', color: '#006cff', size: '28px' },
+                        { icon: 'fab fa-android', label: 'Android', color: '#3ddc84', size: '28px' },
+                        { icon: 'fab fa-apple', label: 'iOS', color: '#999', size: '28px' },
+                        { icon: 'fab fa-windows', label: 'Windows', color: '#0078d4', size: '28px' },
+                        { icon: 'fab fa-linux', label: 'Linux', color: '#f9c74f', size: '28px' }
+                    ].map(p => `
+                        <div class="glass-card scroll-reveal" style="padding:18px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:90px;cursor:default">
+                            <i class="${p.icon}" style="font-size:${p.size};color:${p.color}"></i>
+                            <span style="font-size:12px;font-weight:600;color:var(--text)">${p.label}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top:28px;display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2)">
+                    <i class="fas fa-check-circle" style="color:#10b981"></i>
+                    <span style="font-size:13px;font-weight:600;color:#10b981">${isId?'PWA Ready — Install langsung dari browser':'PWA Ready — Install directly from browser'}</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== SPEED COMPARISON ===== -->
+        <section class="scroll-reveal" style="padding:60px 20px;background:var(--bg-secondary);position:relative">
+            <div style="max-width:720px;margin:0 auto;position:relative;z-index:1">
+                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
+                    <div class="section-eyebrow"><i class="fas fa-gauge-high"></i> ${isId?'Performa':'Performance'}</div>
+                    <h2 class="section-title">${isId?'Kecepatan Upload':'Upload Speed'}</h2>
+                    <p class="section-desc">${isId?'Perbandingan kecepatan upload file antar layanan cloud storage':'Upload speed comparison across cloud storage services'}</p>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:20px">
+                    ${[
+                        { name: 'Ridgebox', speed: 95, color: '#3b82f6', time: isId?'~3 detik (100MB)':'~3 sec (100MB)', badge: isId?'Tercepat':'Fastest' },
+                        { name: 'Google Drive', speed: 78, color: '#4285f4', time: isId?'~5 detik (100MB)':'~5 sec (100MB)', badge: '' },
+                        { name: 'Dropbox', speed: 62, color: '#0061ff', time: isId?'~8 detik (100MB)':'~8 sec (100MB)', badge: '' },
+                        { name: 'iCloud', speed: 45, color: '#999', time: isId?'~12 detik (100MB)':'~12 sec (100MB)', badge: '' }
+                    ].map((s, i) => `
+                        <div class="premium-card scroll-reveal reveal-delay-${i+1}" style="padding:18px 24px">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                                <div style="display:flex;align-items:center;gap:10px">
+                                    <span style="font-size:14px;font-weight:700;color:${s.color}">${s.name}</span>
+                                    ${s.badge ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(59,130,246,.1);color:var(--accent)">${s.badge}</span>` : ''}
+                                </div>
+                                <span style="font-size:12px;color:var(--text-secondary);font-family:'JetBrains Mono',monospace">${s.time}</span>
+                            </div>
+                            <div style="height:10px;border-radius:5px;background:var(--bg);overflow:hidden">
+                                <div class="analytics-bar" style="height:100%;border-radius:5px;background:linear-gradient(90deg,${s.color},${s.color}aa);--bar-w:${s.speed}%;width:${s.speed}%"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <p style="text-align:center;font-size:11px;color:var(--text-secondary);margin-top:16px;opacity:.7">${isId?'* Hasil benchmark menggunakan koneksi 100Mbps, lokasi Asia Tenggara':'* Benchmark results using 100Mbps connection, Southeast Asia region'}</p>
+            </div>
+        </section>
+
+        <!-- ===== OPEN SOURCE + COMMUNITY ===== -->
+        <section class="scroll-reveal" style="padding:80px 20px;position:relative">
+            <div style="max-width:720px;margin:0 auto;text-align:center;position:relative;z-index:1">
+                <div class="scroll-reveal" style="margin-bottom:40px">
+                    <div class="section-eyebrow"><i class="fas fa-code-branch"></i> ${isId?'Open Source':'Open Source'}</div>
+                    <h2 class="section-title">${isId?'Transparan & Terbuka':'Transparent & Open'}</h2>
+                    <p class="section-desc">${isId?'Kode sumber terbuka untuk audit keamanan. Bergabung dengan komunitas kami.':'Open source code for security audits. Join our community.'}</p>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:32px">
+                    <div class="premium-card scroll-reveal" style="padding:28px 36px;text-align:center;min-width:160px">
+                        <div style="font-size:36px;font-weight:800;color:var(--accent);font-family:'JetBrains Mono',monospace">3.2K+</div>
+                        <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">${isId?'Pengguna Aktif':'Active Users'}</div>
+                    </div>
+                    <div class="premium-card scroll-reveal reveal-delay-1" style="padding:28px 36px;text-align:center;min-width:160px">
+                        <div style="font-size:36px;font-weight:800;color:#8b5cf6;font-family:'JetBrains Mono',monospace">105</div>
+                        <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">${isId?'Fitur':'Features'}</div>
+                    </div>
+                    <div class="premium-card scroll-reveal reveal-delay-2" style="padding:28px 36px;text-align:center;min-width:160px">
+                        <div style="font-size:36px;font-weight:800;color:#10b981;font-family:'JetBrains Mono',monospace">100%</div>
+                        <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">${isId?'Gratis':'Free'}</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+                    <a href="https://github.com" target="_blank" class="btn btn-secondary scroll-reveal" style="padding:14px 28px;border-radius:12px;font-size:15px;font-weight:600"><i class="fab fa-github"></i> ${isId?'Lihat di GitHub':'View on GitHub'}</a>
+                    <a href="https://t.me/" target="_blank" class="btn btn-secondary scroll-reveal reveal-delay-1" style="padding:14px 28px;border-radius:12px;font-size:15px;font-weight:600"><i class="fab fa-telegram"></i> ${isId?'Gabung Telegram':'Join Telegram'}</a>
+                </div>
+            </div>
+        </section>
 
         <!-- ===== PRICING COMPARISON TABLE ===== -->
         <section class="scroll-reveal" style="padding:64px 20px;background:var(--bg-secondary);position:relative">
@@ -4920,6 +5120,7 @@ function renderHomepage() {
     initFeatureCarousel();
     initParallaxOrbs();
     initScrollRevealEnhanced();
+    initLiveActivityFeed();
 }
 
 // ===== LUXURY ANIMATION INIT FUNCTIONS =====
@@ -5335,6 +5536,70 @@ function initScrollRevealEnhanced() {
         });
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
     elements.forEach(el => observer.observe(el));
+}
+
+// ===== LIVE ACTIVITY FEED =====
+function initLiveActivityFeed() {
+    const feed = document.getElementById('live-activity-feed');
+    if (!feed) return;
+    const isId = APP.lang === 'id';
+    const names = isId
+        ? ['Andi','Budi','Sari','Dewi','Raka','Nadia','Fajar','Luna','Dimas','Ayu','Rio','Putri','Hadi','Maya','Yoga','Citra','Agus','Lina','Bayu','Rini']
+        : ['Alex','Sarah','Mike','Emma','James','Lily','Tom','Anna','David','Sophie','Chris','Olivia','Nick','Mia','Jack','Ella','Leo','Zoe','Ryan','Nora'];
+    const fileTypes = [
+        { ext: '.pdf', icon: 'fa-file-pdf', color: '#ef4444' },
+        { ext: '.jpg', icon: 'fa-image', color: '#10b981' },
+        { ext: '.png', icon: 'fa-image', color: '#10b981' },
+        { ext: '.mp4', icon: 'fa-film', color: '#8b5cf6' },
+        { ext: '.mp3', icon: 'fa-music', color: '#f59e0b' },
+        { ext: '.zip', icon: 'fa-file-zipper', color: '#64748b' },
+        { ext: '.docx', icon: 'fa-file-word', color: '#3b82f6' },
+        { ext: '.xlsx', icon: 'fa-file-excel', color: '#10b981' },
+        { ext: '.pptx', icon: 'fa-file-powerpoint', color: '#f97316' },
+        { ext: '.py', icon: 'fa-file-code', color: '#06b6d4' }
+    ];
+    const actions = isId
+        ? ['mengupload','membackup','menyimpan','membagikan']
+        : ['uploaded','backed up','saved','shared'];
+    const prefixes = isId
+        ? ['Laporan','Foto','Video','Dokumen','Project','Backup','Arsip','Catatan','Presentasi','Music']
+        : ['Report','Photo','Video','Document','Project','Backup','Archive','Notes','Presentation','Track'];
+    const sizes = ['1.2 MB','3.4 MB','856 KB','12.5 MB','2.1 MB','45 MB','678 KB','5.7 MB','23 MB','1.8 MB'];
+    const times = isId
+        ? ['baru saja','1 menit lalu','2 menit lalu','3 menit lalu','5 menit lalu','7 menit lalu','10 menit lalu','15 menit lalu']
+        : ['just now','1 min ago','2 min ago','3 min ago','5 min ago','7 min ago','10 min ago','15 min ago'];
+
+    function generateItem() {
+        const name = names[Math.floor(Math.random() * names.length)];
+        const ft = fileTypes[Math.floor(Math.random() * fileTypes.length)];
+        const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        const action = actions[Math.floor(Math.random() * actions.length)];
+        const size = sizes[Math.floor(Math.random() * sizes.length)];
+        const time = times[Math.floor(Math.random() * times.length)];
+        return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);animation:fadeIn .4s ease">
+            <div style="width:36px;height:36px;border-radius:10px;background:${ft.color}12;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${ft.icon}" style="font-size:14px;color:${ft.color}"></i></div>
+            <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>${name}</strong> ${action} <span style="color:var(--accent)">${prefix}${ft.ext}</span></div>
+                <div style="font-size:11px;color:var(--text-secondary)">${size} · ${time}</div>
+            </div>
+        </div>`;
+    }
+
+    // Fill initial items
+    let items = [];
+    for (let i = 0; i < 6; i++) items.push(generateItem());
+    feed.innerHTML = items.join('');
+
+    // Add new items periodically
+    setInterval(() => {
+        if (document.hidden) return;
+        const newItem = generateItem();
+        feed.insertAdjacentHTML('afterbegin', newItem);
+        // Remove last if too many
+        while (feed.children.length > 6) {
+            feed.removeChild(feed.lastChild);
+        }
+    }, 3000);
 }
 
 // ===== SCROLL REVEAL (IntersectionObserver) =====
