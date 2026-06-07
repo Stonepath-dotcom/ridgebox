@@ -59,8 +59,8 @@ export default async function (request) {
     }));
 
     // Supabase Auth config (safe to expose - anon key is public)
-    const supabaseUrl = process.env.SUPABASE_URL || '';
-    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+    const supabaseUrl = process.env.SUPABASE_URL || 'https://tztpwbasrajvkjbrvwfu.supabase.co';
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHB3YmFzcmFqdmtqYnJ2d2Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NzQ1OTMsImV4cCI6MjA5NjM1MDU5M30.3O4-5PbSlRC8cro8hbbIgkxdnUOIXmWHa2mA5NVnhxc';
 
     return new Response(JSON.stringify({ ok: true, bots: safeBots, proxyMode, supabaseUrl, supabaseAnonKey }), {
       headers: { 'Content-Type': 'application/json', ...CORS },
