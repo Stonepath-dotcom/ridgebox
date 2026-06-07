@@ -96,3 +96,29 @@ Stage Summary:
 - Auto-updating: featured post rotates every 8s, blog cards cycle every 15s, ticker messages every 6s
 - 12 blog posts in both ID and EN languages
 - Fully responsive on mobile (single column cards, hidden featured image on small screens)
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Add dedicated full-page login to RidgeBox cloud storage app
+
+Work Log:
+- Analyzed existing overlay modal login system
+- Designed new split-screen login page layout (brand panel + form panel)
+- Added 100+ lines of new CSS for .auth-fullpage split-screen layout
+- Replaced renderAuthPage() to render full-page instead of overlay into app-main
+- Updated checkUrlRouting() to render auth pages directly (no more overlay)
+- Updated closeAuthOverlay() to restore header and navigate back
+- Updated onAuthStateChange to handle full-page auth navigation
+- Updated handleLogin() to restore header after successful login
+- Updated toggleAuthTheme() to re-render the auth page properly
+- Added responsive breakpoints: ≤900px (stack), ≤480px (compact)
+- All auth features preserved: email/password, Google OAuth, register, forgot password, remember me, password strength meter, quotes rotation, particles
+- Pushed to GitHub and auto-deployed to Vercel
+
+Stage Summary:
+- RidgeBox now has a proper dedicated login page at #/login
+- Split-screen design: left brand panel (aurora bg + features + quote), right form panel
+- Responsive: stacks on mobile, compact on small screens
+- All existing auth flows work: login, register, forgot password, Google OAuth
+- URL: https://ridgebox.vercel.app/#/login
