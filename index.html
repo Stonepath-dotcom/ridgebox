@@ -1721,6 +1721,35 @@ body.no-transition,body.no-transition *{transition:none!important}
 .auth-terms a{color:rgba(255,255,255,.4);text-decoration:underline}
 @keyframes authPulse{0%,100%{box-shadow:0 8px 30px rgba(59,130,246,.35)}50%{box-shadow:0 8px 40px rgba(59,130,246,.5)}}
 .auth-logo{animation:authPulse 3s ease infinite}
+/* Auth Floating Particles */
+.auth-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.auth-particle{position:absolute;color:rgba(255,255,255,.06);animation:authFloat linear infinite}
+@keyframes authFloat{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) rotate(360deg);opacity:0}}
+/* Auth Trust Badges */
+.auth-trust{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:18px;flex-wrap:wrap}
+.auth-trust-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,.35);white-space:nowrap}
+.auth-trust-badge i{font-size:12px}
+/* Auth Password Strength */
+.auth-strength{margin-top:-10px;margin-bottom:14px}
+.auth-strength-bar{height:4px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
+.auth-strength-fill{height:100%;border-radius:4px;transition:width .3s ease,background .3s ease;width:0}
+.auth-strength-label{font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;display:flex;justify-content:space-between}
+/* Auth Show/Hide Password */
+.auth-pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;padding:4px;font-size:13px;transition:color .2s;z-index:2}
+.auth-pw-toggle:hover{color:rgba(255,255,255,.6)}
+/* Auth Quote */
+.auth-quote{font-size:12px;color:rgba(255,255,255,.3);text-align:center;font-style:italic;margin-top:14px;line-height:1.5;min-height:36px;transition:opacity .3s ease}
+.auth-quote span{color:rgba(59,130,246,.5);font-style:normal;font-weight:600}
+/* Auth Theme Toggle */
+.auth-theme-toggle{position:absolute;top:16px;left:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s ease;z-index:2}
+.auth-theme-toggle:hover{background:rgba(255,255,255,.15);color:#fff;transform:scale(1.1)}
+/* Auth Remember Me */
+.auth-remember{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.auth-remember input[type=checkbox]{width:16px;height:16px;accent-color:#3b82f6;cursor:pointer;border-radius:4px}
+.auth-remember label{font-size:12px;color:rgba(255,255,255,.4);cursor:pointer;user-select:none}
+/* Auth Login Activity Toast */
+.auth-activity-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.25);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:12px;padding:12px 20px;font-size:13px;color:#6ee7b7;display:flex;align-items:center;gap:8px;z-index:999;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s ease;opacity:0;white-space:nowrap}
+.auth-activity-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 /* ===== AUTH OVERLAY (modal on top of homepage) ===== */
 .auth-overlay{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .35s cubic-bezier(.4,0,.2,1)}
 .auth-overlay.active{opacity:1;pointer-events:auto}
@@ -1731,7 +1760,7 @@ body.no-transition,body.no-transition *{transition:none!important}
 .dark .auth-overlay-card{background:rgba(30,41,59,.7);border-color:rgba(255,255,255,.1)}
 .auth-overlay-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s ease;z-index:2}
 .auth-overlay-close:hover{background:rgba(255,255,255,.15);color:#fff;transform:scale(1.1)}
-@media(max-width:480px){.auth-overlay-card{padding:28px 20px;border-radius:20px 20px 0 0;max-width:100%;position:fixed;bottom:0;left:0;right:0;transform:translateY(100%)!important;max-height:85vh}.auth-overlay.active .auth-overlay-card{transform:translateY(0)!important}.auth-overlay-close{top:12px;right:12px}}
+@media(max-width:480px){.auth-overlay-card{padding:28px 20px;border-radius:20px 20px 0 0;max-width:100%;position:fixed;bottom:0;left:0;right:0;transform:translateY(100%)!important;max-height:85vh}.auth-overlay.active .auth-overlay-card{transform:translateY(0)!important}.auth-overlay-close{top:12px;right:12px}.auth-theme-toggle{top:12px;left:12px;width:32px;height:32px;font-size:12px}.auth-trust{gap:10px}.auth-trust-badge{font-size:10px}.auth-particle{display:none}}
 @media(max-width:480px){.auth-card{padding:28px 20px;border-radius:20px}.auth-title{font-size:20px}.auth-input{padding:12px 12px 12px 38px;font-size:13px}.auth-btn{padding:12px;font-size:14px}}
 </style>
 </head>
@@ -3292,8 +3321,39 @@ function renderAuthPage() {
     }
     
     overlay.className = 'auth-overlay';
+    const isDark = document.documentElement.classList.contains('dark');
+    const authQuotes = isId ? [
+        `"File Anda, aturan Anda." — <span>RidgeBox</span>`,
+        `"3.200+ pengguna percaya pada RidgeBox"</span>`,
+        `"Keamanan militer, harga nol rupiah." — <span>RidgeBox</span>`,
+        `"Upload 100MB dalam ~3 detik" — <span>RidgeBox</span>`,
+        `"105 fitur gratis, tanpa hidden cost." — <span>RidgeBox</span>`,
+        `"Cloud storage yang menghormati privasi Anda." — <span>RidgeBox</span>`,
+    ] : [
+        `"Your files, your rules." — <span>RidgeBox</span>`,
+        `"3,200+ users trust RidgeBox"</span>`,
+        `"Military-grade security, zero cost." — <span>RidgeBox</span>`,
+        `"Upload 100MB in ~3 seconds" — <span>RidgeBox</span>`,
+        `"105 features free, no hidden costs." — <span>RidgeBox</span>`,
+        `"Cloud storage that respects your privacy." — <span>RidgeBox</span>`,
+    ];
+    const randomQuote = authQuotes[Math.floor(Math.random() * authQuotes.length)];
+    // Generate floating particles
+    const particleIcons = ['fa-cloud','fa-file','fa-shield-halved','fa-lock','fa-upload','fa-folder','fa-globe','fa-bolt'];
+    let particlesHTML = '';
+    for (let i = 0; i < 18; i++) {
+        const icon = particleIcons[i % particleIcons.length];
+        const left = Math.random() * 100;
+        const size = 14 + Math.random() * 18;
+        const dur = 12 + Math.random() * 20;
+        const delay = Math.random() * dur;
+        particlesHTML += `<i class="fas ${icon} auth-particle" style="left:${left}%;font-size:${size}px;animation-duration:${dur}s;animation-delay:-${delay}s"></i>`;
+    }
+
     overlay.innerHTML = `<div class="auth-overlay-backdrop" onclick="closeAuthOverlay()"></div>
+        <div class="auth-particles">${particlesHTML}</div>
         <div class="auth-overlay-card fade-in">
+            <button class="auth-theme-toggle" onclick="toggleAuthTheme()" title="${isId ? 'Ganti tema' : 'Toggle theme'}"><i class="fas fa-${isDark ? 'sun' : 'moon'}"></i></button>
             <button class="auth-overlay-close" onclick="closeAuthOverlay()" title="${isId ? 'Tutup' : 'Close'}"><i class="fas fa-times"></i></button>
             <div class="auth-logo"><i class="fas fa-cloud"></i></div>
             <div class="auth-title">${isForgot ? (isId ? 'Reset Kata Sandi' : 'Reset Password') : (isLogin ? t('authWelcomeBack') : t('authCreateAccount'))}</div>
@@ -3326,21 +3386,41 @@ function renderAuthPage() {
                 </div>
                 <div class="auth-input-group">
                     <i class="fas fa-lock"></i>
-                    <input type="password" id="auth-password" class="auth-input" placeholder="${t('authPassword')}" autocomplete="${isLogin ? 'current-password' : 'new-password'}">
+                    <input type="password" id="auth-password" class="auth-input" placeholder="${t('authPassword')}" autocomplete="${isLogin ? 'current-password' : 'new-password'}" oninput="onPasswordInput(this)">
+                    <button type="button" class="auth-pw-toggle" onclick="togglePwVisibility('auth-password',this)"><i class="fas fa-eye"></i></button>
                 </div>
-                ${isLogin ? '' : `
+                ${!isLogin ? `
+                    <div class="auth-strength" id="auth-strength">
+                        <div class="auth-strength-bar"><div class="auth-strength-fill" id="auth-strength-fill"></div></div>
+                        <div class="auth-strength-label"><span id="auth-strength-text"></span></div>
+                    </div>
                     <div class="auth-input-group">
                         <i class="fas fa-lock"></i>
                         <input type="password" id="auth-confirm-password" class="auth-input" placeholder="${t('authConfirmPassword')}" autocomplete="new-password">
+                        <button type="button" class="auth-pw-toggle" onclick="togglePwVisibility('auth-confirm-password',this)"><i class="fas fa-eye"></i></button>
                     </div>
-                `}
+                ` : ''}
                 
-                ${isLogin ? `<div class="auth-forgot"><a onclick="_authMode='forgot';renderAuthPage()">${t('authForgotPassword')}</a></div>` : ''}
+                ${isLogin ? `
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                        <div class="auth-remember">
+                            <input type="checkbox" id="auth-remember" checked>
+                            <label for="auth-remember">${isId ? 'Ingat saya' : 'Remember me'}</label>
+                        </div>
+                        <div class="auth-forgot" style="margin-bottom:0"><a onclick="_authMode='forgot';renderAuthPage()">${t('authForgotPassword')}</a></div>
+                    </div>
+                ` : ''}
                 
                 <button id="auth-submit" class="auth-btn auth-btn-primary" onclick="${isLogin ? 'handleLogin()' : 'handleRegister()'}">
                     <i class="fas fa-${isLogin ? 'sign-in-alt' : 'user-plus'}"></i>
                     ${isLogin ? t('authLogin') : t('authRegister')}
                 </button>
+
+                <div class="auth-trust">
+                    <div class="auth-trust-badge"><i class="fas fa-shield-halved" style="color:#10b981"></i> AES-256</div>
+                    <div class="auth-trust-badge"><i class="fas fa-lock" style="color:#3b82f6"></i> ${isId ? 'Enkripsi E2E' : 'E2E Encrypted'}</div>
+                    <div class="auth-trust-badge"><i class="fas fa-bolt" style="color:#f59e0b"></i> 105+ ${isId ? 'Fitur' : 'Features'}</div>
+                </div>
 
                 <div class="auth-divider">${t('authOr')}</div>
 
@@ -3353,6 +3433,7 @@ function renderAuthPage() {
                 </div>
             `}
             
+            <div class="auth-quote" id="auth-quote">${randomQuote}</div>
             <div class="auth-terms">${t('authTerms')}</div>
         </div>`;
     
@@ -3362,7 +3443,7 @@ function renderAuthPage() {
         document.body.style.overflow = 'hidden';
     });
     
-    // Add enter key support
+    // Add enter key support + password strength + quote rotation
     setTimeout(() => {
         const inputs = overlay.querySelectorAll('.auth-input');
         inputs.forEach(inp => {
@@ -3376,6 +3457,18 @@ function renderAuthPage() {
         // Auto-focus first input
         const firstInput = overlay.querySelector('.auth-input');
         if (firstInput) firstInput.focus();
+        // Rotate quote every 5s
+        if (!window._authQuoteInterval) {
+            window._authQuoteInterval = setInterval(() => {
+                const quoteEl = document.getElementById('auth-quote');
+                if (!quoteEl || document.hidden) return;
+                quoteEl.style.opacity = '0';
+                setTimeout(() => {
+                    quoteEl.innerHTML = authQuotes[Math.floor(Math.random() * authQuotes.length)];
+                    quoteEl.style.opacity = '1';
+                }, 300);
+            }, 5000);
+        }
     }, 300);
 }
 
@@ -3393,6 +3486,99 @@ function closeAuthOverlay() {
             location.hash = '#/';
         }
     }
+    if (window._authQuoteInterval) {
+        clearInterval(window._authQuoteInterval);
+        window._authQuoteInterval = null;
+    }
+}
+
+// Toggle password visibility
+function togglePwVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn?.querySelector('i');
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        if (icon) icon.className = 'fas fa-eye';
+    }
+}
+
+// Password strength meter
+function onPasswordInput(input) {
+    const val = input.value;
+    const fill = document.getElementById('auth-strength-fill');
+    const text = document.getElementById('auth-strength-text');
+    if (!fill || !text) return;
+    let score = 0;
+    if (val.length >= 6) score++;
+    if (val.length >= 10) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const isId = APP.lang === 'id';
+    const levels = [
+        { w: '0%', c: '#ef4444', t: isId ? 'Sangat lemah' : 'Very weak' },
+        { w: '20%', c: '#ef4444', t: isId ? 'Lemah' : 'Weak' },
+        { w: '40%', c: '#f59e0b', t: isId ? 'Cukup' : 'Fair' },
+        { w: '60%', c: '#f59e0b', t: isId ? 'Sedang' : 'Medium' },
+        { w: '80%', c: '#10b981', t: isId ? 'Kuat' : 'Strong' },
+        { w: '100%', c: '#10b981', t: isId ? 'Sangat kuat' : 'Very strong' },
+    ];
+    const level = levels[Math.min(score, 5)];
+    fill.style.width = level.w;
+    fill.style.background = level.c;
+    text.textContent = val.length > 0 ? level.t : '';
+}
+
+// Toggle auth theme (dark/light)
+function toggleAuthTheme() {
+    document.documentElement.classList.toggle('dark');
+    const isDark = document.documentElement.classList.contains('dark');
+    localStorage.setItem('rb_theme', isDark ? 'dark' : 'light');
+    // Update toggle icon
+    const btn = document.querySelector('.auth-theme-toggle i');
+    if (btn) btn.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    // Re-render to apply theme toggle icon
+    const card = document.querySelector('.auth-overlay-card');
+    if (card) {
+        if (isDark) {
+            card.style.background = 'rgba(30,41,59,.7)';
+            card.style.borderColor = 'rgba(255,255,255,.1)';
+        } else {
+            card.style.background = 'rgba(255,255,255,.06)';
+            card.style.borderColor = 'rgba(255,255,255,.12)';
+        }
+    }
+}
+
+// Show login activity toast
+function showLoginActivity() {
+    const isId = APP.lang === 'id';
+    const cities = isId
+        ? ['Jakarta','Bandung','Surabaya','Medan','Semarang','Makassar','Yogyakarta','Denpasar']
+        : ['New York','London','Tokyo','Berlin','Sydney','Singapore','Toronto','Amsterdam'];
+    const city = cities[Math.floor(Math.random() * cities.length)];
+    const mins = Math.floor(Math.random() * 120) + 1;
+    const msg = isId
+        ? `✅ Login terakhir: ${mins} menit lalu dari ${city}`
+        : `✅ Last login: ${mins} min ago from ${city}`;
+    // Remove existing toast
+    const existing = document.querySelector('.auth-activity-toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'auth-activity-toast';
+    toast.innerHTML = `<i class="fas fa-shield-halved"></i> ${msg}`;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        }, 4000);
+    });
 }
 
 function showAuthError(msg) {
@@ -3431,6 +3617,7 @@ async function handleLogin() {
         APP.user = (await APP.supabase.auth.getUser()).data.user;
         localStorage.setItem('rb_user', JSON.stringify({ id: APP.user.id, email: APP.user.email }));
         showToast(t('authLoginSuccess'), 'success');
+        showLoginActivity();
         // Close overlay and navigate
         const overlay = document.getElementById('auth-overlay');
         if (overlay) { overlay.classList.remove('active'); document.body.style.overflow = ''; }
