@@ -1019,6 +1019,8 @@ body.no-transition,body.no-transition *{transition:none!important}
 .provider-badge.gdrive:hover{background:rgba(66,133,244,.22);transform:scale(1.15)}
 .provider-badge.telegram{background:rgba(0,136,204,.12);color:#0088cc}
 .provider-badge.telegram:hover{background:rgba(0,136,204,.22);transform:scale(1.15)}
+.provider-badge.s3{background:rgba(244,129,32,.12);color:#f48120}
+.provider-badge.s3:hover{background:rgba(244,129,32,.22);transform:scale(1.15)}
 
 /* Provider Filter Bar */
 .provider-filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
@@ -1848,6 +1850,7 @@ const APP = {
     // Google Drive Integration
     gdriveAccounts: [],
     gdriveConfig: { configured: false, clientId: '' },
+    s3Accounts: [],
     storageProviders: {}, // Registry of storage providers
     // Supabase Auth
     supabase: null,
@@ -2520,7 +2523,7 @@ function startEditDescription(fileId) {
 
 // ===== INDEXEDDB (F15) =====
 const DB_NAME = 'RidgeboxDB';
-const DB_VERSION = 5;
+const DB_VERSION = 6;
 let _db = null;
 
 function openDB() {
@@ -2545,6 +2548,11 @@ function openDB() {
                 const ga = db.createObjectStore('gdrive_accounts', { keyPath: 'id' });
                 ga.createIndex('email', 'email', { unique: false });
                 ga.createIndex('status', 'status', { unique: false });
+            }
+            if (!db.objectStoreNames.contains('s3_accounts')) {
+                const sa = db.createObjectStore('s3_accounts', { keyPath: 'id' });
+                sa.createIndex('providerId', 'providerId', { unique: false });
+                sa.createIndex('status', 'status', { unique: false });
             }
         };
         req.onsuccess = (e) => { _db = e.target.result; resolve(_db); };
@@ -2618,6 +2626,7 @@ async function loadAllData() {
         const settings = await dbGetAll('settings');
         settings.forEach(s => { APP.settings[s.key] = s.value; });
         APP.gdriveAccounts = await dbGetAll('gdrive_accounts');
+        APP.s3Accounts = await dbGetAll('s3_accounts');
     } catch(e) { console.error('Load data error:', e); }
 }
 
@@ -4516,7 +4525,7 @@ function openDetailPanel(fileId) {
                         <div class="detail-stat"><div class="stat-label">${isId?'Ukuran':'Size'}</div><div class="stat-value">${formatSize(file.size)}</div></div>
                         <div class="detail-stat"><div class="stat-label">${isId?'Tipe':'Type'}</div><div class="stat-value">${ext}</div></div>
                         <div class="detail-stat"><div class="stat-label">${isId?'Diupload':'Uploaded'}</div><div class="stat-value" title="${fullDate}">${formatDate(file.uploadedAt)}</div></div>
-                        <div class="detail-stat"><div class="stat-label">${isId?'Penyimpanan':'Storage'}</div><div class="stat-value">${file.storageProvider === 'gdrive' ? '<i class="fab fa-google" style="color:#4285f4;margin-right:3px"></i>Google Drive' : '<i class="fas fa-paper-plane" style="color:#0088cc;margin-right:3px"></i>Telegram'}</div></div>
+                        <div class="detail-stat"><div class="stat-label">${isId?'Penyimpanan':'Storage'}</div><div class="stat-value">${file.storageProvider === 'gdrive' ? '<i class="fab fa-google" style="color:#4285f4;margin-right:3px"></i>Google Drive' : file.storageProvider === 's3' ? '<i class="fas fa-database" style="color:#f48120;margin-right:3px"></i>S3 / Cloud' : '<i class="fas fa-paper-plane" style="color:#0088cc;margin-right:3px"></i>Telegram'}</div></div>
                         <div class="detail-stat"><div class="stat-label">${isId?'Folder':'Folder'}</div><div class="stat-value">${folderName}</div></div>
                     </div>
                     ${analyticsHtml}
@@ -6751,10 +6760,12 @@ function renderProviderFilterBar() {
     const isId = APP.lang === 'id';
     const gdriveCount = APP.files.filter(f => f.storageProvider === 'gdrive' && !f.trashed).length;
     const telegramCount = APP.files.filter(f => (!f.storageProvider || f.storageProvider === 'telegram') && !f.trashed).length;
-    if (gdriveCount === 0) { bar.innerHTML = ''; return; }
+    const s3Count = APP.files.filter(f => f.storageProvider === 's3' && !f.trashed).length;
+    if (gdriveCount === 0 && s3Count === 0) { bar.innerHTML = ''; return; }
     bar.innerHTML = `
         <span class="provider-filter-pill ${APP.providerFilter === 'telegram' ? 'active' : ''}" onclick="APP.providerFilter = APP.providerFilter === 'telegram' ? null : 'telegram'; renderProviderFilterBar(); renderFileList()"><i class="fas fa-paper-plane"></i> Telegram <span style="opacity:.6">${telegramCount}</span></span>
         <span class="provider-filter-pill ${APP.providerFilter === 'gdrive' ? 'active' : ''}" onclick="APP.providerFilter = APP.providerFilter === 'gdrive' ? null : 'gdrive'; renderProviderFilterBar(); renderFileList()"><i class="fab fa-google"></i> Drive <span style="opacity:.6">${gdriveCount}</span></span>
+        ${s3Count > 0 ? `<span class="provider-filter-pill ${APP.providerFilter === 's3' ? 'active' : ''}" onclick="APP.providerFilter = APP.providerFilter === 's3' ? null : 's3'; renderProviderFilterBar(); renderFileList()"><i class="fas fa-database"></i> Cloud <span style="opacity:.6">${s3Count}</span></span>` : ''}
     `;
 }
 
@@ -6918,6 +6929,8 @@ function getFilteredFiles() {
             files = files.filter(f => f.storageProvider === 'gdrive');
         } else if (APP.providerFilter === 'telegram') {
             files = files.filter(f => !f.storageProvider || f.storageProvider === 'telegram');
+        } else if (APP.providerFilter === 's3') {
+            files = files.filter(f => f.storageProvider === 's3');
         }
     }
 
@@ -7035,7 +7048,7 @@ function renderFileGridItem(file, index) {
             <div class="grid-name" title="${file.name}">${file.name}${versionBadge}</div>
             <div class="grid-meta">
                 ${file.tag ? `<span class="tag-dot-inline" style="background:${file.tag}" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
-                ${file.storageProvider === 'gdrive' ? '<span class="provider-badge gdrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'gdrive\';renderFileList()" title="Google Drive"><i class="fab fa-google"></i></span>' : ''}
+                ${file.storageProvider === 'gdrive' ? '<span class="provider-badge gdrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'gdrive\';renderFileList()" title="Google Drive"><i class="fab fa-google"></i></span>' : ''}${file.storageProvider === 's3' ? '<span class="provider-badge s3" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'s3\';renderFileList()" title="S3 / Cloud Storage"><i class="fas fa-database"></i></span>' : ''}
                 <span>${formatSize(file.size)} · ${formatDate(file.uploadedAt)}</span>
             </div>
             ${trashInfo}
@@ -7113,12 +7126,12 @@ function renderFileListRow(file, index) {
             <div class="list-name-row">
                 <span class="fname">${file.name}</span>
                 ${inlineStatus}
-                ${file.storageProvider === 'gdrive' ? '<span class="provider-badge gdrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'gdrive\';renderFileList()" title="Google Drive"><i class="fab fa-google"></i></span>' : ''}
+                ${file.storageProvider === 'gdrive' ? '<span class="provider-badge gdrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'gdrive\';renderFileList()" title="Google Drive"><i class="fab fa-google"></i></span>' : ''}${file.storageProvider === 's3' ? '<span class="provider-badge s3" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'s3\';renderFileList()" title="S3 / Cloud Storage"><i class="fas fa-database"></i></span>' : ''}
                 ${file.tag ? `<span class="tag-dot-inline" style="background:${file.tag}" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
                 ${versionBadge}
                 ${trashBadge}
             </div>
-            <div class="list-sub-meta">${subMeta}${file.storageProvider === 'gdrive' ? ' · <i class="fab fa-google" style="font-size:9px;color:#4285f4"></i> Drive' : ''}</div>
+            <div class="list-sub-meta">${subMeta}${file.storageProvider === 'gdrive' ? ' · <i class="fab fa-google" style="font-size:9px;color:#4285f4"></i> Drive' : ''}${file.storageProvider === 's3' ? ' · <i class="fas fa-database" style="font-size:9px;color:#f48120"></i> Cloud' : ''}</div>
             ${trashProgress}
         </div>
         <div class="list-col-size">${formatSize(file.size)}</div>
@@ -7414,14 +7427,37 @@ async function handleFileSelect(fileList) {
 }
 
 async function executeUpload(file, folderParam) {
-    // Smart Storage Allocation: Try Google Drive first if connected
-    if (APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0) {
+    // Smart Storage Allocation: Use best available drive across all providers
+    const bestDrive = selectBestDrive(file.size);
+    if (bestDrive) {
+        if (bestDrive.type === 'gdrive') {
+            const gdriveResult = await executeUploadToGDrive(file, folderParam);
+            if (gdriveResult) {
+                renderFileList();
+                return;
+            }
+        } else if (bestDrive.type === 's3' || bestDrive.type === 'token') {
+            const account = bestDrive.account;
+            const provider = account.type === 's3' ? APP.storageProviders.s3 : APP.storageProviders.token;
+            if (provider) {
+                try {
+                    await executeUploadToS3Drive(account.id, file);
+                    return;
+                } catch(e) {
+                    // Fall through to Telegram
+                    console.warn('S3 upload failed, falling back to Telegram:', e);
+                }
+            }
+        }
+    }
+
+    // Fallback: Try Google Drive if still connected (for backward compat)
+    if (!bestDrive && APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0) {
         const gdriveResult = await executeUploadToGDrive(file, folderParam);
         if (gdriveResult) {
             renderFileList();
-            return; // Successfully uploaded to Google Drive
+            return;
         }
-        // If GDrive upload failed or no space, fall through to Telegram
     }
 
     const bot = APP.bots[0];
@@ -8095,6 +8131,39 @@ async function downloadFile(fileId) {
             directDownload(dlUrl, file.name);
             showToast(t('download') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
             logActivity('download', `${isId?'Mengunduh':'Downloaded'} ${file.name} (Google Drive)`);
+            return;
+        }
+
+        // S3 / Token provider files — download via provider
+        if (file.storageProvider === 's3' && file.driveFileId) {
+            const account = APP.s3Accounts.find(a => a.id === file.providerAccountId);
+            if (!account || account.status !== 'connected') {
+                showToast(isId ? 'Akun penyimpanan tidak tersedia. Hubungkan ulang.' : 'Storage account unavailable. Please reconnect.', 'warning');
+                return;
+            }
+            try {
+                const provider = account.type === 's3' ? APP.storageProviders.s3 : APP.storageProviders.token;
+                if (!provider) throw new Error('Provider not found');
+                const dlResult = await provider.download(account.id, file.driveFileId);
+                // dlResult can be a URL string or a blob URL
+                if (typeof dlResult === 'string') {
+                    if (dlResult.startsWith('/api/')) {
+                        directDownload(dlResult, file.name);
+                    } else if (dlResult.startsWith('blob:')) {
+                        const resp = await fetch(dlResult);
+                        const blob = await resp.blob();
+                        await saveToDevice(blob, file.name);
+                        URL.revokeObjectURL(dlResult);
+                    } else {
+                        // External URL (e.g. OneDrive download URL)
+                        directDownload(dlResult, file.name);
+                    }
+                }
+                showToast(t('download') + ' <i class="fas fa-check" style="font-size:11px"></i>', 'success');
+                logActivity('download', `${isId?'Mengunduh':'Downloaded'} ${file.name} (S3/Cloud)`);
+            } catch(e) {
+                showToast(isId ? 'Gagal mengunduh: ' : 'Download failed: ' + e.message, 'error');
+            }
             return;
         }
 
@@ -9925,21 +9994,482 @@ class GoogleDriveProvider extends StorageProvider {
 // Register provider
 APP.storageProviders.gdrive = new GoogleDriveProvider();
 
+// ===== S3-Compatible Provider (Cloudflare R2, AWS S3, Backblaze B2) =====
+const S3_PROVIDER_INFO = {
+    'cloudflare-r2': { name: 'Cloudflare R2', icon: 'fa-cloud', iconPrefix: 'fas', color: '#f48120', endpointHint: 'https://<account_id>.r2.cloudflarestorage.com', regionDefault: 'auto' },
+    'aws-s3': { name: 'AWS S3', icon: 'fa-aws', iconPrefix: 'fab', color: '#ff9900', endpointHint: 'https://s3.<region>.amazonaws.com', regionDefault: 'us-east-1' },
+    'backblaze-b2': { name: 'Backblaze B2', icon: 'fa-box-archive', iconPrefix: 'fas', color: '#e21e25', endpointHint: 'https://s3.<region>.backblazeb2.com', regionDefault: 'us-east-005' },
+    'onedrive': { name: 'OneDrive', icon: 'fa-microsoft', iconPrefix: 'fab', color: '#0078d4', endpointHint: '', regionDefault: '' },
+    'dropbox': { name: 'Dropbox', icon: 'fa-dropbox', iconPrefix: 'fab', color: '#0061ff', endpointHint: '', regionDefault: '' }
+};
+
+class S3Provider extends StorageProvider {
+    constructor() { super('s3', 'S3 Storage', 'fa-database', '#f48120'); }
+
+    async connect(providerId) {
+        const info = S3_PROVIDER_INFO[providerId];
+        if (info) openProviderConfigModal(providerId, info);
+        else openProviderConfigModal(providerId, { name: providerId, icon: 'fa-database', iconPrefix: 'fas', color: '#6b7280', endpointHint: '', regionDefault: 'us-east-1' });
+    }
+
+    async upload(accountId, file, metadata = {}) {
+        const account = APP.s3Accounts.find(a => a.id === accountId);
+        if (!account) throw new Error('Account not found');
+        const formData = new FormData();
+        formData.append('endpoint', account.endpoint);
+        formData.append('accessKeyId', account.accessKeyId);
+        formData.append('secretAccessKey', account.secretAccessKey);
+        formData.append('bucket', account.bucket);
+        formData.append('region', account.region);
+        const key = (metadata.key || 'ridgebox/' + Date.now() + '/' + file.name).replace(/^\/+/, '');
+        formData.append('key', key);
+        formData.append('file', file);
+        const resp = await fetch('/api/s3/upload', { method: 'POST', body: formData });
+        const data = await resp.json();
+        if (!data.ok) throw new Error(data.error || 'S3 upload failed');
+        return { driveFileId: key, provider: 's3', providerAccountId: accountId, key: data.key };
+    }
+
+    async download(accountId, key) {
+        const account = APP.s3Accounts.find(a => a.id === accountId);
+        if (!account) throw new Error('Account not found');
+        const dlUrl = '/api/s3/download?' + new URLSearchParams({
+            endpoint: account.endpoint, accessKeyId: account.accessKeyId,
+            secretAccessKey: account.secretAccessKey, bucket: account.bucket,
+            region: account.region, key: key, name: key.split('/').pop()
+        }).toString();
+        return dlUrl;
+    }
+
+    async deleteFile(accountId, key) {
+        const account = APP.s3Accounts.find(a => a.id === accountId);
+        if (!account) throw new Error('Account not found');
+        const resp = await fetch('/api/s3/proxy', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                endpoint: account.endpoint, accessKeyId: account.accessKeyId,
+                secretAccessKey: account.secretAccessKey, bucket: account.bucket,
+                region: account.region, method: 'DELETE', path: '/' + key.replace(/^\/+/, '')
+            })
+        });
+        const data = await resp.json();
+        if (!data.ok && data.status !== 204) throw new Error(data.error || 'S3 delete failed');
+        return true;
+    }
+
+    async getQuota(accountId) {
+        const account = APP.s3Accounts.find(a => a.id === accountId);
+        if (!account) return null;
+        try {
+            const resp = await fetch('/api/s3/proxy', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    endpoint: account.endpoint, accessKeyId: account.accessKeyId,
+                    secretAccessKey: account.secretAccessKey, bucket: account.bucket,
+                    region: account.region, method: 'GET', path: '/'
+                })
+            });
+            const data = await resp.json();
+            if (data.ok) {
+                let totalSize = 0, fileCount = 0;
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.data, 'text/xml');
+                const contents = doc.getElementsByTagName('Contents');
+                for (let i = 0; i < contents.length; i++) {
+                    const sizeEl = contents[i].getElementsByTagName('Size')[0];
+                    if (sizeEl) totalSize += parseInt(sizeEl.textContent) || 0;
+                    fileCount++;
+                }
+                return { usage: totalSize, fileCount, limit: Infinity };
+            }
+        } catch(e) { console.warn('S3 quota check failed:', e); }
+        return { usage: 0, fileCount: 0, limit: Infinity };
+    }
+
+    async disconnect(accountId) {
+        const isId = APP.lang === 'id';
+        const idx = APP.s3Accounts.findIndex(a => a.id === accountId);
+        if (idx === -1) return;
+        const account = APP.s3Accounts[idx];
+        await dbDelete('s3_accounts', accountId);
+        APP.s3Accounts.splice(idx, 1);
+        showToast(isId ? `${account.label || account.providerId} terputus` : `${account.label || account.providerId} disconnected`, 'info');
+        if (location.hash === '#/storage') renderStorageManagement();
+    }
+
+    async listFiles(accountId) {
+        const account = APP.s3Accounts.find(a => a.id === accountId);
+        if (!account) return [];
+        try {
+            const resp = await fetch('/api/s3/proxy', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    endpoint: account.endpoint, accessKeyId: account.accessKeyId,
+                    secretAccessKey: account.secretAccessKey, bucket: account.bucket,
+                    region: account.region, method: 'GET', path: '/'
+                })
+            });
+            const data = await resp.json();
+            if (data.ok) {
+                const files = [];
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.data, 'text/xml');
+                const contents = doc.getElementsByTagName('Contents');
+                for (let i = 0; i < contents.length; i++) {
+                    const keyEl = contents[i].getElementsByTagName('Key')[0];
+                    const sizeEl = contents[i].getElementsByTagName('Size')[0];
+                    const dateEl = contents[i].getElementsByTagName('LastModified')[0];
+                    if (keyEl) files.push({ key: keyEl.textContent, size: parseInt(sizeEl?.textContent) || 0, lastModified: dateEl?.textContent || '' });
+                }
+                return files;
+            }
+        } catch(e) { console.warn('S3 list failed:', e); }
+        return [];
+    }
+}
+
+APP.storageProviders.s3 = new S3Provider();
+
+// ===== Token-based Provider (OneDrive, Dropbox) =====
+class TokenProvider extends StorageProvider {
+    constructor() { super('token', 'Token Storage', 'fa-key', '#8b5cf6'); }
+
+    async connect(providerId) {
+        const info = S3_PROVIDER_INFO[providerId];
+        if (info) openProviderConfigModal(providerId, info);
+        else openProviderConfigModal(providerId, { name: providerId, icon: 'fa-key', iconPrefix: 'fas', color: '#6b7280' });
+    }
+
+    async upload(accountId, file, metadata = {}) {
+        const account = APP.s3Accounts.find(a => a.id === accountId);
+        if (!account) throw new Error('Account not found');
+        if (account.providerId === 'onedrive') {
+            return await this._uploadOneDrive(account, file, metadata);
+        } else if (account.providerId === 'dropbox') {
+            return await this._uploadDropbox(account, file, metadata);
+        }
+        throw new Error('Unsupported provider');
+    }
+
+    async _uploadOneDrive(account, file, metadata) {
+        const resp = await fetch('https://graph.microsoft.com/v1.0/me/drive/root:/' + encodeURIComponent(file.name) + ':/content', {
+            method: 'PUT', headers: { 'Authorization': 'Bearer ' + account.accessToken, 'Content-Type': file.type || 'application/octet-stream' },
+            body: file
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error?.message || 'OneDrive upload failed');
+        return { driveFileId: data.id, provider: 'onedrive', providerAccountId: account.id, key: data.name };
+    }
+
+    async _uploadDropbox(account, file, metadata) {
+        const resp = await fetch('https://content.dropboxapi.com/2/files/upload', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + account.accessToken, 'Content-Type': 'application/octet-stream', 'Dropbox-API-Arg': JSON.stringify({ path: '/' + file.name, mode: 'add', autorename: true }) },
+            body: file
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error?.summary || 'Dropbox upload failed');
+        return { driveFileId: data.id, provider: 'dropbox', providerAccountId: account.id, key: data.path_display };
+    }
+
+    async download(accountId, key) {
+        const account = APP.s3Accounts.find(a => a.id === accountId);
+        if (!account) throw new Error('Account not found');
+        if (account.providerId === 'onedrive') {
+            const resp = await fetch('https://graph.microsoft.com/v1.0/me/drive/items/' + key, { headers: { 'Authorization': 'Bearer ' + account.accessToken } });
+            const data = await resp.json();
+            if (data['@microsoft.graph.downloadUrl']) return data['@microsoft.graph.downloadUrl'];
+            throw new Error('Could not get OneDrive download URL');
+        } else if (account.providerId === 'dropbox') {
+            const resp = await fetch('https://content.dropboxapi.com/2/files/download', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + account.accessToken, 'Dropbox-API-Arg': JSON.stringify({ path: key }) }
+            });
+            if (!resp.ok) throw new Error('Dropbox download failed');
+            const blob = await resp.blob();
+            return URL.createObjectURL(blob);
+        }
+        throw new Error('Unsupported provider');
+    }
+
+    async deleteFile(accountId, key) {
+        const account = APP.s3Accounts.find(a => a.id === accountId);
+        if (!account) throw new Error('Account not found');
+        if (account.providerId === 'onedrive') {
+            const resp = await fetch('https://graph.microsoft.com/v1.0/me/drive/items/' + key, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + account.accessToken } });
+            if (!resp.ok && resp.status !== 204) throw new Error('OneDrive delete failed');
+        } else if (account.providerId === 'dropbox') {
+            const resp = await fetch('https://api.dropboxapi.com/2/files/delete_v2', {
+                method: 'POST', headers: { 'Authorization': 'Bearer ' + account.accessToken, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: key })
+            });
+            if (!resp.ok) throw new Error('Dropbox delete failed');
+        }
+        return true;
+    }
+
+    async getQuota(accountId) {
+        const account = APP.s3Accounts.find(a => a.id === accountId);
+        if (!account) return null;
+        try {
+            if (account.providerId === 'onedrive') {
+                const resp = await fetch('https://graph.microsoft.com/v1.0/me/drive/quota', { headers: { 'Authorization': 'Bearer ' + account.accessToken } });
+                const data = await resp.json();
+                if (resp.ok) return { usage: data.used || 0, limit: data.total || 0, fileCount: 0 };
+            } else if (account.providerId === 'dropbox') {
+                const resp = await fetch('https://api.dropboxapi.com/2/users/get_space_usage', { method: 'POST', headers: { 'Authorization': 'Bearer ' + account.accessToken } });
+                const data = await resp.json();
+                if (resp.ok) return { usage: data.used || 0, limit: data.allocation?.individual?.allocated || 0, fileCount: 0 };
+            }
+        } catch(e) { console.warn('Token provider quota check failed:', e); }
+        return { usage: 0, limit: 0, fileCount: 0 };
+    }
+
+    async disconnect(accountId) {
+        const isId = APP.lang === 'id';
+        const idx = APP.s3Accounts.findIndex(a => a.id === accountId);
+        if (idx === -1) return;
+        const account = APP.s3Accounts[idx];
+        await dbDelete('s3_accounts', accountId);
+        APP.s3Accounts.splice(idx, 1);
+        showToast(isId ? `${account.label || account.providerId} terputus` : `${account.label || account.providerId} disconnected`, 'info');
+        if (location.hash === '#/storage') renderStorageManagement();
+    }
+
+    async refreshAccount(accountId) {
+        // Token-based providers don't have automatic refresh
+        // User needs to re-enter token
+    }
+}
+
+APP.storageProviders.token = new TokenProvider();
+
+// ===== Provider Config Modal =====
+function openProviderConfigModal(providerId, providerInfo) {
+    const isId = APP.lang === 'id';
+    const isS3Type = ['cloudflare-r2', 'aws-s3', 'backblaze-b2'].includes(providerId);
+    const isTokenType = ['onedrive', 'dropbox'].includes(providerId);
+    const pIcon = providerInfo.icon || 'fa-database';
+    const pIconClass = providerInfo.iconPrefix === 'fab' ? 'fab' : 'fas';
+
+    const s3Fields = isS3Type ? `
+        <div style="margin-bottom:12px">
+            <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">${isId ? 'Nama Akun' : 'Account Label'}</label>
+            <input id="s3cfg-label" type="text" placeholder="${providerInfo.name}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="margin-bottom:12px">
+            <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">Endpoint URL</label>
+            <input id="s3cfg-endpoint" type="url" placeholder="${providerInfo.endpointHint}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <div style="font-size:10px;color:var(--text-secondary);margin-top:2px">${isId ? 'Contoh: ' : 'Example: '}<code>${providerInfo.endpointHint}</code></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div>
+                <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">Region</label>
+                <input id="s3cfg-region" type="text" placeholder="${providerInfo.regionDefault}" value="${providerInfo.regionDefault}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div>
+                <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">Bucket</label>
+                <input id="s3cfg-bucket" type="text" placeholder="${isId ? 'nama-bucket' : 'bucket-name'}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+        </div>
+        <div style="margin-bottom:12px">
+            <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">Access Key ID</label>
+            <input id="s3cfg-akid" type="text" placeholder="AKIA..." style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="margin-bottom:12px">
+            <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">Secret Access Key</label>
+            <input id="s3cfg-sakey" type="password" placeholder="********" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        </div>` : '';
+
+    const tokenFields = isTokenType ? `
+        <div style="margin-bottom:12px">
+            <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">${isId ? 'Nama Akun' : 'Account Label'}</label>
+            <input id="tokcfg-label" type="text" placeholder="${providerInfo.name}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="margin-bottom:12px">
+            <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">API Access Token</label>
+            <input id="tokcfg-token" type="password" placeholder="eyJ..." style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;line-height:1.5">
+                ${providerId === 'onedrive' ? (isId ? 'Buat token di <a href="https://portal.azure.com/" target="_blank" rel="noopener">Azure Portal</a> → App Registrations → API Permissions (Files.ReadWrite.All)' : 'Create token at <a href="https://portal.azure.com/" target="_blank" rel="noopener">Azure Portal</a> → App Registrations → API Permissions (Files.ReadWrite.All)') : ''}
+                ${providerId === 'dropbox' ? (isId ? 'Buat token di <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">Dropbox App Console</a> → Buat app → Generated Access Token' : 'Create token at <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">Dropbox App Console</a> → Create app → Generated Access Token') : ''}
+            </div>
+        </div>` : '';
+
+    openModal(`<div style="padding:24px;max-width:440px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <div style="width:48px;height:48px;border-radius:12px;background:${providerInfo.color}22;display:flex;align-items:center;justify-content:center">
+                <i class="${pIconClass} ${pIcon}" style="color:${providerInfo.color};font-size:20px"></i>
+            </div>
+            <div>
+                <h3 style="font-size:17px;font-weight:700;color:var(--text)">${isId ? 'Hubungkan' : 'Connect'} ${providerInfo.name}</h3>
+                <p style="font-size:12px;color:var(--text-secondary)">${isId ? 'Masukkan kredensial untuk menghubungkan akun' : 'Enter credentials to connect your account'}</p>
+            </div>
+        </div>
+        ${s3Fields}
+        ${tokenFields}
+        <div id="s3cfg-status" style="font-size:12px;margin-bottom:12px;display:none;padding:8px 12px;border-radius:8px"></div>
+        <div style="display:flex;gap:10px">
+            <button class="account-action-btn" style="flex:1" onclick="testProviderConnection('${providerId}')">
+                <i class="fas fa-plug"></i> ${isId ? 'Test Koneksi' : 'Test Connection'}
+            </button>
+            <button class="account-action-btn primary" style="flex:1;background:var(--accent);color:#fff;border-color:var(--accent)" onclick="saveProviderConnection('${providerId}')">
+                <i class="fas fa-link"></i> ${isId ? 'Hubungkan' : 'Connect'}
+            </button>
+        </div>
+        <button class="account-action-btn" style="width:100%;margin-top:8px" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
+    </div>`);
+}
+
+async function testProviderConnection(providerId) {
+    const isId = APP.lang === 'id';
+    const statusEl = document.getElementById('s3cfg-status');
+    if (!statusEl) return;
+    statusEl.style.display = 'block';
+    statusEl.style.background = 'rgba(59,130,246,.1)';
+    statusEl.style.color = 'var(--accent)';
+    statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (isId ? 'Menguji koneksi...' : 'Testing connection...');
+
+    const isS3Type = ['cloudflare-r2', 'aws-s3', 'backblaze-b2'].includes(providerId);
+
+    try {
+        if (isS3Type) {
+            const endpoint = document.getElementById('s3cfg-endpoint')?.value?.trim();
+            const accessKeyId = document.getElementById('s3cfg-akid')?.value?.trim();
+            const secretAccessKey = document.getElementById('s3cfg-sakey')?.value?.trim();
+            const bucket = document.getElementById('s3cfg-bucket')?.value?.trim();
+            const region = document.getElementById('s3cfg-region')?.value?.trim() || S3_PROVIDER_INFO[providerId]?.regionDefault || 'us-east-1';
+            if (!endpoint || !accessKeyId || !secretAccessKey || !bucket) {
+                statusEl.style.background = 'rgba(239,68,68,.1)'; statusEl.style.color = '#ef4444';
+                statusEl.innerHTML = '<i class="fas fa-times-circle"></i> ' + (isId ? 'Semua field harus diisi' : 'All fields are required');
+                return;
+            }
+            const resp = await fetch('/api/s3/proxy', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ endpoint, accessKeyId, secretAccessKey, bucket, region, method: 'GET', path: '/?max-keys=1' })
+            });
+            const data = await resp.json();
+            if (data.ok) {
+                statusEl.style.background = 'rgba(16,185,129,.1)'; statusEl.style.color = '#10b981';
+                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> ' + (isId ? 'Koneksi berhasil! Bucket dapat diakses.' : 'Connection successful! Bucket is accessible.');
+            } else {
+                statusEl.style.background = 'rgba(239,68,68,.1)'; statusEl.style.color = '#ef4444';
+                statusEl.innerHTML = '<i class="fas fa-times-circle"></i> ' + (isId ? 'Koneksi gagal: ' : 'Connection failed: ') + (data.error || data.status);
+            }
+        } else {
+            const token = document.getElementById('tokcfg-token')?.value?.trim();
+            if (!token) {
+                statusEl.style.background = 'rgba(239,68,68,.1)'; statusEl.style.color = '#ef4444';
+                statusEl.innerHTML = '<i class="fas fa-times-circle"></i> ' + (isId ? 'Token harus diisi' : 'Token is required');
+                return;
+            }
+            let testUrl = '', testHeaders = {};
+            if (providerId === 'onedrive') {
+                testUrl = 'https://graph.microsoft.com/v1.0/me/drive';
+                testHeaders = { 'Authorization': 'Bearer ' + token };
+            } else if (providerId === 'dropbox') {
+                testUrl = 'https://api.dropboxapi.com/2/users/get_current_account';
+                testHeaders = { 'Authorization': 'Bearer ' + token };
+            }
+            const resp = await fetch(testUrl, { headers: testHeaders });
+            if (resp.ok) {
+                statusEl.style.background = 'rgba(16,185,129,.1)'; statusEl.style.color = '#10b981';
+                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> ' + (isId ? 'Koneksi berhasil!' : 'Connection successful!');
+            } else {
+                const errData = await resp.json().catch(() => ({}));
+                statusEl.style.background = 'rgba(239,68,68,.1)'; statusEl.style.color = '#ef4444';
+                statusEl.innerHTML = '<i class="fas fa-times-circle"></i> ' + (isId ? 'Koneksi gagal: ' : 'Connection failed: ') + (errData.error?.message || errData.error?.summary || resp.status);
+            }
+        }
+    } catch(e) {
+        statusEl.style.background = 'rgba(239,68,68,.1)'; statusEl.style.color = '#ef4444';
+        statusEl.innerHTML = '<i class="fas fa-times-circle"></i> ' + (isId ? 'Error: ' : 'Error: ') + e.message;
+    }
+}
+
+async function saveProviderConnection(providerId) {
+    const isId = APP.lang === 'id';
+    const isS3Type = ['cloudflare-r2', 'aws-s3', 'backblaze-b2'].includes(providerId);
+    const isTokenType = ['onedrive', 'dropbox'].includes(providerId);
+
+    try {
+        if (isS3Type) {
+            const label = document.getElementById('s3cfg-label')?.value?.trim() || S3_PROVIDER_INFO[providerId]?.name || providerId;
+            const endpoint = document.getElementById('s3cfg-endpoint')?.value?.trim();
+            const accessKeyId = document.getElementById('s3cfg-akid')?.value?.trim();
+            const secretAccessKey = document.getElementById('s3cfg-sakey')?.value?.trim();
+            const bucket = document.getElementById('s3cfg-bucket')?.value?.trim();
+            const region = document.getElementById('s3cfg-region')?.value?.trim() || S3_PROVIDER_INFO[providerId]?.regionDefault || 'us-east-1';
+            if (!endpoint || !accessKeyId || !secretAccessKey || !bucket) {
+                showToast(isId ? 'Semua field harus diisi' : 'All fields are required', 'warning');
+                return;
+            }
+            const account = {
+                id: genId(), providerId, label, type: 's3',
+                endpoint, accessKeyId, secretAccessKey, bucket, region,
+                status: 'connected', connectedAt: Date.now(), lastSync: Date.now(),
+                quota: { usage: 0, limit: Infinity, fileCount: 0 }
+            };
+            APP.s3Accounts.push(account);
+            await dbPut('s3_accounts', account);
+            showToast(isId ? `${label} berhasil terhubung!` : `${label} connected successfully!`, 'success');
+            logActivity('upload', isId ? `Akun ${label} terhubung` : `Account ${label} connected`);
+        } else if (isTokenType) {
+            const label = document.getElementById('tokcfg-label')?.value?.trim() || S3_PROVIDER_INFO[providerId]?.name || providerId;
+            const accessToken = document.getElementById('tokcfg-token')?.value?.trim();
+            if (!accessToken) {
+                showToast(isId ? 'Token harus diisi' : 'Token is required', 'warning');
+                return;
+            }
+            const account = {
+                id: genId(), providerId, label, type: 'token',
+                accessToken, status: 'connected',
+                connectedAt: Date.now(), lastSync: Date.now(),
+                quota: { usage: 0, limit: 0, fileCount: 0 }
+            };
+            APP.s3Accounts.push(account);
+            await dbPut('s3_accounts', account);
+            showToast(isId ? `${label} berhasil terhubung!` : `${label} connected successfully!`, 'success');
+            logActivity('upload', isId ? `Akun ${label} terhubung` : `Account ${label} connected`);
+        }
+        closeModal();
+        if (location.hash === '#/storage') renderStorageManagement();
+    } catch(e) {
+        showToast(isId ? 'Gagal menyimpan koneksi: ' : 'Failed to save connection: ' + e.message, 'error');
+    }
+}
+
 // ===== SMART STORAGE ALLOCATION =====
 function selectBestDrive(fileSize) {
-    const accounts = APP.gdriveAccounts.filter(a => {
+    // Collect all eligible drives from all providers
+    const drives = [];
+    // Google Drive accounts
+    APP.gdriveAccounts.filter(a => {
         if (a.status !== 'connected' || !a.quota) return false;
         const limit = parseInt(a.quota.limit) || 15 * 1024 * 1024 * 1024;
         const usage = parseInt(a.quota.usage) || 0;
         return (limit - usage) > fileSize;
+    }).forEach(a => {
+        const limit = parseInt(a.quota.limit) || 15 * 1024 * 1024 * 1024;
+        const usage = parseInt(a.quota.usage) || 0;
+        drives.push({ type: 'gdrive', id: a.id, account: a, available: limit - usage });
     });
-    if (accounts.length === 0) return null;
-    accounts.sort((a, b) => {
-        const availA = (parseInt(a.quota.limit) || 15*1073741824) - (parseInt(a.quota.usage) || 0);
-        const availB = (parseInt(b.quota.limit) || 15*1073741824) - (parseInt(b.quota.usage) || 0);
-        return availB - availA;
+    // S3 accounts (Cloudflare R2, AWS S3, Backblaze B2)
+    APP.s3Accounts.filter(a => a.status === 'connected' && a.type === 's3').forEach(a => {
+        drives.push({ type: 's3', id: a.id, account: a, available: Infinity });
     });
-    return accounts[0];
+    // Token accounts (OneDrive, Dropbox)
+    APP.s3Accounts.filter(a => a.status === 'connected' && a.type === 'token' && a.quota).forEach(a => {
+        const limit = parseInt(a.quota?.limit) || 0;
+        const usage = parseInt(a.quota?.usage) || 0;
+        const available = limit > 0 ? limit - usage : Infinity;
+        if (available > fileSize) {
+            drives.push({ type: 'token', id: a.id, account: a, available });
+        }
+    });
+    if (drives.length === 0) return null;
+    // Sort by most available space
+    drives.sort((a, b) => b.available - a.available);
+    return drives[0];
 }
 
 function getGDriveTotalStats() {
@@ -9950,6 +10480,28 @@ function getGDriveTotalStats() {
         else { totalLimit += 15 * 1024 * 1024 * 1024; }
     });
     return { totalLimit, totalUsage, totalAvailable: totalLimit - totalUsage, accountCount: accounts.length };
+}
+
+function getAllStorageStats() {
+    const gdrive = getGDriveTotalStats();
+    const s3Accounts = APP.s3Accounts.filter(a => a.status === 'connected');
+    const s3Type = s3Accounts.filter(a => a.type === 's3');
+    const tokenType = s3Accounts.filter(a => a.type === 'token');
+    let tokenLimit = 0, tokenUsage = 0;
+    tokenType.forEach(a => {
+        if (a.quota) { tokenLimit += parseInt(a.quota.limit) || 0; tokenUsage += parseInt(a.quota.usage) || 0; }
+    });
+    const totalLimit = gdrive.totalLimit + tokenLimit;
+    const totalUsage = gdrive.totalUsage + tokenUsage;
+    return {
+        gdrive,
+        s3Count: s3Type.length,
+        tokenCount: tokenType.length,
+        totalAccounts: gdrive.accountCount + s3Accounts.length,
+        totalLimit, totalUsage,
+        totalAvailable: totalLimit - totalUsage,
+        s3Accounts, tokenAccounts: tokenType
+    };
 }
 
 function formatStorageBytes(bytes) {
@@ -9967,12 +10519,17 @@ function renderStorageManagement() {
     if (!main) return;
     renderHeader();
     const isId = APP.lang === 'id';
-    const stats = getGDriveTotalStats();
+    const gdriveStats = getGDriveTotalStats();
+    const allStats = getAllStorageStats();
+    const stats = gdriveStats;
     const accounts = APP.gdriveAccounts || [];
+    const s3Accounts = APP.s3Accounts || [];
     const gdriveFiles = APP.files.filter(f => f.storageProvider === 'gdrive' && !f.trashed);
     const telegramFiles = APP.files.filter(f => (!f.storageProvider || f.storageProvider === 'telegram') && !f.trashed);
+    const s3Files = APP.files.filter(f => f.storageProvider === 's3' && !f.trashed);
     const gdriveSize = gdriveFiles.reduce((s, f) => s + (f.size || 0), 0);
     const telegramSize = telegramFiles.reduce((s, f) => s + (f.size || 0), 0);
+    const s3Size = s3Files.reduce((s, f) => s + (f.size || 0), 0);
     const totalFiles = APP.files.filter(f => !f.trashed).length;
     const totalSize = APP.files.filter(f => !f.trashed).reduce((s, f) => s + (f.size || 0), 0);
 
@@ -10069,10 +10626,10 @@ function renderStorageManagement() {
             <div class="storage-hero-title"><i class="fas fa-cloud" style="margin-right:8px;opacity:.8"></i> ${isId ? 'Manajemen Penyimpanan' : 'Storage Management'}</div>
             <div class="storage-hero-subtitle">${isId ? 'Kelola semua akun penyimpanan cloud dalam satu tempat. Penyimpanan terpadu otomatis.' : 'Manage all cloud storage accounts in one place. Automatic unified storage.'}</div>
             <div class="storage-hero-stats">
-                <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-blue">${stats.accountCount}</div><div class="storage-hero-stat-label">${isId ? 'Akun Terhubung' : 'Connected'}</div></div>
-                <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-green">${formatStorageBytes(stats.totalLimit)}</div><div class="storage-hero-stat-label">${isId ? 'Total Penyimpanan' : 'Total Storage'}</div></div>
-                <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-purple">${formatStorageBytes(stats.totalUsage)}</div><div class="storage-hero-stat-label">${isId ? 'Terpakai' : 'Used'}</div></div>
-                <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-amber">${formatStorageBytes(stats.totalAvailable)}</div><div class="storage-hero-stat-label">${isId ? 'Tersedia' : 'Available'}</div></div>
+                <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-blue">${allStats.totalAccounts}</div><div class="storage-hero-stat-label">${isId ? 'Akun Terhubung' : 'Connected'}</div></div>
+                <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-green">${formatStorageBytes(allStats.totalLimit)}</div><div class="storage-hero-stat-label">${isId ? 'Total Penyimpanan' : 'Total Storage'}</div></div>
+                <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-purple">${formatStorageBytes(allStats.totalUsage)}</div><div class="storage-hero-stat-label">${isId ? 'Terpakai' : 'Used'}</div></div>
+                <div class="storage-hero-stat"><div class="storage-hero-stat-value accent-amber">${formatStorageBytes(allStats.totalAvailable)}</div><div class="storage-hero-stat-label">${isId ? 'Tersedia' : 'Available'}</div></div>
             </div>
         </div>
 
@@ -10089,14 +10646,14 @@ function renderStorageManagement() {
                 <div class="stat-label">${isId ? 'File Google Drive' : 'Google Drive Files'} · ${formatStorageBytes(gdriveSize)}</div>
             </div>
             <div class="storage-stat-card">
+                <div class="stat-icon" style="background:rgba(244,129,32,.1);color:#f48120"><i class="fas fa-database"></i></div>
+                <div class="stat-value">${s3Files.length}</div>
+                <div class="stat-label">${isId ? 'File S3 / Cloud' : 'S3 / Cloud Files'} · ${formatStorageBytes(s3Size)}</div>
+            </div>
+            <div class="storage-stat-card">
                 <div class="stat-icon" style="background:rgba(16,185,129,.1);color:#10b981"><i class="fas fa-layer-group"></i></div>
                 <div class="stat-value">${totalFiles}</div>
                 <div class="stat-label">${isId ? 'Total File' : 'Total Files'} · ${formatStorageBytes(totalSize)}</div>
-            </div>
-            <div class="storage-stat-card">
-                <div class="stat-icon" style="background:rgba(139,92,246,.1);color:#8b5cf6"><i class="fas fa-brain"></i></div>
-                <div class="stat-value">${isId ? 'Aktif' : 'Active'}</div>
-                <div class="stat-label">${isId ? 'Smart Allocation — otomatis pilih drive terbaik' : 'Smart Allocation — auto-select best drive'}</div>
             </div>
         </div>
 
@@ -10140,27 +10697,80 @@ function renderStorageManagement() {
         <!-- Smart Allocation Info -->
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px">
             <div style="font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;color:var(--text)"><i class="fas fa-brain" style="color:var(--accent)"></i> ${isId ? 'Smart Storage Allocation' : 'Smart Storage Allocation'}</div>
-            <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">${isId ? `Saat Anda mengunggah file, RidgeBox otomatis memilih drive Google Drive yang memiliki <b>ruang tersedia paling besar</b>. Jika satu drive penuh, file secara otomatis diarahkan ke drive berikutnya. Anda juga bisa memilih drive secara manual melalui opsi upload.<br><br><b>Alur Upload:</b> Pilih file → RidgeBox cek semua drive terhubung → Pilih drive terbaik → Upload langsung → Simpan metadata → Tampil di dashboard sebagai file lokal` : `When you upload a file, RidgeBox automatically selects the Google Drive with the <b>most available space</b>. If one drive is full, the file is automatically directed to the next drive. You can also manually select a drive via the upload option.<br><br><b>Upload Flow:</b> Select file → RidgeBox checks all connected drives → Picks best drive → Upload directly → Save metadata → Shows in dashboard as local file`}</div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">${isId ? `Saat Anda mengunggah file, RidgeBox otomatis memilih drive yang memiliki <b>ruang tersedia paling besar</b> dari semua penyedia terhubung (Google Drive, Cloudflare R2, AWS S3, Backblaze B2, OneDrive, Dropbox). Jika satu drive penuh, file secara otomatis diarahkan ke drive berikutnya. Anda juga bisa memilih drive secara manual melalui opsi upload.<br><br><b>Alur Upload:</b> Pilih file → RidgeBox cek semua drive terhubung → Pilih drive terbaik → Upload langsung → Simpan metadata → Tampil di dashboard sebagai file lokal` : `When you upload a file, RidgeBox automatically selects the drive with the <b>most available space</b> from all connected providers (Google Drive, Cloudflare R2, AWS S3, Backblaze B2, OneDrive, Dropbox). If one drive is full, the file is automatically directed to the next drive. You can also manually select a drive via the upload option.<br><br><b>Upload Flow:</b> Select file → RidgeBox checks all connected drives → Picks best drive → Upload directly → Save metadata → Shows in dashboard as local file`}</div>
         </div>
 
-        <!-- Coming Soon Providers -->
+        <!-- Available Providers -->
         <div class="storage-section">
-            <div class="storage-section-title"><i class="fas fa-rocket"></i> ${isId ? 'Penyedia Mendatang' : 'Coming Soon'}</div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px">
+            <div class="storage-section-title"><i class="fas fa-plug"></i> ${isId ? 'Penyedia Tersedia' : 'Available Providers'}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
                 ${[
-                    { icon: 'fa-paper-plane', name: 'Telegram Storage', color: '#0088cc', desc: isId ? 'Menggunakan Telegram sebagai penyimpanan' : 'Use Telegram as storage' },
-                    { icon: 'fa-cloud', name: 'Cloudflare R2', color: '#f48120', desc: isId ? 'Object storage tanpa biaya egress' : 'Zero egress object storage' },
-                    { icon: 'fa-aws', name: 'AWS S3', color: '#ff9900', desc: isId ? 'Infrastruktur cloud terpercaya' : 'Trusted cloud infrastructure' },
-                    { icon: 'fa-box-archive', name: 'Backblaze B2', color: '#e21e25', desc: isId ? 'Penyimpanan cloud terjangkau' : 'Affordable cloud storage' },
-                    { icon: 'fa-microsoft', name: 'OneDrive', color: '#0078d4', desc: isId ? 'Integrasi Microsoft 365' : 'Microsoft 365 integration' },
-                    { icon: 'fa-dropbox', name: 'Dropbox', color: '#0061ff', desc: isId ? 'Sinkronisasi file yang andal' : 'Reliable file sync' }
-                ].map(p => `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;opacity:.5;cursor:not-allowed;transition:opacity .2s" onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='.5'">
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i class="fas ${p.icon}" style="color:${p.color};font-size:16px"></i><span style="font-size:13px;font-weight:600;color:var(--text)">${p.name}</span></div>
-                    <div style="font-size:11px;color:var(--text-secondary)">${p.desc}</div>
-                    <div style="font-size:10px;color:var(--accent);margin-top:6px;font-weight:500">${isId ? 'Segera Hadir' : 'Coming Soon'}</div>
-                </div>`).join('')}
+                    { id: 'cloudflare-r2', icon: 'fa-cloud', iconPrefix: 'fas', name: 'Cloudflare R2', color: '#f48120', desc: isId ? 'Object storage tanpa biaya egress' : 'Zero egress object storage', type: 's3' },
+                    { id: 'aws-s3', icon: 'fa-aws', iconPrefix: 'fab', name: 'AWS S3', color: '#ff9900', desc: isId ? 'Infrastruktur cloud terpercaya' : 'Trusted cloud infrastructure', type: 's3' },
+                    { id: 'backblaze-b2', icon: 'fa-box-archive', iconPrefix: 'fas', name: 'Backblaze B2', color: '#e21e25', desc: isId ? 'Penyimpanan cloud terjangkau' : 'Affordable cloud storage', type: 's3' },
+                    { id: 'onedrive', icon: 'fa-microsoft', iconPrefix: 'fab', name: 'OneDrive', color: '#0078d4', desc: isId ? 'Integrasi Microsoft 365' : 'Microsoft 365 integration', type: 'token' },
+                    { id: 'dropbox', icon: 'fa-dropbox', iconPrefix: 'fab', name: 'Dropbox', color: '#0061ff', desc: isId ? 'Sinkronisasi file yang andal' : 'Reliable file sync', type: 'token' }
+                ].map(p => {
+                    const connectedAccounts = APP.s3Accounts.filter(a => a.providerId === p.id && a.status === 'connected');
+                    const isConnected = connectedAccounts.length > 0;
+                    const connLabel = isConnected ? (isId ? 'Terhubung' : 'Connected') : (isId ? 'Hubungkan' : 'Connect');
+                    const connIcon = isConnected ? 'fa-check-circle' : 'fa-plus-circle';
+                    const provider = p.type === 's3' ? 's3' : 'token';
+                    const accountsList = connectedAccounts.map(a => `<span style="font-size:10px;background:${p.color}22;color:${p.color};padding:2px 6px;border-radius:4px;margin-right:4px">${a.label || p.name}</span>`).join('');
+                    return `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;transition:all .2s;cursor:pointer" onmouseover="this.style.borderColor='${p.color}';this.style.boxShadow='0 4px 16px ${p.color}22'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                            <div style="width:32px;height:32px;border-radius:8px;background:${p.color}22;display:flex;align-items:center;justify-content:center">
+                                <i class="${p.iconPrefix} ${p.icon}" style="color:${p.color};font-size:14px"></i>
+                            </div>
+                            <span style="font-size:13px;font-weight:600;color:var(--text)">${p.name}</span>
+                        </div>
+                        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">${p.desc}</div>
+                        ${isConnected ? `<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px">${accountsList}</div>` : ''}
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <button onclick="event.stopPropagation();APP.storageProviders['${provider}'].connect('${p.id}')" style="font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;border:1px solid ${isConnected ? 'var(--border)' : p.color};background:${isConnected ? 'transparent' : p.color+'15'};color:${isConnected ? 'var(--text-secondary)' : p.color};cursor:pointer;transition:all .15s" onmouseover="if(!${isConnected})this.style.background='${p.color}';if(!${isConnected})this.style.color='#fff'" onmouseout="if(!${isConnected})this.style.background='${p.color}15';if(!${isConnected})this.style.color='${p.color}'">
+                                <i class="fas ${connIcon}" style="margin-right:3px"></i> ${connLabel}
+                            </button>
+                            ${isConnected ? connectedAccounts.map(a => `<button onclick="event.stopPropagation();confirmDisconnectS3Account('${a.id}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:#ef4444;cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(239,68,68,.1)'" onmouseout="this.style.background='transparent'"><i class="fas fa-unlink"></i></button>`).join('') : ''}
+                        </div>
+                    </div>`;
+                }).join('')}
             </div>
         </div>
+
+        <!-- Connected S3/Token Account Details -->
+        ${APP.s3Accounts.filter(a => a.status === 'connected').length > 0 ? `
+        <div class="storage-section" style="margin-top:16px">
+            <div class="storage-section-title"><i class="fas fa-server"></i> ${isId ? 'Detail Akun Penyedia' : 'Provider Account Details'}</div>
+            ${APP.s3Accounts.filter(a => a.status === 'connected').map((a, i) => {
+                const pInfo = S3_PROVIDER_INFO[a.providerId] || {};
+                const pIcon = pInfo.icon || 'fa-database';
+                const pIconClass = pInfo.iconPrefix || 'fas';
+                const pColor = pInfo.color || '#6b7280';
+                const s3Files = APP.files.filter(f => f.storageProvider === 's3' && f.providerAccountId === a.id && !f.trashed);
+                const s3Size = s3Files.reduce((s, f) => s + (f.size || 0), 0);
+                const isS3 = a.type === 's3';
+                return `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                        <div style="width:36px;height:36px;border-radius:10px;background:${pColor}22;display:flex;align-items:center;justify-content:center">
+                            <i class="${pIconClass} ${pIcon}" style="color:${pColor};font-size:16px"></i>
+                        </div>
+                        <div style="flex:1;min-width:0">
+                            <div style="font-size:14px;font-weight:600;color:var(--text)">${a.label || pInfo.name || a.providerId}</div>
+                            <div style="font-size:11px;color:var(--text-secondary)">${pInfo.name || a.providerId}${isS3 ? ' · ' + a.bucket + ' · ' + a.region : ''}</div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#10b981"><i class="fas fa-circle" style="font-size:6px"></i> ${isId ? 'Terhubung' : 'Connected'}</div>
+                    </div>
+                    <div style="display:flex;gap:16px;font-size:11px;color:var(--text-secondary);margin-bottom:8px">
+                        <span><i class="fas fa-file" style="margin-right:3px;color:${pColor}"></i>${s3Files.length} ${isId ? 'file RidgeBox' : 'RidgeBox files'}</span>
+                        <span><i class="fas fa-database" style="margin-right:3px;color:${pColor}"></i>${formatStorageBytes(s3Size)} ${isId ? 'di RidgeBox' : 'in RidgeBox'}</span>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="account-action-btn" onclick="refreshS3Account('${a.id}')"><i class="fas fa-sync-alt"></i> ${isId ? 'Sinkronkan' : 'Sync'}</button>
+                        <button class="account-action-btn danger" onclick="confirmDisconnectS3Account('${a.id}')"><i class="fas fa-unlink"></i> ${isId ? 'Putuskan' : 'Disconnect'}</button>
+                    </div>
+                </div>`;
+            }).join('')}
+        </div>` : ''}
 
         <!-- Modular Architecture -->
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:16px">
@@ -10185,6 +10795,59 @@ function confirmDisconnectGDrive(accountId) {
             <button class="account-action-btn danger" onclick="APP.storageProviders.gdrive.disconnect('${accountId}');closeModal()">${isId ? 'Putuskan' : 'Disconnect'}</button>
         </div>
     </div>`);
+}
+
+function confirmDisconnectS3Account(accountId) {
+    const isId = APP.lang === 'id';
+    const account = APP.s3Accounts.find(a => a.id === accountId);
+    if (!account) return;
+    const pInfo = S3_PROVIDER_INFO[account.providerId] || {};
+    openModal(`<div style="text-align:center;padding:20px">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-unlink" style="color:#ef4444;font-size:22px"></i></div>
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:6px">${isId ? 'Putuskan Akun?' : 'Disconnect Account?'}</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px">${isId ? `Akun <b>${account.label || pInfo.name || account.providerId}</b> akan terputus. File yang sudah diupload tetap ada.` : `Account <b>${account.label || pInfo.name || account.providerId}</b> will be disconnected. Uploaded files remain.`}</p>
+        <div style="display:flex;gap:10px;justify-content:center">
+            <button class="account-action-btn" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
+            <button class="account-action-btn danger" onclick="disconnectS3Account('${accountId}');closeModal()">${isId ? 'Putuskan' : 'Disconnect'}</button>
+        </div>
+    </div>`);
+}
+
+async function disconnectS3Account(accountId) {
+    const isId = APP.lang === 'id';
+    const account = APP.s3Accounts.find(a => a.id === accountId);
+    if (!account) return;
+    const provider = account.type === 's3' ? 's3' : 'token';
+    if (APP.storageProviders[provider]) {
+        await APP.storageProviders[provider].disconnect(accountId);
+    } else {
+        await dbDelete('s3_accounts', accountId);
+        const idx = APP.s3Accounts.findIndex(a => a.id === accountId);
+        if (idx !== -1) APP.s3Accounts.splice(idx, 1);
+    }
+    if (location.hash === '#/storage') renderStorageManagement();
+}
+
+async function refreshS3Account(accountId) {
+    const isId = APP.lang === 'id';
+    const account = APP.s3Accounts.find(a => a.id === accountId);
+    if (!account) return;
+    showToast(isId ? 'Menyinkronkan akun...' : 'Syncing account...', 'info');
+    try {
+        const provider = account.type === 's3' ? APP.storageProviders.s3 : APP.storageProviders.token;
+        if (provider) {
+            const quota = await provider.getQuota(accountId);
+            if (quota) {
+                account.quota = quota;
+                account.lastSync = Date.now();
+                await dbPut('s3_accounts', account);
+                showToast(isId ? `Akun ${account.label || account.providerId} disinkronkan` : `Account ${account.label || account.providerId} synced`, 'success');
+            }
+        }
+    } catch(e) {
+        showToast(isId ? 'Gagal menyinkronkan' : 'Failed to sync', 'error');
+    }
+    if (location.hash === '#/storage') renderStorageManagement();
 }
 
 // ===== STORAGE CHARTS (Canvas-based) =====
@@ -10400,20 +11063,23 @@ async function syncGDriveAccount(accountId) {
 }
 
 // ===== DRIVE SELECT MODAL — Manual drive selection for uploads =====
+let _driveSelectFile = null; // Stores the file for drive selection modal
+
 function openDriveSelectModal(file) {
+    _driveSelectFile = file;
     const isId = APP.lang === 'id';
-    const accounts = APP.gdriveAccounts.filter(a => a.status === 'connected');
+    const gdriveAccounts = APP.gdriveAccounts.filter(a => a.status === 'connected');
     const accountColors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4'];
     const bestDrive = selectBestDrive(file.size);
 
-    const driveCards = accounts.map((a, i) => {
+    const gdriveCards = gdriveAccounts.map((a, i) => {
         const limit = parseInt(a.quota?.limit) || 15 * 1024 * 1024 * 1024;
         const usage = parseInt(a.quota?.usage) || 0;
         const available = limit - usage;
         const pct = limit > 0 ? Math.min((usage / limit) * 100, 100) : 0;
-        const isBest = bestDrive && bestDrive.id === a.id;
+        const isBest = bestDrive && bestDrive.type === 'gdrive' && bestDrive.id === a.id;
         const canFit = available >= file.size;
-        return `<div class="drive-select-card ${isBest ? 'selected' : ''}" onclick="executeUploadToSpecificDrive('${a.id}', document.getElementById('drive-select-file-input').files[0])" style="${!canFit ? 'opacity:.5' : ''}">
+        return `<div class="drive-select-card ${isBest ? 'selected' : ''}" onclick="executeUploadToSpecificDrive('${a.id}', _driveSelectFile)" style="${!canFit ? 'opacity:.5' : ''}">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
                 <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,${accountColors[i % accountColors.length]},${accountColors[(i + 1) % accountColors.length]});display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700">${(a.name || a.email || 'G').charAt(0).toUpperCase()}</div>
                 <div style="flex:1;min-width:0">
@@ -10427,7 +11093,26 @@ function openDriveSelectModal(file) {
         </div>`;
     }).join('');
 
-    const telegramCard = `<div class="drive-select-card" onclick="executeUploadToTelegramDirect(document.getElementById('drive-select-file-input').files[0])">
+    const s3Accounts = APP.s3Accounts.filter(a => a.status === 'connected');
+    const s3Cards = s3Accounts.map(a => {
+        const pInfo = S3_PROVIDER_INFO[a.providerId] || {};
+        const pIcon = pInfo.icon || 'fa-database';
+        const pIconClass = pInfo.iconPrefix || 'fas';
+        const pColor = pInfo.color || '#6b7280';
+        const isBest = bestDrive && (bestDrive.type === 's3' || bestDrive.type === 'token') && bestDrive.id === a.id;
+        return `<div class="drive-select-card ${isBest ? 'selected' : ''}" onclick="executeUploadToS3Drive('${a.id}', _driveSelectFile)">
+            <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:32px;height:32px;border-radius:8px;background:${pColor}22;display:flex;align-items:center;justify-content:center"><i class="${pIconClass} ${pIcon}" style="color:${pColor};font-size:14px"></i></div>
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.label || pInfo.name || a.providerId}</div>
+                    <div style="font-size:11px;color:var(--text-secondary)">${pInfo.name || a.providerId}${a.type === 's3' ? ' · ' + a.bucket : ''}</div>
+                </div>
+                ${isBest ? `<span style="font-size:10px;font-weight:700;color:var(--accent);background:rgba(59,130,246,.1);padding:2px 8px;border-radius:4px">${isId ? 'TERBAIK' : 'BEST'}</span>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+
+    const telegramCard = `<div class="drive-select-card" onclick="executeUploadToTelegramDirect(_driveSelectFile)">
         <div style="display:flex;align-items:center;gap:10px">
             <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#0088cc,#00a8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px"><i class="fas fa-paper-plane"></i></div>
             <div>
@@ -10440,9 +11125,9 @@ function openDriveSelectModal(file) {
     openModal(`<div style="padding:20px;max-width:480px;margin:0 auto">
         <h3 style="font-size:18px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px"><i class="fas fa-cloud-upload-alt" style="color:var(--accent)"></i> ${isId ? 'Pilih Drive Tujuan' : 'Select Target Drive'}</h3>
         <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${isId ? `File: <b>${file.name}</b> (${formatSize(file.size)})` : `File: <b>${file.name}</b> (${formatSize(file.size)})`}</p>
-        <input type="file" id="drive-select-file-input" style="display:none">
         <div style="display:flex;flex-direction:column;gap:10px;max-height:400px;overflow-y:auto">
-            ${driveCards}
+            ${gdriveCards}
+            ${s3Cards}
             ${telegramCard}
         </div>
         <div style="margin-top:14px;text-align:center">
@@ -10484,6 +11169,45 @@ async function executeUploadToTelegramDirect(file) {
     closeModal();
     // Delegate to existing upload flow
     await executeUpload(file);
+}
+
+// Upload to S3/Token provider drive (from drive selection modal)
+async function executeUploadToS3Drive(accountId, file) {
+    if (!file) { closeModal(); return; }
+    closeModal();
+    const isId = APP.lang === 'id';
+    const account = APP.s3Accounts.find(a => a.id === accountId);
+    if (!account) { showToast(isId ? 'Akun tidak ditemukan' : 'Account not found', 'error'); return; }
+    APP.activeUploads++; updateGlobalProgress();
+    try {
+        const provider = account.type === 's3' ? APP.storageProviders.s3 : APP.storageProviders.token;
+        if (!provider) throw new Error('Provider not found');
+        const result = await provider.upload(accountId, file, {});
+        const pInfo = S3_PROVIDER_INFO[account.providerId] || {};
+        const fileType = getFileType(file.name, file.type);
+        const autoTag = getAutoTagColor(fileType);
+        const fid = APP.currentFolder;
+        const effectiveFolderId = ['all', 'recent', 'favorites', 'trash', 'shared', 'encrypted'].includes(fid) ? null : fid;
+        const existing = APP.files.filter(f => f.name === file.name && f.folderId === effectiveFolderId && !f.trashed);
+        const version = existing.length + 1;
+        const meta = {
+            id: genId(), name: file.name, size: file.size, mime: file.type || 'application/octet-stream',
+            fileId: result.driveFileId, filePath: '', messageId: null, botIndex: '0', chatId: '',
+            folderId: effectiveFolderId, uploadedAt: Date.now(), pinned: false, starred: false, trashed: false,
+            encrypted: false, version, tag: autoTag, caption: '', shareCount: 0,
+            storageProvider: 's3', providerAccountId: accountId, driveFileId: result.driveFileId
+        };
+        await saveFile(meta); APP.files.push(meta);
+        showToast(`${file.name} → ${account.label || pInfo.name || account.providerId}`, 'success');
+        logActivity('upload', `${isId ? 'Mengunggah' : 'Uploaded'} ${file.name} → ${pInfo.name || account.providerId}`);
+        APP.activeUploads--; updateGlobalProgress();
+        const suz = document.getElementById('smart-upload-zone');
+        if (suz && !suz.classList.contains('minimized')) suz.classList.add('minimized');
+        renderFileList();
+    } catch (e) {
+        APP.activeUploads--; updateGlobalProgress();
+        showToast(`Upload failed: ${e.message}`, 'error');
+    }
 }
 
 

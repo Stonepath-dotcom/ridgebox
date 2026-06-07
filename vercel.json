@@ -2,6 +2,7 @@
   "routes": [
     { "src": "/api/proxy", "dest": "/api/proxy.js" },
     { "src": "/api/gdrive/(.*)", "dest": "/api/gdrive/$1" },
+    { "src": "/api/s3/(.*)", "dest": "/api/s3/$1" },
     { "src": "/api/(.*)", "dest": "/api/$1" }
   ]
 }
