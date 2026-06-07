@@ -807,9 +807,10 @@ body.no-transition,body.no-transition *{transition:none!important}
 @keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
 
 /* 3. Feature Carousel */
-.feature-carousel{position:relative;overflow:hidden;max-width:960px;margin:0 auto}
-.feature-carousel-track{display:flex;transition:transform .5s cubic-bezier(.4,0,.2,1)}
-.feature-carousel-card{min-width:calc(33.333% - 12px);margin:0 6px;padding:32px 24px;border-radius:20px;background:var(--bg-card);border:1px solid var(--border);text-align:center;transition:border-color .2s ease,transform .2s ease;flex-shrink:0}
+.feature-carousel{position:relative;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;max-width:960px;margin:0 auto;padding:0 6px}
+.feature-carousel::-webkit-scrollbar{display:none}
+.feature-carousel-track{display:flex;gap:12px}
+.feature-carousel-card{min-width:calc(33.333% - 12px);scroll-snap-align:center;padding:32px 24px;border-radius:20px;background:var(--bg-card);border:1px solid var(--border);text-align:center;transition:border-color .2s ease,transform .2s ease;flex-shrink:0;overflow-wrap:break-word;word-break:break-word}
 .feature-carousel-card:hover{border-color:rgba(59,130,246,.3);transform:translateY(-4px)}
 .feature-carousel-icon{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px}
 .feature-carousel-card h3{font-size:17px;font-weight:700;margin-bottom:8px}
@@ -817,8 +818,8 @@ body.no-transition,body.no-transition *{transition:none!important}
 .carousel-dots{display:flex;justify-content:center;gap:8px;margin-top:24px}
 .carousel-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .3s ease;border:none;padding:0}
 .carousel-dot.active{background:var(--accent);width:24px;border-radius:4px}
-@media(max-width:768px){.feature-carousel{overflow:hidden;padding:0 4px}.feature-carousel-card{min-width:85%;padding:24px 20px;margin:0 6px}.feature-carousel-icon{width:48px;height:48px;font-size:22px}.feature-carousel-card h3{font-size:15px}.feature-carousel-card p{font-size:12px}}
-@media(max-width:480px){.feature-carousel{padding:0}.feature-carousel-card{min-width:92%;padding:20px 16px;margin:0 4px}.feature-carousel-card h3{font-size:14px}.feature-carousel-card p{font-size:11px;line-height:1.5}}
+@media(max-width:768px){.feature-carousel{padding:0 4px;scroll-padding:0 4px}.feature-carousel-card{min-width:85%;padding:24px 20px}.feature-carousel-icon{width:48px;height:48px;font-size:22px}.feature-carousel-card h3{font-size:15px}.feature-carousel-card p{font-size:12px}}
+@media(max-width:480px){.feature-carousel{padding:0 calc(50% - 46%);scroll-padding:0 calc(50% - 46%)}.feature-carousel-card{min-width:88%;padding:20px 16px}.feature-carousel-card h3{font-size:14px}.feature-carousel-card p{font-size:11px;line-height:1.5}}
 
 /* 5. Security Badges */
 .security-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;max-width:800px;margin:0 auto}
@@ -1495,12 +1496,12 @@ body.no-transition,body.no-transition *{transition:none!important}
     .hero-cta-primary,.hero-cta-secondary{padding:14px 28px;font-size:14px}
     .hero-badge{font-size:11px;padding:6px 12px;margin-bottom:20px}
     /* Logo size on mobile */
-    .logo-animated{width:80px!important;height:80px!important;border-radius:20px!important;margin-top:-40px!important;margin-left:-40px!important}
+    .logo-animated{width:80px!important;height:80px!important;border-radius:20px!important}
     .logo-animated i{font-size:36px!important}
-    .sr.sr-delay-1[style*="width:200px"]{width:160px!important;height:160px!important}
-    .orbit-ring[style*="160px"]{width:120px!important;height:120px!important;margin-top:-60px!important;margin-left:-60px!important}
-    .orbit-ring[style*="200px"]{width:150px!important;height:150px!important;margin-top:-75px!important;margin-left:-75px!important}
-    .glow-ring[style*="120px"]{width:80px!important;height:80px!important;margin-top:-40px!important;margin-left:-40px!important}
+    .hero-logo-container{width:160px!important;height:160px!important}
+    .orbit-ring{width:120px!important;height:120px!important}
+    .orbit-ring[style*="200px"]{width:150px!important;height:150px!important}
+    .glow-ring{width:80px!important;height:80px!important}
 
     /* All homepage sections: reduce padding */
     .page-transition section{padding:40px 16px!important}
@@ -1637,7 +1638,16 @@ body.no-transition,body.no-transition *{transition:none!important}
     .premium-card[style*="min-width:120px"],.premium-card[style*="min-width:160px"]{min-width:100%!important}
 
     /* Keyboard shortcuts: single column */
-    div[style*="grid-template-columns:repeat(auto-fit,minmax(200px"]{grid-template-columns:1fr!important}
+    div[style*="grid-template-columns:repeat(auto-fit,minmax(200px"]{grid-template-columns:1fr!important;gap:8px!important}
+
+    /* Speed comparison: stack bars */
+    div[style*="display:flex;flex-direction:column;gap:20px"] .premium-card{padding:14px!important}
+
+    /* Use Cases cards: ensure text doesn't get cut */
+    .bento-card p{overflow-wrap:break-word!important;word-break:break-word!important}
+
+    /* Section text: prevent overflow */
+    .section-desc,.section-title{overflow-wrap:break-word!important;word-break:break-word!important}
 }
 
 /* ===== AUTH / LOGIN PAGE ===== */
@@ -4454,18 +4464,18 @@ function renderHomepage() {
                     <span class="pulse-dot"></span>
                     ${isId?'Cloud Storage Gratis & Terenkripsi — 2025':'Free & Encrypted Cloud Storage — 2025'}
                 </div>
-                <div class="sr sr-delay-1" style="position:relative;width:200px;height:200px;margin:0 auto 36px">
-                    <!-- Centered logo -->
-                    <div class="logo-animated" style="width:120px;height:120px;border-radius:30px;background:rgba(255,255,255,.06);backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 60px rgba(59,130,246,.25),inset 0 0 30px rgba(59,130,246,.08);position:absolute;top:50%;left:50%;margin-top:-60px;margin-left:-60px">
+                <div class="sr sr-delay-1 hero-logo-container" style="position:relative;width:200px;height:200px;margin:0 auto 36px;display:flex;align-items:center;justify-content:center">
+                    <!-- Centered logo - no absolute positioning needed -->
+                    <div class="logo-animated" style="width:120px;height:120px;border-radius:30px;background:rgba(255,255,255,.06);backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 60px rgba(59,130,246,.25),inset 0 0 30px rgba(59,130,246,.08);position:relative;z-index:2">
                         <i class="fas fa-cloud" style="color:#fff;font-size:52px;filter:drop-shadow(0 0 12px rgba(59,130,246,.5))"></i>
                     </div>
-                    <!-- Orbit rings: positioned by margin from center -->
-                    <div class="orbit-ring" style="width:160px;height:160px;top:50%;left:50%;margin-top:-80px;margin-left:-80px"><div class="orbit-dot"></div></div>
-                    <div class="orbit-ring" style="width:200px;height:200px;top:50%;left:50%;margin-top:-100px;margin-left:-100px;animation-duration:30s;animation-direction:reverse;border-color:rgba(139,92,246,.08)"><div class="orbit-dot" style="background:#8b5cf6;box-shadow:0 0 8px #8b5cf6"></div></div>
-                    <!-- Glow rings: positioned by margin from center -->
-                    <div class="glow-ring" style="width:120px;height:120px;top:50%;left:50%;margin-top:-60px;margin-left:-60px"></div>
-                    <div class="glow-ring glow-ring-2" style="width:120px;height:120px;top:50%;left:50%;margin-top:-60px;margin-left:-60px"></div>
-                    <div class="glow-ring glow-ring-3" style="width:120px;height:120px;top:50%;left:50%;margin-top:-60px;margin-left:-60px"></div>
+                    <!-- Orbit rings: absolute with inset:0 + margin:auto for centering (compatible with transform) -->
+                    <div class="orbit-ring" style="width:160px;height:160px;position:absolute;inset:0;margin:auto"><div class="orbit-dot"></div></div>
+                    <div class="orbit-ring" style="width:200px;height:200px;position:absolute;inset:0;margin:auto;animation-duration:30s;animation-direction:reverse;border-color:rgba(139,92,246,.08)"><div class="orbit-dot" style="background:#8b5cf6;box-shadow:0 0 8px #8b5cf6"></div></div>
+                    <!-- Glow rings: same centering technique -->
+                    <div class="glow-ring" style="width:120px;height:120px;position:absolute;inset:0;margin:auto"></div>
+                    <div class="glow-ring glow-ring-2" style="width:120px;height:120px;position:absolute;inset:0;margin:auto"></div>
+                    <div class="glow-ring glow-ring-3" style="width:120px;height:120px;position:absolute;inset:0;margin:auto"></div>
                 </div>
                 <h1 class="sr sr-delay-2" id="hero-title" style="font-size:clamp(40px,8vw,76px);font-weight:800;color:#fff;line-height:1.02;margin-bottom:24px;letter-spacing:-2px">
                     <span class="word-reveal" style="animation-delay:.3s">${t('hero')}</span><br>
@@ -5471,35 +5481,34 @@ function initHeroCounterAnimation() {
 let _carouselInterval = null;
 let _carouselSlide = 0;
 function initFeatureCarousel() {
-    const track = document.getElementById('carousel-track');
+    const carousel = document.getElementById('feature-carousel');
     const dots = document.querySelectorAll('#carousel-dots .carousel-dot');
-    if (!track || !dots.length) return;
+    if (!carousel || !dots.length) return;
     _carouselSlide = 0;
     updateCarouselPosition();
     _carouselInterval = setInterval(() => {
         _carouselSlide = (_carouselSlide + 1) % dots.length;
         updateCarouselPosition();
     }, 4000);
+    // Sync dots with scroll position on touch swipe
+    let scrollTimeout;
+    carousel.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const cardWidth = carousel.querySelector('.feature-carousel-card')?.offsetWidth + 12 || 200;
+            _carouselSlide = Math.round(carousel.scrollLeft / cardWidth);
+            dots.forEach((d, i) => d.classList.toggle('active', i === _carouselSlide));
+        }, 100);
+    });
 }
 function updateCarouselPosition() {
-    const track = document.getElementById('carousel-track');
+    const carousel = document.getElementById('feature-carousel');
     const dots = document.querySelectorAll('#carousel-dots .carousel-dot');
-    if (!track || !dots.length) return;
-    const cards = track.querySelectorAll('.feature-carousel-card');
+    if (!carousel || !dots.length) return;
+    const cards = carousel.querySelectorAll('.feature-carousel-card');
     if (!cards.length) return;
-    const isMobile = window.innerWidth <= 768;
-    const isSmallMobile = window.innerWidth <= 480;
-    // On mobile, center the card in viewport; on desktop, slide by card width
-    const cardWidth = cards[0].offsetWidth + 12;
-    const containerWidth = track.parentElement.offsetWidth;
-    let offset;
-    if (isMobile) {
-        // Center active card in carousel container
-        offset = -( _carouselSlide * cardWidth) + (containerWidth - cards[0].offsetWidth) / 2 - 6;
-    } else {
-        offset = -(_carouselSlide * cardWidth);
-    }
-    track.style.transform = `translateX(${offset}px)`;
+    const cardWidth = cards[0].offsetWidth + 12; // card width + gap
+    carousel.scrollTo({ left: _carouselSlide * cardWidth, behavior: 'smooth' });
     dots.forEach((d, i) => d.classList.toggle('active', i === _carouselSlide));
 }
 function goToCarouselSlide(idx) {
