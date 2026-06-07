@@ -19,7 +19,7 @@
 :root{--accent:#3b82f6;--accent-hover:#2563eb;--bg:#ffffff;--bg-secondary:#f8fafc;--bg-card:#ffffff;--text:#0f172a;--text-secondary:#64748b;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--shadow-lg:0 10px 40px rgba(0,0,0,.15);--radius:12px;--sidebar-w:260px;--header-h:60px;--transition:all .2s ease}body[dir="rtl"] .sidebar-desktop{right:0;left:auto}body[dir="rtl"] .detail-panel{right:auto;left:0;transform:translateX(-100%)}body[dir="rtl"] .detail-panel.open{transform:translateX(0)}
 .dark{--bg:#0f172a;--bg-secondary:#1e293b;--bg-card:#1e293b;--text:#f1f5f9;--text-secondary:#94a3b8;--border:#334155;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 10px 40px rgba(0,0,0,.4)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh;-webkit-overflow-scrolling:touch}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--text-secondary);border-radius:3px}
@@ -796,7 +796,7 @@ body.no-transition,body.no-transition *{transition:none!important}
 .hero-counter-num{font-size:clamp(36px,6vw,56px);font-weight:800;line-height:1;letter-spacing:-2px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .hero-counter-label{font-size:14px;font-weight:600;color:var(--text);margin-top:8px}
 .hero-counter-desc{font-size:12px;color:var(--text-secondary);margin-top:4px;line-height:1.5}
-@media(max-width:600px){.hero-counter-wrap{grid-template-columns:1fr;gap:16px;padding:32px 20px}}
+@media(max-width:600px){.hero-counter-wrap{grid-template-columns:1fr;gap:16px;padding:28px 16px}.hero-counter-num{font-size:clamp(28px,5vw,40px)}.hero-counter-label{font-size:12px}.hero-counter-desc{font-size:11px}}
 
 /* 2. Typing Effect */
 .typing-wrap{display:inline-block;min-height:1.4em;position:relative}
@@ -815,8 +815,8 @@ body.no-transition,body.no-transition *{transition:none!important}
 .carousel-dots{display:flex;justify-content:center;gap:8px;margin-top:24px}
 .carousel-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .3s ease;border:none;padding:0}
 .carousel-dot.active{background:var(--accent);width:24px;border-radius:4px}
-@media(max-width:768px){.feature-carousel-card{min-width:calc(80% - 12px)}}
-@media(max-width:480px){.feature-carousel-card{min-width:calc(100% - 12px)}}
+@media(max-width:768px){.feature-carousel{overflow:hidden}.feature-carousel-card{min-width:calc(80% - 12px);padding:24px 18px}.feature-carousel-icon{width:48px;height:48px;font-size:22px}.feature-carousel-card h3{font-size:15px}}
+@media(max-width:480px){.feature-carousel-card{min-width:calc(100% - 16px);padding:20px 16px;margin:0 4px}}
 
 /* 5. Security Badges */
 .security-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;max-width:800px;margin:0 auto}
@@ -864,7 +864,8 @@ body.no-transition,body.no-transition *{transition:none!important}
 .pricing-cta-primary:hover{box-shadow:0 8px 25px rgba(59,130,246,.4);transform:translateY(-1px)}
 .pricing-cta-secondary{background:var(--bg-secondary);color:var(--text);border:1px solid var(--border)}
 .pricing-cta-secondary:hover{border-color:var(--accent)}
-@media(max-width:768px){.pricing-grid{grid-template-columns:1fr;max-width:400px}}
+@media(max-width:900px){.pricing-grid{grid-template-columns:1fr;max-width:400px}}
+@media(max-width:768px){.pricing-grid{grid-template-columns:1fr;max-width:100%}}
 
 /* 8. Parallax Background */
 .parallax-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
@@ -1436,6 +1437,8 @@ body.no-transition,body.no-transition *{transition:none!important}
   .storage-chart-row{grid-template-columns:1fr!important;gap:10px!important}
   .storage-chart-card{padding:14px!important;border-radius:14px!important}
   .connect-card{padding:20px!important;border-radius:14px!important}
+  .account-actions{flex-direction:column!important;gap:6px!important}
+  .account-action-btn{width:100%!important;justify-content:center!important;padding:10px 14px!important}
   /* Tag filter bar */
   #tag-filter-bar{padding:0 12px 6px!important}
 }
@@ -1474,6 +1477,118 @@ body.no-transition,body.no-transition *{transition:none!important}
 .detail-action-primary:hover{color:#fff;box-shadow:0 4px 12px rgba(59,130,246,.3)}
 .detail-action-danger{color:#ef4444;border-color:rgba(239,68,68,.2)}
 .detail-action-danger:hover{background:rgba(239,68,68,.06);border-color:#ef4444}
+
+/* ===== COMPREHENSIVE MOBILE LAYOUT FIXES ===== */
+@media(max-width:768px){
+    /* Hero section: reduce padding and prevent overflow */
+    #hero-section{padding:60px 16px 40px!important;min-height:auto!important}
+    #hero-section h1{font-size:clamp(32px,7vw,56px)!important}
+    #hero-section p{font-size:16px!important;margin-bottom:28px!important}
+    .trust-bar{margin-top:32px;gap:16px;flex-wrap:wrap;justify-content:center}
+    .trust-item{font-size:12px}
+    .trust-sep{display:none}
+    .hero-cta-primary,.hero-cta-secondary{padding:14px 28px;font-size:14px}
+    .hero-badge{font-size:11px;padding:6px 12px;margin-bottom:20px}
+    /* Logo size on mobile */
+    .logo-animated{width:80px!important;height:80px!important;border-radius:20px!important}
+    .logo-animated i{font-size:36px!important}
+    .orbit-ring{display:none!important}
+    .glow-ring{display:none!important}
+
+    /* All homepage sections: reduce padding */
+    .page-transition section{padding:40px 16px!important}
+    .page-transition section .premium-cta{padding:40px 20px}
+
+    /* Comparison table: scroll properly */
+    .premium-card.animated-border{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .cmp-table{min-width:600px}
+    .cmp-table th,.cmp-table td{padding:10px 12px!important;font-size:12px!important;white-space:nowrap}
+
+    /* Newsletter: stack input and button */
+    #newsletter-form{flex-direction:column!important;border-radius:14px!important}
+    #newsletter-form .newsletter-input{border-radius:14px!important;border-right:2px solid var(--border)!important;border-bottom:none!important;flex:1;width:100%}
+    #newsletter-form .newsletter-btn{border-radius:0 0 14px 14px!important;width:100%;padding:14px 20px}
+    .premium-newsletter{padding:32px 20px!important}
+
+    /* Live demo section: hide floats, reduce mockup */
+    .demo-float{display:none!important}
+    .live-demo-mockup{max-width:100%}
+    .demo-launch-btn{padding:14px 28px;font-size:14px}
+
+    /* Security badges: stack on mobile */
+    .security-badges{flex-direction:column;align-items:center;gap:12px}
+    .security-badge{width:100%;max-width:320px;padding:12px 16px}
+
+    /* How it works steps */
+    .hiw-step{max-width:100%}
+    .hiw-step-num{width:48px;height:48px;font-size:18px}
+    .hiw-step-num i{font-size:18px!important}
+    .hiw-step h3{font-size:17px}
+
+    /* Bento grid fix */
+    .bento-grid{gap:12px}
+
+    /* Testimonial cards */
+    .testi-card{min-width:260px;max-width:260px;padding:20px}
+
+    /* Storage Management Page */
+    .storage-hero{padding:20px 16px!important;border-radius:16px!important}
+    .storage-hero-stats{gap:8px!important;flex-wrap:wrap}
+    .storage-hero-stat{min-width:45%;flex:1}
+    .storage-hero-stat-value{font-size:20px!important}
+    .storage-hero-stat-label{font-size:10px!important}
+    .storage-hero-title{font-size:22px!important}
+    .storage-hero-subtitle{font-size:12px!important;margin-bottom:16px!important}
+    .account-actions{flex-direction:column;gap:6px!important}
+    .account-action-btn{width:100%;justify-content:center;padding:10px 14px}
+    .storage-stats-grid{grid-template-columns:1fr 1fr!important}
+    .storage-stat-card{padding:14px}
+    .storage-stat-card .stat-value{font-size:18px}
+    .gdrive-account-card{padding:16px}
+    .gdrive-account-card .account-header{flex-wrap:wrap;gap:10px}
+
+    /* Section titles */
+    .section-title{font-size:clamp(24px,5vw,36px)!important}
+    .section-desc{font-size:14px!important}
+
+    /* CTA section */
+    .premium-cta{padding:40px 20px!important;border-radius:20px!important}
+    .premium-cta h2{font-size:clamp(24px,5vw,36px)!important}
+    .premium-cta p{font-size:14px!important}
+
+    /* Changelog */
+    .page-transition section .badge{font-size:10px;padding:3px 8px}
+
+    /* File type badges marquee */
+    .file-type-badge{padding:6px 10px;font-size:10px}
+}
+
+@media(max-width:480px){
+    /* Extra small screens */
+    #hero-section{padding:40px 12px 30px!important}
+    #hero-section h1{font-size:clamp(28px,8vw,40px)!important}
+    .trust-bar{gap:10px;margin-top:24px}
+    .hero-cta-primary,.hero-cta-secondary{padding:12px 20px;font-size:13px;gap:6px}
+
+    .storage-hero-stats{gap:6px!important}
+    .storage-hero-stat{min-width:45%}
+    .storage-hero-stat-value{font-size:16px!important}
+    .storage-stats-grid{grid-template-columns:1fr!important}
+    .account-actions{flex-direction:column}
+    .account-action-btn{width:100%;justify-content:center}
+
+    /* Footer on very small screens */
+    .lux-footer{padding:32px 16px 20px}
+
+    /* Section padding even smaller */
+    .page-transition section{padding:32px 12px!important}
+
+    /* Testi cards even smaller */
+    .testi-card{min-width:240px;max-width:240px;padding:16px}
+
+    /* FAQ/Security grid: single column */
+    .page-transition div[style*="grid-template-columns:repeat(auto-fit"]{grid-template-columns:1fr!important}
+}
 </style>
 </head>
 <body>
@@ -3835,7 +3950,7 @@ function renderHomepage() {
     main.innerHTML = `
     <div class="page-transition" style="position:relative;z-index:1">
         <!-- ===== HERO — Ultra Luxury Aurora with Typing Effect ===== -->
-        <section class="aurora-bg" id="hero-section" style="padding:80px 20px 60px;text-align:center;min-height:100vh;display:flex;align-items:center;justify-content:center;perspective:1200px">
+        <section class="aurora-bg" id="hero-section" style="padding:80px 20px 60px;text-align:center;min-height:auto;display:flex;align-items:center;justify-content:center;perspective:1200px">
             <div class="hero-spotlight"><div class="hero-spotlight-glow" id="hero-glow"></div></div>
             <div class="morph-blob morph-blob-1" style="top:-10%;right:-5%"></div>
             <div class="morph-blob morph-blob-2" style="bottom:5%;left:-8%"></div>
@@ -4209,7 +4324,7 @@ function renderHomepage() {
         <!-- ===== FAQ + SECURITY ===== -->
         <section class="scroll-reveal" style="padding:48px 20px 64px;position:relative">
             <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:32px">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px">
                     <div>
                         <div class="scroll-reveal" style="margin-bottom:24px">
                             <div class="section-eyebrow"><i class="fas fa-circle-question"></i> FAQ</div>
@@ -4282,7 +4397,7 @@ function renderHomepage() {
                     <div style="width:60px;height:60px;border-radius:16px;background:rgba(59,130,246,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 20px"><i class="fas fa-envelope" style="font-size:26px;color:var(--accent)"></i></div>
                     <h2 style="font-size:26px;font-weight:800;margin-bottom:8px">${isId?'Dapatkan Update Terbaru':'Get Latest Updates'}</h2>
                     <p style="color:var(--text-secondary);margin-bottom:28px;font-size:14px;line-height:1.7">${isId?'Daftar email untuk info fitur baru dan tips & trik Ridgebox':'Sign up for new feature alerts and Ridgebox tips & tricks'}</p>
-                    <div style="display:flex;max-width:440px;margin:0 auto;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.06)" id="newsletter-form">
+                    <div style="display:flex;max-width:440px;margin:0 auto;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.06);flex-wrap:wrap" id="newsletter-form">
                         <input type="email" class="newsletter-input" style="border-radius:14px 0 0 14px;border:2px solid var(--border);border-right:none" placeholder="${isId?'Masukkan email Anda':'Enter your email'}" id="newsletter-email">
                         <button class="newsletter-btn" style="border-radius:0 14px 14px 0" onclick="subscribeNewsletter()">${isId?'Berlangganan':'Subscribe'}</button>
                     </div>
@@ -8842,7 +8957,7 @@ function renderStorageManagement() {
         <!-- Coming Soon Providers -->
         <div class="storage-section">
             <div class="storage-section-title"><i class="fas fa-rocket"></i> ${isId ? 'Penyedia Mendatang' : 'Coming Soon'}</div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px">
                 ${[
                     { icon: 'fa-paper-plane', name: 'Telegram Storage', color: '#0088cc', desc: isId ? 'Menggunakan Telegram sebagai penyimpanan' : 'Use Telegram as storage' },
                     { icon: 'fa-cloud', name: 'Cloudflare R2', color: '#f48120', desc: isId ? 'Object storage tanpa biaya egress' : 'Zero egress object storage' },
