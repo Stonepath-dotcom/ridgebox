@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root{--accent:#3b82f6;--accent-hover:#2563eb;--bg:#ffffff;--bg-secondary:#f8fafc;--bg-card:#ffffff;--text:#0f172a;--text-secondary:#64748b;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--shadow-lg:0 10px 40px rgba(0,0,0,.15);--radius:12px;--sidebar-w:260px;--header-h:60px;--transition:all .2s ease}body[dir="rtl"] .sidebar-desktop{right:0;left:auto}body[dir="rtl"] .detail-panel{right:auto;left:0;transform:translateX(-100%)}body[dir="rtl"] .detail-panel.open{transform:translateX(0)}
 .dark{--bg:#0f172a;--bg-secondary:#1e293b;--bg-card:#1e293b;--text:#f1f5f9;--text-secondary:#94a3b8;--border:#334155;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 10px 40px rgba(0,0,0,.4)}
@@ -1593,6 +1594,46 @@ body.no-transition,body.no-transition *{transition:none!important}
     /* FAQ/Security grid: single column */
     .page-transition div[style*="grid-template-columns:repeat(auto-fit"]{grid-template-columns:1fr!important}
 }
+
+/* ===== AUTH / LOGIN PAGE ===== */
+.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 40%,#312e81 70%,#0f172a 100%);position:relative;overflow:hidden;padding:20px}
+.auth-page::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 30% 20%,rgba(59,130,246,.15) 0%,transparent 50%),radial-gradient(ellipse at 70% 60%,rgba(139,92,246,.12) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(236,72,153,.08) 0%,transparent 50%);pointer-events:none}
+.auth-card{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:40px 36px;width:100%;max-width:420px;position:relative;z-index:1;box-shadow:0 24px 80px rgba(0,0,0,.3)}
+.dark .auth-card{background:rgba(30,41,59,.6);border-color:rgba(255,255,255,.08)}
+.auth-logo{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 30px rgba(59,130,246,.35)}
+.auth-logo i{color:#fff;font-size:28px;transform:translateX(1px)}
+.auth-title{font-size:24px;font-weight:800;color:#fff;text-align:center;margin-bottom:4px}
+.auth-subtitle{font-size:13px;color:rgba(255,255,255,.5);text-align:center;margin-bottom:28px}
+.auth-input-group{position:relative;margin-bottom:16px}
+.auth-input-group i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.3);font-size:14px;transition:color .2s}
+.auth-input{width:100%;padding:14px 14px 14px 42px;border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:14px;background:rgba(255,255,255,.06);color:#fff;font-family:'Space Grotesk',sans-serif;transition:all .2s}
+.auth-input::placeholder{color:rgba(255,255,255,.3)}
+.auth-input:focus{outline:none;border-color:rgba(59,130,246,.5);background:rgba(255,255,255,.08);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.auth-input:focus+i,.auth-input:focus~i{color:#3b82f6}
+.auth-btn{width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.auth-btn-primary{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;box-shadow:0 6px 24px rgba(59,130,246,.3)}
+.auth-btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(59,130,246,.4)}
+.auth-btn-primary:active{transform:scale(.98)}
+.auth-btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.auth-btn-google{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12)}
+.auth-btn-google:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2)}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:rgba(255,255,255,.3);font-size:12px}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+.auth-switch{font-size:13px;color:rgba(255,255,255,.4);text-align:center;margin-top:20px}
+.auth-switch a{color:#60a5fa;cursor:pointer;text-decoration:none;font-weight:600;transition:color .2s}
+.auth-switch a:hover{color:#93c5fd}
+.auth-error{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#fca5a5;margin-bottom:16px;display:none;align-items:center;gap:8px}
+.auth-error.show{display:flex}
+.auth-success{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#6ee7b7;margin-bottom:16px;display:none;align-items:center;gap:8px}
+.auth-success.show{display:flex}
+.auth-forgot{font-size:12px;color:rgba(255,255,255,.35);text-align:right;margin-bottom:16px}
+.auth-forgot a{color:#60a5fa;cursor:pointer;text-decoration:none}
+.auth-forgot a:hover{color:#93c5fd}
+.auth-terms{font-size:11px;color:rgba(255,255,255,.25);text-align:center;margin-top:16px;line-height:1.5}
+.auth-terms a{color:rgba(255,255,255,.4);text-decoration:underline}
+@keyframes authPulse{0%,100%{box-shadow:0 8px 30px rgba(59,130,246,.35)}50%{box-shadow:0 8px 40px rgba(59,130,246,.5)}}
+.auth-logo{animation:authPulse 3s ease infinite}
+@media(max-width:480px){.auth-card{padding:28px 20px;border-radius:20px}.auth-title{font-size:20px}.auth-input{padding:12px 12px 12px 38px;font-size:13px}.auth-btn{padding:12px;font-size:14px}}
 </style>
 </head>
 <body>
@@ -1679,7 +1720,11 @@ const APP = {
     // Google Drive Integration
     gdriveAccounts: [],
     gdriveConfig: { configured: false, clientId: '' },
-    storageProviders: {} // Registry of storage providers
+    storageProviders: {}, // Registry of storage providers
+    // Supabase Auth
+    supabase: null,
+    user: null,
+    authReady: false
 };
 
 // ===== i18n (F105) =====
@@ -1915,7 +1960,38 @@ const T = {
         exportData: 'Ekspor Data',
         importData: 'Impor Data',
         exportDesc: 'Cadangkan pengaturan dan info file',
-        importDesc: 'Pulihkan data dari cadangan'
+        importDesc: 'Pulihkan data dari cadangan',
+        authLogin: 'Masuk',
+        authRegister: 'Daftar',
+        authEmail: 'Email',
+        authPassword: 'Kata Sandi',
+        authConfirmPassword: 'Konfirmasi Kata Sandi',
+        authForgotPassword: 'Lupa kata sandi?',
+        authNoAccount: 'Belum punya akun?',
+        authHasAccount: 'Sudah punya akun?',
+        authLoginWith: 'Masuk dengan',
+        authRegisterWith: 'Daftar dengan',
+        authOr: 'atau',
+        authWelcome: 'Selamat Datang',
+        authWelcomeBack: 'Selamat Datang Kembali',
+        authCreateAccount: 'Buat Akun Baru',
+        authLoginDesc: 'Masuk ke akun RidgeBox Anda',
+        authRegisterDesc: 'Buat akun gratis untuk mulai menyimpan file',
+        authGoogle: 'Lanjutkan dengan Google',
+        authLogout: 'Keluar',
+        authLoggingIn: 'Memproses...',
+        authInvalidEmail: 'Format email tidak valid',
+        authPasswordTooShort: 'Kata sandi minimal 6 karakter',
+        authPasswordMismatch: 'Kata sandi tidak cocok',
+        authLoginSuccess: 'Berhasil masuk!',
+        authRegisterSuccess: 'Akun berhasil dibuat!',
+        authLogoutSuccess: 'Berhasil keluar',
+        authResetSent: 'Link reset kata sandi sudah dikirim ke email Anda',
+        authEnterEmail: 'Masukkan email Anda',
+        authSendReset: 'Kirim Link Reset',
+        authBackToLogin: 'Kembali ke halaman masuk',
+        authTerms: 'Dengan mendaftar, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi kami',
+        authConfigNeeded: 'Supabase belum dikonfigurasi. Tambahkan SUPABASE_URL dan SUPABASE_ANON_KEY di Vercel env vars.'
     },
     en: {
         appName: 'Ridgebox',
@@ -2148,7 +2224,38 @@ const T = {
         exportData: 'Export Data',
         importData: 'Import Data',
         exportDesc: 'Backup settings and file info',
-        importDesc: 'Restore data from backup'
+        importDesc: 'Restore data from backup',
+        authLogin: 'Sign In',
+        authRegister: 'Sign Up',
+        authEmail: 'Email',
+        authPassword: 'Password',
+        authConfirmPassword: 'Confirm Password',
+        authForgotPassword: 'Forgot password?',
+        authNoAccount: "Don't have an account?",
+        authHasAccount: 'Already have an account?',
+        authLoginWith: 'Sign in with',
+        authRegisterWith: 'Sign up with',
+        authOr: 'or',
+        authWelcome: 'Welcome',
+        authWelcomeBack: 'Welcome Back',
+        authCreateAccount: 'Create Account',
+        authLoginDesc: 'Sign in to your RidgeBox account',
+        authRegisterDesc: 'Create a free account to start storing files',
+        authGoogle: 'Continue with Google',
+        authLogout: 'Sign Out',
+        authLoggingIn: 'Processing...',
+        authInvalidEmail: 'Invalid email format',
+        authPasswordTooShort: 'Password must be at least 6 characters',
+        authPasswordMismatch: 'Passwords do not match',
+        authLoginSuccess: 'Successfully signed in!',
+        authRegisterSuccess: 'Account created successfully!',
+        authLogoutSuccess: 'Successfully signed out',
+        authResetSent: 'Password reset link sent to your email',
+        authEnterEmail: 'Enter your email',
+        authSendReset: 'Send Reset Link',
+        authBackToLogin: 'Back to sign in',
+        authTerms: 'By signing up, you agree to our Terms of Service and Privacy Policy',
+        authConfigNeeded: 'Supabase not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY in Vercel env vars.'
     },
     ja: {
         appName:'Ridgebox',appTagline:'無料＆安全なクラウドストレージ',appDesc:'無料サーバーレスファイルストレージ。無制限、エンドツーエンド暗号化。',dashboard:'ダッシュボード',home:'ホーム',settings:'設定',search:'ファイル検索...',upload:'アップロード',uploadDrop:'ファイルをドロップまたはクリック',uploadFromUrl:'URLからアップロード',uploadFromCamera:'カメラからアップロード',allFiles:'全ファイル',recent:'最近',favorites:'お気に入り',trash:'ゴミ箱',newFolder:'新規フォルダ',rename:'名前変更',delete:'削除',move:'移動',pin:'ピン留め',unpin:'ピン解除',star:'スター',unstar:'スター解除',share:'共有',download:'ダウンロード',preview:'プレビュー',encrypt:'暗号化',decrypt:'復号化',shareLink:'共有リンク',password:'パスワード',expiry:'有効期限',selfDestruct:'自己破壊',copyLink:'リンクコピー',cancel:'キャンセル',save:'保存',close:'閉じる',confirm:'確認',yes:'はい',no:'いいえ',addTag:'タグ追加',addCaption:'キャプション追加',version:'バージョン',versions:'バージョン',today:'今日',thisWeek:'今週',largeFiles:'大きいファイル',pinned:'ピン留め中',encrypted:'暗号化済み',batchMode:'バッチモード',selectAll:'全選択',bulkDelete:'選択削除',bulkDownload:'ZIPダウンロード',compare:'比較',analytics:'分析',storage:'ストレージ',noFiles:'ファイルなし',noFilesDesc:'最初のファイルをアップロード',noTrash:'ゴミ箱は空です',noFavorites:'お気に入りなし',noSearch:'見つかりません',purgeIn:'削除まで',days:'日',proxyMode:'プロキシモード',pinSetup:'PIN設定',autoCleanup:'自動クリーンアップ',encryptionSetting:'AES-256暗号化',theme:'テーマ',language:'言語',light:'ライト',dark:'ダーク',onboarding:'ようこそ！',onboardingDesc:'Ridgeboxの使い方をご案内',connectionOk:'接続済み',connectionOff:'未接続',folderName:'フォルダ名',create:'作成',movedToTrash:'ゴミ箱へ移動',restored:'復元済み',deletedForever:'完全削除',uploaded:'アップロード成功',uploadError:'アップロード失敗',linkCopied:'リンクコピー済み',shareCreated:'共有リンク作成',customAlias:'カスタムエイリアス',selfDestructUsed:'リンク使用済み',cameraCapture:'写真/動画撮影',startRecording:'録画開始',stopRecording:'録画停止',takePhoto:'写真撮影',scheduledUpload:'予約アップロード',versionHistory:'バージョン履歴',fileDescription:'ファイル説明',shareAnalytics:'共有統計',autoTag:'自動タグ',collaborativeFolder:'コラボフォルダ',uploadPortal:'アップロードポータル',storageAnalytics:'ストレージ分析',compareFiles:'ファイル比較',selectTwo:'2つのファイルを選択',difference:'差分',identical:'同一',qrCode:'QRコード',browseFiles:'ファイル閲覧',getStarted:'始めましょう',learnMore:'詳しく',features:'機能',pricing:'料金',faq:'FAQ',changelog:'変更履歴',security:'セキュリティ',testimonials:'レビュー',hero:'無料クラウドストレージ',heroSub:'無料＆無制限',heroDesc:'エンドツーエンド暗号化で無制限にファイル保存。サーバー不要、無料。',free:'無料',unlimited:'無制限',secure:'安全',fast:'高速',offline:'オフライン',openSource:'オープンソース',chatId:'チャットID',botToken:'ボットトークン',masked:'マスク済み',restore:'復元',emptyTrash:'ゴミ箱を空に',sortByDate:'日付',sortByName:'名前',sortBySize:'サイズ',sortById:'ID',listView:'リスト',gridView:'グリッド',backToHome:'ホームへ戻る',openDashboard:'ダッシュボード',pageNotFound:'ページが見つかりません',pageNotFoundDesc:'お探しのページは存在しません',sharedFile:'共有ファイル',downloadFile:'ファイルダウンロード',linkExpired:'リンク期限切れ',linkExpiredDesc:'このリンクは無効です',wrongPassword:'パスワードが間違っています',enterPassword:'パスワード入力',protectedFile:'保護ファイル',enterPin:'PIN入力',wrongPin:'PINが間違っています',notifications:'通知',enableNotif:'通知を有効化',notifEnabled:'通知有効',notifDenied:'通知拒否',downloadProgress:'ダウンロード進捗',uploadProgress:'アップロード進捗',prevStep:'前へ',nextStep:'次へ',done:'完了',skip:'スキップ',step1Title:'ファイルアップロード',step1Desc:'ドラッグ＆ドロップでアップロード',step2Title:'管理＆共有',step2Desc:'フォルダで整理して安全に共有',step3Title:'暗号化＆セキュリティ',step3Desc:'AES-256暗号化とPINで保護',step4Title:'コラボレーション',step4Desc:'チーム用フォルダを共有',qrCodeTab:'QRコード',linkTab:'リンク',downloadQR:'QRダウンロード',expiresIn:'有効期限',never:'なし',expired:'期限切れ',downloadCount:'ダウンロード数',times:'回',totalShares:'合計リンク',totalDownloads:'合計DL',lastAccessed:'最終アクセス',activeLinks:'アクティブリンク',expiredLinks:'期限切れリンク',shareStats:'共有統計',createGallery:'ギャラリー作成',galleryTitle:'公開ギャラリー',galleryDesc:'ギャラリー説明',galleryName:'ギャラリー名',viewGallery:'ギャラリー表示',galleryEmpty:'ギャラリーは空です',noFilesInGallery:'ファイルなし',galleryCreated:'ギャラリー作成済み',addToGallery:'ギャラリーに追加',expiresNever:'無期限',expires1h:'1時間',expires24h:'24時間',expires7d:'7日間',expires30d:'30日間',autoLock:'自動ロック',autoLockDesc:'アイドル時自動ロック',autoLockIn:'自動ロックまで',minutes:'分',disabled:'無効',notes:'メモ',addNotes:'メモ追加...',bulkRename:'一括名前変更',prefix:'プレフィックス',suffix:'サフィックス',pattern:'パターン',resumeUpload:'アップロード再開？',resumeUploadDesc:'未完了のアップロードがあります',retryingUpload:'アップロード再試行中...',chunkedUpload:'分割アップロード',uploadingChunk:'チャンクアップロード中',notificationsSetting:'通知',notifSettingDesc:'ブラウザ通知を有効化',thumbnailCache:'サムネイルキャッシュ',advSearch:'詳細検索',nameContains:'名前含む',dateRange:'日付範囲',sizeRange:'サイズ範囲',fileType:'ファイルタイプ',documents:'ドキュメント',photos:'写真',videos:'動画',audio:'音声',archives:'アーカイブ',applyFilter:'適用',clearFilter:'クリア',from:'開始',to:'終了',themeColor:'テーマカラー',biometricUnlock:'生体認証ロック',biometricDesc:'指紋・顔認証でロック解除',exportData:'データエクスポート',importData:'データインポート',exportDesc:'設定とファイル情報をバックアップ',importDesc:'バックアップからデータを復元'
@@ -3005,6 +3112,252 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 
 // ===== ROUTER (F3) =====
+
+// ===== SUPABASE AUTH SYSTEM =====
+let _authMode = 'login'; // 'login' | 'register' | 'forgot'
+
+function initSupabaseAuth() {
+    try {
+        const config = window.__supabaseConfig || {};
+        const url = config.url || '';
+        const anonKey = config.anonKey || '';
+        if (!url || !anonKey) {
+            console.warn('Supabase not configured - auth disabled');
+            APP.supabase = null;
+            APP.authReady = true;
+            return;
+        }
+        APP.supabase = window.supabase.createClient(url, anonKey);
+        // Listen for auth state changes
+        APP.supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                APP.user = session.user;
+                localStorage.setItem('rb_user', JSON.stringify({ id: session.user.id, email: session.user.email }));
+            } else if (event === 'SIGNED_OUT') {
+                APP.user = null;
+                localStorage.removeItem('rb_user');
+            }
+        });
+        // Check existing session
+        APP.supabase.auth.getSession().then(({ data: { session } }) => {
+            APP.user = session?.user || null;
+            APP.authReady = true;
+            if (APP.user) localStorage.setItem('rb_user', JSON.stringify({ id: APP.user.id, email: APP.user.email }));
+            checkUrlRouting();
+        }).catch(() => { APP.authReady = true; checkUrlRouting(); });
+    } catch(e) {
+        console.warn('Supabase init failed:', e);
+        APP.supabase = null;
+        APP.authReady = true;
+    }
+}
+
+function isAuthRequired() {
+    // Auth is required if Supabase is configured
+    return !!APP.supabase;
+}
+
+function isLoggedIn() {
+    return !!APP.user;
+}
+
+function renderAuthPage() {
+    const main = document.getElementById('app-main');
+    if (!main) return;
+    const isId = APP.lang === 'id';
+    const isLogin = _authMode === 'login';
+    const isForgot = _authMode === 'forgot';
+    
+    main.innerHTML = `<div class="auth-page">
+        <div class="auth-card fade-in">
+            <div class="auth-logo"><i class="fas fa-cloud"></i></div>
+            <div class="auth-title">${isForgot ? (isId ? 'Reset Kata Sandi' : 'Reset Password') : (isLogin ? t('authWelcomeBack') : t('authCreateAccount'))}</div>
+            <div class="auth-subtitle">${isForgot ? (isId ? 'Masukkan email untuk reset kata sandi' : 'Enter your email to reset password') : (isLogin ? t('authLoginDesc') : t('authRegisterDesc'))}</div>
+            
+            <div id="auth-error" class="auth-error"><i class="fas fa-exclamation-circle"></i><span id="auth-error-text"></span></div>
+            <div id="auth-success" class="auth-success"><i class="fas fa-check-circle"></i><span id="auth-success-text"></span></div>
+
+            ${isForgot ? `
+                <div class="auth-input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="auth-email" class="auth-input" placeholder="${t('authEmail')}" autocomplete="email">
+                </div>
+                <button id="auth-submit" class="auth-btn auth-btn-primary" onclick="handleForgotPassword()">
+                    <i class="fas fa-paper-plane"></i> ${t('authSendReset')}
+                </button>
+                <div class="auth-switch" style="margin-top:16px">
+                    <a onclick="_authMode='login';renderAuthPage()">${t('authBackToLogin')}</a>
+                </div>
+            ` : `
+                ${isLogin ? '' : `
+                    <div class="auth-input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="auth-name" class="auth-input" placeholder="${isId ? 'Nama Lengkap' : 'Full Name'}" autocomplete="name">
+                    </div>
+                `}
+                <div class="auth-input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="auth-email" class="auth-input" placeholder="${t('authEmail')}" autocomplete="email">
+                </div>
+                <div class="auth-input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="auth-password" class="auth-input" placeholder="${t('authPassword')}" autocomplete="${isLogin ? 'current-password' : 'new-password'}">
+                </div>
+                ${isLogin ? '' : `
+                    <div class="auth-input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="auth-confirm-password" class="auth-input" placeholder="${t('authConfirmPassword')}" autocomplete="new-password">
+                    </div>
+                `}
+                
+                ${isLogin ? `<div class="auth-forgot"><a onclick="_authMode='forgot';renderAuthPage()">${t('authForgotPassword')}</a></div>` : ''}
+                
+                <button id="auth-submit" class="auth-btn auth-btn-primary" onclick="${isLogin ? 'handleLogin()' : 'handleRegister()'}">
+                    <i class="fas fa-${isLogin ? 'sign-in-alt' : 'user-plus'}"></i>
+                    ${isLogin ? t('authLogin') : t('authRegister')}
+                </button>
+
+                <div class="auth-divider">${t('authOr')}</div>
+
+                <button class="auth-btn auth-btn-google" onclick="handleGoogleLogin()">
+                    <i class="fab fa-google"></i> ${t('authGoogle')}
+                </button>
+
+                <div class="auth-switch">
+                    ${isLogin ? `${t('authNoAccount')} <a onclick="_authMode='register';renderAuthPage()">${t('authRegister')}</a>` : `${t('authHasAccount')} <a onclick="_authMode='login';renderAuthPage()">${t('authLogin')}</a>`}
+                </div>
+            `}
+            
+            <div class="auth-terms">${t('authTerms')}</div>
+        </div>
+    </div>`;
+    
+    // Hide header on auth page
+    const header = document.getElementById('app-header');
+    if (header) header.innerHTML = '';
+    
+    // Add enter key support
+    setTimeout(() => {
+        const inputs = main.querySelectorAll('.auth-input');
+        inputs.forEach(inp => {
+            inp.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    const btn = document.getElementById('auth-submit');
+                    if (btn) btn.click();
+                }
+            });
+        });
+        // Auto-focus first input
+        const firstInput = main.querySelector('.auth-input');
+        if (firstInput) firstInput.focus();
+    }, 100);
+}
+
+function showAuthError(msg) {
+    const el = document.getElementById('auth-error');
+    const txt = document.getElementById('auth-error-text');
+    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
+    const suc = document.getElementById('auth-success');
+    if (suc) suc.classList.remove('show');
+}
+
+function showAuthSuccess(msg) {
+    const el = document.getElementById('auth-success');
+    const txt = document.getElementById('auth-success-text');
+    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
+    const err = document.getElementById('auth-error');
+    if (err) err.classList.remove('show');
+}
+
+function setAuthLoading(loading) {
+    const btn = document.getElementById('auth-submit');
+    if (btn) {
+        btn.disabled = loading;
+        if (loading) btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('authLoggingIn')}`;
+    }
+}
+
+async function handleLogin() {
+    const email = document.getElementById('auth-email')?.value?.trim();
+    const password = document.getElementById('auth-password')?.value;
+    if (!email || !email.includes('@')) return showAuthError(t('authInvalidEmail'));
+    if (!password || password.length < 6) return showAuthError(t('authPasswordTooShort'));
+    setAuthLoading(true);
+    try {
+        const { error } = await APP.supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        APP.user = (await APP.supabase.auth.getUser()).data.user;
+        localStorage.setItem('rb_user', JSON.stringify({ id: APP.user.id, email: APP.user.email }));
+        showToast(t('authLoginSuccess'), 'success');
+        location.hash = '#/dashboard';
+    } catch(e) {
+        showAuthError(e.message || (APP.lang === 'id' ? 'Email atau kata sandi salah' : 'Invalid email or password'));
+    } finally { setAuthLoading(false); }
+}
+
+async function handleRegister() {
+    const name = document.getElementById('auth-name')?.value?.trim();
+    const email = document.getElementById('auth-email')?.value?.trim();
+    const password = document.getElementById('auth-password')?.value;
+    const confirmPassword = document.getElementById('auth-confirm-password')?.value;
+    if (!email || !email.includes('@')) return showAuthError(t('authInvalidEmail'));
+    if (!password || password.length < 6) return showAuthError(t('authPasswordTooShort'));
+    if (password !== confirmPassword) return showAuthError(t('authPasswordMismatch'));
+    setAuthLoading(true);
+    try {
+        const { error } = await APP.supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { full_name: name || '' } }
+        });
+        if (error) throw error;
+        // Check if email confirmation is required
+        showAuthSuccess(APP.lang === 'id' ? 'Cek email Anda untuk konfirmasi akun, lalu masuk.' : 'Check your email to confirm your account, then sign in.');
+        _authMode = 'login';
+        setTimeout(() => renderAuthPage(), 3000);
+    } catch(e) {
+        showAuthError(e.message || (APP.lang === 'id' ? 'Gagal mendaftar' : 'Registration failed'));
+    } finally { setAuthLoading(false); }
+}
+
+async function handleGoogleLogin() {
+    try {
+        const { error } = await APP.supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.origin + window.location.pathname }
+        });
+        if (error) throw error;
+    } catch(e) {
+        showAuthError(e.message || 'Google login failed');
+    }
+}
+
+async function handleForgotPassword() {
+    const email = document.getElementById('auth-email')?.value?.trim();
+    if (!email || !email.includes('@')) return showAuthError(t('authInvalidEmail'));
+    setAuthLoading(true);
+    try {
+        const { error } = await APP.supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + window.location.pathname
+        });
+        if (error) throw error;
+        showAuthSuccess(t('authResetSent'));
+    } catch(e) {
+        showAuthError(e.message || (APP.lang === 'id' ? 'Gagal mengirim reset link' : 'Failed to send reset link'));
+    } finally { setAuthLoading(false); }
+}
+
+async function handleLogout() {
+    if (!APP.supabase) return;
+    try {
+        await APP.supabase.auth.signOut();
+    } catch(e) { console.warn('Logout error:', e); }
+    APP.user = null;
+    localStorage.removeItem('rb_user');
+    showToast(t('authLogoutSuccess'), 'success');
+    location.hash = '#/';
+}
+
 function checkUrlRouting() {
     const hash = location.hash || '#/';
     const main = document.getElementById('app-main');
@@ -3013,6 +3366,14 @@ function checkUrlRouting() {
     // Close any open panels
     closeDetailPanel();
     closeContextMenu();
+
+    // Auth guard for protected routes
+    const protectedRoutes = ['#/dashboard', '#/storage', '#/file/'];
+    const isProtected = protectedRoutes.some(r => hash.startsWith(r));
+    if (isProtected && isAuthRequired() && !isLoggedIn()) {
+        renderAuthPage();
+        return;
+    }
 
     if (hash === '#/' || hash === '') {
         renderHomepage();
@@ -3254,6 +3615,7 @@ function renderHeader() {
             </button>
             ${!isHome ? `<a href="#/" class="header-pill-btn"><i class="fas fa-home"></i></a>` : ''}
             ${isHome ? `<a href="#/dashboard" class="header-pill-btn" style="background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;border:none;box-shadow:0 2px 10px rgba(59,130,246,.3)"><i class="fas fa-rocket"></i> <span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
+            ${isLoggedIn() ? `<button class="header-pill-btn" onclick="handleLogout()" title="${t('authLogout')}" style="gap:4px"><i class="fas fa-sign-out-alt"></i><span class="hide-mobile-small" style="font-size:11px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${APP.user?.email || ''}</span></button>` : ''}
         </header>`;
 }
 
@@ -5461,6 +5823,7 @@ function renderSidebarHTML() {
 
         <!-- Storage Widget at Bottom -->
         <div class="storage-widget" style="margin-top:auto">
+            ${isLoggedIn() ? `<div style="padding:8px 12px;margin-bottom:6px;border-radius:8px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.1);display:flex;align-items:center;gap:8px;font-size:11px"><i class="fas fa-user-circle" style="color:var(--accent)"></i><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-secondary)">${APP.user?.email || ''}</span><button onclick="handleLogout()" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px 4px;font-size:12px" title="${t('authLogout')}"><i class="fas fa-sign-out-alt"></i></button></div>` : ''}
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
                 <svg width="52" height="52" viewBox="0 0 52 52" style="flex-shrink:0;transform:rotate(-90deg)">
                     <circle cx="26" cy="26" r="${miniR}" fill="none" stroke="var(--bg-secondary)" stroke-width="5"/>
@@ -9310,7 +9673,7 @@ async function init() {
         // Init Google Drive config
         initGDriveConfig();
 
-        // Fetch bot config
+        // Fetch bot config + Supabase config
         try {
             const resp = await fetch('/api/config');
             const data = await resp.json();
@@ -9319,9 +9682,21 @@ async function init() {
                 APP.settings.proxyMode = data.proxyMode !== false;
                 APP.connected = true;
             }
+            // Load Supabase config from server
+            if (data.supabaseUrl && data.supabaseAnonKey) {
+                window.__supabaseConfig = { url: data.supabaseUrl, anonKey: data.supabaseAnonKey };
+            }
         } catch (e) {
             console.warn('Config fetch failed:', e);
             APP.connected = navigator.onLine;
+        }
+
+        // Init Supabase Auth
+        initSupabaseAuth();
+
+        // If auth not required (no Supabase), proceed normally
+        if (!isAuthRequired()) {
+            APP.authReady = true;
         }
 
         // Update connection status
@@ -9344,8 +9719,8 @@ async function init() {
         // Feature 4: Check pending uploads
         await checkPendingUploads();
 
-        // Route
-        checkUrlRouting();
+        // Route (skip if auth is still initializing - it will call checkUrlRouting when ready)
+        if (APP.authReady) checkUrlRouting();
         window.addEventListener('hashchange', checkUrlRouting);
 
         // Onboarding (F95) - show on first dashboard visit

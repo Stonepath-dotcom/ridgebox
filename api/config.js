@@ -58,7 +58,11 @@ export default async function (request) {
       masked: proxyMode,
     }));
 
-    return new Response(JSON.stringify({ ok: true, bots: safeBots, proxyMode }), {
+    // Supabase Auth config (safe to expose - anon key is public)
+    const supabaseUrl = process.env.SUPABASE_URL || '';
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+
+    return new Response(JSON.stringify({ ok: true, bots: safeBots, proxyMode, supabaseUrl, supabaseAnonKey }), {
       headers: { 'Content-Type': 'application/json', ...CORS },
     });
   } catch (error) {
