@@ -3775,6 +3775,16 @@ function checkUrlRouting() {
 
     if (hash === '#/' || hash === '') {
         renderHomepage();
+    } else if (hash === '#/login') {
+        _authMode = 'login';
+        _authRedirectTo = '#/dashboard';
+        renderHomepage();
+        setTimeout(() => renderAuthPage(), 100);
+    } else if (hash === '#/register') {
+        _authMode = 'register';
+        _authRedirectTo = '#/dashboard';
+        renderHomepage();
+        setTimeout(() => renderAuthPage(), 100);
     } else if (hash === '#/dashboard') {
         checkPinThenRender(() => renderDashboard());
     } else if (hash === '#/storage') {
@@ -4015,6 +4025,7 @@ function renderHeader() {
             </button>
             ${!isHome ? `<a href="#/" class="header-pill-btn"><i class="fas fa-home"></i></a>` : ''}
             ${isHome ? `<a href="#/dashboard" class="header-pill-btn" style="background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;border:none;box-shadow:0 2px 10px rgba(59,130,246,.3)"><i class="fas fa-rocket"></i> <span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
+            ${!isLoggedIn() && isAuthRequired() ? `<a href="#/login" class="header-pill-btn" style="background:var(--accent);color:#fff;border:none"><i class="fas fa-sign-in-alt"></i> <span class="hide-mobile-small">${APP.lang==='id'?'Masuk':'Login'}</span></a>` : ''}
             ${isLoggedIn() ? `<button class="header-pill-btn" onclick="handleLogout()" title="${t('authLogout')}" style="gap:4px"><i class="fas fa-sign-out-alt"></i><span class="hide-mobile-small" style="font-size:11px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${APP.user?.email || ''}</span></button>` : ''}
         </header>`;
 }
@@ -4763,6 +4774,7 @@ function renderHomepage() {
                 <p class="sr sr-delay-3" style="font-size:19px;color:rgba(255,255,255,.65);margin-bottom:44px;line-height:1.7;max-width:620px;margin-left:auto;margin-right:auto">${t('heroDesc')}</p>
                 <div class="sr sr-delay-4" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
                     <a href="#/dashboard" class="hero-cta-primary magnetic-btn cta-breathe" id="hero-cta-main">${t('getStarted')} <i class="fas fa-arrow-right"></i></a>
+                    ${!isLoggedIn() && isAuthRequired() ? `<a href="#/login" class="hero-cta-secondary magnetic-btn" style="background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.4)"><i class="fas fa-sign-in-alt" style="font-size:12px"></i> ${isId?'Masuk':'Sign In'}</a>` : ''}
                     <a href="#features" class="hero-cta-secondary magnetic-btn" id="hero-cta-sec"><i class="fas fa-play" style="font-size:12px"></i> ${t('learnMore')}</a>
                 </div>
                 <div class="trust-bar sr sr-delay-5">
@@ -5458,6 +5470,8 @@ function renderHomepage() {
                     <div style="display:flex;flex-direction:column;gap:10px">
                         <a href="#features" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Fitur':'Features'}</a>
                         <a href="#/dashboard" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">Dashboard</a>
+                        <a href="#/login" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Masuk':'Sign In'}</a>
+                        <a href="#/register" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Daftar':'Register'}</a>
                         <a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Harga':'Pricing'}</a>
                         <a href="#blog-section" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Blog & Update':'Blog & Updates'}</a>
                     </div>
