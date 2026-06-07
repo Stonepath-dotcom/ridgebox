@@ -50,3 +50,26 @@ Stage Summary:
 - Major GPU/CPU savings on mobile devices
 - Commit: bd2c9fa pushed to main
 
+
+---
+Task ID: 1
+Agent: main
+Task: Fix RidgeBox homepage logo centering, feature carousel mobile responsiveness, and text overflow
+
+Work Log:
+- Analyzed user's screenshot showing feature cards text truncated on mobile
+- Used VLM to identify: right card partially cut off, text descriptions truncated
+- Fixed hero logo centering: changed from `position:absolute + margin-top/margin-left` to `position:absolute + inset:0; margin:auto` for orbit/glow rings, and `position:relative; z-index:2` for logo (flexbox parent centers it)
+- Fixed feature carousel: changed from `overflow:hidden + transform:translateX` to CSS scroll snap (`overflow-x:auto; scroll-snap-type:x mandatory; scroll-snap-align:center`)
+- Added native touch/swipe support via scroll snap (no JS needed)
+- Updated carousel JS to use `scrollTo()` instead of `transform`
+- Added `overflow-wrap:break-word; word-break:break-word` to cards and section text
+- Fixed mobile media queries for new sections (keyboard shortcuts, speed comparison, use cases)
+- Pushed to GitHub, Vercel auto-deployed
+- Verified with agent-browser + VLM: logo centered, cards not truncated, carousel working
+
+Stage Summary:
+- Logo centering fixed with `inset:0; margin:auto` technique (compatible with transform animations)
+- Feature carousel now uses CSS scroll snap with touch swipe support
+- All text overflow issues resolved
+- Site live at https://ridgebox.vercel.app/
