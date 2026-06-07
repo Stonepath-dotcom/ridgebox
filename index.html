@@ -3563,14 +3563,14 @@ function showLoginActivity() {
     const city = cities[Math.floor(Math.random() * cities.length)];
     const mins = Math.floor(Math.random() * 120) + 1;
     const msg = isId
-        ? `✅ Login terakhir: ${mins} menit lalu dari ${city}`
-        : `✅ Last login: ${mins} min ago from ${city}`;
+        ? `Login terakhir: ${mins} menit lalu dari ${city}`
+        : `Last login: ${mins} min ago from ${city}`;
     // Remove existing toast
     const existing = document.querySelector('.auth-activity-toast');
     if (existing) existing.remove();
     const toast = document.createElement('div');
     toast.className = 'auth-activity-toast';
-    toast.innerHTML = `<i class="fas fa-shield-halved"></i> ${msg}`;
+    toast.innerHTML = `<i class="fas fa-circle-check" style="color:#10b981"></i> ${msg}`;
     document.body.appendChild(toast);
     requestAnimationFrame(() => {
         toast.classList.add('show');
@@ -4284,7 +4284,7 @@ function checkStorageWarningToast() {
         const limit = getStorageLimitBytes();
         const pct = getStorageWarningPercent();
         const isId = APP.lang === 'id';
-        showToast(isId ? `⚠️ Penyimpanan kritis: ${pct.toFixed(1)}% terpakai!` : `⚠️ Critical storage: ${pct.toFixed(1)}% used!`, 'warning', 8000);
+        showToast(isId ? `Penyimpanan kritis: ${pct.toFixed(1)}% terpakai!` : `Critical storage: ${pct.toFixed(1)}% used!`, 'warning', 8000);
     }
 }
 function getStorageIndicatorHtml() {
@@ -4506,7 +4506,7 @@ function openDetailPanel(fileId) {
                 <div class="detail-info-section">
                     <div class="detail-file-name">${file.name} ${versionHtml}</div>
                     ${file.caption ? `<p id="detail-desc-${file.id}" class="detail-caption" onclick="startEditDescription('${file.id}')">${file.caption} <i class="fas fa-pen" style="font-size:10px;opacity:.5"></i></p>` : `<p id="detail-desc-${file.id}" class="detail-caption" style="font-style:italic;opacity:.6" onclick="startEditDescription('${file.id}')">${t('addCaption')} <i class="fas fa-pen" style="font-size:10px;opacity:.5"></i></p>`}
-                    <span id="desc-saved-indicator" style="font-size:11px;color:#10b981;opacity:0;transition:opacity .3s ease">✓ ${t('save')}</span>
+                    <span id="desc-saved-indicator" style="font-size:11px;color:#10b981;opacity:0;transition:opacity .3s ease"><i class="fas fa-check" style="margin-right:2px"></i> ${t('save')}</span>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;margin-top:6px">
                         <span class="detail-badge" style="background:${icon.color}15;color:${icon.color}"><i class="fas ${icon.icon}" style="margin-right:4px;font-size:10px"></i>${type.toUpperCase()}</span>
                         ${tagBadge}
@@ -5213,7 +5213,7 @@ function renderHomepage() {
                 <div class="glass-card scroll-reveal" style="padding:16px 24px;display:flex;align-items:center;gap:12px;border-radius:14px">
                     <div style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:pulse 1.5s ease infinite;flex-shrink:0"></div>
                     <div style="flex:1;min-width:0;overflow:hidden">
-                        <div id="blog-ticker" style="font-size:13px;font-weight:500;white-space:nowrap;animation:tickerScroll 20s linear infinite">${isId?'📢 Update otomatis setiap hari — Tips baru, fitur terbaru, dan berita cloud storage':'📢 Auto-updated daily — New tips, latest features, and cloud storage news'}</div>
+                        <div id="blog-ticker" style="font-size:13px;font-weight:500;white-space:nowrap;animation:tickerScroll 20s linear infinite">${isId?'<i class="fas fa-bell" style="margin-right:6px"></i>Update otomatis setiap hari — Tips baru, fitur terbaru, dan berita cloud storage':'<i class="fas fa-bell" style="margin-right:6px"></i>Auto-updated daily — New tips, latest features, and cloud storage news'}</div>
                     </div>
                     <span style="font-size:10px;padding:3px 8px;border-radius:6px;background:rgba(16,185,129,.1);color:#10b981;font-weight:600;white-space:nowrap">${isId?'LIVE':'LIVE'}</span>
                 </div>
@@ -5980,23 +5980,23 @@ function initBlog() {
 
     // Ticker messages that rotate
     const tickerMessages = isId ? [
-        '📢 RidgeBox v3.2 sudah live! Upload chunked + gallery publik sekarang tersedia',
-        '💡 Tips: Gunakan Ctrl+U untuk upload cepat langsung dari keyboard',
-        '🔒 Enkripsi AES-256 melindungi setiap file Anda — tanpa biaya tambahan',
-        '🚀 3.200+ pengguna aktif sudah menyimpan 12.000+ file di RidgeBox',
-        '📱 PWA Ready — Install RidgeBox langsung dari browser, tanpa Play Store',
-        '🆓 105 fitur gratis, tanpa hidden cost, tanpa iklan. Selamanya.',
-        '🔗 Self-destruct link: bagikan file sensitif tanpa khawatir tersebar',
-        '⚡ Upload 100MB dalam ~3 detik — tercepat di kelasnya!',
+        '<i class="fas fa-bullhorn" style="margin-right:4px"></i> RidgeBox v3.2 sudah live! Upload chunked + gallery publik sekarang tersedia',
+        '<i class="fas fa-lightbulb" style="margin-right:4px"></i> Tips: Gunakan Ctrl+U untuk upload cepat langsung dari keyboard',
+        '<i class="fas fa-shield-halved" style="margin-right:4px"></i> Enkripsi AES-256 melindungi setiap file Anda — tanpa biaya tambahan',
+        '<i class="fas fa-rocket" style="margin-right:4px"></i> 3.200+ pengguna aktif sudah menyimpan 12.000+ file di RidgeBox',
+        '<i class="fas fa-mobile-screen" style="margin-right:4px"></i> PWA Ready — Install RidgeBox langsung dari browser, tanpa Play Store',
+        '<i class="fas fa-gift" style="margin-right:4px"></i> 105 fitur gratis, tanpa hidden cost, tanpa iklan. Selamanya.',
+        '<i class="fas fa-link" style="margin-right:4px"></i> Self-destruct link: bagikan file sensitif tanpa khawatir tersebar',
+        '<i class="fas fa-bolt" style="margin-right:4px"></i> Upload 100MB dalam ~3 detik — tercepat di kelasnya!',
     ] : [
-        '📢 RidgeBox v3.2 is live! Chunked upload + public gallery now available',
-        '💡 Tip: Use Ctrl+U for quick upload directly from your keyboard',
-        '🔒 AES-256 encryption protects every file — at no extra cost',
-        '🚀 3,200+ active users have stored 12,000+ files on RidgeBox',
-        '📱 PWA Ready — Install RidgeBox directly from the browser, no Play Store',
-        '🆓 105 features free, no hidden costs, no ads. Forever.',
-        '🔗 Self-destruct links: share sensitive files without worrying about leaks',
-        '⚡ Upload 100MB in ~3 seconds — fastest in its class!',
+        '<i class="fas fa-bullhorn" style="margin-right:4px"></i> RidgeBox v3.2 is live! Chunked upload + public gallery now available',
+        '<i class="fas fa-lightbulb" style="margin-right:4px"></i> Tip: Use Ctrl+U for quick upload directly from your keyboard',
+        '<i class="fas fa-shield-halved" style="margin-right:4px"></i> AES-256 encryption protects every file — at no extra cost',
+        '<i class="fas fa-rocket" style="margin-right:4px"></i> 3,200+ active users have stored 12,000+ files on RidgeBox',
+        '<i class="fas fa-mobile-screen" style="margin-right:4px"></i> PWA Ready — Install RidgeBox directly from the browser, no Play Store',
+        '<i class="fas fa-gift" style="margin-right:4px"></i> 105 features free, no hidden costs, no ads. Forever.',
+        '<i class="fas fa-link" style="margin-right:4px"></i> Self-destruct links: share sensitive files without worrying about leaks',
+        '<i class="fas fa-bolt" style="margin-right:4px"></i> Upload 100MB in ~3 seconds — fastest in its class!',
     ];
 
     // Render blog cards
@@ -11362,13 +11362,13 @@ function getFileCategory(name, mime) {
 
 function getCategoryInfo(cat) {
     const map = {
-        documents: { icon: '📄', name: APP.lang==='id'?'Dokumen':'Documents', css: 'cat-docs' },
-        photos:    { icon: '🖼️', name: APP.lang==='id'?'Foto':'Photos', css: 'cat-photos' },
-        videos:    { icon: '🎬', name: APP.lang==='id'?'Video':'Videos', css: 'cat-videos' },
-        audio:     { icon: '🎵', name: APP.lang==='id'?'Audio':'Audio', css: 'cat-audio' },
-        archives:  { icon: '📦', name: APP.lang==='id'?'Arsip':'Archives', css: 'cat-archives' },
-        code:      { icon: '📝', name: APP.lang==='id'?'Kode':'Code', css: 'cat-code' },
-        others:    { icon: '📁', name: APP.lang==='id'?'Lainnya':'Others', css: 'cat-others' }
+        documents: { icon: 'fa-file-alt', name: APP.lang==='id'?'Dokumen':'Documents', css: 'cat-docs' },
+        photos:    { icon: 'fa-image', name: APP.lang==='id'?'Foto':'Photos', css: 'cat-photos' },
+        videos:    { icon: 'fa-film', name: APP.lang==='id'?'Video':'Videos', css: 'cat-videos' },
+        audio:     { icon: 'fa-music', name: APP.lang==='id'?'Audio':'Audio', css: 'cat-audio' },
+        archives:  { icon: 'fa-box-archive', name: APP.lang==='id'?'Arsip':'Archives', css: 'cat-archives' },
+        code:      { icon: 'fa-code', name: APP.lang==='id'?'Kode':'Code', css: 'cat-code' },
+        others:    { icon: 'fa-folder', name: APP.lang==='id'?'Lainnya':'Others', css: 'cat-others' }
     };
     return map[cat] || map.others;
 }
@@ -11390,7 +11390,7 @@ function renderCategoriesView() {
         const count = catFiles.length;
         const totalSize = catFiles.reduce((s, f) => s + (f.size || 0), 0);
         html += `<div class="category-card ${info.css} cat-card-anim" style="animation-delay:${idx * 0.06}s" onclick="filterByCategory('${cat}')">
-            <div class="cat-icon">${info.icon}</div>
+            <div class="cat-icon"><i class="fas ${info.icon}"></i></div>
             <div class="cat-name">${info.name}</div>
             <div class="cat-count">${count} ${APP.lang==='id'?'file':'files'}</div>
             ${count > 0 ? `<div class="cat-size">${formatSize(totalSize)}</div>` : ''}
