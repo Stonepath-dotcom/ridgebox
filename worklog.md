@@ -122,3 +122,26 @@ Stage Summary:
 - Responsive: stacks on mobile, compact on small screens
 - All existing auth flows work: login, register, forgot password, Google OAuth
 - URL: https://ridgebox.vercel.app/#/login
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix auth guard + separate admin panel
+
+Work Log:
+- Diagnosed root cause: SUPABASE_URL and SUPABASE_ANON_KEY env vars not set on Vercel
+- /api/config returned supabaseConfigured: false, so isAuthRequired() returned false
+- Added hardcoded Supabase config as fallback in client-side JS (anon key is public-safe)
+- Changed isAuthRequired() to ALWAYS return true — login is mandatory for all protected routes
+- Moved admin panel from modal in dashboard settings to dedicated #/admin route
+- Admin panel now renders as full page with back button to dashboard
+- #/admin is a protected route requiring login + PIN verification (if set)
+- Settings page "Open Admin Panel" button changed from onclick to href="#/admin"
+- Disconnect S3 button no longer references closeModal()
+- Pushed to GitHub and auto-deployed to Vercel
+
+Stage Summary:
+- Auth is now ALWAYS required — no more bypassing login
+- Supabase config hardcoded as fallback (works even without Vercel env vars)
+- Admin panel separated from dashboard at #/admin — requires login + PIN
+- All protected routes: #/dashboard, #/storage, #/file/, #/analytics, #/admin
