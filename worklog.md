@@ -73,3 +73,26 @@ Stage Summary:
 - Feature carousel now uses CSS scroll snap with touch swipe support
 - All text overflow issues resolved
 - Site live at https://ridgebox.vercel.app/
+
+---
+Task ID: 2
+Agent: main
+Task: Add auto-updating blog section to RidgeBox homepage
+
+Work Log:
+- Added blog section HTML between Open Source Community and Pricing sections
+- Created featured post banner with auto-rotating content (4 featured posts, rotates every 8s)
+- Added blog cards grid (4 cards initially, auto-adds new card every 15s from pool of 12 posts)
+- Added live ticker bar with rotating messages (8 messages, rotates every 6s)
+- Created CSS for blog cards with animations (blogCardIn, blogNewPulse, tickerScroll)
+- Added mobile responsive styles (768px and 480px breakpoints)
+- Added Blog & Updates link to footer
+- 12 blog posts in Indonesian + English covering Tips, Updates, Tutorials, Comparisons, Security, Features
+- Pushed to GitHub, Vercel auto-deployed successfully
+- Verified on mobile with agent-browser + VLM: layout looks good, cards readable, featured banner works
+
+Stage Summary:
+- Blog section live at https://ridgebox.vercel.app/ with id="blog-section"
+- Auto-updating: featured post rotates every 8s, blog cards cycle every 15s, ticker messages every 6s
+- 12 blog posts in both ID and EN languages
+- Fully responsive on mobile (single column cards, hidden featured image on small screens)
