@@ -836,6 +836,20 @@ body.no-transition,body.no-transition *{transition:none!important}
 .testimonial-marquee-track{display:flex;gap:20px;width:max-content;animation:testiMarquee 40s linear infinite}
 .testimonial-marquee-track:hover{animation-play-state:paused}
 @keyframes testiMarquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes tickerScroll{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+@keyframes blogCardIn{0%{opacity:0;transform:translateY(16px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes blogNewPulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.3)}50%{box-shadow:0 0 0 8px rgba(59,130,246,0)}}
+/* Blog Cards */
+.blog-card{border-radius:18px;background:var(--bg-card);border:1px solid var(--border);overflow:hidden;transition:border-color .2s ease,transform .2s ease;cursor:pointer;animation:blogCardIn .5s ease both}
+.blog-card:hover{border-color:rgba(59,130,246,.3);transform:translateY(-4px)}
+.blog-card-img{height:140px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.blog-card-img i{font-size:40px;color:rgba(255,255,255,.12)}
+.blog-card-body{padding:20px}
+.blog-card-tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.5px;display:inline-block;margin-bottom:10px}
+.blog-card-title{font-size:15px;font-weight:700;margin-bottom:8px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.blog-card-excerpt{font-size:12px;color:var(--text-secondary);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px}
+.blog-card-meta{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-secondary)}
+.blog-card.is-new{animation:blogCardIn .5s ease both,blogNewPulse 2s ease 1}
 .testi-card{min-width:320px;max-width:320px;padding:28px;border-radius:20px;background:var(--bg-card);border:1px solid var(--border);flex-shrink:0;transition:border-color .2s ease}
 .testi-card:hover{border-color:rgba(59,130,246,.2)}
 .testi-stars{display:flex;gap:3px;margin-bottom:12px}
@@ -1597,6 +1611,10 @@ body.no-transition,body.no-transition *{transition:none!important}
 
     /* Live activity feed */
     #live-activity-feed{max-height:240px!important}
+
+    /* Blog section tablet */
+    #blog-featured-img{flex:0 0 200px!important;min-height:160px!important}
+    .blog-card-img{height:120px!important}
 }
 
 @media(max-width:480px){
@@ -1648,6 +1666,15 @@ body.no-transition,body.no-transition *{transition:none!important}
 
     /* Section text: prevent overflow */
     .section-desc,.section-title{overflow-wrap:break-word!important;word-break:break-word!important}
+
+    /* Blog section mobile */
+    #blog-featured-img{display:none!important}
+    .blog-card-img{height:100px!important}
+    .blog-card-body{padding:14px!important}
+    .blog-card-title{font-size:14px!important}
+    .blog-card-excerpt{font-size:11px!important;-webkit-line-clamp:2!important}
+    #blog-grid{grid-template-columns:1fr!important;gap:14px!important}
+    .blog-ticker-text{font-size:11px!important}
 }
 
 /* ===== AUTH / LOGIN PAGE ===== */
@@ -4949,8 +4976,59 @@ function renderHomepage() {
             </div>
         </section>
 
+        <!-- ===== BLOG / UPDATE TERKINI ===== -->
+        <section id="blog-section" class="scroll-reveal" style="padding:80px 20px;background:var(--bg-secondary);position:relative">
+            <div class="decor-orb decor-orb-2" style="top:-120px;right:-100px"></div>
+            <div class="morph-blob morph-blob-1" style="bottom:-8%;left:-6%"></div>
+            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
+                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
+                    <div class="section-eyebrow"><i class="fas fa-newspaper"></i> ${isId?'Blog & Update':'Blog & Updates'}</div>
+                    <h2 class="section-title">${isId?'Berita Terbaru':'Latest News'}</h2>
+                    <p class="section-desc">${isId?'Tips, update fitur, dan berita dunia cloud storage langsung di homepage Anda':'Tips, feature updates, and cloud storage news right on your homepage'}</p>
+                </div>
+
+                <!-- Featured Post Banner -->
+                <div id="blog-featured" class="glass-card scroll-reveal" style="padding:0;margin-bottom:28px;overflow:hidden;cursor:pointer;border-radius:20px;position:relative">
+                    <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(139,92,246,.1));z-index:1"></div>
+                    <div style="display:flex;flex-wrap:wrap;align-items:stretch">
+                        <div style="flex:1;min-width:280px;padding:36px 32px;position:relative;z-index:2">
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+                                <span id="blog-featured-tag" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(59,130,246,.15);color:var(--accent);text-transform:uppercase;letter-spacing:.5px">Feature</span>
+                                <span style="font-size:10px;color:var(--text-secondary)" id="blog-featured-date">7 Jun 2026</span>
+                                <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;color:#10b981;margin-left:4px"><i class="fas fa-circle" style="font-size:5px;animation:pulse 1.5s ease infinite"></i> ${isId?'Baru':'New'}</span>
+                            </div>
+                            <h3 id="blog-featured-title" style="font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.3">${isId?'RidgeBox v3.2: Upload Chunked & Gallery Publik':'RidgeBox v3.2: Chunked Upload & Public Gallery'}</h3>
+                            <p id="blog-featured-desc" style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px">${isId?'Update besar! Upload file besar hingga 2GB dengan chunked upload, plus fitur gallery publik untuk showcase karya Anda.':'Major update! Upload large files up to 2GB with chunked upload, plus public gallery feature to showcase your work.'}</p>
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center"><i class="fas fa-cloud" style="color:#fff;font-size:12px"></i></div>
+                                <span style="font-size:12px;font-weight:600">RidgeBox Team</span>
+                                <span style="font-size:11px;color:var(--text-secondary)">· ${isId?'3 min baca':'3 min read'}</span>
+                            </div>
+                        </div>
+                        <div id="blog-featured-img" style="flex:0 0 280px;min-height:200px;background:linear-gradient(135deg,#1e3a5f,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;position:relative;z-index:2">
+                            <i class="fas fa-rocket" style="font-size:64px;color:rgba(255,255,255,.15)"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Blog Cards Grid -->
+                <div id="blog-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:28px">
+                </div>
+
+                <!-- Live Ticker -->
+                <div class="glass-card scroll-reveal" style="padding:16px 24px;display:flex;align-items:center;gap:12px;border-radius:14px">
+                    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:pulse 1.5s ease infinite;flex-shrink:0"></div>
+                    <div style="flex:1;min-width:0;overflow:hidden">
+                        <div id="blog-ticker" style="font-size:13px;font-weight:500;white-space:nowrap;animation:tickerScroll 20s linear infinite">${isId?'📢 Update otomatis setiap hari — Tips baru, fitur terbaru, dan berita cloud storage':'📢 Auto-updated daily — New tips, latest features, and cloud storage news'}</div>
+                    </div>
+                    <span style="font-size:10px;padding:3px 8px;border-radius:6px;background:rgba(16,185,129,.1);color:#10b981;font-weight:600;white-space:nowrap">${isId?'LIVE':'LIVE'}</span>
+                </div>
+            </div>
+        </section>
+        <div class="lux-grad-divider"></div>
+
         <!-- ===== PRICING COMPARISON TABLE ===== -->
-        <section class="scroll-reveal" style="padding:64px 20px;background:var(--bg-secondary);position:relative">
+        <section class="scroll-reveal" style="padding:64px 20px;position:relative">
             <div class="decor-orb decor-orb-1" style="top:-100px;left:-200px"></div>
             <div class="morph-blob morph-blob-2" style="bottom:-10%;right:-5%"></div>
             <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
@@ -5130,6 +5208,7 @@ function renderHomepage() {
                         <a href="#features" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Fitur':'Features'}</a>
                         <a href="#/dashboard" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">Dashboard</a>
                         <a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Harga':'Pricing'}</a>
+                        <a href="#blog-section" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Blog & Update':'Blog & Updates'}</a>
                     </div>
                 </div>
                 <div>
@@ -5176,6 +5255,7 @@ function renderHomepage() {
     initParallaxOrbs();
     initScrollRevealEnhanced();
     initLiveActivityFeed();
+    initBlog();
 }
 
 // ===== LUXURY ANIMATION INIT FUNCTIONS =====
@@ -5654,6 +5734,161 @@ function initLiveActivityFeed() {
             feed.removeChild(feed.lastChild);
         }
     }, 3000);
+}
+
+// ===== BLOG SECTION — Auto-Updating =====
+function initBlog() {
+    const grid = document.getElementById('blog-grid');
+    if (!grid) return;
+    const isId = APP.lang === 'id';
+
+    // Blog post database — rich content that rotates
+    const blogPosts = isId ? [
+        { tag:'Tips', tagColor:'#10b981', tagBg:'rgba(16,185,129,.12)', title:'5 Cara Optimasi Penyimpanan Cloud Gratis', excerpt:'Pelajari trik mengelola file di cloud tanpa bayar sepeser pun. Dari kompresi otomatis sampai deduplikasi file.', icon:'fa-lightbulb', grad:'linear-gradient(135deg,#10b981,#06b6d4)', time:'5 min', date:'6 Jun 2026' },
+        { tag:'Update', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'Enkripsi AES-256: Kenapa Ini Penting?', excerpt:'Penjelasan lengkap bagaimana AES-256-GCM melindungi file Anda dari akses tidak sah. Keamanan yang dipakai militer.', icon:'fa-shield-halved', grad:'linear-gradient(135deg,#3b82f6,#6366f1)', time:'4 min', date:'5 Jun 2026' },
+        { tag:'Tutorial', tagColor:'#8b5cf6', tagBg:'rgba(139,92,246,.12)', title:'Cara Setup Bot Telegram untuk Cloud Storage', excerpt:'Step-by-step guide konfigurasi Telegram bot sebagai file storage pribadi Anda. Gratis dan tanpa batas.', icon:'fa-robot', grad:'linear-gradient(135deg,#8b5cf6,#ec4899)', time:'7 min', date:'4 Jun 2026' },
+        { tag:'Komparasi', tagColor:'#f59e0b', tagBg:'rgba(245,158,11,.12)', title:'RidgeBox vs Google Drive: Mana yang Lebih Hemat?', excerpt:'Analisis mendalam biaya dan fitur antara RidgeBox dan Google Drive. Hasilnya bisa mengejutkan Anda.', icon:'fa-chart-bar', grad:'linear-gradient(135deg,#f59e0b,#ef4444)', time:'6 min', date:'3 Jun 2026' },
+        { tag:'Security', tagColor:'#ef4444', tagBg:'rgba(239,68,68,.12)', title:'Self-Destruct Link: Berbagi File Tanpa Jejak', excerpt:'Fitur link yang hilang sendiri setelah dibuka. Sempurna untuk file sensitif yang tidak boleh tersebar.', icon:'fa-bomb', grad:'linear-gradient(135deg,#ef4444,#ec4899)', time:'3 min', date:'2 Jun 2026' },
+        { tag:'Tips', tagColor:'#10b981', tagBg:'rgba(16,185,129,.12)', title:'Backup Otomatis: Lindungi Data dari Kehilangan', excerpt:'Setup auto-backup supaya file penting Anda selalu aman. Tidak perlu ingat manual lagi.', icon:'fa-clock-rotate-left', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)', time:'4 min', date:'1 Jun 2026' },
+        { tag:'Feature', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'Upload dari Kamera: Langsung Simpan ke Cloud', excerpt:'Foto dan video dari kamera HP langsung tersimpan di cloud tanpa pindah manual. Praktis banget!', icon:'fa-camera', grad:'linear-gradient(135deg,#3b82f6,#8b5cf6)', time:'3 min', date:'31 Mei 2026' },
+        { tag:'Update', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'PIN Lock: Keamanan Tambahan untuk Dashboard', excerpt:'Tambahkan PIN 4 digit untuk mengunci dashboard. File Anda tetap aman meski HP dipinjam orang.', icon:'fa-lock', grad:'linear-gradient(135deg,#6366f1,#3b82f6)', time:'2 min', date:'30 Mei 2026' },
+        { tag:'Tutorial', tagColor:'#8b5cf6', tagBg:'rgba(139,92,246,.12)', title:'Gallery Publik: Showcase Karya Anda ke Dunia', excerpt:'Buat gallery publik untuk memamerkan foto, desain, atau portfolio. Bisa dibagikan via link.', icon:'fa-images', grad:'linear-gradient(135deg,#ec4899,#8b5cf6)', time:'5 min', date:'29 Mei 2026' },
+        { tag:'Komparasi', tagColor:'#f59e0b', tagBg:'rgba(245,158,11,.12)', title:'Dropbox vs iCloud vs RidgeBox: Siapa Pemenangnya?', excerpt:'Perbandingan jujur tiga layanan cloud storage dari segi harga, fitur, dan kemudahan penggunaan.', icon:'fa-trophy', grad:'linear-gradient(135deg,#f59e0b,#10b981)', time:'6 min', date:'28 Mei 2026' },
+        { tag:'Tips', tagColor:'#10b981', tagBg:'rgba(16,185,129,.12)', title:'Organisasi File dengan Tag Warna', excerpt:'Gunakan tag warna untuk mengkategorikan file secara visual. Lebih cepat daripada folder biasa.', icon:'fa-tags', grad:'linear-gradient(135deg,#10b981,#3b82f6)', time:'3 min', date:'27 Mei 2026' },
+        { tag:'Feature', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'Proxy Mode: Akses File dari Jaringan Terbatas', excerpt:'Bypass firewall dan jaringan terbatas dengan proxy mode. File Anda tetap bisa diakses dari mana saja.', icon:'fa-globe', grad:'linear-gradient(135deg,#3b82f6,#06b6d4)', time:'4 min', date:'26 Mei 2026' },
+    ] : [
+        { tag:'Tips', tagColor:'#10b981', tagBg:'rgba(16,185,129,.12)', title:'5 Ways to Optimize Free Cloud Storage', excerpt:'Learn tricks to manage files in the cloud without paying a dime. From auto-compression to file deduplication.', icon:'fa-lightbulb', grad:'linear-gradient(135deg,#10b981,#06b6d4)', time:'5 min', date:'Jun 6, 2026' },
+        { tag:'Update', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'AES-256 Encryption: Why It Matters', excerpt:'Full explanation of how AES-256-GCM protects your files from unauthorized access. Military-grade security.', icon:'fa-shield-halved', grad:'linear-gradient(135deg,#3b82f6,#6366f1)', time:'4 min', date:'Jun 5, 2026' },
+        { tag:'Tutorial', tagColor:'#8b5cf6', tagBg:'rgba(139,92,246,.12)', title:'How to Set Up a Telegram Bot for Cloud Storage', excerpt:'Step-by-step guide to configure a Telegram bot as your personal file storage. Free and unlimited.', icon:'fa-robot', grad:'linear-gradient(135deg,#8b5cf6,#ec4899)', time:'7 min', date:'Jun 4, 2026' },
+        { tag:'Comparison', tagColor:'#f59e0b', tagBg:'rgba(245,158,11,.12)', title:'RidgeBox vs Google Drive: Which Saves More?', excerpt:'Deep analysis of cost and features between RidgeBox and Google Drive. The results may surprise you.', icon:'fa-chart-bar', grad:'linear-gradient(135deg,#f59e0b,#ef4444)', time:'6 min', date:'Jun 3, 2026' },
+        { tag:'Security', tagColor:'#ef4444', tagBg:'rgba(239,68,68,.12)', title:'Self-Destruct Links: Share Files Without a Trace', excerpt:'Links that disappear after being opened. Perfect for sensitive files that should not spread.', icon:'fa-bomb', grad:'linear-gradient(135deg,#ef4444,#ec4899)', time:'3 min', date:'Jun 2, 2026' },
+        { tag:'Tips', tagColor:'#10b981', tagBg:'rgba(16,185,129,.12)', title:'Auto-Backup: Protect Data from Loss', excerpt:'Set up auto-backup so your important files are always safe. No need to remember manually.', icon:'fa-clock-rotate-left', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)', time:'4 min', date:'Jun 1, 2026' },
+        { tag:'Feature', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'Camera Upload: Save Directly to Cloud', excerpt:'Photos and videos from your phone camera saved directly to the cloud. Super convenient!', icon:'fa-camera', grad:'linear-gradient(135deg,#3b82f6,#8b5cf6)', time:'3 min', date:'May 31, 2026' },
+        { tag:'Update', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'PIN Lock: Extra Security for Your Dashboard', excerpt:'Add a 4-digit PIN to lock your dashboard. Your files stay safe even if someone borrows your phone.', icon:'fa-lock', grad:'linear-gradient(135deg,#6366f1,#3b82f6)', time:'2 min', date:'May 30, 2026' },
+        { tag:'Tutorial', tagColor:'#8b5cf6', tagBg:'rgba(139,92,246,.12)', title:'Public Gallery: Showcase Your Work to the World', excerpt:'Create a public gallery to display photos, designs, or portfolios. Shareable via link.', icon:'fa-images', grad:'linear-gradient(135deg,#ec4899,#8b5cf6)', time:'5 min', date:'May 29, 2026' },
+        { tag:'Comparison', tagColor:'#f59e0b', tagBg:'rgba(245,158,11,.12)', title:'Dropbox vs iCloud vs RidgeBox: Who Wins?', excerpt:'Honest comparison of three cloud storage services on price, features, and ease of use.', icon:'fa-trophy', grad:'linear-gradient(135deg,#f59e0b,#10b981)', time:'6 min', date:'May 28, 2026' },
+        { tag:'Tips', tagColor:'#10b981', tagBg:'rgba(16,185,129,.12)', title:'File Organization with Color Tags', excerpt:'Use color tags to categorize files visually. Faster than regular folders.', icon:'fa-tags', grad:'linear-gradient(135deg,#10b981,#3b82f6)', time:'3 min', date:'May 27, 2026' },
+        { tag:'Feature', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'Proxy Mode: Access Files from Restricted Networks', excerpt:'Bypass firewalls and restricted networks with proxy mode. Access your files from anywhere.', icon:'fa-globe', grad:'linear-gradient(135deg,#3b82f6,#06b6d4)', time:'4 min', date:'May 26, 2026' },
+    ];
+
+    // Featured post rotation data
+    const featuredPosts = isId ? [
+        { tag:'Feature', title:'RidgeBox v3.2: Upload Chunked & Gallery Publik', desc:'Update besar! Upload file besar hingga 2GB dengan chunked upload, plus fitur gallery publik untuk showcase karya Anda.', icon:'fa-rocket', grad:'linear-gradient(135deg,#1e3a5f,#3b82f6,#8b5cf6)' },
+        { tag:'Update', title:'105 Fitur Gratis — Dan Terus Bertambah!', desc:'RidgeBox kini punya 105 fitur lengkap tanpa bayar. Dari enkripsi AES-256 sampai upload dari kamera, semua gratis.', icon:'fa-infinity', grad:'linear-gradient(135deg,#0f172a,#10b981,#06b6d4)' },
+        { tag:'Tips', title:'Hemat Kuota dengan Proxy Mode RidgeBox', desc:'Akses file dari jaringan terbatas tanpa VPN. Proxy mode bantu bypass firewall dengan aman dan cepat.', icon:'fa-globe', grad:'linear-gradient(135deg,#1e1b4b,#3b82f6,#ec4899)' },
+        { tag:'Security', title:'Mengapa Self-Destruct Link Jadi Fitur Favorit', desc:'Link yang hilang sendiri setelah dibuka — sempurna untuk file sensitif. Ini cara kerjanya di balik layar.', icon:'fa-shield-halved', grad:'linear-gradient(135deg,#1e1b4b,#ef4444,#f59e0b)' },
+    ] : [
+        { tag:'Feature', title:'RidgeBox v3.2: Chunked Upload & Public Gallery', desc:'Major update! Upload large files up to 2GB with chunked upload, plus public gallery feature to showcase your work.', icon:'fa-rocket', grad:'linear-gradient(135deg,#1e3a5f,#3b82f6,#8b5cf6)' },
+        { tag:'Update', title:'105 Free Features — And Still Growing!', desc:'RidgeBox now has 105 complete features at no cost. From AES-256 encryption to camera upload, everything is free.', icon:'fa-infinity', grad:'linear-gradient(135deg,#0f172a,#10b981,#06b6d4)' },
+        { tag:'Tips', title:'Save Bandwidth with RidgeBox Proxy Mode', desc:'Access files from restricted networks without VPN. Proxy mode helps bypass firewalls safely and quickly.', icon:'fa-globe', grad:'linear-gradient(135deg,#1e1b4b,#3b82f6,#ec4899)' },
+        { tag:'Security', title:'Why Self-Destruct Links Are a Fan Favorite', desc:'Links that vanish after being opened — perfect for sensitive files. Here is how it works behind the scenes.', icon:'fa-shield-halved', grad:'linear-gradient(135deg,#1e1b4b,#ef4444,#f59e0b)' },
+    ];
+
+    // Ticker messages that rotate
+    const tickerMessages = isId ? [
+        '📢 RidgeBox v3.2 sudah live! Upload chunked + gallery publik sekarang tersedia',
+        '💡 Tips: Gunakan Ctrl+U untuk upload cepat langsung dari keyboard',
+        '🔒 Enkripsi AES-256 melindungi setiap file Anda — tanpa biaya tambahan',
+        '🚀 3.200+ pengguna aktif sudah menyimpan 12.000+ file di RidgeBox',
+        '📱 PWA Ready — Install RidgeBox langsung dari browser, tanpa Play Store',
+        '🆓 105 fitur gratis, tanpa hidden cost, tanpa iklan. Selamanya.',
+        '🔗 Self-destruct link: bagikan file sensitif tanpa khawatir tersebar',
+        '⚡ Upload 100MB dalam ~3 detik — tercepat di kelasnya!',
+    ] : [
+        '📢 RidgeBox v3.2 is live! Chunked upload + public gallery now available',
+        '💡 Tip: Use Ctrl+U for quick upload directly from your keyboard',
+        '🔒 AES-256 encryption protects every file — at no extra cost',
+        '🚀 3,200+ active users have stored 12,000+ files on RidgeBox',
+        '📱 PWA Ready — Install RidgeBox directly from the browser, no Play Store',
+        '🆓 105 features free, no hidden costs, no ads. Forever.',
+        '🔗 Self-destruct links: share sensitive files without worrying about leaks',
+        '⚡ Upload 100MB in ~3 seconds — fastest in its class!',
+    ];
+
+    // Render blog cards
+    function renderCard(post, isNew) {
+        return `<div class="blog-card${isNew ? ' is-new' : ''}">
+            <div class="blog-card-img" style="background:${post.grad}"><i class="fas ${post.icon}"></i></div>
+            <div class="blog-card-body">
+                <span class="blog-card-tag" style="background:${post.tagBg};color:${post.tagColor}">${post.tag}</span>
+                <div class="blog-card-title">${post.title}</div>
+                <div class="blog-card-excerpt">${post.excerpt}</div>
+                <div class="blog-card-meta">
+                    <i class="fas fa-cloud" style="color:var(--accent);font-size:10px"></i>
+                    <span>RidgeBox Team</span>
+                    <span>·</span>
+                    <span>${post.time} ${isId?'baca':'read'}</span>
+                    <span>·</span>
+                    <span>${post.date}</span>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    // Show initial 4 blog cards
+    const initial = blogPosts.slice(0, 4);
+    grid.innerHTML = initial.map(p => renderCard(p, false)).join('');
+
+    // Auto-rotate featured post every 8 seconds
+    let featuredIdx = 0;
+    const featuredEl = document.getElementById('blog-featured');
+    const featuredTitle = document.getElementById('blog-featured-title');
+    const featuredDesc = document.getElementById('blog-featured-desc');
+    const featuredTag = document.getElementById('blog-featured-tag');
+    const featuredDate = document.getElementById('blog-featured-date');
+    const featuredImg = document.getElementById('blog-featured-img');
+
+    setInterval(() => {
+        if (document.hidden) return;
+        featuredIdx = (featuredIdx + 1) % featuredPosts.length;
+        const fp = featuredPosts[featuredIdx];
+        if (featuredTitle) featuredTitle.textContent = fp.title;
+        if (featuredDesc) featuredDesc.textContent = fp.desc;
+        if (featuredTag) featuredTag.textContent = fp.tag;
+        if (featuredImg) featuredImg.style.background = fp.grad;
+        if (featuredImg) featuredImg.innerHTML = `<i class="fas ${fp.icon}" style="font-size:64px;color:rgba(255,255,255,.15)"></i>`;
+        // Animate transition
+        if (featuredEl) {
+            featuredEl.style.opacity = '0';
+            featuredEl.style.transform = 'translateY(8px)';
+            setTimeout(() => {
+                featuredEl.style.transition = 'all .4s ease';
+                featuredEl.style.opacity = '1';
+                featuredEl.style.transform = 'translateY(0)';
+            }, 50);
+        }
+    }, 8000);
+
+    // Auto-add new blog card every 15 seconds (cycle through remaining posts)
+    let blogIdx = 4;
+    setInterval(() => {
+        if (document.hidden) return;
+        const post = blogPosts[blogIdx % blogPosts.length];
+        const newCard = renderCard(post, true);
+        grid.insertAdjacentHTML('afterbegin', newCard);
+        // Remove oldest if more than 4
+        while (grid.children.length > 4) {
+            grid.removeChild(grid.lastChild);
+        }
+        blogIdx++;
+    }, 15000);
+
+    // Rotate ticker messages
+    let tickerIdx = 0;
+    const tickerEl = document.getElementById('blog-ticker');
+    setInterval(() => {
+        if (document.hidden || !tickerEl) return;
+        tickerIdx = (tickerIdx + 1) % tickerMessages.length;
+        tickerEl.style.opacity = '0';
+        setTimeout(() => {
+            tickerEl.textContent = tickerMessages[tickerIdx];
+            tickerEl.style.opacity = '1';
+        }, 300);
+    }, 6000);
+    if (tickerEl) {
+        tickerEl.style.transition = 'opacity .3s ease';
+        tickerEl.style.animation = 'none'; // Disable CSS scroll animation, use JS instead
+    }
 }
 
 // ===== SCROLL REVEAL (IntersectionObserver) =====
