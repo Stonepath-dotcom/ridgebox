@@ -1784,6 +1784,106 @@ body.no-transition,body.no-transition *{transition:none!important}
 .auth-overlay-close:hover{background:rgba(255,255,255,.15);color:#fff;transform:scale(1.1)}
 @media(max-width:480px){.auth-overlay-card{padding:28px 20px;border-radius:20px 20px 0 0;max-width:100%;position:fixed;bottom:0;left:0;right:0;transform:translateY(100%)!important;max-height:85vh}.auth-overlay.active .auth-overlay-card{transform:translateY(0)!important}.auth-overlay-close{top:12px;right:12px}.auth-theme-toggle{top:12px;left:12px;width:32px;height:32px;font-size:12px}.auth-trust{gap:10px}.auth-trust-badge{font-size:10px}.auth-particle{display:none}}
 @media(max-width:480px){.auth-card{padding:28px 20px;border-radius:20px}.auth-title{font-size:20px}.auth-input{padding:12px 12px 12px 38px;font-size:13px}.auth-btn{padding:12px;font-size:14px}}
+
+/* ===== DEDICATED LOGIN PAGE (Full Page Split-Screen) ===== */
+.auth-fullpage{min-height:100vh;display:flex;background:var(--bg);position:relative;overflow:hidden}
+.auth-fullpage-left{flex:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;position:relative;overflow:hidden;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 30%,#312e81 60%,#1e1b4b 85%,#0f172a 100%);background-size:300% 300%;animation:aurora 12s ease infinite}
+.auth-fullpage-left::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 30% 20%,rgba(59,130,246,.2) 0%,transparent 50%),radial-gradient(ellipse at 70% 60%,rgba(139,92,246,.15) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(236,72,153,.1) 0%,transparent 50%);animation:aurora 15s ease infinite reverse;pointer-events:none}
+.auth-fullpage-left::after{content:'';position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><pattern id=%22g%22 width=%2220%22 height=%2220%22 patternUnits=%22userSpaceOnUse%22><circle cx=%2210%22 cy=%2210%22 r=%220.4%22 fill=%22rgba(255,255,255,0.06)%22/></pattern></defs><rect fill=%22url(%23g)%22 width=%22100%22 height=%22100%22/></svg>') repeat;pointer-events:none}
+.auth-fullpage-right{flex:0.9;display:flex;align-items:center;justify-content:center;padding:40px 48px;position:relative;background:var(--bg-card)}
+.auth-fullpage-right::before{content:'';position:absolute;top:0;left:0;bottom:0;width:1px;background:linear-gradient(180deg,transparent,var(--border),transparent)}
+.auth-brand-section{position:relative;z-index:2;text-align:center;max-width:480px}
+.auth-brand-logo{width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 12px 40px rgba(59,130,246,.4);animation:authPulse 3s ease infinite}
+.auth-brand-logo i{color:#fff;font-size:36px}
+.auth-brand-title{font-size:36px;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-1px}
+.auth-brand-subtitle{font-size:15px;color:rgba(255,255,255,.5);margin-bottom:40px;line-height:1.6}
+.auth-brand-features{display:flex;flex-direction:column;gap:16px;text-align:left;max-width:360px;margin:0 auto}
+.auth-brand-feature{display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08);border-radius:14px;transition:all .3s ease}
+.auth-brand-feature:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.15);transform:translateX(4px)}
+.auth-brand-feature-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.auth-brand-feature-text{font-size:13px;color:rgba(255,255,255,.6);line-height:1.4}
+.auth-brand-feature-text strong{color:rgba(255,255,255,.9);font-weight:600;display:block;margin-bottom:2px;font-size:14px}
+.auth-brand-quote{margin-top:32px;padding:16px 20px;border-left:3px solid rgba(59,130,246,.5);background:rgba(59,130,246,.06);border-radius:0 12px 12px 0;font-style:italic;font-size:13px;color:rgba(255,255,255,.4);line-height:1.5;text-align:left;max-width:360px;margin-left:auto;margin-right:auto;transition:opacity .3s ease}
+.auth-brand-quote span{color:rgba(59,130,246,.6);font-style:normal;font-weight:600}
+/* Right side form area */
+.auth-form-section{width:100%;max-width:400px;position:relative;z-index:2}
+.auth-form-header{margin-bottom:28px;text-align:center}
+.auth-form-header .auth-form-logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.auth-form-header .auth-form-logo i{color:#fff;font-size:22px}
+.auth-form-title{font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px}
+.auth-form-subtitle{font-size:13px;color:var(--text-secondary)}
+.auth-form-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);cursor:pointer;margin-bottom:20px;padding:6px 12px;border-radius:8px;transition:all .2s ease;border:none;background:none;font-family:inherit}
+.auth-form-back:hover{color:var(--accent);background:rgba(59,130,246,.06)}
+/* Auth form inputs - light/dark compatible */
+.auth-form-input-group{position:relative;margin-bottom:16px}
+.auth-form-input-group i.input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:14px;transition:color .2s;z-index:1}
+.auth-form-input{width:100%;padding:13px 14px 13px 42px;border:1px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;transition:all .2s}
+.auth-form-input::placeholder{color:var(--text-secondary);opacity:.6}
+.auth-form-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.auth-form-input:focus~i.input-icon{color:var(--accent)}
+/* Auth form buttons */
+.auth-form-btn{width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.auth-form-btn-primary{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;box-shadow:0 6px 24px rgba(59,130,246,.3)}
+.auth-form-btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(59,130,246,.4)}
+.auth-form-btn-primary:active{transform:scale(.98)}
+.auth-form-btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.auth-form-btn-google{background:var(--bg-secondary);color:var(--text);border:1px solid var(--border)}
+.auth-form-btn-google:hover{border-color:var(--accent);background:rgba(59,130,246,.04)}
+.auth-form-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--text-secondary);font-size:12px}
+.auth-form-divider::before,.auth-form-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.auth-form-switch{font-size:13px;color:var(--text-secondary);text-align:center;margin-top:20px}
+.auth-form-switch a{color:var(--accent);cursor:pointer;text-decoration:none;font-weight:600;transition:color .2s}
+.auth-form-switch a:hover{text-decoration:underline}
+.auth-form-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:10px 14px;font-size:12px;color:#ef4444;margin-bottom:16px;display:none;align-items:center;gap:8px}
+.auth-form-error.show{display:flex}
+.auth-form-success{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.15);border-radius:10px;padding:10px 14px;font-size:12px;color:#10b981;margin-bottom:16px;display:none;align-items:center;gap:8px}
+.auth-form-success.show{display:flex}
+.auth-form-forgot{font-size:12px;color:var(--text-secondary);text-align:right;margin-bottom:16px}
+.auth-form-forgot a{color:var(--accent);cursor:pointer;text-decoration:none}
+.auth-form-forgot a:hover{text-decoration:underline}
+.auth-form-remember{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.auth-form-remember input[type=checkbox]{width:16px;height:16px;accent-color:#3b82f6;cursor:pointer;border-radius:4px}
+.auth-form-remember label{font-size:13px;color:var(--text-secondary);cursor:pointer;user-select:none}
+.auth-form-trust{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:16px;flex-wrap:wrap}
+.auth-form-trust-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);white-space:nowrap;padding:4px 10px;border-radius:8px;background:var(--bg-secondary)}
+.auth-form-trust-badge i{font-size:11px}
+.auth-form-terms{font-size:11px;color:var(--text-secondary);text-align:center;margin-top:14px;line-height:1.5;opacity:.7}
+.auth-form-terms a{color:var(--accent);text-decoration:underline}
+.auth-form-theme-toggle{position:absolute;top:20px;right:20px;width:38px;height:38px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s ease;z-index:5}
+.auth-form-theme-toggle:hover{color:var(--accent);border-color:var(--accent);transform:scale(1.1)}
+/* Auth form strength meter */
+.auth-form-strength{margin-top:-10px;margin-bottom:14px}
+.auth-form-strength-bar{height:4px;border-radius:4px;background:var(--bg-secondary);overflow:hidden;margin-top:6px}
+.auth-form-strength-fill{height:100%;border-radius:4px;transition:width .3s ease,background .3s ease;width:0}
+.auth-form-strength-label{font-size:11px;color:var(--text-secondary);margin-top:4px;display:flex;justify-content:space-between}
+/* Auth form pw toggle */
+.auth-form-pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:4px;font-size:13px;transition:color .2s;z-index:2}
+.auth-form-pw-toggle:hover{color:var(--accent)}
+/* Auth form particles (left side) */
+.auth-form-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.auth-form-particle{position:absolute;color:rgba(255,255,255,.06);animation:authFloat linear infinite}
+/* Responsive: stack on mobile */
+@media(max-width:900px){
+    .auth-fullpage{flex-direction:column}
+    .auth-fullpage-left{flex:none;min-height:auto;padding:60px 24px 40px}
+    .auth-fullpage-right{flex:none;padding:32px 24px 48px}
+    .auth-fullpage-right::before{display:none}
+    .auth-brand-section{max-width:100%}
+    .auth-brand-features{display:none}
+    .auth-brand-quote{display:none}
+    .auth-form-section{max-width:440px;margin:0 auto}
+}
+@media(max-width:480px){
+    .auth-fullpage-left{padding:48px 20px 32px}
+    .auth-fullpage-right{padding:28px 20px 40px}
+    .auth-brand-logo{width:60px;height:60px;border-radius:18px}
+    .auth-brand-logo i{font-size:28px}
+    .auth-brand-title{font-size:26px}
+    .auth-brand-subtitle{font-size:13px;margin-bottom:24px}
+    .auth-form-input{padding:12px 12px 12px 38px;font-size:13px}
+    .auth-form-btn{padding:12px;font-size:14px}
+    .auth-form-title{font-size:20px}
+}
 </style>
 </head>
 <body>
@@ -3308,12 +3408,14 @@ function initSupabaseAuth() {
             if (event === 'SIGNED_IN' && session) {
                 APP.user = session.user;
                 localStorage.setItem('rb_user', JSON.stringify({ id: session.user.id, email: session.user.email }));
-                // Close auth overlay if open
-                const overlay = document.getElementById('auth-overlay');
-                if (overlay) { overlay.classList.remove('active'); document.body.style.overflow = ''; }
+                // Restore header after sign-in
+                const header = document.getElementById('app-header');
+                if (header) header.style.display = '';
+                // Clear quote interval
+                if (window._authQuoteInterval) { clearInterval(window._authQuoteInterval); window._authQuoteInterval = null; }
                 // Route to appropriate page after sign-in
                 const hash = location.hash || '#/';
-                if (hash === '#/' || hash === '') {
+                if (hash === '#/' || hash === '' || hash === '#/login' || hash === '#/register') {
                     showToast(t('authLoginSuccess'), 'success');
                     location.hash = '#/dashboard';
                 } else {
@@ -3352,150 +3454,173 @@ function renderAuthPage() {
     const isId = APP.lang === 'id';
     const isLogin = _authMode === 'login';
     const isForgot = _authMode === 'forgot';
+    const isDark = document.documentElement.classList.contains('dark');
     
     // Store where user was trying to go
     if (!_authRedirectTo) _authRedirectTo = '#/dashboard';
     
-    // Show homepage behind the overlay if not already visible
-    const main = document.getElementById('app-main');
-    if (main && (!main.innerHTML || main.innerHTML.trim() === '' || location.hash === '#/dashboard')) {
-        renderHomepage();
-    }
+    // Hide header on auth page
+    const header = document.getElementById('app-header');
+    if (header) header.style.display = 'none';
     
-    // Create or reuse auth overlay
-    let overlay = document.getElementById('auth-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'auth-overlay';
-        document.body.appendChild(overlay);
-    }
-    
-    overlay.className = 'auth-overlay';
-    const isDark = document.documentElement.classList.contains('dark');
+    // Quotes for brand section
     const authQuotes = isId ? [
         `"File Anda, aturan Anda." — <span>RidgeBox</span>`,
-        `"3.200+ pengguna percaya pada RidgeBox"</span>`,
+        `"3.200+ pengguna percaya pada RidgeBox"`,
         `"Keamanan militer, harga nol rupiah." — <span>RidgeBox</span>`,
         `"Upload 100MB dalam ~3 detik" — <span>RidgeBox</span>`,
         `"105 fitur gratis, tanpa hidden cost." — <span>RidgeBox</span>`,
         `"Cloud storage yang menghormati privasi Anda." — <span>RidgeBox</span>`,
     ] : [
         `"Your files, your rules." — <span>RidgeBox</span>`,
-        `"3,200+ users trust RidgeBox"</span>`,
+        `"3,200+ users trust RidgeBox"`,
         `"Military-grade security, zero cost." — <span>RidgeBox</span>`,
         `"Upload 100MB in ~3 seconds" — <span>RidgeBox</span>`,
         `"105 features free, no hidden costs." — <span>RidgeBox</span>`,
         `"Cloud storage that respects your privacy." — <span>RidgeBox</span>`,
     ];
     const randomQuote = authQuotes[Math.floor(Math.random() * authQuotes.length)];
-    // Generate floating particles
+    
+    // Generate floating particles for left side
     const particleIcons = ['fa-cloud','fa-file','fa-shield-halved','fa-lock','fa-upload','fa-folder','fa-globe','fa-bolt'];
     let particlesHTML = '';
-    for (let i = 0; i < 18; i++) {
+    for (let i = 0; i < 14; i++) {
         const icon = particleIcons[i % particleIcons.length];
         const left = Math.random() * 100;
         const size = 14 + Math.random() * 18;
         const dur = 12 + Math.random() * 20;
         const delay = Math.random() * dur;
-        particlesHTML += `<i class="fas ${icon} auth-particle" style="left:${left}%;font-size:${size}px;animation-duration:${dur}s;animation-delay:-${delay}s"></i>`;
+        particlesHTML += `<i class="fas ${icon} auth-form-particle" style="left:${left}%;font-size:${size}px;animation-duration:${dur}s;animation-delay:-${delay}s"></i>`;
     }
 
-    overlay.innerHTML = `<div class="auth-overlay-backdrop" onclick="closeAuthOverlay()"></div>
-        <div class="auth-particles">${particlesHTML}</div>
-        <div class="auth-overlay-card fade-in">
-            <button class="auth-theme-toggle" onclick="toggleAuthTheme()" title="${isId ? 'Ganti tema' : 'Toggle theme'}"><i class="fas fa-${isDark ? 'sun' : 'moon'}"></i></button>
-            <button class="auth-overlay-close" onclick="closeAuthOverlay()" title="${isId ? 'Tutup' : 'Close'}"><i class="fas fa-times"></i></button>
-            <div class="auth-logo"><i class="fas fa-cloud"></i></div>
-            <div class="auth-title">${isForgot ? (isId ? 'Reset Kata Sandi' : 'Reset Password') : (isLogin ? t('authWelcomeBack') : t('authCreateAccount'))}</div>
-            <div class="auth-subtitle">${isForgot ? (isId ? 'Masukkan email untuk reset kata sandi' : 'Enter your email to reset password') : (isLogin ? t('authLoginDesc') : t('authRegisterDesc'))}</div>
-            
-            <div id="auth-error" class="auth-error"><i class="fas fa-exclamation-circle"></i><span id="auth-error-text"></span></div>
-            <div id="auth-success" class="auth-success"><i class="fas fa-check-circle"></i><span id="auth-success-text"></span></div>
+    // Brand features for left panel
+    const brandFeatures = [
+        { icon: 'fa-infinity', color: '#3b82f6', bg: 'rgba(59,130,246,.15)', title: isId ? 'Storage Unlimited' : 'Unlimited Storage', desc: isId ? 'Simpan sebanyak apapun tanpa batas kuota' : 'Store as much as you want without limits' },
+        { icon: 'fa-shield-halved', color: '#10b981', bg: 'rgba(16,185,129,.15)', title: isId ? 'Enkripsi End-to-End' : 'End-to-End Encryption', desc: isId ? 'AES-256-GCM melindungi semua file Anda' : 'AES-256-GCM protects all your files' },
+        { icon: 'fa-bolt', color: '#f59e0b', bg: 'rgba(245,158,11,.15)', title: isId ? 'Upload Super Cepat' : 'Lightning Fast Upload', desc: isId ? '100MB dalam ~3 detik dengan progress real-time' : '100MB in ~3 seconds with real-time progress' },
+        { icon: 'fa-share-nodes', color: '#8b5cf6', bg: 'rgba(139,92,246,.15)', title: isId ? 'Bagikan dengan Aman' : 'Share Securely', desc: isId ? 'Link dengan password, expiry, dan self-destruct' : 'Links with password, expiry, and self-destruct' },
+    ];
 
-            ${isForgot ? `
-                <div class="auth-input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="auth-email" class="auth-input" placeholder="${t('authEmail')}" autocomplete="email">
+    const main = document.getElementById('app-main');
+    if (!main) return;
+    
+    main.innerHTML = `
+    <div class="auth-fullpage fade-in">
+        <!-- LEFT: Brand Panel (dark aurora) -->
+        <div class="auth-fullpage-left">
+            <div class="auth-form-particles">${particlesHTML}</div>
+            <div class="auth-brand-section">
+                <div class="auth-brand-logo"><i class="fas fa-cloud"></i></div>
+                <div class="auth-brand-title">RidgeBox</div>
+                <div class="auth-brand-subtitle">${isId ? 'Cloud storage gratis, unlimited, dan terenkripsi. Simpan file Anda tanpa batas.' : 'Free, unlimited, encrypted cloud storage. Store your files without limits.'}</div>
+                <div class="auth-brand-features">
+                    ${brandFeatures.map(f => `
+                    <div class="auth-brand-feature">
+                        <div class="auth-brand-feature-icon" style="background:${f.bg};color:${f.color}"><i class="fas ${f.icon}"></i></div>
+                        <div class="auth-brand-feature-text"><strong>${f.title}</strong>${f.desc}</div>
+                    </div>`).join('')}
                 </div>
-                <button id="auth-submit" class="auth-btn auth-btn-primary" onclick="handleForgotPassword()">
-                    <i class="fas fa-paper-plane"></i> ${t('authSendReset')}
-                </button>
-                <div class="auth-switch" style="margin-top:16px">
-                    <a onclick="_authMode='login';renderAuthPage()">${t('authBackToLogin')}</a>
+                <div class="auth-brand-quote" id="auth-quote">${randomQuote}</div>
+            </div>
+        </div>
+        
+        <!-- RIGHT: Form Panel -->
+        <div class="auth-fullpage-right">
+            <button class="auth-form-theme-toggle" onclick="toggleAuthTheme()" title="${isId ? 'Ganti tema' : 'Toggle theme'}"><i class="fas fa-${isDark ? 'sun' : 'moon'}"></i></button>
+            <div class="auth-form-section">
+                <button class="auth-form-back" onclick="closeAuthOverlay()"><i class="fas fa-arrow-left"></i> ${isId ? 'Kembali' : 'Back'}</button>
+                
+                <div class="auth-form-header">
+                    <div class="auth-form-logo"><i class="fas fa-cloud"></i></div>
+                    <div class="auth-form-title">${isForgot ? (isId ? 'Reset Kata Sandi' : 'Reset Password') : (isLogin ? t('authWelcomeBack') : t('authCreateAccount'))}</div>
+                    <div class="auth-form-subtitle">${isForgot ? (isId ? 'Masukkan email untuk reset kata sandi' : 'Enter your email to reset password') : (isLogin ? t('authLoginDesc') : t('authRegisterDesc'))}</div>
                 </div>
-            ` : `
-                ${isLogin ? '' : `
-                    <div class="auth-input-group">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="auth-name" class="auth-input" placeholder="${isId ? 'Nama Lengkap' : 'Full Name'}" autocomplete="name">
+
+                <div id="auth-error" class="auth-form-error"><i class="fas fa-exclamation-circle"></i><span id="auth-error-text"></span></div>
+                <div id="auth-success" class="auth-form-success"><i class="fas fa-check-circle"></i><span id="auth-success-text"></span></div>
+
+                ${isForgot ? `
+                    <div class="auth-form-input-group">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" id="auth-email" class="auth-form-input" placeholder="${t('authEmail')}" autocomplete="email">
+                    </div>
+                    <button id="auth-submit" class="auth-form-btn auth-form-btn-primary" onclick="handleForgotPassword()">
+                        <i class="fas fa-paper-plane"></i> ${t('authSendReset')}
+                    </button>
+                    <div class="auth-form-switch" style="margin-top:16px">
+                        <a onclick="_authMode='login';renderAuthPage()">${t('authBackToLogin')}</a>
+                    </div>
+                ` : `
+                    ${isLogin ? '' : `
+                        <div class="auth-form-input-group">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="auth-name" class="auth-form-input" placeholder="${isId ? 'Nama Lengkap' : 'Full Name'}" autocomplete="name">
+                        </div>
+                    `}
+                    <div class="auth-form-input-group">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" id="auth-email" class="auth-form-input" placeholder="${t('authEmail')}" autocomplete="email">
+                    </div>
+                    <div class="auth-form-input-group">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="auth-password" class="auth-form-input" placeholder="${t('authPassword')}" autocomplete="${isLogin ? 'current-password' : 'new-password'}" oninput="onPasswordInput(this)">
+                        <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-password',this)"><i class="fas fa-eye"></i></button>
+                    </div>
+                    ${!isLogin ? `
+                        <div class="auth-form-strength" id="auth-strength">
+                            <div class="auth-form-strength-bar"><div class="auth-form-strength-fill" id="auth-strength-fill"></div></div>
+                            <div class="auth-form-strength-label"><span id="auth-strength-text"></span></div>
+                        </div>
+                        <div class="auth-form-input-group">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="auth-confirm-password" class="auth-form-input" placeholder="${t('authConfirmPassword')}" autocomplete="new-password">
+                            <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-confirm-password',this)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    ` : ''}
+                    
+                    ${isLogin ? `
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                            <div class="auth-form-remember">
+                                <input type="checkbox" id="auth-remember" checked>
+                                <label for="auth-remember">${isId ? 'Ingat saya' : 'Remember me'}</label>
+                            </div>
+                            <div class="auth-form-forgot" style="margin-bottom:0"><a onclick="_authMode='forgot';renderAuthPage()">${t('authForgotPassword')}</a></div>
+                        </div>
+                    ` : ''}
+                    
+                    <button id="auth-submit" class="auth-form-btn auth-form-btn-primary" onclick="${isLogin ? 'handleLogin()' : 'handleRegister()'}">
+                        <i class="fas fa-${isLogin ? 'sign-in-alt' : 'user-plus'}"></i>
+                        ${isLogin ? t('authLogin') : t('authRegister')}
+                    </button>
+
+                    <div class="auth-form-trust">
+                        <div class="auth-form-trust-badge"><i class="fas fa-shield-halved" style="color:#10b981"></i> AES-256</div>
+                        <div class="auth-form-trust-badge"><i class="fas fa-lock" style="color:#3b82f6"></i> ${isId ? 'Enkripsi E2E' : 'E2E Encrypted'}</div>
+                        <div class="auth-form-trust-badge"><i class="fas fa-bolt" style="color:#f59e0b"></i> 105+ ${isId ? 'Fitur' : 'Features'}</div>
+                    </div>
+
+                    <div class="auth-form-divider">${t('authOr')}</div>
+
+                    <button class="auth-form-btn auth-form-btn-google" onclick="handleGoogleLogin()">
+                        <i class="fab fa-google"></i> ${t('authGoogle')}
+                    </button>
+
+                    <div class="auth-form-switch">
+                        ${isLogin ? `${t('authNoAccount')} <a onclick="_authMode='register';renderAuthPage()">${t('authRegister')}</a>` : `${t('authHasAccount')} <a onclick="_authMode='login';renderAuthPage()">${t('authLogin')}</a>`}
                     </div>
                 `}
-                <div class="auth-input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="auth-email" class="auth-input" placeholder="${t('authEmail')}" autocomplete="email">
-                </div>
-                <div class="auth-input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="auth-password" class="auth-input" placeholder="${t('authPassword')}" autocomplete="${isLogin ? 'current-password' : 'new-password'}" oninput="onPasswordInput(this)">
-                    <button type="button" class="auth-pw-toggle" onclick="togglePwVisibility('auth-password',this)"><i class="fas fa-eye"></i></button>
-                </div>
-                ${!isLogin ? `
-                    <div class="auth-strength" id="auth-strength">
-                        <div class="auth-strength-bar"><div class="auth-strength-fill" id="auth-strength-fill"></div></div>
-                        <div class="auth-strength-label"><span id="auth-strength-text"></span></div>
-                    </div>
-                    <div class="auth-input-group">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="auth-confirm-password" class="auth-input" placeholder="${t('authConfirmPassword')}" autocomplete="new-password">
-                        <button type="button" class="auth-pw-toggle" onclick="togglePwVisibility('auth-confirm-password',this)"><i class="fas fa-eye"></i></button>
-                    </div>
-                ` : ''}
                 
-                ${isLogin ? `
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                        <div class="auth-remember">
-                            <input type="checkbox" id="auth-remember" checked>
-                            <label for="auth-remember">${isId ? 'Ingat saya' : 'Remember me'}</label>
-                        </div>
-                        <div class="auth-forgot" style="margin-bottom:0"><a onclick="_authMode='forgot';renderAuthPage()">${t('authForgotPassword')}</a></div>
-                    </div>
-                ` : ''}
-                
-                <button id="auth-submit" class="auth-btn auth-btn-primary" onclick="${isLogin ? 'handleLogin()' : 'handleRegister()'}">
-                    <i class="fas fa-${isLogin ? 'sign-in-alt' : 'user-plus'}"></i>
-                    ${isLogin ? t('authLogin') : t('authRegister')}
-                </button>
-
-                <div class="auth-trust">
-                    <div class="auth-trust-badge"><i class="fas fa-shield-halved" style="color:#10b981"></i> AES-256</div>
-                    <div class="auth-trust-badge"><i class="fas fa-lock" style="color:#3b82f6"></i> ${isId ? 'Enkripsi E2E' : 'E2E Encrypted'}</div>
-                    <div class="auth-trust-badge"><i class="fas fa-bolt" style="color:#f59e0b"></i> 105+ ${isId ? 'Fitur' : 'Features'}</div>
-                </div>
-
-                <div class="auth-divider">${t('authOr')}</div>
-
-                <button class="auth-btn auth-btn-google" onclick="handleGoogleLogin()">
-                    <i class="fab fa-google"></i> ${t('authGoogle')}
-                </button>
-
-                <div class="auth-switch">
-                    ${isLogin ? `${t('authNoAccount')} <a onclick="_authMode='register';renderAuthPage()">${t('authRegister')}</a>` : `${t('authHasAccount')} <a onclick="_authMode='login';renderAuthPage()">${t('authLogin')}</a>`}
-                </div>
-            `}
-            
-            <div class="auth-quote" id="auth-quote">${randomQuote}</div>
-            <div class="auth-terms">${t('authTerms')}</div>
-        </div>`;
+                <div class="auth-form-terms">${t('authTerms')}</div>
+            </div>
+        </div>
+    </div>`;
     
-    // Animate in
-    requestAnimationFrame(() => {
-        overlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    });
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'instant' });
     
     // Add enter key support + password strength + quote rotation
     setTimeout(() => {
-        const inputs = overlay.querySelectorAll('.auth-input');
+        const inputs = main.querySelectorAll('.auth-form-input');
         inputs.forEach(inp => {
             inp.addEventListener('keydown', e => {
                 if (e.key === 'Enter') {
@@ -3505,7 +3630,7 @@ function renderAuthPage() {
             });
         });
         // Auto-focus first input
-        const firstInput = overlay.querySelector('.auth-input');
+        const firstInput = main.querySelector('.auth-form-input');
         if (firstInput) firstInput.focus();
         // Rotate quote every 5s
         if (!window._authQuoteInterval) {
@@ -3525,16 +3650,14 @@ function renderAuthPage() {
 let _authRedirectTo = '';
 
 function closeAuthOverlay() {
-    const overlay = document.getElementById('auth-overlay');
-    if (overlay) {
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-        _authMode = 'login';
-        _authRedirectTo = '';
-        // Go back to homepage if not logged in
-        if (!isLoggedIn()) {
-            location.hash = '#/';
-        }
+    // Restore header
+    const header = document.getElementById('app-header');
+    if (header) header.style.display = '';
+    _authMode = 'login';
+    _authRedirectTo = '';
+    // Go back to homepage if not logged in
+    if (!isLoggedIn()) {
+        location.hash = '#/';
     }
     if (window._authQuoteInterval) {
         clearInterval(window._authQuoteInterval);
@@ -3589,19 +3712,10 @@ function toggleAuthTheme() {
     const isDark = document.documentElement.classList.contains('dark');
     localStorage.setItem('rb_theme', isDark ? 'dark' : 'light');
     // Update toggle icon
-    const btn = document.querySelector('.auth-theme-toggle i');
+    const btn = document.querySelector('.auth-form-theme-toggle i');
     if (btn) btn.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-    // Re-render to apply theme toggle icon
-    const card = document.querySelector('.auth-overlay-card');
-    if (card) {
-        if (isDark) {
-            card.style.background = 'rgba(30,41,59,.7)';
-            card.style.borderColor = 'rgba(255,255,255,.1)';
-        } else {
-            card.style.background = 'rgba(255,255,255,.06)';
-            card.style.borderColor = 'rgba(255,255,255,.12)';
-        }
-    }
+    // Re-render the auth page to apply theme fully
+    renderAuthPage();
 }
 
 // Show login activity toast
@@ -3668,9 +3782,10 @@ async function handleLogin() {
         localStorage.setItem('rb_user', JSON.stringify({ id: APP.user.id, email: APP.user.email }));
         showToast(t('authLoginSuccess'), 'success');
         showLoginActivity();
-        // Close overlay and navigate
-        const overlay = document.getElementById('auth-overlay');
-        if (overlay) { overlay.classList.remove('active'); document.body.style.overflow = ''; }
+        // Restore header and clear intervals
+        const header = document.getElementById('app-header');
+        if (header) header.style.display = '';
+        if (window._authQuoteInterval) { clearInterval(window._authQuoteInterval); window._authQuoteInterval = null; }
         const redirectTo = _authRedirectTo || '#/dashboard';
         _authRedirectTo = '';
         if (location.hash === redirectTo) {
@@ -3756,20 +3871,17 @@ function checkUrlRouting() {
     closeDetailPanel();
     closeContextMenu();
 
-    // Close auth overlay if navigating away from protected route while logged in
-    if (isLoggedIn()) {
-        const overlay = document.getElementById('auth-overlay');
-        if (overlay) { overlay.classList.remove('active'); document.body.style.overflow = ''; }
-    }
+    // Restore header when navigating away from auth pages
+    const header = document.getElementById('app-header');
+    if (header && !['#/login', '#/register'].includes(hash)) header.style.display = '';
 
-    // Auth guard for protected routes — show overlay on top of homepage
+    // Auth guard for protected routes — show dedicated login page
     const protectedRoutes = ['#/dashboard', '#/storage', '#/file/', '#/analytics'];
     const isProtected = protectedRoutes.some(r => hash.startsWith(r));
     if (isProtected && isAuthRequired() && !isLoggedIn()) {
         _authRedirectTo = hash;
-        // Show homepage first, then auth overlay on top
-        renderHomepage();
-        setTimeout(() => renderAuthPage(), 100);
+        _authMode = 'login';
+        renderAuthPage();
         return;
     }
 
@@ -3778,13 +3890,11 @@ function checkUrlRouting() {
     } else if (hash === '#/login') {
         _authMode = 'login';
         _authRedirectTo = '#/dashboard';
-        renderHomepage();
-        setTimeout(() => renderAuthPage(), 100);
+        renderAuthPage();
     } else if (hash === '#/register') {
         _authMode = 'register';
         _authRedirectTo = '#/dashboard';
-        renderHomepage();
-        setTimeout(() => renderAuthPage(), 100);
+        renderAuthPage();
     } else if (hash === '#/dashboard') {
         checkPinThenRender(() => renderDashboard());
     } else if (hash === '#/storage') {
