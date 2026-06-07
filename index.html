@@ -1633,6 +1633,17 @@ body.no-transition,body.no-transition *{transition:none!important}
 .auth-terms a{color:rgba(255,255,255,.4);text-decoration:underline}
 @keyframes authPulse{0%,100%{box-shadow:0 8px 30px rgba(59,130,246,.35)}50%{box-shadow:0 8px 40px rgba(59,130,246,.5)}}
 .auth-logo{animation:authPulse 3s ease infinite}
+/* ===== AUTH OVERLAY (modal on top of homepage) ===== */
+.auth-overlay{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .35s cubic-bezier(.4,0,.2,1)}
+.auth-overlay.active{opacity:1;pointer-events:auto}
+.auth-overlay-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:background .35s ease}
+.auth-overlay.active .auth-overlay-backdrop{background:rgba(0,0,0,.65)}
+.auth-overlay-card{position:relative;z-index:1;background:rgba(255,255,255,.06);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:40px 36px;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,.4);transform:translateY(30px) scale(.96);transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .3s ease;max-height:90vh;overflow-y:auto}
+.auth-overlay.active .auth-overlay-card{transform:translateY(0) scale(1)}
+.dark .auth-overlay-card{background:rgba(30,41,59,.7);border-color:rgba(255,255,255,.1)}
+.auth-overlay-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s ease;z-index:2}
+.auth-overlay-close:hover{background:rgba(255,255,255,.15);color:#fff;transform:scale(1.1)}
+@media(max-width:480px){.auth-overlay-card{padding:28px 20px;border-radius:20px 20px 0 0;max-width:100%;position:fixed;bottom:0;left:0;right:0;transform:translateY(100%)!important;max-height:85vh}.auth-overlay.active .auth-overlay-card{transform:translateY(0)!important}.auth-overlay-close{top:12px;right:12px}}
 @media(max-width:480px){.auth-card{padding:28px 20px;border-radius:20px}.auth-title{font-size:20px}.auth-input{padding:12px 12px 12px 38px;font-size:13px}.auth-btn{padding:12px;font-size:14px}}
 </style>
 </head>
@@ -3133,6 +3144,15 @@ function initSupabaseAuth() {
             if (event === 'SIGNED_IN' && session) {
                 APP.user = session.user;
                 localStorage.setItem('rb_user', JSON.stringify({ id: session.user.id, email: session.user.email }));
+                // Close auth overlay if open
+                const overlay = document.getElementById('auth-overlay');
+                if (overlay) { overlay.classList.remove('active'); document.body.style.overflow = ''; }
+                // If on homepage after Google OAuth redirect, go to dashboard
+                const hash = location.hash || '#/';
+                if (hash === '#/' || hash === '') {
+                    showToast(t('authLoginSuccess'), 'success');
+                    location.hash = '#/dashboard';
+                }
             } else if (event === 'SIGNED_OUT') {
                 APP.user = null;
                 localStorage.removeItem('rb_user');
@@ -3162,14 +3182,31 @@ function isLoggedIn() {
 }
 
 function renderAuthPage() {
-    const main = document.getElementById('app-main');
-    if (!main) return;
     const isId = APP.lang === 'id';
     const isLogin = _authMode === 'login';
     const isForgot = _authMode === 'forgot';
     
-    main.innerHTML = `<div class="auth-page">
-        <div class="auth-card fade-in">
+    // Store where user was trying to go
+    if (!_authRedirectTo) _authRedirectTo = '#/dashboard';
+    
+    // Show homepage behind the overlay if not already visible
+    const main = document.getElementById('app-main');
+    if (main && (!main.innerHTML || main.innerHTML.trim() === '' || location.hash === '#/dashboard')) {
+        renderHomepage();
+    }
+    
+    // Create or reuse auth overlay
+    let overlay = document.getElementById('auth-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'auth-overlay';
+        document.body.appendChild(overlay);
+    }
+    
+    overlay.className = 'auth-overlay';
+    overlay.innerHTML = `<div class="auth-overlay-backdrop" onclick="closeAuthOverlay()"></div>
+        <div class="auth-overlay-card fade-in">
+            <button class="auth-overlay-close" onclick="closeAuthOverlay()" title="${isId ? 'Tutup' : 'Close'}"><i class="fas fa-times"></i></button>
             <div class="auth-logo"><i class="fas fa-cloud"></i></div>
             <div class="auth-title">${isForgot ? (isId ? 'Reset Kata Sandi' : 'Reset Password') : (isLogin ? t('authWelcomeBack') : t('authCreateAccount'))}</div>
             <div class="auth-subtitle">${isForgot ? (isId ? 'Masukkan email untuk reset kata sandi' : 'Enter your email to reset password') : (isLogin ? t('authLoginDesc') : t('authRegisterDesc'))}</div>
@@ -3229,16 +3266,17 @@ function renderAuthPage() {
             `}
             
             <div class="auth-terms">${t('authTerms')}</div>
-        </div>
-    </div>`;
+        </div>`;
     
-    // Hide header on auth page
-    const header = document.getElementById('app-header');
-    if (header) header.innerHTML = '';
+    // Animate in
+    requestAnimationFrame(() => {
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
     
     // Add enter key support
     setTimeout(() => {
-        const inputs = main.querySelectorAll('.auth-input');
+        const inputs = overlay.querySelectorAll('.auth-input');
         inputs.forEach(inp => {
             inp.addEventListener('keydown', e => {
                 if (e.key === 'Enter') {
@@ -3248,9 +3286,25 @@ function renderAuthPage() {
             });
         });
         // Auto-focus first input
-        const firstInput = main.querySelector('.auth-input');
+        const firstInput = overlay.querySelector('.auth-input');
         if (firstInput) firstInput.focus();
-    }, 100);
+    }, 300);
+}
+
+let _authRedirectTo = '';
+
+function closeAuthOverlay() {
+    const overlay = document.getElementById('auth-overlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+        _authMode = 'login';
+        _authRedirectTo = '';
+        // Go back to homepage if not logged in
+        if (!isLoggedIn()) {
+            location.hash = '#/';
+        }
+    }
 }
 
 function showAuthError(msg) {
@@ -3289,7 +3343,12 @@ async function handleLogin() {
         APP.user = (await APP.supabase.auth.getUser()).data.user;
         localStorage.setItem('rb_user', JSON.stringify({ id: APP.user.id, email: APP.user.email }));
         showToast(t('authLoginSuccess'), 'success');
-        location.hash = '#/dashboard';
+        // Close overlay and navigate
+        const overlay = document.getElementById('auth-overlay');
+        if (overlay) { overlay.classList.remove('active'); document.body.style.overflow = ''; }
+        const redirectTo = _authRedirectTo || '#/dashboard';
+        _authRedirectTo = '';
+        location.hash = redirectTo;
     } catch(e) {
         showAuthError(e.message || (APP.lang === 'id' ? 'Email atau kata sandi salah' : 'Invalid email or password'));
     } finally { setAuthLoading(false); }
@@ -3367,11 +3426,20 @@ function checkUrlRouting() {
     closeDetailPanel();
     closeContextMenu();
 
-    // Auth guard for protected routes
+    // Close auth overlay if navigating away from protected route while logged in
+    if (isLoggedIn()) {
+        const overlay = document.getElementById('auth-overlay');
+        if (overlay) { overlay.classList.remove('active'); document.body.style.overflow = ''; }
+    }
+
+    // Auth guard for protected routes — show overlay on top of homepage
     const protectedRoutes = ['#/dashboard', '#/storage', '#/file/'];
     const isProtected = protectedRoutes.some(r => hash.startsWith(r));
     if (isProtected && isAuthRequired() && !isLoggedIn()) {
-        renderAuthPage();
+        _authRedirectTo = hash;
+        // Show homepage first, then auth overlay on top
+        renderHomepage();
+        setTimeout(() => renderAuthPage(), 100);
         return;
     }
 
