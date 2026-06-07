@@ -279,9 +279,9 @@ body.view-mobile .file-list-row .action-btns,body.view-mobile .file-row-premium 
 .sr-delay-1{animation-delay:.1s!important}.sr-delay-2{animation-delay:.2s!important}.sr-delay-3{animation-delay:.3s!important}.sr-delay-4{animation-delay:.4s!important}.sr-delay-5{animation-delay:.5s!important}
 
 /* Animated Logo */
-@keyframes logoReveal{0%{transform:scale(0) rotate(-180deg);opacity:0}60%{transform:scale(1.1) rotate(10deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:1}}
+@keyframes logoReveal{0%{transform:scale(0);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
 @keyframes logoPulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.4)}50%{box-shadow:0 0 0 15px rgba(59,130,246,0)}}
-.logo-animated{animation:logoReveal 1s cubic-bezier(.4,0,.2,1) forwards,logoPulse 2s ease 1s infinite}
+.logo-animated{animation:logoReveal 1s cubic-bezier(.4,0,.2,1) forwards,logoPulse 2s ease 1s infinite;will-change:transform,box-shadow}
 
 /* Premium Stat Card */
 @keyframes countUpPremium{from{opacity:0;transform:translateY(20px) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -477,8 +477,8 @@ body.view-mobile .file-list-row .action-btns,body.view-mobile .file-row-premium 
 .counter-digit span{display:inline-block;animation:counterRoll .6s cubic-bezier(.23,1,.32,1) forwards;transform:translateY(100%)}
 
 /* Glow Pulse Ring */
-@keyframes glowPulseRing{0%{transform:scale(.8);opacity:.6}100%{transform:scale(2.2);opacity:0}}
-.glow-ring{position:absolute;border:2px solid rgba(59,130,246,.4);border-radius:50%;animation:glowPulseRing 2.5s ease-out infinite;pointer-events:none}
+@keyframes glowPulseRing{0%{transform:scale(.8);opacity:.5}100%{transform:scale(2.5);opacity:0}}
+.glow-ring{position:absolute;border:2px solid rgba(59,130,246,.35);border-radius:50%;animation:glowPulseRing 2.5s ease-out infinite;pointer-events:none}
 .glow-ring-2{animation-delay:.8s}
 .glow-ring-3{animation-delay:1.6s}
 
@@ -817,8 +817,8 @@ body.no-transition,body.no-transition *{transition:none!important}
 .carousel-dots{display:flex;justify-content:center;gap:8px;margin-top:24px}
 .carousel-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .3s ease;border:none;padding:0}
 .carousel-dot.active{background:var(--accent);width:24px;border-radius:4px}
-@media(max-width:768px){.feature-carousel{overflow:hidden}.feature-carousel-card{min-width:calc(80% - 12px);padding:24px 18px}.feature-carousel-icon{width:48px;height:48px;font-size:22px}.feature-carousel-card h3{font-size:15px}}
-@media(max-width:480px){.feature-carousel-card{min-width:calc(100% - 16px);padding:20px 16px;margin:0 4px}}
+@media(max-width:768px){.feature-carousel{overflow:hidden;padding:0 4px}.feature-carousel-card{min-width:85%;padding:24px 20px;margin:0 6px}.feature-carousel-icon{width:48px;height:48px;font-size:22px}.feature-carousel-card h3{font-size:15px}.feature-carousel-card p{font-size:12px}}
+@media(max-width:480px){.feature-carousel{padding:0}.feature-carousel-card{min-width:92%;padding:20px 16px;margin:0 4px}.feature-carousel-card h3{font-size:14px}.feature-carousel-card p{font-size:11px;line-height:1.5}}
 
 /* 5. Security Badges */
 .security-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;max-width:800px;margin:0 auto}
@@ -1495,10 +1495,12 @@ body.no-transition,body.no-transition *{transition:none!important}
     .hero-cta-primary,.hero-cta-secondary{padding:14px 28px;font-size:14px}
     .hero-badge{font-size:11px;padding:6px 12px;margin-bottom:20px}
     /* Logo size on mobile */
-    .logo-animated{width:80px!important;height:80px!important;border-radius:20px!important}
+    .logo-animated{width:80px!important;height:80px!important;border-radius:20px!important;margin-top:-40px!important;margin-left:-40px!important}
     .logo-animated i{font-size:36px!important}
-    .orbit-ring{display:none!important}
-    .glow-ring{display:none!important}
+    .sr.sr-delay-1[style*="width:200px"]{width:160px!important;height:160px!important}
+    .orbit-ring[style*="160px"]{width:120px!important;height:120px!important;margin-top:-60px!important;margin-left:-60px!important}
+    .orbit-ring[style*="200px"]{width:150px!important;height:150px!important;margin-top:-75px!important;margin-left:-75px!important}
+    .glow-ring[style*="120px"]{width:80px!important;height:80px!important;margin-top:-40px!important;margin-left:-40px!important}
 
     /* All homepage sections: reduce padding */
     .page-transition section{padding:40px 16px!important}
@@ -1566,6 +1568,34 @@ body.no-transition,body.no-transition *{transition:none!important}
 
     /* File type badges marquee */
     .file-type-badge{padding:6px 10px;font-size:10px}
+
+    /* New sections mobile fixes */
+    .glass-card[style*="min-width:180px"]{min-width:140px!important;padding:14px 18px!important}
+    .glass-card[style*="min-width:180px"] i{font-size:22px!important}
+    .glass-card[style*="min-width:180px"] div[style*="font-weight:700"]{font-size:12px!important}
+    .glass-card[style*="min-width:180px"] div[style*="font-size:11px"]{font-size:10px!important}
+
+    /* Use cases grid: 2 columns on tablet, 1 on phone */
+    .bento-card[style*="text-align:center"]{padding:24px 16px!important}
+
+    /* Multi-platform: smaller icons */
+    .glass-card[style*="min-width:90px"]{min-width:70px!important;padding:12px 10px!important}
+    .glass-card[style*="min-width:90px"] i{font-size:22px!important}
+    .glass-card[style*="min-width:90px"] span{font-size:10px!important}
+
+    /* Speed comparison bars */
+    .premium-card[style*="padding:18px 24px"]{padding:14px 16px!important}
+
+    /* Community counters: stack */
+    .premium-card[style*="min-width:160px"]{min-width:120px!important;padding:20px 16px!important}
+    .premium-card[style*="min-width:160px"] div[style*="font-size:36px"]{font-size:28px!important}
+
+    /* Keyboard shortcuts: 2 columns */
+    .premium-card[style*="padding:16px 20px"]{padding:12px 14px!important}
+    .premium-card[style*="padding:16px 20px"] kbd{font-size:10px!important;padding:3px 6px!important}
+
+    /* Live activity feed */
+    #live-activity-feed{max-height:240px!important}
 }
 
 @media(max-width:480px){
@@ -1593,6 +1623,21 @@ body.no-transition,body.no-transition *{transition:none!important}
 
     /* FAQ/Security grid: single column */
     .page-transition div[style*="grid-template-columns:repeat(auto-fit"]{grid-template-columns:1fr!important}
+
+    /* Extra small mobile: Tech Stack 2 columns */
+    .glass-card[style*="min-width:140px"],.glass-card[style*="min-width:180px"]{min-width:120px!important;padding:12px 14px!important;flex:1 1 45%!important}
+
+    /* Use cases: single column */
+    div[style*="grid-template-columns:repeat(auto-fit,minmax(240px"]{grid-template-columns:1fr!important}
+
+    /* Multi-platform: 4 per row */
+    .glass-card[style*="min-width:70px"],.glass-card[style*="min-width:90px"]{min-width:60px!important;padding:10px 8px!important}
+
+    /* Community counters: full width */
+    .premium-card[style*="min-width:120px"],.premium-card[style*="min-width:160px"]{min-width:100%!important}
+
+    /* Keyboard shortcuts: single column */
+    div[style*="grid-template-columns:repeat(auto-fit,minmax(200px"]{grid-template-columns:1fr!important}
 }
 
 /* ===== AUTH / LOGIN PAGE ===== */
@@ -5442,16 +5487,16 @@ function updateCarouselPosition() {
     if (!track || !dots.length) return;
     const cards = track.querySelectorAll('.feature-carousel-card');
     if (!cards.length) return;
-    const cardWidth = cards[0].offsetWidth + 12; // margin
     const isMobile = window.innerWidth <= 768;
     const isSmallMobile = window.innerWidth <= 480;
+    // On mobile, center the card in viewport; on desktop, slide by card width
+    const cardWidth = cards[0].offsetWidth + 12;
+    const containerWidth = track.parentElement.offsetWidth;
     let offset;
-    if (isSmallMobile) {
-        offset = -(_carouselSlide * cardWidth);
-    } else if (isMobile) {
-        offset = -(_carouselSlide * cardWidth);
+    if (isMobile) {
+        // Center active card in carousel container
+        offset = -( _carouselSlide * cardWidth) + (containerWidth - cards[0].offsetWidth) / 2 - 6;
     } else {
-        // Desktop: show 3 cards, shift by 1 card per slide
         offset = -(_carouselSlide * cardWidth);
     }
     track.style.transform = `translateX(${offset}px)`;
