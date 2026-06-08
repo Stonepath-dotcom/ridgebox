@@ -7,7 +7,8 @@
 <meta name="description" content="Simpan file gratis tanpa server. Unlimited storage, end-to-end encryption.">
 <meta name="theme-color" content="#3b82f6">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="/api/favicon" type="image/svg+xml">
+<link rel="icon" href="/logo-icon.png" type="image/png">
+<link rel="apple-touch-icon" href="/logo-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
@@ -550,9 +551,8 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 /* Glassmorphism Header */
 .header-glass{background:rgba(255,255,255,.92);border-bottom:1px solid transparent;border-image:linear-gradient(90deg,transparent,rgba(59,130,246,.3),rgba(139,92,246,.3),transparent) 1;max-width:100vw;overflow-x:hidden}
 .dark .header-glass{background:rgba(15,23,42,.95)}
-.header-logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 10px rgba(37,99,235,.35);overflow:hidden}.header-logo-icon .rb-logo-svg{width:20px;height:20px;display:block}
-.header-logo-icon::after{content:'';position:absolute;inset:-2px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#7c3aed,#2563eb);z-index:-1;opacity:.5;animation:logoGlow 3s ease infinite}
-@keyframes logoGlow{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.7;transform:scale(1.05)}}
+.header-logo-icon{width:32px;height:32px;border-radius:8px;overflow:hidden;position:relative;box-shadow:0 2px 10px rgba(37,99,235,.35)}.header-logo-icon img{width:100%;height:100%;object-fit:cover;display:block}
+@keyframes logoGlow{0%,100%{box-shadow:0 2px 10px rgba(37,99,235,.35)}50%{box-shadow:0 4px 18px rgba(37,99,235,.5)}}
 .header-pill-btn{padding:6px 14px;border-radius:99px;font-size:13px;cursor:pointer;border:none;background:rgba(59,130,246,.07);color:var(--text);transition:all .25s ease;font-family:inherit;font-weight:500;display:inline-flex;align-items:center;gap:6px}
 .header-pill-btn:hover{background:rgba(59,130,246,.14);color:var(--accent)}
 .dark .header-pill-btn{background:rgba(255,255,255,.07);color:#e2e8f0}
@@ -1536,7 +1536,7 @@ body.no-transition,body.no-transition *{transition:none!important}
     .hero-badge{font-size:11px;padding:6px 12px;margin-bottom:20px}
     /* Logo size on mobile */
     .logo-animated{width:80px!important;height:80px!important;border-radius:20px!important}
-    .logo-animated svg{width:46px!important;height:46px!important}
+    .logo-animated img{width:100%!important;height:100%!important}
     .hero-logo-container{width:160px!important;height:160px!important}
     .orbit-ring{width:120px!important;height:120px!important}
     .orbit-ring[style*="200px"]{width:150px!important;height:150px!important}
@@ -1794,7 +1794,7 @@ body.no-transition,body.no-transition *{transition:none!important}
 .auth-fullpage-right::before{content:'';position:absolute;top:0;left:0;bottom:0;width:1px;background:linear-gradient(180deg,transparent,var(--border),transparent)}
 .auth-brand-section{position:relative;z-index:2;text-align:center;max-width:480px}
 .auth-brand-logo{width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 12px 40px rgba(37,99,235,.4);animation:authPulse 3s ease infinite;overflow:hidden}
-.auth-brand-logo .rb-logo-svg{width:46px;height:46px;display:block}
+.auth-brand-logo img{width:100%;height:100%;object-fit:cover;display:block}
 .auth-brand-title{font-size:36px;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-1px}
 .auth-brand-subtitle{font-size:15px;color:rgba(255,255,255,.5);margin-bottom:40px;line-height:1.6}
 .auth-brand-features{display:flex;flex-direction:column;gap:16px;text-align:left;max-width:360px;margin:0 auto}
@@ -1809,7 +1809,7 @@ body.no-transition,body.no-transition *{transition:none!important}
 .auth-form-section{width:100%;max-width:400px;position:relative;z-index:2}
 .auth-form-header{margin-bottom:28px;text-align:center}
 .auth-form-header .auth-form-logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 4px 16px rgba(37,99,235,.3);overflow:hidden}
-.auth-form-header .auth-form-logo .rb-logo-svg{width:28px;height:28px;display:block}
+.auth-form-header .auth-form-logo img{width:100%;height:100%;object-fit:cover;display:block}
 .auth-form-title{font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px}
 .auth-form-subtitle{font-size:13px;color:var(--text-secondary)}
 .auth-form-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);cursor:pointer;margin-bottom:20px;padding:6px 12px;border-radius:8px;transition:all .2s ease;border:none;background:none;font-family:inherit}
@@ -1877,7 +1877,7 @@ body.no-transition,body.no-transition *{transition:none!important}
     .auth-fullpage-left{padding:48px 20px 32px}
     .auth-fullpage-right{padding:28px 20px 40px}
     .auth-brand-logo{width:60px;height:60px;border-radius:18px}
-    .auth-brand-logo .rb-logo-svg{width:34px;height:34px}
+
     .auth-brand-title{font-size:26px}
     .auth-brand-subtitle{font-size:13px;margin-bottom:24px}
     .auth-form-input{padding:12px 12px 12px 38px;font-size:13px}
@@ -1911,7 +1911,8 @@ body.no-transition,body.no-transition *{transition:none!important}
    ============================================================ */
 
 // ===== RIDGEBOX LOGO =====
-const RB_LOGO_SVG = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="rb-logo-svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 20V4h6c3.5 0 5.5 1.5 5.5 4.5 0 2-1.2 3.5-3.2 4.2L18 20h-4l-4.5-8H8v8H5zm3-12v4h2.8c2 0 3-1 3-2s-1-2-3-2H8z" fill="white"/><path d="M2 22l6-7 3 4 3-6 6 9H2z" fill="white" fill-opacity=".35"/></svg>`;
+// logo-icon.png = full app icon with gradient background
+// logo-white.png = white logo on transparent background
 
 // ===== GLOBAL STATE =====
 const APP = {
@@ -3513,7 +3514,7 @@ function renderAuthPage() {
         <div class="auth-fullpage-left">
             <div class="auth-form-particles">${particlesHTML}</div>
             <div class="auth-brand-section">
-                <div class="auth-brand-logo">${RB_LOGO_SVG}</div>
+                <div class="auth-brand-logo"><img src="/logo-icon.png" alt="RidgeBox"/></div>
                 <div class="auth-brand-title">RidgeBox</div>
                 <div class="auth-brand-subtitle">${isId ? 'Cloud storage gratis, unlimited, dan terenkripsi. Simpan file Anda tanpa batas.' : 'Free, unlimited, encrypted cloud storage. Store your files without limits.'}</div>
                 <div class="auth-brand-features">
@@ -3534,7 +3535,7 @@ function renderAuthPage() {
                 <button class="auth-form-back" onclick="closeAuthOverlay()"><i class="fas fa-arrow-left"></i> ${isId ? 'Kembali' : 'Back'}</button>
                 
                 <div class="auth-form-header">
-                    <div class="auth-form-logo">${RB_LOGO_SVG}</div>
+                    <div class="auth-form-logo"><img src="/logo-icon.png" alt="RidgeBox"/></div>
                     <div class="auth-form-title">${isForgot ? (isId ? 'Reset Kata Sandi' : 'Reset Password') : (isLogin ? t('authWelcomeBack') : t('authCreateAccount'))}</div>
                     <div class="auth-form-subtitle">${isForgot ? (isId ? 'Masukkan email untuk reset kata sandi' : 'Enter your email to reset password') : (isLogin ? t('authLoginDesc') : t('authRegisterDesc'))}</div>
                 </div>
@@ -4128,7 +4129,7 @@ function renderHeader() {
             ${isDashboard ? `<button class="header-pill-btn sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)"><i class="fas fa-bars"></i></button>` : ''}
             <a href="#/" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-size:16px">
                 <div class="header-logo-icon">
-                    ${RB_LOGO_SVG}
+                    <img src="/logo-icon.png" alt="RidgeBox"/>
                 </div>
                 <span class="hide-mobile-small" style="letter-spacing:-.5px;font-weight:700">Ridgebox</span>
             </a>
@@ -4877,8 +4878,8 @@ function renderHomepage() {
                 </div>
                 <div class="sr sr-delay-1 hero-logo-container" style="position:relative;width:200px;height:200px;margin:0 auto 36px;display:flex;align-items:center;justify-content:center">
                     <!-- Centered logo - no absolute positioning needed -->
-                    <div class="logo-animated" style="width:120px;height:120px;border-radius:30px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 60px rgba(37,99,235,.35),0 0 80px rgba(124,58,237,.2);position:relative;z-index:2;overflow:hidden">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:68px;height:68px;display:block;filter:drop-shadow(0 2px 8px rgba(0,0,0,.2))"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 20V4h6c3.5 0 5.5 1.5 5.5 4.5 0 2-1.2 3.5-3.2 4.2L18 20h-4l-4.5-8H8v8H5zm3-12v4h2.8c2 0 3-1 3-2s-1-2-3-2H8z" fill="white"/><path d="M2 22l6-7 3 4 3-6 6 9H2z" fill="white" fill-opacity=".35"/></svg>
+                    <div class="logo-animated" style="width:120px;height:120px;border-radius:30px;box-shadow:0 8px 60px rgba(37,99,235,.35),0 0 80px rgba(124,58,237,.2);position:relative;z-index:2;overflow:hidden">
+                        <img src="/logo-icon.png" alt="RidgeBox" style="width:100%;height:100%;object-fit:cover;display:block"/>
                     </div>
                     <!-- Orbit rings: absolute with inset:0 + margin:auto for centering (compatible with transform) -->
                     <div class="orbit-ring" style="width:160px;height:160px;position:absolute;inset:0;margin:auto"><div class="orbit-dot"></div></div>
@@ -5386,7 +5387,7 @@ function renderHomepage() {
                             <h3 id="blog-featured-title" style="font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.3;color:#fff">${isId?'RidgeBox v3.2: Upload Chunked & Gallery Publik':'RidgeBox v3.2: Chunked Upload & Public Gallery'}</h3>
                             <p id="blog-featured-desc" style="font-size:14px;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:16px">${isId?'Update besar! Upload file besar hingga 2GB dengan chunked upload, plus fitur gallery publik untuk showcase karya Anda.':'Major update! Upload large files up to 2GB with chunked upload, plus public gallery feature to showcase your work.'}</p>
                             <div style="display:flex;align-items:center;gap:8px">
-                                <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;overflow:hidden">${RB_LOGO_SVG.replace('class="rb-logo-svg"','style="width:17px;height:17px;display:block"')}</div>
+                                <div style="width:28px;height:28px;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(37,99,235,.3)"><img src="/logo-icon.png" alt="" style="width:100%;height:100%;object-fit:cover;display:block"/></div>
                                 <span style="font-size:12px;font-weight:600;color:#fff">RidgeBox Team</span>
                                 <span style="font-size:11px;color:rgba(255,255,255,.5)">· ${isId?'3 min baca':'3 min read'}</span>
                             </div>
@@ -5579,7 +5580,7 @@ function renderHomepage() {
             <div class="lux-footer-grid">
                 <div>
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(37,99,235,.3);overflow:hidden">${RB_LOGO_SVG.replace('class="rb-logo-svg"','style="width:22px;height:22px;display:block"')}</div>
+                        <div style="width:36px;height:36px;border-radius:10px;overflow:hidden;box-shadow:0 4px 12px rgba(37,99,235,.3)"><img src="/logo-icon.png" alt="" style="width:100%;height:100%;object-fit:cover;display:block"/></div>
                         <span style="font-size:18px;font-weight:800">Ridgebox</span>
                     </div>
                     <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;max-width:280px">${isId?'Cloud storage gratis & terenkripsi. Simpan file tanpa batas, aman dengan enkripsi militer.':'Free & encrypted cloud storage. Store files unlimited, secured with military-grade encryption.'}</p>
@@ -6806,8 +6807,8 @@ function renderSidebarHTML() {
     return `
         <!-- RidgeBox Branding -->
         <div style="display:flex;align-items:center;gap:10px;padding:6px 8px 18px;border-bottom:1px solid var(--border);margin-bottom:14px">
-            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(37,99,235,.25);overflow:hidden">
-                ${RB_LOGO_SVG.replace('class="rb-logo-svg"','style="width:22px;height:22px;display:block"')}
+            <div style="width:36px;height:36px;border-radius:10px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 12px rgba(37,99,235,.25)">
+                <img src="/logo-icon.png" alt="" style="width:100%;height:100%;object-fit:cover;display:block"/>
             </div>
             <div>
                 <div style="font-size:16px;font-weight:700;color:var(--text);line-height:1.2">RidgeBox</div>
