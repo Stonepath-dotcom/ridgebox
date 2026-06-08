@@ -6,4 +6,11 @@ Disallow: /#/admin
 Disallow: /#/admin-login
 Disallow: /#/settings
 
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+
 Sitemap: https://ridgebox.vercel.app/sitemap.xml
+
+# Security contact
+Contact: https://ridgebox.vercel.app/.well-known/security.txt
