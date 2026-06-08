@@ -1,8 +1,24 @@
 {
   "routes": [
+    { "src": "/robots.txt", "dest": "/robots.txt" },
+    { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
     { "src": "/api/proxy", "dest": "/api/proxy.js" },
     { "src": "/api/gdrive/(.*)", "dest": "/api/gdrive/$1" },
     { "src": "/api/s3/(.*)", "dest": "/api/s3/$1" },
     { "src": "/api/(.*)", "dest": "/api/$1" }
+  ],
+  "headers": [
+    {
+      "source": "/robots.txt",
+      "headers": [{ "key": "Content-Type", "value": "text/plain" }, { "key": "Cache-Control", "value": "public, max-age=3600" }]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [{ "key": "Content-Type", "value": "application/xml" }, { "key": "Cache-Control", "value": "public, max-age=3600" }]
+    },
+    {
+      "source": "/api/og-image",
+      "headers": [{ "key": "Content-Type", "value": "image/svg+xml" }, { "key": "Cache-Control", "value": "public, max-age=86400" }]
+    }
   ]
 }

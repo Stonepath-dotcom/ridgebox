@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /#/dashboard
+Disallow: /#/admin
+Disallow: /#/admin-login
+Disallow: /#/settings
+
+Sitemap: https://ridgebox.vercel.app/sitemap.xml

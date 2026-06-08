@@ -1,12 +1,15 @@
 {
-    "name": "Ridgebox",
-    "short_name": "Ridgebox",
-    "description": "Cloud storage gratis & aman. Simpan file tanpa batas, enkripsi end-to-end.",
+    "name": "RidgeBox — Cloud Storage Gratis & Terenkripsi",
+    "short_name": "RidgeBox",
+    "description": "Cloud storage gratis tanpa server. Unlimited storage, end-to-end encryption AES-256, share file dengan self-destruct link. 105+ fitur gratis.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#3b82f6",
     "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "id",
+    "dir": "ltr",
     "categories": ["utilities", "productivity"],
     "icons": [
         {
@@ -21,5 +24,15 @@
             "type": "image/svg+xml",
             "purpose": "any maskable"
         }
-    ]
+    ],
+    "screenshots": [
+        {
+            "src": "https://ridgebox.vercel.app/api/og-image",
+            "sizes": "1200x630",
+            "type": "image/svg+xml",
+            "form_factor": "wide"
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false
 }
