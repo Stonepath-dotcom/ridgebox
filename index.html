@@ -2059,78 +2059,115 @@ body.no-transition,body.no-transition *{transition:none!important}
 @media(max-width:600px){.cookie-banner{padding:12px 16px;gap:10px}.cookie-banner-text{font-size:12px;min-width:auto;max-width:none;width:100%}.cookie-banner-actions{width:100%;justify-content:stretch}.cookie-btn-accept,.cookie-btn-decline{flex:1;text-align:center}}
 
 /* ===== SHARE PORTAL PREMIUM ===== */
-.share-portal{min-height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.share-portal{min-height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--bg)}
 .share-portal-bg{position:absolute;inset:0;z-index:0;overflow:hidden}
-.share-portal-bg::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.12),transparent 70%);top:-200px;right:-100px;animation:orbFloat1 20s ease infinite}
-.share-portal-bg::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.08),transparent 70%);bottom:-100px;left:-50px;animation:orbFloat2 25s ease infinite}
-.share-portal-header{position:relative;z-index:1;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(255,255,255,.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.dark .share-portal-header{background:rgba(15,23,42,.5)}
+.share-portal-bg::before{content:'';position:absolute;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.1),transparent 70%);top:-300px;right:-200px;animation:orbFloat1 20s ease infinite}
+.share-portal-bg::after{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.07),transparent 70%);bottom:-150px;left:-100px;animation:orbFloat2 25s ease infinite}
+.dark .share-portal-bg::before{background:radial-gradient(circle,rgba(59,130,246,.15),transparent 70%)}
+.dark .share-portal-bg::after{background:radial-gradient(circle,rgba(139,92,246,.12),transparent 70%)}
+.share-portal-header{position:relative;z-index:1;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,0,0,.06)}
+.dark .share-portal-header{background:rgba(15,23,42,.7);border-bottom-color:rgba(255,255,255,.06)}
 .share-portal-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
-.share-portal-brand-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(59,130,246,.3)}
-.share-portal-brand-name{font-size:18px;font-weight:800}
-.share-portal-brand-tag{font-size:11px;color:var(--text-secondary);background:var(--bg-secondary);padding:2px 8px;border-radius:6px;margin-left:4px}
-.share-portal-body{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 20px;position:relative;z-index:1}
-.share-portal-card{width:100%;max-width:560px;background:var(--bg-card);border:1px solid var(--border);border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.08);transition:transform .3s ease,box-shadow .3s ease}
-.share-portal-card:hover{box-shadow:0 24px 72px rgba(0,0,0,.12)}
-.dark .share-portal-card{box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.share-preview{position:relative;width:100%;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;overflow:hidden}
-.share-preview-img{width:100%;max-height:400px;object-fit:contain;background:repeating-conic-gradient(var(--bg) 0% 25%,var(--bg-secondary) 0% 50%) 50%/16px 16px}
-.share-preview-video{width:100%;max-height:400px;background:#000}
-.share-preview-audio{width:100%;padding:32px 24px}
-.share-preview-pdf{width:100%;height:400px;border:none}
-.share-preview-icon{padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:12px}
-.share-preview-icon-circle{width:80px;height:80px;border-radius:24px;display:flex;align-items:center;justify-content:center}
-.share-preview-icon i{font-size:36px}
-.share-preview-ext{font-size:13px;font-weight:700;text-transform:uppercase;color:var(--text-secondary);letter-spacing:1px}
-.share-portal-info{padding:24px}
-.share-portal-filename{font-size:18px;font-weight:700;word-break:break-word;line-height:1.3;margin-bottom:4px}
-.share-portal-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.share-portal-meta-item{font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px}
-.share-portal-caption{font-size:13px;color:var(--text-secondary);font-style:italic;padding:10px 14px;background:var(--bg-secondary);border-radius:10px;margin-bottom:12px;line-height:1.5;border-left:3px solid var(--accent)}
-.share-portal-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.share-badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:4px}
-.share-badge-perm{background:rgba(59,130,246,.1);color:#3b82f6}
-.share-badge-selfdestruct{background:rgba(239,68,68,.1);color:#ef4444}
-.share-badge-expiry{background:rgba(245,158,11,.1);color:#f59e0b}
-.share-badge-encrypted{background:rgba(16,185,129,.1);color:#10b981}
-.share-portal-dl-btn{width:100%;padding:16px;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .3s cubic-bezier(.4,0,.2,1);font-family:inherit;position:relative;overflow:hidden;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;box-shadow:0 8px 24px rgba(59,130,246,.3)}
-.share-portal-dl-btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(59,130,246,.4)}
-.share-portal-dl-btn:active{transform:translateY(0)}
-.share-portal-dl-btn.downloading{pointer-events:none;opacity:.85}
-.share-portal-dl-progress{position:absolute;bottom:0;left:0;height:4px;background:rgba(255,255,255,.5);border-radius:0 0 14px 14px;transition:width .3s ease;width:0}
-.share-portal-dl-btn.downloading .share-portal-dl-progress{background:rgba(255,255,255,.7)}
-.share-portal-stats{display:flex;justify-content:center;gap:20px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
-.share-portal-stat{font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:4px}
-.share-portal-stat i{font-size:10px}
-.share-portal-actions{display:flex;gap:8px;margin-top:16px}
-.share-portal-action-btn{flex:1;padding:10px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--text-secondary);font-size:12px;font-weight:500;cursor:pointer;transition:all .2s ease;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit}
+.share-portal-brand-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(59,130,246,.35)}
+.share-portal-brand-name{font-size:17px;font-weight:800;letter-spacing:-.3px}
+.share-portal-brand-tag{font-size:10px;color:var(--text-secondary);background:var(--bg-secondary);padding:2px 8px;border-radius:6px;margin-left:2px;font-weight:500}
+.share-portal-header-actions{display:flex;gap:6px}
+.share-portal-header-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s ease;font-size:14px}
+.share-portal-header-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(59,130,246,.05)}
+.share-portal-body{flex:1;display:flex;align-items:center;justify-content:center;padding:28px 16px;position:relative;z-index:1}
+.share-portal-card{width:100%;max-width:520px;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.08);border-radius:24px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transition:transform .3s ease,box-shadow .3s ease}
+.share-portal-card:hover{box-shadow:0 16px 48px rgba(0,0,0,.1),0 4px 12px rgba(0,0,0,.06)}
+.dark .share-portal-card{background:rgba(30,41,59,.8);border-color:rgba(255,255,255,.08);box-shadow:0 8px 32px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.05)}
+.dark .share-portal-card:hover{box-shadow:0 16px 48px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.08)}
+.share-preview{position:relative;width:100%;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:180px}
+.share-preview-img{width:100%;max-height:380px;object-fit:contain;background:repeating-conic-gradient(var(--bg) 0% 25%,var(--bg-secondary) 0% 50%) 50%/16px 16px;transition:transform .4s ease}
+.share-preview-img:hover{transform:scale(1.02)}
+.share-preview-video{width:100%;max-height:380px;background:#000;border-radius:0}
+.share-preview-audio{width:100%;padding:40px 24px;display:flex;flex-direction:column;align-items:center;gap:20px}
+.share-preview-audio audio{width:100%;border-radius:12px}
+.share-preview-pdf{width:100%;height:380px;border:none}
+.share-preview-icon{padding:44px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;position:relative}
+.share-preview-icon-circle{width:88px;height:88px;border-radius:26px;display:flex;align-items:center;justify-content:center;position:relative;transition:transform .3s ease}
+.share-preview-icon-circle::after{content:'';position:absolute;inset:-6px;border-radius:30px;border:2px dashed currentColor;opacity:.15;animation:shareIconSpin 12s linear infinite}
+@keyframes shareIconSpin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+.share-preview-icon-circle:hover{transform:scale(1.06)}
+.share-preview-icon i{font-size:38px}
+.share-preview-ext{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-secondary);letter-spacing:1.5px;background:var(--bg-secondary);padding:4px 14px;border-radius:8px}
+.share-preview-wave{position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(transparent,var(--bg-card));z-index:1}
+.share-portal-info{padding:22px 24px 24px}
+.share-portal-filename{font-size:17px;font-weight:700;word-break:break-word;line-height:1.35;margin-bottom:6px;display:flex;align-items:flex-start;gap:8px}
+.share-portal-filename span{flex:1}
+.share-portal-filename .copy-name-btn{flex-shrink:0;width:28px;height:28px;border-radius:8px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s ease;opacity:0}
+.share-portal-filename:hover .copy-name-btn{opacity:1}
+.share-portal-filename .copy-name-btn:hover{background:var(--bg-secondary);color:var(--accent)}
+.share-portal-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.share-portal-meta-item{font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:4px}
+.share-portal-meta-item i{font-size:10px;opacity:.7}
+.share-portal-meta-sep{opacity:.3;font-size:10px}
+.share-portal-caption{font-size:13px;color:var(--text-secondary);font-style:italic;padding:10px 14px;background:var(--bg-secondary);border-radius:12px;margin-bottom:14px;line-height:1.5;border-left:3px solid var(--accent)}
+.share-portal-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.share-badge{font-size:10px;font-weight:600;padding:4px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;letter-spacing:.2px}
+.share-badge-perm{background:rgba(59,130,246,.08);color:#3b82f6;border:1px solid rgba(59,130,246,.12)}
+.share-badge-selfdestruct{background:rgba(239,68,68,.08);color:#ef4444;border:1px solid rgba(239,68,68,.12);animation:shareBadgePulse 3s ease infinite}
+@keyframes shareBadgePulse{0%,100%{opacity:1}50%{opacity:.7}}
+.share-badge-expiry{background:rgba(245,158,11,.08);color:#f59e0b;border:1px solid rgba(245,158,11,.12)}
+.share-badge-encrypted{background:rgba(16,185,129,.08);color:#10b981;border:1px solid rgba(16,185,129,.12)}
+.share-portal-dl-section{position:relative;margin-bottom:6px}
+.share-portal-dl-btn{width:100%;padding:15px;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .3s cubic-bezier(.4,0,.2,1);font-family:inherit;position:relative;overflow:hidden;background:linear-gradient(135deg,#3b82f6,#6366f1,#8b5cf6);background-size:200% 200%;color:#fff;box-shadow:0 6px 20px rgba(59,130,246,.3)}
+.share-portal-dl-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(59,130,246,.4);background-position:right center}
+.share-portal-dl-btn:active{transform:translateY(0);box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.share-portal-dl-btn.downloading{pointer-events:none;background:linear-gradient(135deg,#3b82f6,#6366f1,#8b5cf6);background-size:200% 200%;animation:dlBtnGradient 2s ease infinite}
+@keyframes dlBtnGradient{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.share-portal-dl-progress-wrap{width:100%;height:6px;background:rgba(255,255,255,.15);border-radius:6px;margin-top:10px;overflow:hidden;display:none}
+.share-portal-dl-btn.downloading~.share-portal-dl-progress-wrap{display:block}
+.share-portal-dl-progress{height:100%;background:linear-gradient(90deg,rgba(255,255,255,.5),rgba(255,255,255,.9));border-radius:6px;transition:width .3s ease;width:0}
+.share-portal-dl-percent{font-size:12px;font-weight:600;color:rgba(255,255,255,.9);display:none;margin-left:8px;min-width:38px}
+.share-portal-dl-btn.downloading .share-portal-dl-percent{display:inline}
+.share-portal-stats{display:flex;justify-content:center;gap:24px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.share-portal-stat{font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:5px}
+.share-portal-stat i{font-size:10px;opacity:.7}
+.share-portal-actions{display:flex;gap:8px;margin-top:14px}
+.share-portal-action-btn{flex:1;padding:9px 8px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--text-secondary);font-size:11px;font-weight:500;cursor:pointer;transition:all .2s ease;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit}
 .share-portal-action-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(59,130,246,.04)}
-.share-portal-cta{margin-top:20px;padding:20px;border-radius:16px;background:linear-gradient(135deg,rgba(59,130,246,.06),rgba(139,92,246,.06));border:1px solid rgba(59,130,246,.1);text-align:center;position:relative;overflow:hidden}
-.dark .share-portal-cta{background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(139,92,246,.1))}
-.share-portal-cta-title{font-size:15px;font-weight:700;margin-bottom:4px}
-.share-portal-cta-desc{font-size:12px;color:var(--text-secondary);margin-bottom:12px}
-.share-portal-cta-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 24px;border-radius:10px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;text-decoration:none;transition:all .2s ease;border:none;cursor:pointer;font-family:inherit}
-.share-portal-cta-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(59,130,246,.3)}
-.share-portal-footer{position:relative;z-index:1;padding:16px 24px;text-align:center;font-size:11px;color:var(--text-secondary);border-top:1px solid var(--border);background:rgba(255,255,255,.3);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.dark .share-portal-footer{background:rgba(15,23,42,.3)}
+.share-portal-action-btn i{font-size:11px}
+.share-portal-cta{margin-top:18px;padding:18px;border-radius:16px;background:linear-gradient(135deg,rgba(59,130,246,.05),rgba(139,92,246,.05));border:1px solid rgba(59,130,246,.08);text-align:center;position:relative;overflow:hidden}
+.dark .share-portal-cta{background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(139,92,246,.1));border-color:rgba(59,130,246,.12)}
+.share-portal-cta::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent,rgba(59,130,246,.04),transparent,rgba(139,92,246,.04),transparent);animation:shareCtaRotate 8s linear infinite}
+@keyframes shareCtaRotate{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+.share-portal-cta-title{font-size:14px;font-weight:700;margin-bottom:3px;position:relative;z-index:1}
+.share-portal-cta-desc{font-size:11px;color:var(--text-secondary);margin-bottom:12px;position:relative;z-index:1}
+.share-portal-cta-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 22px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:12px;font-weight:600;text-decoration:none;transition:all .2s ease;border:none;cursor:pointer;font-family:inherit;position:relative;z-index:1;box-shadow:0 4px 14px rgba(59,130,246,.25)}
+.share-portal-cta-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(59,130,246,.35)}
+.share-portal-footer{position:relative;z-index:1;padding:14px 24px;text-align:center;font-size:10px;color:var(--text-secondary);border-top:1px solid var(--border);background:rgba(255,255,255,.4);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;gap:6px}
+.dark .share-portal-footer{background:rgba(15,23,42,.5);border-top-color:rgba(255,255,255,.05)}
+.share-portal-footer i{color:#10b981;font-size:11px}
 .share-report-modal{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .3s ease}
 .share-report-modal.visible{opacity:1;pointer-events:auto}
-.share-report-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.share-report-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.15);transform:scale(.95);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.share-report-modal.visible .share-report-card{transform:scale(1)}
 .share-report-card h3{font-size:16px;font-weight:700;margin-bottom:4px}
 .share-report-card p{font-size:12px;color:var(--text-secondary);margin-bottom:16px}
-.share-report-option{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s ease;margin-bottom:8px;font-size:13px}
-.share-report-option:hover{border-color:var(--accent);background:rgba(59,130,246,.04)}
+.share-report-option{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all .2s ease;margin-bottom:8px;font-size:13px}
+.share-report-option:hover{border-color:var(--accent);background:rgba(59,130,246,.04);transform:translateX(4px)}
 .share-report-option.selected{border-color:var(--accent);background:rgba(59,130,246,.08)}
 .share-report-option i{color:var(--text-secondary);width:16px;text-align:center}
-.share-qr-canvas{background:#fff;padding:12px;border-radius:12px;display:inline-block}
+.share-qr-canvas{background:#fff;padding:16px;border-radius:16px;display:inline-block;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.share-qr-center-logo{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:10px;font-weight:800;letter-spacing:-.5px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,.2)}
 @media(max-width:600px){
-    .share-portal-card{border-radius:18px}
-    .share-portal-info{padding:18px}
+    .share-portal-card{border-radius:20px}
+    .share-portal-info{padding:18px 20px 20px}
     .share-portal-filename{font-size:15px}
-    .share-preview-img{max-height:280px}
-    .share-preview-pdf{height:280px}
-    .share-portal-header{padding:14px 16px}
-    .share-portal-cta{padding:16px}
+    .share-preview-img{max-height:260px}
+    .share-preview-pdf{height:260px}
+    .share-portal-header{padding:12px 16px}
+    .share-portal-cta{padding:14px}
+    .share-preview-icon{padding:36px 20px}
+    .share-preview-icon-circle{width:72px;height:72px;border-radius:22px}
+    .share-preview-icon i{font-size:32px}
+    .share-portal-dl-btn{padding:14px;font-size:14px;border-radius:12px}
+    .share-portal-body{padding:20px 12px}
+    .share-portal-meta{gap:4px}
+    .share-portal-filename .copy-name-btn{opacity:.6}
 }
 
 /* ===== INTERACTIVE ARCHITECTURE DIAGRAM ===== */
@@ -9797,30 +9834,25 @@ function renderShareDownload(share, file) {
 
     // Build preview HTML based on file type
     let previewHtml = '';
-    if (type === 'image') {
-        const imgUrl = file.filePath ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex || '0'}` : (file.url || '');
-        if (imgUrl) {
-            previewHtml = `<div class="share-preview"><img src="${imgUrl}" alt="${file.name}" class="share-preview-img" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'share-preview-icon\\'><div class=\\'share-preview-icon-circle\\' style=\\'background:${icon.color}15\\'><i class=\\'fas ${icon.icon}\\' style=\\'color:${icon.color}\\'></i></div><div class=\\'share-preview-ext\\'>.${ext}</div></div>'"></div>`;
-        } else {
-            previewHtml = `<div class="share-preview"><div class="share-preview-icon"><div class="share-preview-icon-circle" style="background:${icon.color}15"><i class="fas ${icon.icon}" style="color:${icon.color}"></i></div><div class="share-preview-ext">.${ext}</div></div></div>`;
-        }
-    } else if (type === 'video') {
-        const vidUrl = file.filePath ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex || '0'}` : (file.url || '');
-        previewHtml = `<div class="share-preview"><video controls class="share-preview-video" preload="metadata" src="${vidUrl}" poster=""><span slot="errorMessage">${isId?'Video tidak dapat dimuat':'Video cannot be loaded'}</span></video></div>`;
-    } else if (type === 'audio') {
-        const audUrl = file.filePath ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex || '0'}` : (file.url || '');
-        previewHtml = `<div class="share-preview"><div class="share-preview-audio"><div style="text-align:center;margin-bottom:16px"><div class="share-preview-icon-circle" style="background:${icon.color}15;margin:0 auto"><i class="fas ${icon.icon}" style="color:${icon.color}"></i></div></div><audio controls style="width:100%" preload="metadata" src="${audUrl}"></audio></div></div>`;
-    } else if (type === 'pdf') {
-        const pdfUrl = file.filePath ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex || '0'}` : (file.url || '');
-        previewHtml = `<div class="share-preview"><iframe src="${pdfUrl}" class="share-preview-pdf" title="${file.name}"></iframe></div>`;
+    const fileApiUrl = file.filePath ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex || '0'}` : (file.url || '');
+    if (type === 'image' && fileApiUrl) {
+        previewHtml = `<div class="share-preview"><img src="${fileApiUrl}" alt="${file.name}" class="share-preview-img" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'share-preview-icon\\'><div class=\\'share-preview-icon-circle\\' style=\\'background:${icon.color}15;color:${icon.color}\\'><i class=\\'fas ${icon.icon}\\'></i></div><div class=\\'share-preview-ext\\'>.${ext}</div></div>'"></div>`;
+    } else if (type === 'image') {
+        previewHtml = `<div class="share-preview"><div class="share-preview-icon"><div class="share-preview-icon-circle" style="background:${icon.color}15;color:${icon.color}"><i class="fas ${icon.icon}"></i></div><div class="share-preview-ext">.${ext}</div></div></div>`;
+    } else if (type === 'video' && fileApiUrl) {
+        previewHtml = `<div class="share-preview"><video controls class="share-preview-video" preload="metadata" src="${fileApiUrl}" playsinline></video></div>`;
+    } else if (type === 'audio' && fileApiUrl) {
+        previewHtml = `<div class="share-preview"><div class="share-preview-audio"><div class="share-preview-icon-circle" style="background:${icon.color}15;color:${icon.color}"><i class="fas ${icon.icon}"></i></div><audio controls preload="metadata" src="${fileApiUrl}" style="width:100%"></audio></div></div>`;
+    } else if (type === 'pdf' && fileApiUrl) {
+        previewHtml = `<div class="share-preview"><iframe src="${fileApiUrl}" class="share-preview-pdf" title="${file.name}"></iframe></div>`;
     } else {
-        previewHtml = `<div class="share-preview"><div class="share-preview-icon"><div class="share-preview-icon-circle" style="background:${icon.color}15"><i class="fas ${icon.icon}" style="color:${icon.color}"></i></div><div class="share-preview-ext">.${ext}</div></div></div>`;
+        previewHtml = `<div class="share-preview"><div class="share-preview-icon"><div class="share-preview-icon-circle" style="background:${icon.color}15;color:${icon.color}"><i class="fas ${icon.icon}"></i></div><div class="share-preview-ext">.${ext}</div></div></div>`;
     }
 
     // Build badges
-    let badgesHtml = `<span class="share-badge share-badge-perm"><i class="fas ${permissionLevel==='view'?'fa-eye':permissionLevel==='edit'?'fa-pen':'fa-download'}" style="font-size:10px"></i> ${permLabel}</span>`;
-    if (file.encrypted) badgesHtml += `<span class="share-badge share-badge-encrypted"><i class="fas fa-lock" style="font-size:10px"></i> ${isId?'Terenkripsi':'Encrypted'}</span>`;
-    if (share.selfDestruct) badgesHtml += `<span class="share-badge share-badge-selfdestruct"><i class="fas fa-fire" style="font-size:10px"></i> ${isId?'Sekali Pakai':'One-time'}</span>`;
+    let badgesHtml = `<span class="share-badge share-badge-perm"><i class="fas ${permissionLevel==='view'?'fa-eye':permissionLevel==='edit'?'fa-pen':'fa-download'}" style="font-size:9px"></i> ${permLabel}</span>`;
+    if (file.encrypted) badgesHtml += `<span class="share-badge share-badge-encrypted"><i class="fas fa-lock" style="font-size:9px"></i> ${isId?'Terenkripsi':'Encrypted'}</span>`;
+    if (share.selfDestruct) badgesHtml += `<span class="share-badge share-badge-selfdestruct"><i class="fas fa-fire" style="font-size:9px"></i> ${isId?'Sekali Pakai':'One-time'}</span>`;
     if (share.expiry && share.expiry > 0) {
         const rem = share.expiry - Date.now();
         if (rem > 0) {
@@ -9828,7 +9860,7 @@ function renderShareDownload(share, file) {
             const h = Math.floor((rem % 86400000) / 3600000);
             const m = Math.floor((rem % 3600000) / 60000);
             let expStr = d > 0 ? d + 'd ' + h + 'h' : h > 0 ? h + 'h ' + m + 'm' : m + 'm';
-            badgesHtml += `<span class="share-badge share-badge-expiry"><i class="fas fa-clock" style="font-size:10px"></i> ${expStr}</span>`;
+            badgesHtml += `<span class="share-badge share-badge-expiry"><i class="fas fa-clock" style="font-size:9px"></i> ${expStr}</span>`;
         }
     }
 
@@ -9841,35 +9873,36 @@ function renderShareDownload(share, file) {
         <div class="share-portal-bg"></div>
         <div class="share-portal-header">
             <a href="#/" class="share-portal-brand">
-                <div class="share-portal-brand-icon"><i class="fas fa-cloud" style="color:#fff;font-size:16px"></i></div>
+                <div class="share-portal-brand-icon"><i class="fas fa-cloud" style="color:#fff;font-size:15px"></i></div>
                 <span class="share-portal-brand-name">Ridgebox</span>
-                <span class="share-portal-brand-tag">${isId?'Cloud Storage':'Cloud Storage'}</span>
+                <span class="share-portal-brand-tag">Cloud Storage</span>
             </a>
-            <div style="display:flex;gap:8px">
-                <button class="share-portal-action-btn" style="flex:none;padding:8px 12px" onclick="toggleShareQR()" title="QR Code"><i class="fas fa-qrcode"></i></button>
+            <div class="share-portal-header-actions">
+                <button class="share-portal-header-btn" onclick="copyShareLink()" title="${isId?'Salin Link':'Copy Link'}"><i class="fas fa-link"></i></button>
+                <button class="share-portal-header-btn" onclick="toggleShareQR()" title="QR Code"><i class="fas fa-qrcode"></i></button>
             </div>
         </div>
         <div class="share-portal-body">
             <div class="share-portal-card">
                 ${previewHtml}
                 <div class="share-portal-info">
-                    <div class="share-portal-filename">${file.name}</div>
+                    <div class="share-portal-filename"><span>${file.name}</span><button class="copy-name-btn" onclick="navigator.clipboard.writeText('${file.name.replace(/'/g,"\\'")}');showToast('${isId?'Nama file disalin!':'File name copied!'}','success')" title="${isId?'Salin nama':'Copy name'}"><i class="fas fa-copy"></i></button></div>
                     <div class="share-portal-meta">
                         <span class="share-portal-meta-item"><i class="fas fa-weight-hanging"></i> ${formatSize(file.size)}</span>
-                        <span class="share-portal-meta-item" style="opacity:.4">·</span>
+                        <span class="share-portal-meta-sep">·</span>
                         <span class="share-portal-meta-item"><i class="fas fa-file"></i> ${type.toUpperCase()}</span>
-                        <span class="share-portal-meta-item" style="opacity:.4">·</span>
+                        <span class="share-portal-meta-sep">·</span>
                         <span class="share-portal-meta-item"><i class="fas fa-calendar"></i> ${formatDate(share.createdAt || Date.now())}</span>
                     </div>
                     ${file.caption ? `<div class="share-portal-caption">"${file.caption}"</div>` : ''}
                     <div class="share-portal-badges">${badgesHtml}</div>
-                    ${isViewOnly ? `<div style="padding:14px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:10px;margin-bottom:16px;text-align:center;font-size:13px;color:var(--accent)"><i class="fas fa-eye" style="margin-right:6px"></i> ${isId?'File ini hanya bisa dilihat, tidak bisa didownload':'This file is view-only and cannot be downloaded'}</div>` : `<button class="share-portal-dl-btn" id="share-dl-btn" onclick="${downloadFn}"><i class="fas fa-download"></i> <span id="share-dl-text">${isId?'Download File':'Download File'}</span><div class="share-portal-dl-progress" id="share-dl-progress"></div></button>`}
+                    ${isViewOnly ? `<div style="padding:14px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:12px;margin-bottom:16px;text-align:center;font-size:13px;color:var(--accent)"><i class="fas fa-eye" style="margin-right:6px"></i> ${isId?'File ini hanya bisa dilihat, tidak bisa didownload':'This file is view-only and cannot be downloaded'}</div>` : `<div class="share-portal-dl-section"><button class="share-portal-dl-btn" id="share-dl-btn" onclick="${downloadFn}"><i class="fas fa-download" id="share-dl-icon"></i> <span id="share-dl-text">${isId?'Download File':'Download File'}</span><span class="share-portal-dl-percent" id="share-dl-percent">0%</span></button><div class="share-portal-dl-progress-wrap"><div class="share-portal-dl-progress" id="share-dl-progress"></div></div></div>`}
                     <div class="share-portal-stats">
                         <span class="share-portal-stat"><i class="fas fa-download"></i> ${dlCount} ${isId?'download':'downloads'}</span>
                         <span class="share-portal-stat"><i class="fas fa-eye"></i> ${clickCount} ${isId?'klik':'views'}</span>
                     </div>
                     <div class="share-portal-actions">
-                        <button class="share-portal-action-btn" onclick="copyShareLink()"><i class="fas fa-link"></i> ${isId?'Salin Link':'Copy Link'}</button>
+                        <button class="share-portal-action-btn" onclick="shareToWhatsApp()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
                         <button class="share-portal-action-btn" onclick="showShareReport()"><i class="fas fa-flag"></i> ${isId?'Laporkan':'Report'}</button>
                     </div>
                     <div class="share-portal-cta">
@@ -9881,15 +9914,18 @@ function renderShareDownload(share, file) {
             </div>
         </div>
         <div class="share-portal-footer">
-            <i class="fas fa-shield-halved" style="margin-right:4px;color:#10b981"></i> ${isId?'Dilindungi enkripsi end-to-end · Ridgebox tidak menyimpan kunci enkripsi Anda':'Protected by end-to-end encryption · Ridgebox never stores your encryption keys'}
+            <i class="fas fa-shield-halved"></i> ${isId?'Dilindungi enkripsi end-to-end · Ridgebox tidak menyimpan kunci enkripsi Anda':'Protected by end-to-end encryption · Ridgebox never stores your encryption keys'}
         </div>
     </div>
     <!-- QR Modal -->
     <div class="share-report-modal" id="share-qr-modal" onclick="if(event.target===this)this.classList.remove('visible')">
         <div class="share-report-card" style="text-align:center">
-            <h3 style="margin-bottom:12px"><i class="fas fa-qrcode" style="color:var(--accent);margin-right:6px"></i> ${isId?'Kode QR':'QR Code'}</h3>
-            <canvas id="share-qr-canvas" class="share-qr-canvas" width="200" height="200"></canvas>
-            <p style="font-size:11px;color:var(--text-secondary);margin-top:12px">${isId?'Scan untuk membuka di perangkat lain':'Scan to open on another device'}</p>
+            <h3 style="margin-bottom:16px"><i class="fas fa-qrcode" style="color:var(--accent);margin-right:6px"></i> ${isId?'Kode QR':'QR Code'}</h3>
+            <div style="position:relative;display:inline-block">
+                <img id="share-qr-img" style="width:200px;height:200px;border-radius:12px;background:#fff;padding:12px;box-shadow:0 4px 20px rgba(0,0,0,.1)" alt="QR Code" />
+                <div class="share-qr-center-logo">RB</div>
+            </div>
+            <p style="font-size:11px;color:var(--text-secondary);margin-top:14px">${isId?'Scan untuk membuka di perangkat lain':'Scan to open on another device'}</p>
             <button class="share-portal-action-btn" style="margin-top:12px;flex:none;padding:10px 24px" onclick="document.getElementById('share-qr-modal').classList.remove('visible')">${isId?'Tutup':'Close'}</button>
         </div>
     </div>
@@ -9927,44 +9963,19 @@ function toggleShareQR() {
     const modal = document.getElementById('share-qr-modal');
     if (!modal) return;
     modal.classList.add('visible');
-    // Draw simple QR using canvas (text-based, no library needed)
-    const canvas = document.getElementById('share-qr-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    // Use real QR code API for scannable QR
     const url = window._sharePortalUrl || window.location.href;
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, 200, 200);
-    // Simple visual representation - draw a pattern based on URL hash
-    ctx.fillStyle = '#1e293b';
-    const cellSize = 6;
-    const margin = 14;
-    let seed = 0;
-    for (let i = 0; i < url.length; i++) seed = ((seed << 5) - seed + url.charCodeAt(i)) | 0;
-    // Draw finder patterns (3 corners)
-    function drawFinder(x, y) {
-        ctx.fillRect(x, y, cellSize*7, cellSize*7);
-        ctx.fillStyle = '#fff'; ctx.fillRect(x+cellSize, y+cellSize, cellSize*5, cellSize*5);
-        ctx.fillStyle = '#1e293b'; ctx.fillRect(x+cellSize*2, y+cellSize*2, cellSize*3, cellSize*3);
+    const qrImg = document.getElementById('share-qr-img');
+    if (qrImg && !qrImg.src.includes('api.qrserver.com')) {
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&bgcolor=ffffff&color=1e293b&margin=12&qzone=1`;
     }
-    drawFinder(margin, margin);
-    drawFinder(200-margin-cellSize*7, margin);
-    drawFinder(margin, 200-margin-cellSize*7);
-    // Fill data area
-    ctx.fillStyle = '#1e293b';
-    for (let row = 0; row < 24; row++) {
-        for (let col = 0; col < 24; col++) {
-            if ((row < 9 && col < 9) || (row < 9 && col > 14) || (row > 14 && col < 9)) continue;
-            seed = ((seed << 3) ^ (seed >> 5) ^ (row * 7 + col * 13)) | 0;
-            if (Math.abs(seed) % 3 !== 0) {
-                ctx.fillRect(margin + col * cellSize, margin + row * cellSize, cellSize - 1, cellSize - 1);
-            }
-        }
-    }
-    // Center text
-    ctx.fillStyle = '#3b82f6';
-    ctx.font = 'bold 11px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('RidgeBox', 100, 105);
+}
+
+function shareToWhatsApp() {
+    const url = window._sharePortalUrl || window.location.href;
+    const isId = APP.lang === 'id';
+    const text = isId ? `Download file dari Ridgebox: ${url}` : `Download file from Ridgebox: ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 }
 
 function showShareReport() {
@@ -9989,52 +10000,70 @@ async function downloadFileWithShareProgress(fileId, shareId) {
     const btn = document.getElementById('share-dl-btn');
     const text = document.getElementById('share-dl-text');
     const progress = document.getElementById('share-dl-progress');
+    const percent = document.getElementById('share-dl-percent');
+    const icon = document.getElementById('share-dl-icon');
     const isId = APP.lang === 'id';
     if (btn) { btn.classList.add('downloading'); }
     if (text) { text.textContent = isId?'Mengunduh...':'Downloading...'; }
-    // Simulate progress
+    if (icon) { icon.className = 'fas fa-spinner fa-spin'; }
+    // Simulate progress with percentage
     let pct = 0;
     const interval = setInterval(() => {
-        pct = Math.min(pct + Math.random() * 15, 90);
-        if (progress) progress.style.width = pct + '%';
-    }, 300);
+        pct = Math.min(pct + Math.random() * 12, 90);
+        const p = Math.round(pct);
+        if (progress) progress.style.width = p + '%';
+        if (percent) percent.textContent = p + '%';
+    }, 250);
     try {
         await downloadFile(fileId);
         incrementShareDownloadCount(shareId);
     } catch(e) { /* continue */ }
     clearInterval(interval);
     if (progress) progress.style.width = '100%';
-    if (text) { text.textContent = isId?'Download Selesai!':'Download Complete!'; }
+    if (percent) percent.textContent = '100%';
+    if (icon) { icon.className = 'fas fa-check'; }
+    if (text) { text.textContent = isId?'Selesai!':'Complete!'; }
     setTimeout(() => {
         if (btn) btn.classList.remove('downloading');
         if (text) { text.textContent = isId?'Download File':'Download File'; }
+        if (icon) { icon.className = 'fas fa-download'; }
         if (progress) progress.style.width = '0';
-    }, 2000);
+        if (percent) percent.textContent = '0%';
+    }, 2500);
 }
 
 async function downloadSharedFileWithProgress(encodedPath, encodedFileId, botIndex, encodedName, encrypted, chatId, shareId) {
     const btn = document.getElementById('share-dl-btn');
     const text = document.getElementById('share-dl-text');
     const progress = document.getElementById('share-dl-progress');
+    const percent = document.getElementById('share-dl-percent');
+    const icon = document.getElementById('share-dl-icon');
     const isId = APP.lang === 'id';
     if (btn) { btn.classList.add('downloading'); }
     if (text) { text.textContent = isId?'Mengunduh...':'Downloading...'; }
+    if (icon) { icon.className = 'fas fa-spinner fa-spin'; }
     let pct = 0;
     const interval = setInterval(() => {
-        pct = Math.min(pct + Math.random() * 15, 90);
-        if (progress) progress.style.width = pct + '%';
-    }, 300);
+        pct = Math.min(pct + Math.random() * 12, 90);
+        const p = Math.round(pct);
+        if (progress) progress.style.width = p + '%';
+        if (percent) percent.textContent = p + '%';
+    }, 250);
     try {
         await downloadSharedFile(encodedPath, encodedFileId, botIndex, encodedName, encrypted, chatId, shareId);
     } catch(e) { /* continue */ }
     clearInterval(interval);
     if (progress) progress.style.width = '100%';
-    if (text) { text.textContent = isId?'Download Selesai!':'Download Complete!'; }
+    if (percent) percent.textContent = '100%';
+    if (icon) { icon.className = 'fas fa-check'; }
+    if (text) { text.textContent = isId?'Selesai!':'Complete!'; }
     setTimeout(() => {
         if (btn) btn.classList.remove('downloading');
         if (text) { text.textContent = isId?'Download File':'Download File'; }
+        if (icon) { icon.className = 'fas fa-download'; }
         if (progress) progress.style.width = '0';
-    }, 2000);
+        if (percent) percent.textContent = '0%';
+    }, 2500);
 }
 
 // Download file from share portal (cross-device, uses filePath with fileId fallback)
