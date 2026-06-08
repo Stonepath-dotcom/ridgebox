@@ -1183,6 +1183,9 @@ body.no-transition,body.no-transition *{transition:none!important}
 .dark .smart-upload-zone .upload-method:hover{background:rgba(59,130,246,.15);color:#93c5fd}
 .dark .back-to-top{background:#334155;color:#e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,.3)}
 .dark .back-to-top:hover{background:#3b82f6;color:#fff}
+.dark .skeleton-wrap{background:#0f172a}
+.dark .skeleton-line,.dark .skeleton-title{background:#1e293b}
+.dark .cookie-banner{background:rgba(15,23,42,.95);border-color:#1e293b}
 .dark .upload-progress-global .bar{background:linear-gradient(90deg,#3b82f6,#8b5cf6)}
 .dark .empty-premium i{color:#475569}
 .dark .empty-premium p{color:#94a3b8}
@@ -2019,6 +2022,42 @@ body.no-transition,body.no-transition *{transition:none!important}
 /* Auth Login Activity Toast */
 .auth-activity-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.25);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:12px;padding:12px 20px;font-size:13px;color:#6ee7b7;display:flex;align-items:center;gap:8px;z-index:999;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s ease;opacity:0;white-space:nowrap}
 .auth-activity-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+/* ===== ANNOUNCEMENT BAR ===== */
+.announcement-bar{background:linear-gradient(90deg,#1e1b4b,#3b82f6,#8b5cf6,#1e1b4b);background-size:300% 100%;animation:annGradient 8s ease infinite;display:flex;align-items:center;justify-content:center;padding:10px 48px 10px 20px;position:relative;overflow:hidden}
+.announcement-bar.hidden{display:none}
+@keyframes annGradient{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.announcement-bar-inner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+.announcement-bar-icon{background:rgba(255,255,255,.15);border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0}
+.announcement-bar-text{color:rgba(255,255,255,.92);font-size:13px;font-weight:500;letter-spacing:.2px}
+.announcement-bar-cta{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:4px 14px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:all .2s ease;backdrop-filter:blur(4px);display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.announcement-bar-cta:hover{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.4)}
+.announcement-bar-close{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:14px;padding:4px;transition:color .2s ease;line-height:1}
+.announcement-bar-close:hover{color:#fff}
+@media(max-width:600px){.announcement-bar{padding:8px 36px 8px 12px}.announcement-bar-text{font-size:11px}.announcement-bar-cta{font-size:11px;padding:3px 10px}}
+
+/* ===== LOADING SKELETON ===== */
+.skeleton-wrap{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;transition:opacity .4s ease,visibility .4s ease}
+.skeleton-wrap.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.skeleton-brand{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.skeleton-logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);animation:skeletonPulse 1.5s ease infinite}
+.skeleton-title{width:120px;height:24px;border-radius:6px;background:var(--border);animation:skeletonPulse 1.5s ease infinite}
+.skeleton-lines{display:flex;flex-direction:column;gap:10px;align-items:center;width:80%;max-width:400px}
+.skeleton-line{height:12px;border-radius:6px;background:var(--border);animation:skeletonPulse 1.5s ease infinite}
+.skeleton-line:nth-child(1){width:70%}.skeleton-line:nth-child(2){width:85%}.skeleton-line:nth-child(3){width:55%}
+@keyframes skeletonPulse{0%,100%{opacity:.4}50%{opacity:.8}}
+
+/* ===== COOKIE CONSENT BANNER ===== */
+.cookie-banner{position:fixed;bottom:0;left:0;right:0;z-index:160;background:var(--bg-card);border-top:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;transform:translateY(100%);transition:transform .5s cubic-bezier(.4,0,.2,1);box-shadow:0 -8px 32px rgba(0,0,0,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.cookie-banner.visible{transform:translateY(0)}
+.cookie-banner-text{font-size:13px;color:var(--text-secondary);line-height:1.5;flex:1;min-width:200px;max-width:600px}
+.cookie-banner-text a{color:var(--accent);text-decoration:underline}
+.cookie-banner-actions{display:flex;gap:8px;flex-shrink:0}
+.cookie-btn-accept{background:var(--accent);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s ease;font-family:inherit}
+.cookie-btn-accept:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.cookie-btn-decline{background:transparent;color:var(--text-secondary);border:1px solid var(--border);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s ease;font-family:inherit}
+.cookie-btn-decline:hover{border-color:var(--accent);color:var(--text)}
+@media(max-width:600px){.cookie-banner{padding:12px 16px;gap:10px}.cookie-banner-text{font-size:12px;min-width:auto;max-width:none;width:100%}.cookie-banner-actions{width:100%;justify-content:stretch}.cookie-btn-accept,.cookie-btn-decline{flex:1;text-align:center}}
+
 /* ===== INTERACTIVE ARCHITECTURE DIAGRAM ===== */
 .arch-diagram{position:relative;max-width:900px;margin:0 auto;padding:20px}
 .arch-diagram svg{width:100%;height:auto;overflow:visible}
@@ -2222,6 +2261,18 @@ body.no-transition,body.no-transition *{transition:none!important}
 <p>Kunjungi <a href="https://ridgebox.vercel.app">ridgebox.vercel.app</a> untuk mulai menggunakan RidgeBox secara gratis.</p>
 </div>
 </noscript>
+<!-- Loading Skeleton -->
+<div class="skeleton-wrap" id="skeleton-wrap">
+    <div class="skeleton-brand">
+        <div class="skeleton-logo"></div>
+        <div class="skeleton-title"></div>
+    </div>
+    <div class="skeleton-lines">
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line"></div>
+    </div>
+</div>
 <div id="scroll-progress" class="scroll-progress" style="width:0"></div>
 <button id="back-to-top" class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-chevron-up"></i></button>
 <div id="upload-progress-global" class="upload-progress-global"><div class="bar" id="global-progress-bar" style="width:0"></div></div>
@@ -5181,6 +5232,15 @@ function renderHomepage() {
 
     main.innerHTML = `
     <div class="page-transition" style="position:relative;z-index:1;max-width:100vw;overflow-x:hidden">
+        <!-- ===== ANNOUNCEMENT BAR ===== -->
+        <div class="announcement-bar" id="announcement-bar">
+            <div class="announcement-bar-inner">
+                <span class="announcement-bar-icon"><i class="fas fa-rocket"></i></span>
+                <span class="announcement-bar-text">${isId?'RidgeBox v3.2 sudah live! Chunked upload & Gallery publik sekarang tersedia.':'RidgeBox v3.2 is live! Chunked upload & Public gallery now available.'}</span>
+                <a href="#/dashboard" class="announcement-bar-cta">${isId?'Coba Sekarang':'Try Now'} <i class="fas fa-arrow-right" style="font-size:10px"></i></a>
+            </div>
+            <button class="announcement-bar-close" onclick="document.getElementById('announcement-bar').style.display='none';localStorage.setItem('ann_closed','1')" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
         <!-- ===== HERO — Ultra Luxury Aurora with Typing Effect ===== -->
         <section class="aurora-bg" id="hero-section" style="padding:80px 20px 60px;text-align:center;min-height:auto;display:flex;align-items:center;justify-content:center;perspective:1200px">
             <div class="hero-spotlight"><div class="hero-spotlight-glow" id="hero-glow"></div></div>
@@ -6081,8 +6141,8 @@ function renderHomepage() {
                     </div>
                     <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;max-width:280px">${isId?'Cloud storage gratis & terenkripsi. Simpan file tanpa batas, aman dengan enkripsi militer.':'Free & encrypted cloud storage. Store files unlimited, secured with military-grade encryption.'}</p>
                     <div style="display:flex;gap:12px;margin-top:16px">
-                        <div style="width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s ease" onmouseover="this.style.background='rgba(59,130,246,.15)'" onmouseout="this.style.background='rgba(59,130,246,.08)'"><i class="fab fa-github" style="font-size:14px;color:var(--text-secondary)"></i></div>
-                        <div style="width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s ease" onmouseover="this.style.background='rgba(59,130,246,.15)'" onmouseout="this.style.background='rgba(59,130,246,.08)'"><i class="fab fa-telegram" style="font-size:14px;color:var(--text-secondary)"></i></div>
+                        <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" rel="noopener noreferrer" style="width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s ease;text-decoration:none" onmouseover="this.style.background='rgba(59,130,246,.15)'" onmouseout="this.style.background='rgba(59,130,246,.08)'" aria-label="GitHub"><i class="fab fa-github" style="font-size:14px;color:var(--text-secondary)"></i></a>
+                        <a href="https://t.me/ridgeboxcloud" target="_blank" rel="noopener noreferrer" style="width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s ease;text-decoration:none" onmouseover="this.style.background='rgba(59,130,246,.15)'" onmouseout="this.style.background='rgba(59,130,246,.08)'" aria-label="Telegram"><i class="fab fa-telegram" style="font-size:14px;color:var(--text-secondary)"></i></a>
                     </div>
                 </div>
                 <div>
@@ -14784,6 +14844,52 @@ function openMediaPlayer(fileId) {
     }
 }
 
+</script>
+
+<!-- Cookie Consent Banner -->
+<div class="cookie-banner" id="cookie-banner">
+    <div class="cookie-banner-text" id="cookie-text"></div>
+    <div class="cookie-banner-actions">
+        <button class="cookie-btn-decline" id="cookie-decline"></button>
+        <button class="cookie-btn-accept" id="cookie-accept"></button>
+    </div>
+</div>
+
+<script>
+// ===== SKELETON LOADER =====
+(function(){
+    var sk=document.getElementById('skeleton-wrap');
+    if(sk){window.addEventListener('load',function(){setTimeout(function(){sk.classList.add('hidden')},300)});setTimeout(function(){sk.classList.add('hidden')},3000)}
+})();
+
+// ===== ANNOUNCEMENT BAR PERSISTENCE =====
+(function(){
+    if(localStorage.getItem('ann_closed')==='1'){var ab=document.getElementById('announcement-bar');if(ab)ab.style.display='none'}
+})();
+
+// ===== COOKIE CONSENT =====
+function handleCookieChoice(accepted){
+    var banner=document.getElementById('cookie-banner');
+    if(banner)banner.classList.remove('visible');
+    localStorage.setItem('cookie_choice',accepted?'accepted':'declined');
+    if(accepted){/* enable analytics if any */}
+}
+(function(){
+    if(!localStorage.getItem('cookie_choice')){
+        setTimeout(function(){
+            var b=document.getElementById('cookie-banner');
+            if(!b)return;
+            var lang=(typeof APP!=='undefined'&&APP.lang)?APP.lang:'id';
+            var isId=lang==='id';
+            document.getElementById('cookie-text').innerHTML=isId?'RidgeBox menggunakan cookies untuk meningkatkan pengalaman pengguna. Dengan melanjutkan, Anda menyetujui penggunaan cookies. <a href="#/privacy" style="color:var(--accent);text-decoration:underline">Pelajari lebih lanjut</a>':'RidgeBox uses cookies to improve your experience. By continuing, you agree to our use of cookies. <a href="#/privacy" style="color:var(--accent);text-decoration:underline">Learn more</a>';
+            document.getElementById('cookie-decline').textContent=isId?'Tolak':'Decline';
+            document.getElementById('cookie-decline').onclick=function(){handleCookieChoice(false)};
+            document.getElementById('cookie-accept').textContent=isId?'Terima':'Accept';
+            document.getElementById('cookie-accept').onclick=function(){handleCookieChoice(true)};
+            b.classList.add('visible');
+        },2000);
+    }
+})();
 </script>
 </body>
 </html>
