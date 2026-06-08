@@ -57,8 +57,8 @@
 <meta name="twitter:creator" content="@ridgebox">
 
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="/api/favicon" type="image/svg+xml">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%233b82f6'/%3E%3Cstop offset='100%25' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' rx='36' fill='url(%23g)'/%3E%3Cpath d='M54 135V33h30c18 0 28 10 28 24 0 12-7 20-18 22l22 56H96L76 87H68v48H54z' fill='white'/%3E%3Cpath d='M68 75h14c10 0 16-5 16-13s-5-12-14-12H68v25z' fill='rgba(255,255,255,.4)'/%3E%3Cpath d='M30 156l27-42 17 25 17-28 27 45H30z' fill='white' fill-opacity='.55'/%3E%3C/svg%3E">
+<link rel="icon" href="/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="RidgeBox">
@@ -112,7 +112,7 @@
   "@type": "Organization",
   "name": "RidgeBox",
   "url": "https://ridgebox.vercel.app",
-  "logo": "https://ridgebox.vercel.app/api/favicon",
+  "logo": "https://ridgebox.vercel.app/logo.png",
   "sameAs": [],
   "contactPoint": {
     "@type": "ContactPoint",
@@ -797,12 +797,9 @@ body.view-desktop .detail-panel.open{transform:translateX(0)}
 /* Glassmorphism Header */
 .header-glass{background:rgba(255,255,255,.92);border-bottom:1px solid transparent;border-image:linear-gradient(90deg,transparent,rgba(59,130,246,.3),rgba(139,92,246,.3),transparent) 1;max-width:100vw;overflow-x:hidden}
 .dark .header-glass{background:rgba(15,23,42,.95)}
-.header-logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 8px rgba(59,130,246,.3);overflow:hidden}.header-logo-icon i{transform:none}
-.header-logo-icon svg{width:20px;height:20px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2))}
+.header-logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 8px rgba(59,130,246,.3);overflow:hidden}
 .header-logo-icon::after{content:'';position:absolute;inset:-2px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6,#3b82f6);z-index:-1;opacity:.5;animation:logoGlow 3s ease infinite}
 @keyframes logoGlow{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.7;transform:scale(1.05)}}
-/* RidgeBox Logo SVG — Mountain Ridge inside Box */
-.rb-logo-svg{width:100%;height:100%;display:block}
 .header-pill-btn{padding:6px 14px;border-radius:99px;font-size:13px;cursor:pointer;border:none;background:rgba(59,130,246,.07);color:var(--text);transition:all .25s ease;font-family:inherit;font-weight:500;display:inline-flex;align-items:center;gap:6px}
 .header-pill-btn:hover{background:rgba(59,130,246,.14);color:var(--accent)}
 .dark .header-pill-btn{background:rgba(255,255,255,.07);color:#e2e8f0}
@@ -2072,7 +2069,6 @@ body.no-transition,body.no-transition *{transition:none!important}
 .dark .share-portal-header{background:rgba(15,23,42,.7);border-bottom-color:rgba(255,255,255,.06)}
 .share-portal-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
 .share-portal-brand-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(59,130,246,.35);overflow:hidden}
-.share-portal-brand-icon svg{width:21px;height:21px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2))}
 .share-portal-brand-name{font-size:17px;font-weight:800;letter-spacing:-.3px}
 .share-portal-brand-tag{font-size:10px;color:var(--text-secondary);background:var(--bg-secondary);padding:2px 8px;border-radius:6px;margin-left:2px;font-weight:500}
 .share-portal-header-actions{display:flex;gap:6px}
@@ -2248,8 +2244,6 @@ body.no-transition,body.no-transition *{transition:none!important}
 .auth-fullpage-right::before{content:'';position:absolute;top:0;left:0;bottom:0;width:1px;background:linear-gradient(180deg,transparent,var(--border),transparent)}
 .auth-brand-section{position:relative;z-index:2;text-align:center;max-width:480px}
 .auth-brand-logo{width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 12px 40px rgba(59,130,246,.4);animation:authPulse 3s ease infinite;overflow:hidden}
-.auth-brand-logo i{color:#fff;font-size:36px}
-.auth-brand-logo svg{width:44px;height:44px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
 .auth-brand-title{font-size:36px;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-1px}
 .auth-brand-subtitle{font-size:15px;color:rgba(255,255,255,.5);margin-bottom:40px;line-height:1.6}
 .auth-brand-features{display:flex;flex-direction:column;gap:16px;text-align:left;max-width:360px;margin:0 auto}
@@ -2264,8 +2258,6 @@ body.no-transition,body.no-transition *{transition:none!important}
 .auth-form-section{width:100%;max-width:400px;position:relative;z-index:2}
 .auth-form-header{margin-bottom:28px;text-align:center}
 .auth-form-header .auth-form-logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 4px 16px rgba(59,130,246,.3);overflow:hidden}
-.auth-form-header .auth-form-logo i{color:#fff;font-size:22px}
-.auth-form-header .auth-form-logo svg{width:26px;height:26px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2))}
 .auth-form-title{font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px}
 .auth-form-subtitle{font-size:13px;color:var(--text-secondary)}
 .auth-form-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);cursor:pointer;margin-bottom:20px;padding:6px 12px;border-radius:8px;transition:all .2s ease;border:none;background:none;font-family:inherit}
@@ -2432,14 +2424,10 @@ body.no-transition,body.no-transition *{transition:none!important}
    All 105 Features Integrated (No Overrides)
    ============================================================ */
 
-// ===== RIDGEBOX LOGO SVG =====
-// Bold "R" letterform with mountain ridge silhouette at the base
-// Corporate SaaS vibes — clean, confident, instantly recognizable
-const RB_LOGO_SVG = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="rb-logo-svg">
-  <path d="M7 19V5h4.5c3 0 4.5 1.5 4.5 3.8 0 2-1.2 3.2-3 3.7l3.5 6.5h-2.8l-3.2-6H9v6H7z" fill="white"/>
-  <path d="M9 10.5h2.3c1.8 0 2.7-.8 2.7-2 0-1.2-.8-1.8-2.5-1.8H9v3.8z" fill="rgba(255,255,255,.45)"/>
-  <path d="M4 21l4-6 2.5 3.5L13 15l4 6H4z" fill="white" fill-opacity=".6"/>
-</svg>`;
+// ===== RIDGEBOX LOGO =====
+// AI-generated corporate logo — stacked layers with mountain ridge
+// Used as <img> tag referencing /logo.png for crisp rendering at any size
+const RB_LOGO = (size = 20) => `<img src="/logo.png" alt="RidgeBox" style="width:${size}px;height:${size}px;object-fit:contain;pointer-events:none" fetchpriority="high">`;
 
 // ===== GLOBAL STATE =====
 const APP = {
@@ -3893,7 +3881,7 @@ function sendNotification(title, body, icon) {
     if (!APP.settings.notifications) return;
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     try {
-        const n = new Notification(title, { body, icon: icon || '/api/favicon', badge: '/api/favicon' });
+        const n = new Notification(title, { body, icon: icon || '/logo.png', badge: '/favicon-32.png' });
         if (navigator.setAppBadge) navigator.setAppBadge(1).catch(()=>{});
         n.onclose = () => { if (navigator.clearAppBadge) navigator.clearAppBadge().catch(()=>{}); };
     } catch(e) {}
@@ -4041,7 +4029,7 @@ function renderAuthPage() {
         <div class="auth-fullpage-left">
             <div class="auth-form-particles">${particlesHTML}</div>
             <div class="auth-brand-section">
-                <div class="auth-brand-logo">${RB_LOGO_SVG}</div>
+                <div class="auth-brand-logo">${RB_LOGO(50)}</div>
                 <div class="auth-brand-title">RidgeBox</div>
                 <div class="auth-brand-subtitle">${isId ? 'Cloud storage gratis, unlimited, dan terenkripsi. Simpan file Anda tanpa batas.' : 'Free, unlimited, encrypted cloud storage. Store your files without limits.'}</div>
                 <div class="auth-brand-features">
@@ -4062,7 +4050,7 @@ function renderAuthPage() {
                 <button class="auth-form-back" onclick="closeAuthOverlay()"><i class="fas fa-arrow-left"></i> ${isId ? 'Kembali' : 'Back'}</button>
                 
                 <div class="auth-form-header">
-                    <div class="auth-form-logo">${RB_LOGO_SVG}</div>
+                    <div class="auth-form-logo">${RB_LOGO(28)}</div>
                     <div class="auth-form-title">${isForgot ? (isId ? 'Reset Kata Sandi' : 'Reset Password') : (isLogin ? t('authWelcomeBack') : t('authCreateAccount'))}</div>
                     <div class="auth-form-subtitle">${isForgot ? (isId ? 'Masukkan email untuk reset kata sandi' : 'Enter your email to reset password') : (isLogin ? t('authLoginDesc') : t('authRegisterDesc'))}</div>
                 </div>
@@ -4656,7 +4644,7 @@ function renderHeader() {
             ${isDashboard ? `<button class="header-pill-btn sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)"><i class="fas fa-bars"></i></button>` : ''}
             <a href="#/" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-size:16px">
                 <div class="header-logo-icon">
-                    ${RB_LOGO_SVG}
+                    ${RB_LOGO(18)}
                 </div>
                 <span class="hide-mobile-small" style="letter-spacing:-.5px;font-weight:700">Ridgebox</span>
             </a>
@@ -5415,11 +5403,7 @@ function renderHomepage() {
                 <div class="sr sr-delay-1 hero-logo-container" style="position:relative;width:200px;height:200px;margin:0 auto 36px;display:flex;align-items:center;justify-content:center">
                     <!-- Centered logo - no absolute positioning needed -->
                     <div class="logo-animated" style="width:120px;height:120px;border-radius:30px;background:rgba(255,255,255,.06);backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 60px rgba(59,130,246,.25),inset 0 0 30px rgba(59,130,246,.08);position:relative;z-index:2">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:64px;height:64px;filter:drop-shadow(0 0 12px rgba(59,130,246,.5))">
-                            <path d="M7 19V5h4.5c3 0 4.5 1.5 4.5 3.8 0 2-1.2 3.2-3 3.7l3.5 6.5h-2.8l-3.2-6H9v6H7z" fill="white"/>
-                            <path d="M9 10.5h2.3c1.8 0 2.7-.8 2.7-2 0-1.2-.8-1.8-2.5-1.8H9v3.8z" fill="rgba(255,255,255,.45)"/>
-                            <path d="M4 21l4-6 2.5 3.5L13 15l4 6H4z" fill="white" fill-opacity=".6"/>
-                        </svg>
+                        <img src="/logo.png" alt="RidgeBox" style="width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 0 12px rgba(59,130,246,.5))" fetchpriority="high">
                     </div>
                     <!-- Orbit rings: absolute with inset:0 + margin:auto for centering (compatible with transform) -->
                     <div class="orbit-ring" style="width:160px;height:160px;position:absolute;inset:0;margin:auto"><div class="orbit-dot"></div></div>
@@ -9756,7 +9740,7 @@ function renderSharePortal(rawAlias) {
         main.innerHTML = `<div class="share-portal"><div class="share-portal-bg"></div>
             <div class="share-portal-header">
                 <a href="#/" class="share-portal-brand">
-                    <div class="share-portal-brand-icon">${RB_LOGO_SVG}</div>
+                    <div class="share-portal-brand-icon">${RB_LOGO(20)}</div>
                     <span class="share-portal-brand-name">Ridgebox</span>
                     <span class="share-portal-brand-tag">Cloud Storage</span>
                 </a>
@@ -9779,7 +9763,7 @@ function renderSharePortal(rawAlias) {
         main.innerHTML = `<div class="share-portal"><div class="share-portal-bg"></div>
             <div class="share-portal-header">
                 <a href="#/" class="share-portal-brand">
-                    <div class="share-portal-brand-icon">${RB_LOGO_SVG}</div>
+                    <div class="share-portal-brand-icon">${RB_LOGO(20)}</div>
                     <span class="share-portal-brand-name">Ridgebox</span>
                     <span class="share-portal-brand-tag">Cloud Storage</span>
                 </a>
@@ -9805,7 +9789,7 @@ function renderSharePortal(rawAlias) {
         main.innerHTML = `<div class="share-portal"><div class="share-portal-bg"></div>
             <div class="share-portal-header">
                 <a href="#/" class="share-portal-brand">
-                    <div class="share-portal-brand-icon">${RB_LOGO_SVG}</div>
+                    <div class="share-portal-brand-icon">${RB_LOGO(20)}</div>
                     <span class="share-portal-brand-name">Ridgebox</span>
                     <span class="share-portal-brand-tag">Cloud Storage</span>
                 </a>
@@ -9960,7 +9944,7 @@ function renderShareDownload(share, file) {
         <div class="share-portal-bg"></div>
         <div class="share-portal-header">
             <a href="#/" class="share-portal-brand">
-                <div class="share-portal-brand-icon">${RB_LOGO_SVG}</div>
+                <div class="share-portal-brand-icon">${RB_LOGO(20)}</div>
                 <span class="share-portal-brand-name">Ridgebox</span>
                 <span class="share-portal-brand-tag">Cloud Storage</span>
             </a>
