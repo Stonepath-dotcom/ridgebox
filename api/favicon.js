@@ -1,20 +1,16 @@
 export const config = { runtime: 'edge' };
 
 export default async function () {
-  // RidgeBox Logo — Bold "R" with mountain ridge at base
-  // Corporate SaaS quality — confident, clean, recognizable
+  // RidgeBox favicon — Bold R with mountain ridge accent
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#3b82f6"/>
-      <stop offset="100%" stop-color="#8b5cf6"/>
-    </linearGradient>
-  </defs>
-  <rect width="32" height="32" rx="7" fill="url(#g)"/>
-  <path d="M9 24V6h5.5c3.2 0 5 1.7 5 4.2 0 2.2-1.3 3.5-3.3 4l4 9.8h-3.2l-3.7-8H12v8H9z" fill="white"/>
-  <path d="M12 13.5h2.5c1.8 0 2.8-.8 2.8-2.2 0-1.3-.8-2-2.5-2H12v4.2z" fill="rgba(255,255,255,.4)"/>
-  <path d="M5 28l5-7.5 3 4.5 3-5 5 8H5z" fill="white" fill-opacity=".55"/>
-</svg>`;
+    <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient></defs>
+    <rect width="32" height="32" rx="7" fill="url(#bg)"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M7 25V7h7c4.2 0 6.5 1.8 6.5 5.2 0 2.5-1.4 4.2-3.8 5L23 25h-4.5l-5.2-9H11v9H7zm4-14.5v5h3.3c2.3 0 3.7-1.2 3.7-2.8s-1.3-2.2-3.5-2.2H11z" fill="white"/>
+    <path d="M3 29l7-8.5 3.5 5L17 19l7 10H3z" fill="white" fill-opacity=".35"/>
+  </svg>`;
   
   return new Response(svg, {
     headers: {
