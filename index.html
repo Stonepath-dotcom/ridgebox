@@ -2153,6 +2153,24 @@ body.no-transition,body.no-transition *{transition:none!important}
 .share-report-option i{color:var(--text-secondary);width:16px;text-align:center}
 .share-qr-canvas{background:#fff;padding:16px;border-radius:16px;display:inline-block;box-shadow:0 4px 20px rgba(0,0,0,.1)}
 .share-qr-center-logo{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:10px;font-weight:800;letter-spacing:-.5px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+/* Share Portal Status Icons (expired, self-destruct, locked) */
+.share-portal-status-icon{width:80px;height:80px;border-radius:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;position:relative;animation:shareStatusBounce .6s cubic-bezier(.34,1.56,.64,1) both}
+.share-portal-status-icon::after{content:'';position:absolute;inset:-4px;border-radius:28px;border:2px solid currentColor;opacity:.1;animation:shareIconSpin 15s linear infinite}
+.share-portal-status-icon--destructed{background:rgba(239,68,68,.1);color:#ef4444}
+.share-portal-status-icon--destructed i{font-size:32px;color:#ef4444;animation:shareStatusShake .5s ease .6s both}
+.share-portal-status-icon--expired{background:rgba(245,158,11,.1);color:#f59e0b}
+.share-portal-status-icon--expired i{font-size:32px;color:#f59e0b;animation:shareStatusPulse 2.5s ease infinite}
+.share-portal-status-icon--locked{background:rgba(59,130,246,.08)}
+.share-portal-status-icon--locked i{animation:shareStatusLock .8s ease both}
+@keyframes shareStatusBounce{0%{opacity:0;transform:scale(.3) translateY(20px)}60%{transform:scale(1.08) translateY(-4px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes shareStatusShake{0%,100%{transform:rotate(0)}20%{transform:rotate(-8deg)}40%{transform:rotate(8deg)}60%{transform:rotate(-5deg)}80%{transform:rotate(5deg)}}
+@keyframes shareStatusPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(.95)}}
+@keyframes shareStatusLock{0%{opacity:0;transform:scale(.5) rotate(-20deg)}60%{transform:scale(1.1) rotate(5deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+/* Password field enhanced */
+.share-pw-field .input{border:2px solid var(--border);border-radius:14px;padding:14px 44px 14px 40px;font-size:15px;transition:all .3s ease;background:var(--bg-card)}
+.share-pw-field .input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(59,130,246,.1);outline:none}
+.share-pw-field .input::placeholder{letter-spacing:0;opacity:.5}
+@keyframes sharePwShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-8px)}30%{transform:translateX(7px)}45%{transform:translateX(-6px)}60%{transform:translateX(5px)}75%{transform:translateX(-3px)}90%{transform:translateX(2px)}}
 @media(max-width:600px){
     .share-portal-card{border-radius:20px}
     .share-portal-info{padding:18px 20px 20px}
@@ -9716,47 +9734,92 @@ function renderSharePortal(rawAlias) {
 
     // F78: Check self-destruct
     if (share.selfDestruct && APP.usedSelfDestructLinks.has(share.id || '')) {
-        main.innerHTML = `<div class="share-portal"><div class="share-portal-bg"></div><div class="share-portal-body">
+        main.innerHTML = `<div class="share-portal"><div class="share-portal-bg"></div>
+            <div class="share-portal-header">
+                <a href="#/" class="share-portal-brand">
+                    <div class="share-portal-brand-icon"><i class="fas fa-cloud" style="color:#fff;font-size:15px"></i></div>
+                    <span class="share-portal-brand-name">Ridgebox</span>
+                    <span class="share-portal-brand-tag">Cloud Storage</span>
+                </a>
+            </div>
+            <div class="share-portal-body">
             <div class="share-portal-card" style="text-align:center;padding:48px 32px">
-                <div style="width:72px;height:72px;border-radius:20px;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 20px"><i class="fas fa-link-slash" style="font-size:32px;color:#ef4444"></i></div>
-                <h2 style="margin-bottom:8px">${t('linkExpired')}</h2>
-                <p style="color:var(--text-secondary);font-size:14px;margin-bottom:24px">${isId?'Link ini sudah pernah digunakan dan sudah dihancurkan secara otomatis.':'This link has already been used and was automatically destroyed.'}</p>
+                <div class="share-portal-status-icon share-portal-status-icon--destructed"><i class="fas fa-link-slash"></i></div>
+                <h2 style="margin-bottom:8px;font-size:22px">${t('linkExpired')}</h2>
+                <p style="color:var(--text-secondary);font-size:14px;margin-bottom:6px;line-height:1.6">${isId?'Link ini sudah pernah digunakan dan sudah dihancurkan secara otomatis.':'This link has already been used and was automatically destroyed.'}</p>
+                <p style="color:var(--text-secondary);font-size:12px;margin-bottom:28px;opacity:.7">${isId?'File tidak dapat diakses lagi demi keamanan pemiliknya.':'The file can no longer be accessed for the owner\'s security.'}</p>
                 <a href="#/" class="share-portal-cta-btn"><i class="fas fa-cloud"></i> ${t('backToHome')}</a>
             </div>
-        </div></div>`;
+        </div>
+        <div class="share-portal-footer"><i class="fas fa-shield-halved"></i> ${isId?'Keamanan terjamin · Ridgebox menghormati privasi Anda':'Security guaranteed · Ridgebox respects your privacy'}</div>
+        </div>`;
         return;
     }
     // Check expiry
     if (share.expiry > 0 && Date.now() > share.expiry) {
-        main.innerHTML = `<div class="share-portal"><div class="share-portal-bg"></div><div class="share-portal-body">
+        main.innerHTML = `<div class="share-portal"><div class="share-portal-bg"></div>
+            <div class="share-portal-header">
+                <a href="#/" class="share-portal-brand">
+                    <div class="share-portal-brand-icon"><i class="fas fa-cloud" style="color:#fff;font-size:15px"></i></div>
+                    <span class="share-portal-brand-name">Ridgebox</span>
+                    <span class="share-portal-brand-tag">Cloud Storage</span>
+                </a>
+            </div>
+            <div class="share-portal-body">
             <div class="share-portal-card" style="text-align:center;padding:48px 32px">
-                <div style="width:72px;height:72px;border-radius:20px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 20px"><i class="fas fa-hourglass-end" style="font-size:32px;color:#f59e0b"></i></div>
-                <h2 style="margin-bottom:8px">${t('linkExpired')}</h2>
-                <p style="color:var(--text-secondary);font-size:14px;margin-bottom:24px">${t('linkExpiredDesc')}</p>
+                <div class="share-portal-status-icon share-portal-status-icon--expired"><i class="fas fa-hourglass-end"></i></div>
+                <h2 style="margin-bottom:8px;font-size:22px">${t('linkExpired')}</h2>
+                <p style="color:var(--text-secondary);font-size:14px;margin-bottom:6px;line-height:1.6">${t('linkExpiredDesc')}</p>
+                <p style="color:var(--text-secondary);font-size:12px;margin-bottom:28px;opacity:.7">${isId?'Minta pemilik file untuk membagikan link baru.':'Ask the file owner to share a new link.'}</p>
                 <a href="#/" class="share-portal-cta-btn"><i class="fas fa-cloud"></i> ${t('backToHome')}</a>
             </div>
-        </div></div>`;
+        </div>
+        <div class="share-portal-footer"><i class="fas fa-shield-halved"></i> ${isId?'Keamanan terjamin · Ridgebox menghormati privasi Anda':'Security guaranteed · Ridgebox respects your privacy'}</div>
+        </div>`;
         return;
     }
     const type = getFileType(file.name, file.mime);
     const icon = getFileIcon(type);
     // Check if password protected
     if (share.password) {
-        main.innerHTML = `<div class="share-portal"><div class="share-portal-bg"></div><div class="share-portal-body">
-            <div class="share-portal-card" style="text-align:center;max-width:400px;padding:48px 32px">
-                <div style="width:72px;height:72px;border-radius:20px;background:${icon.color}15;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
-                    <i class="fas ${icon.icon}" style="font-size:32px;color:${icon.color}"></i>
+        const ext = file.name.split('.').pop().toUpperCase();
+        main.innerHTML = `<div class="share-portal"><div class="share-portal-bg"></div>
+            <div class="share-portal-header">
+                <a href="#/" class="share-portal-brand">
+                    <div class="share-portal-brand-icon"><i class="fas fa-cloud" style="color:#fff;font-size:15px"></i></div>
+                    <span class="share-portal-brand-name">Ridgebox</span>
+                    <span class="share-portal-brand-tag">Cloud Storage</span>
+                </a>
+            </div>
+            <div class="share-portal-body">
+            <div class="share-portal-card" style="text-align:center;max-width:420px;padding:44px 32px">
+                <div class="share-portal-status-icon share-portal-status-icon--locked" style="background:${icon.color}12">
+                    <i class="fas fa-lock" style="font-size:28px;color:${icon.color}"></i>
                 </div>
-                <h2 style="margin-bottom:4px">${t('protectedFile')}</h2>
-                <p style="color:var(--text-secondary);margin-bottom:20px;font-size:14px;word-break:break-word">${file.name}</p>
-                <div style="position:relative;margin-bottom:8px">
-                    <input type="password" id="share-pw-input" class="input" placeholder="${t('enterPassword')}" style="padding-right:44px" onkeydown="if(event.key==='Enter')verifySharePassword('${share.id || ''}')">
-                    <button onclick="const i=document.getElementById('share-pw-input');i.type=i.type==='password'?'text':'password'" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:4px"><i class="fas fa-eye"></i></button>
+                <h2 style="margin-bottom:4px;font-size:20px">${t('protectedFile')}</h2>
+                <div style="display:flex;align-items:center;gap:10px;justify-content:center;margin:8px auto 20px;padding:10px 16px;background:var(--bg-secondary);border-radius:12px;max-width:100%">
+                    <div style="width:38px;height:38px;border-radius:10px;background:${icon.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${icon.icon}" style="font-size:16px;color:${icon.color}"></i></div>
+                    <div style="text-align:left;min-width:0;flex:1">
+                        <div style="font-size:13px;font-weight:600;word-break:break-word;line-height:1.3">${file.name}</div>
+                        <div style="font-size:11px;color:var(--text-secondary)">${formatSize(file.size)} · ${ext}</div>
+                    </div>
+                </div>
+                <div class="share-pw-field" style="position:relative;margin-bottom:8px">
+                    <i class="fas fa-key" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:13px;opacity:.6"></i>
+                    <input type="password" id="share-pw-input" class="input" placeholder="${t('enterPassword')}" style="padding-left:40px;padding-right:44px;text-align:center;font-size:15px;letter-spacing:2px" onkeydown="if(event.key==='Enter')verifySharePassword('${share.id || ''}')">
+                    <button onclick="const i=document.getElementById('share-pw-input');i.type=i.type==='password'?'text':'password';this.querySelector('i').className=i.type==='password'?'fas fa-eye':'fas fa-eye-slash'" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:4px;transition:color .2s"><i class="fas fa-eye"></i></button>
                 </div>
                 <p id="share-pw-error" style="color:#ef4444;font-size:12px;margin-top:4px;display:none">${t('wrongPassword')}</p>
                 <button class="share-portal-dl-btn" style="margin-top:16px" onclick="verifySharePassword('${share.id || ''}')"><i class="fas fa-lock-open"></i> ${t('confirm')}</button>
+                <div class="share-portal-cta" style="margin-top:20px">
+                    <div class="share-portal-cta-title">${isId?'Butuh Cloud Storage Gratis?':'Need Free Cloud Storage?'}</div>
+                    <div class="share-portal-cta-desc">${isId?'Simpan file unlimited dengan enkripsi E2E. Gratis selamanya.':'Store unlimited files with E2E encryption. Free forever.'}</div>
+                    <a href="#/login" class="share-portal-cta-btn"><i class="fas fa-cloud"></i> ${isId?'Buka Ridgebox':'Open Ridgebox'}</a>
+                </div>
             </div>
-        </div></div>`;
+        </div>
+        <div class="share-portal-footer"><i class="fas fa-shield-halved"></i> ${isId?'Dilindungi enkripsi end-to-end · Ridgebox tidak menyimpan kunci enkripsi Anda':'Protected by end-to-end encryption · Ridgebox never stores your encryption keys'}</div>
+        </div>`;
         // Store share data for password verification
         window._shareVerifyData = share;
         return;
@@ -9794,8 +9857,13 @@ async function verifySharePassword(shareId) {
         }
         if (file) renderShareDownload(share, file);
     } else {
-        if (errEl) errEl.style.display = 'block';
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = APP.lang==='id'?'Password salah. Coba lagi.':'Wrong password. Try again.'; }
         input.value = '';
+        // Shake animation on wrong password
+        const field = input.closest('.share-pw-field') || input.parentElement;
+        if (field) { field.style.animation = 'none'; field.offsetHeight; field.style.animation = 'sharePwShake .5s ease'; }
+        input.style.borderColor = '#ef4444';
+        setTimeout(() => { input.style.borderColor = ''; }, 2000);
     }
 }
 
