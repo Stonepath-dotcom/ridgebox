@@ -2085,7 +2085,67 @@ body.no-transition,body.no-transition *{transition:none!important}
 .ocr-status-badge.none{background:rgba(239,68,68,.1);color:#ef4444}
 .ocr-status-badge.pending{background:rgba(245,158,11,.1);color:#f59e0b}
 .ocr-confidence{font-size:11px;color:var(--text-secondary);font-style:italic}
-</style>
+
+/* ===== ARCHITECTURE DIAGRAM ===== */
+.arch-section{position:relative;padding:80px 20px;background:linear-gradient(180deg,var(--bg) 0%,#0c1222 30%,#0c1222 70%,var(--bg) 100%);overflow:hidden}
+.dark .arch-section{background:linear-gradient(180deg,var(--bg) 0%,#0a0f1e 30%,#0a0f1e 70%,var(--bg) 100%)}
+.light .arch-section{background:linear-gradient(180deg,var(--bg) 0%,#f0f4ff 30%,#e8eefb 70%,var(--bg) 100%)}
+.arch-canvas-wrap{position:relative;max-width:1100px;margin:0 auto;min-height:520px}
+.arch-svg-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.arch-flow-line{fill:none;stroke:url(#archGrad);stroke-width:2;stroke-dasharray:8 4;opacity:.6}
+.arch-flow-line.active{animation:archDashFlow 1.5s linear infinite}
+@keyframes archDashFlow{to{stroke-dashoffset:-24}}
+.arch-particle{fill:url(#archParticleGrad);opacity:0;filter:url(#archGlow)}
+.arch-particle.active{opacity:1}
+.arch-particle-1.active{animation:archParticleMove1 3s linear infinite}
+.arch-particle-2.active{animation:archParticleMove2 3s linear infinite .75s}
+.arch-particle-3.active{animation:archParticleMove3 3s linear infinite 1.5s}
+.arch-particle-4.active{animation:archParticleMove4 3s linear infinite 2.25s}
+@keyframes archParticleMove1{0%{offset-distance:0%;opacity:0}5%{opacity:1}95%{opacity:1}100%{offset-distance:100%;opacity:0}}
+.arch-node-row{display:flex;align-items:center;justify-content:center;gap:0;width:100%}
+.arch-node-center{display:flex;flex-direction:column;align-items:center;gap:40px;position:relative;z-index:2}
+.arch-node{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 16px;border-radius:18px;background:rgba(255,255,255,.05);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .4s cubic-bezier(.4,0,.2,1);min-width:120px;opacity:0;transform:translateY(30px) scale(.92)}
+.light .arch-node{background:rgba(255,255,255,.75);border:1px solid rgba(59,130,246,.15);box-shadow:0 4px 24px rgba(59,130,246,.08)}
+.arch-node.visible{opacity:1;transform:translateY(0) scale(1)}
+.arch-node:hover{transform:translateY(-4px) scale(1.05);border-color:rgba(59,130,246,.4);box-shadow:0 0 30px rgba(59,130,246,.25),0 0 60px rgba(139,92,246,.15)}
+.light .arch-node:hover{box-shadow:0 0 30px rgba(59,130,246,.15),0 0 60px rgba(139,92,246,.08)}
+.arch-node-glow{position:absolute;inset:-2px;border-radius:20px;opacity:0;transition:opacity .4s ease;pointer-events:none}
+.arch-node:hover .arch-node-glow{opacity:1}
+.arch-node-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1}
+.arch-node-icon svg{width:28px;height:28px}
+.arch-node-label{font-size:13px;font-weight:700;color:#f1f5f9;text-align:center;letter-spacing:.3px;position:relative;z-index:1}
+.light .arch-node-label{color:#1e293b}
+.arch-node-sublabel{font-size:10px;color:#94a3b8;text-align:center;position:relative;z-index:1}
+.light .arch-node-sublabel{color:#64748b}
+.arch-node-pulse{position:absolute;inset:-4px;border-radius:22px;border:2px solid rgba(59,130,246,.3);animation:archPulse 2.5s ease-in-out infinite;pointer-events:none}
+@keyframes archPulse{0%,100%{opacity:0;transform:scale(1)}50%{opacity:.6;transform:scale(1.06)}}
+.arch-tooltip{position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%) translateY(6px);background:rgba(15,23,42,.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:10px 14px;font-size:12px;color:#e2e8f0;white-space:nowrap;pointer-events:none;opacity:0;transition:all .25s ease;z-index:20;max-width:220px;white-space:normal;text-align:center;line-height:1.5}
+.light .arch-tooltip{background:rgba(255,255,255,.95);color:#334155;border-color:rgba(59,130,246,.2)}
+.arch-node:hover .arch-tooltip{opacity:1;transform:translateX(-50%) translateY(0)}
+.arch-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:rgba(15,23,42,.95)}
+.light .arch-tooltip::after{border-top-color:rgba(255,255,255,.95)}
+.arch-storage-col{display:flex;flex-direction:column;gap:16px;align-items:center}
+.arch-main-row{display:flex;align-items:center;justify-content:center;gap:60px;width:100%}
+.arch-connector-label{position:absolute;font-size:10px;font-weight:600;color:rgba(139,92,246,.7);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;pointer-events:none}
+.arch-title-color{color:#f1f5f9!important}
+.arch-desc-color{color:#94a3b8!important}
+.light .arch-title-color{color:#0f172a!important}
+.light .arch-desc-color{color:#64748b!important}
+.arch-section .section-eyebrow{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.2)}
+.light .arch-section .section-eyebrow{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.15)}
+@media(max-width:768px){
+.arch-section{padding:60px 16px}
+.arch-canvas-wrap{min-height:auto}
+.arch-main-row{flex-direction:column;gap:24px}
+.arch-storage-col{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:12px}
+.arch-node{min-width:100px;padding:14px 12px}
+.arch-node-icon{width:44px;height:44px;border-radius:12px}
+.arch-node-icon svg{width:22px;height:22px}
+.arch-node-label{font-size:11px}
+.arch-svg-lines{display:none}
+.arch-connector-label{display:none}
+}
+
 </head>
 <body>
 <div id="scroll-progress" class="scroll-progress" style="width:0"></div>
@@ -5621,6 +5681,243 @@ function renderHomepage() {
             </div>
         </section>
 
+        <!-- ===== ARCHITECTURE DIAGRAM ===== -->
+        <section class="arch-section scroll-reveal" id="arch-section">
+            <div class="decor-orb decor-orb-1" style="top:-80px;right:-150px"></div>
+            <div class="decor-orb decor-orb-2" style="bottom:-60px;left:-120px"></div>
+            <div style="max-width:1100px;margin:0 auto;position:relative;z-index:1">
+                <div style="text-align:center;margin-bottom:56px" class="scroll-reveal">
+                    <div class="section-eyebrow"><i class="fas fa-diagram-project"></i> ${isId?'Cara Kerja Di Balik Layar':'How It Works Behind The Scenes'}</div>
+                    <h2 class="section-title arch-title-color">${isId?'Arsitektur Sistem':'System Architecture'}</h2>
+                    <p class="section-desc arch-desc-color">${isId?'Aliran data end-to-end dari perangkat Anda ke penyimpanan terdistribusi':'End-to-end data flow from your device to distributed storage'}</p>
+                </div>
+
+                <div class="arch-canvas-wrap" id="arch-canvas">
+                    <!-- SVG connection lines layer -->
+                    <svg class="arch-svg-lines" id="arch-svg" viewBox="0 0 1100 520" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <linearGradient id="archGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1"/>
+                                <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1"/>
+                                <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1"/>
+                            </linearGradient>
+                            <linearGradient id="archGradVert" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1"/>
+                                <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1"/>
+                                <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1"/>
+                            </linearGradient>
+                            <filter id="archGlow">
+                                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                            <radialGradient id="archParticleGrad">
+                                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1"/>
+                                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:.8"/>
+                            </radialGradient>
+                        </defs>
+                        <!-- User → Encryption -->
+                        <path class="arch-flow-line" id="arch-line-user-enc" d="M 170 290 Q 260 290 310 290"/>
+                        <!-- Encryption → App -->
+                        <path class="arch-flow-line" id="arch-line-enc-app" d="M 420 290 Q 470 290 520 290"/>
+                        <!-- App → Auth (up) -->
+                        <path class="arch-flow-line" id="arch-line-app-auth" d="M 600 230 Q 600 160 600 120"/>
+                        <!-- App → Storage providers (right) -->
+                        <path class="arch-flow-line" id="arch-line-app-tg" d="M 680 260 Q 780 160 880 120"/>
+                        <path class="arch-flow-line" id="arch-line-app-gd" d="M 680 270 Q 780 230 880 200"/>
+                        <path class="arch-flow-line" id="arch-line-app-od" d="M 680 290 Q 780 290 880 280"/>
+                        <path class="arch-flow-line" id="arch-line-app-db" d="M 680 310 Q 780 350 880 360"/>
+                        <path class="arch-flow-line" id="arch-line-app-s3" d="M 680 320 Q 780 400 880 440"/>
+                        <!-- App → AI (down) -->
+                        <path class="arch-flow-line" id="arch-line-app-ai" d="M 600 350 Q 600 400 600 440"/>
+                        <!-- Flowing particles -->
+                        <circle r="3" class="arch-particle" id="arch-dot-user-enc">
+                            <animateMotion dur="2.5s" repeatCount="indefinite"><mpath href="#arch-line-user-enc"/></animateMotion>
+                        </circle>
+                        <circle r="3" class="arch-particle" id="arch-dot-enc-app">
+                            <animateMotion dur="2.5s" repeatCount="indefinite" begin="0.6s"><mpath href="#arch-line-enc-app"/></animateMotion>
+                        </circle>
+                        <circle r="3" class="arch-particle" id="arch-dot-app-auth">
+                            <animateMotion dur="2.5s" repeatCount="indefinite" begin="0.3s"><mpath href="#arch-line-app-auth"/></animateMotion>
+                        </circle>
+                        <circle r="3" class="arch-particle" id="arch-dot-app-tg">
+                            <animateMotion dur="3s" repeatCount="indefinite" begin="0s"><mpath href="#arch-line-app-tg"/></animateMotion>
+                        </circle>
+                        <circle r="3" class="arch-particle" id="arch-dot-app-gd">
+                            <animateMotion dur="3s" repeatCount="indefinite" begin="0.5s"><mpath href="#arch-line-app-gd"/></animateMotion>
+                        </circle>
+                        <circle r="3" class="arch-particle" id="arch-dot-app-od">
+                            <animateMotion dur="3s" repeatCount="indefinite" begin="1s"><mpath href="#arch-line-app-od"/></animateMotion>
+                        </circle>
+                        <circle r="3" class="arch-particle" id="arch-dot-app-db">
+                            <animateMotion dur="3s" repeatCount="indefinite" begin="1.5s"><mpath href="#arch-line-app-db"/></animateMotion>
+                        </circle>
+                        <circle r="3" class="arch-particle" id="arch-dot-app-s3">
+                            <animateMotion dur="3s" repeatCount="indefinite" begin="2s"><mpath href="#arch-line-app-s3"/></animateMotion>
+                        </circle>
+                        <circle r="3" class="arch-particle" id="arch-dot-app-ai">
+                            <animateMotion dur="2.5s" repeatCount="indefinite" begin="0.8s"><mpath href="#arch-line-app-ai"/></animateMotion>
+                        </circle>
+                        <!-- Extra staggered particles for density -->
+                        <circle r="2.5" class="arch-particle" opacity=".6">
+                            <animateMotion dur="2.5s" repeatCount="indefinite" begin="1.25s"><mpath href="#arch-line-user-enc"/></animateMotion>
+                        </circle>
+                        <circle r="2.5" class="arch-particle" opacity=".6">
+                            <animateMotion dur="2.5s" repeatCount="indefinite" begin="1.85s"><mpath href="#arch-line-enc-app"/></animateMotion>
+                        </circle>
+                        <circle r="2.5" class="arch-particle" opacity=".6">
+                            <animateMotion dur="3s" repeatCount="indefinite" begin="1.5s"><mpath href="#arch-line-app-tg"/></animateMotion>
+                        </circle>
+                        <circle r="2.5" class="arch-particle" opacity=".6">
+                            <animateMotion dur="3s" repeatCount="indefinite" begin="2s"><mpath href="#arch-line-app-gd"/></animateMotion>
+                        </circle>
+                        <circle r="2.5" class="arch-particle" opacity=".6">
+                            <animateMotion dur="3s" repeatCount="indefinite" begin="2.5s"><mpath href="#arch-line-app-od"/></animateMotion>
+                        </circle>
+                    </svg>
+
+                    <!-- Main layout row -->
+                    <div class="arch-main-row" style="position:relative;z-index:2">
+                        <!-- LEFT: User/Browser -->
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:40px">
+                            <div class="arch-node" data-arch-delay="0">
+                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(59,130,246,.3);border-radius:20px"></div>
+                                <div class="arch-node-pulse"></div>
+                                <div class="arch-tooltip">${isId?'Perangkat Anda — mengakses RidgeBox melalui browser dengan enkripsi end-to-end':'Your device — accesses RidgeBox via browser with end-to-end encryption'}</div>
+                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#3b82f6,#06b6d4)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/><circle cx="12" cy="10" r="3"/></svg>
+                                </div>
+                                <div class="arch-node-label">${isId?'Pengguna':'User'}</div>
+                                <div class="arch-node-sublabel">Browser / PWA</div>
+                            </div>
+                        </div>
+
+                        <!-- LEFT-CENTER: Encryption Layer -->
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:40px">
+                            <div class="arch-node" data-arch-delay="1">
+                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(16,185,129,.3);border-radius:20px"></div>
+                                <div class="arch-node-pulse" style="border-color:rgba(16,185,129,.3)"></div>
+                                <div class="arch-tooltip">${isId?'Enkripsi AES-256-GCM dilakukan di sisi klien sebelum data dikirim':'AES-256-GCM encryption happens client-side before data is sent'}</div>
+                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#10b981,#3b82f6)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1.5"/><line x1="12" y1="17.5" x2="12" y2="19"/></svg>
+                                </div>
+                                <div class="arch-node-label">${isId?'Enkripsi':'Encryption'}</div>
+                                <div class="arch-node-sublabel">AES-256-GCM</div>
+                            </div>
+                        </div>
+
+                        <!-- CENTER: RidgeBox App -->
+                        <div class="arch-node-center">
+                            <!-- Auth Layer (top) -->
+                            <div class="arch-node" data-arch-delay="2">
+                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(62,207,142,.3);border-radius:20px"></div>
+                                <div class="arch-node-pulse" style="border-color:rgba(62,207,142,.3)"></div>
+                                <div class="arch-tooltip">${isId?'Autentikasi aman via Supabase — OAuth, email, dan magic link':'Secure auth via Supabase — OAuth, email, and magic link'}</div>
+                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#3ecf8e,#06b6d4)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                                </div>
+                                <div class="arch-node-label">${isId?'Autentikasi':'Authentication'}</div>
+                                <div class="arch-node-sublabel">Supabase Auth</div>
+                            </div>
+
+                            <!-- RidgeBox App Core -->
+                            <div class="arch-node" data-arch-delay="3" style="padding:28px 24px;border-color:rgba(59,130,246,.3);box-shadow:0 0 40px rgba(59,130,246,.15)">
+                                <div class="arch-node-glow" style="box-shadow:0 0 60px rgba(59,130,246,.35),0 0 80px rgba(139,92,246,.2);border-radius:20px"></div>
+                                <div class="arch-node-pulse" style="border-color:rgba(139,92,246,.4)"></div>
+                                <div class="arch-tooltip">${isId?'Inti aplikasi RidgeBox — orkestrasi penyimpanan, caching, dan routing file':'RidgeBox core — orchestrates storage, caching, and file routing'}</div>
+                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);width:68px;height:68px;border-radius:18px">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:34px;height:34px"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/><path d="M6 4.5L12 7l6-2.5"/><path d="M12 7v5"/></svg>
+                                </div>
+                                <div class="arch-node-label" style="font-size:15px">${isId?'Aplikasi RidgeBox':'RidgeBox App'}</div>
+                                <div class="arch-node-sublabel">${isId?'Orkestrator Utama':'Core Orchestrator'}</div>
+                            </div>
+
+                            <!-- AI Engine (bottom) -->
+                            <div class="arch-node" data-arch-delay="4">
+                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(236,72,153,.3);border-radius:20px"></div>
+                                <div class="arch-node-pulse" style="border-color:rgba(236,72,153,.3)"></div>
+                                <div class="arch-tooltip">${isId?'Mesin AI untuk OCR, ringkasan file, dan pengenalan konten cerdas':'AI engine for OCR, file summarization, and smart content recognition'}</div>
+                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#ec4899,#8b5cf6)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4c0 1.5-.8 2.8-2 3.5V11h3a3 3 0 0 1 3 3v1.5a2.5 2.5 0 0 1-2.5 2.5H17v2a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v-2H6.5A2.5 2.5 0 0 1 4 15.5V14a3 3 0 0 1 3-3h3V9.5A4 4 0 0 1 8 6a4 4 0 0 1 4-4z"/><circle cx="9" cy="15" r="1" fill="#fff"/><circle cx="15" cy="15" r="1" fill="#fff"/></svg>
+                                </div>
+                                <div class="arch-node-label">${isId?'Mesin AI':'AI Engine'}</div>
+                                <div class="arch-node-sublabel">z-ai-web-dev-sdk</div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: Storage Providers -->
+                        <div class="arch-storage-col">
+                            <div class="arch-node" data-arch-delay="5">
+                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(0,136,204,.3);border-radius:20px"></div>
+                                <div class="arch-node-pulse" style="border-color:rgba(0,136,204,.3)"></div>
+                                <div class="arch-tooltip">${isId?'Bot Telegram sebagai mesin penyimpanan utama — unlimited & gratis':'Telegram Bot as primary storage engine — unlimited & free'}</div>
+                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#0088cc,#00b4d8)">
+                                    <svg viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.2-.04-.28-.02-.12.03-2.01 1.28-5.67 3.74-.54.37-1.02.55-1.46.54-.48-.01-1.4-.27-2.09-.5-.84-.27-1.51-.42-1.45-.89.03-.25.37-.5 1.02-.77 3.98-1.73 6.63-2.87 7.97-3.44 3.8-1.58 4.59-1.86 5.1-1.87.11 0 .37.03.54.17.14.12.18.28.2.45-.01.06.01.24 0 .38z"/></svg>
+                                </div>
+                                <div class="arch-node-label">Telegram</div>
+                                <div class="arch-node-sublabel">Bot API</div>
+                            </div>
+                            <div class="arch-node" data-arch-delay="6">
+                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(66,133,244,.3);border-radius:20px"></div>
+                                <div class="arch-node-pulse" style="border-color:rgba(66,133,244,.3)"></div>
+                                <div class="arch-tooltip">${isId?'Google Drive — penyimpanan cloud alternatif dengan integrasi API':'Google Drive — alternative cloud storage with API integration'}</div>
+                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#4285f4,#34a853)">
+                                    <svg viewBox="0 0 24 24" fill="none"><polygon points="7,3 1,14 5,14 11,3" fill="#4285f4"/><polygon points="13,3 7,14 11,14 17,3" fill="#fbbc05" opacity=".9"/><polygon points="17,7 11,18 15,18 21,7" fill="#ea4335" opacity=".9"/><polygon points="5,14 8,21 16,21 13,14" fill="#34a853"/></svg>
+                                </div>
+                                <div class="arch-node-label">Google Drive</div>
+                                <div class="arch-node-sublabel">Cloud API</div>
+                            </div>
+                            <div class="arch-node" data-arch-delay="7">
+                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(0,120,212,.3);border-radius:20px"></div>
+                                <div class="arch-node-pulse" style="border-color:rgba(0,120,212,.3)"></div>
+                                <div class="arch-tooltip">${isId?'OneDrive — penyimpanan Microsoft dengan integrasi langsung':'OneDrive — Microsoft storage with direct integration'}</div>
+                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#0078d4,#0364b8)">
+                                    <svg viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M10.5 18.5h8.3c1.7 0 3.2-1.2 3.2-2.9 0-1.6-1.2-2.8-2.8-3 .1-.3.1-.6.1-.9 0-2.2-1.8-4-4-4-1.8 0-3.3 1.2-3.8 2.8-.4-.2-.8-.3-1.3-.3-1.9 0-3.5 1.5-3.5 3.4 0 1.9 1.5 3.4 3.5 3.4h.3c.1.5.3 1 .5 1.4-.3.1-.5.1-.8.1-2.8 0-5-2.2-5-4.9 0-2.5 1.9-4.6 4.4-4.9C7 7.2 9.2 5.5 12 5.5c3 0 5.5 2.2 5.9 5.1 2 .4 3.5 2.2 3.5 4.3 0 2.4-2 4.4-4.4 4.4h-6.5c-.1 0-.1 0 0 0z"/></svg>
+                                </div>
+                                <div class="arch-node-label">OneDrive</div>
+                                <div class="arch-node-sublabel">Microsoft</div>
+                            </div>
+                            <div class="arch-node" data-arch-delay="8">
+                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(0,97,255,.3);border-radius:20px"></div>
+                                <div class="arch-node-pulse" style="border-color:rgba(0,97,255,.3)"></div>
+                                <div class="arch-tooltip">${isId?'Dropbox — sinkronisasi file dengan API Dropbox yang andal':'Dropbox — file sync via reliable Dropbox API'}</div>
+                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#0061ff,#0095ff)">
+                                    <svg viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M7 2l-5 3.5 5 3.5 5-3.5L7 2zm5 3.5l5 3.5-5 3.5-5-3.5 5-3.5zM2 9.5l5 3.5 5-3.5-5-3.5-5 3.5zm15 0l-5 3.5 5 3.5 5-3.5-5-3.5zM7 14.5l5 3.5 5-3.5-5-3.5-5 3.5z"/></svg>
+                                </div>
+                                <div class="arch-node-label">Dropbox</div>
+                                <div class="arch-node-sublabel">File Sync</div>
+                            </div>
+                            <div class="arch-node" data-arch-delay="9">
+                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(255,153,0,.3);border-radius:20px"></div>
+                                <div class="arch-node-pulse" style="border-color:rgba(255,153,0,.3)"></div>
+                                <div class="arch-tooltip">${isId?'AWS S3 — penyimpanan objek terdistribusi untuk skala enterprise':'AWS S3 — distributed object storage for enterprise scale'}</div>
+                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#ff9900,#232f3e)">
+                                    <svg viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M2 12c0 2.8 1.2 5.3 3.1 7.1l2.4-2.4C6 15.4 5 13.8 5 12c0-1.8 1-3.4 2.5-4.7L5.1 4.9C3.2 6.7 2 9.2 2 12z"/><path d="M22 12c0-2.8-1.2-5.3-3.1-7.1l-2.4 2.4C18 8.6 19 10.2 19 12c0 1.8-1 3.4-2.5 4.7l2.4 2.4C20.8 17.3 22 14.8 22 12z"/><path d="M12 2c-1.6 0-3.1.4-4.4 1l1.3 2.8C9.8 5.3 10.9 5 12 5s2.2.3 3.1.8L16.4 3C15.1 2.4 13.6 2 12 2z"/><path d="M12 22c1.6 0 3.1-.4 4.4-1l-1.3-2.8c-.9.5-2 .8-3.1.8s-2.2-.3-3.1-.8L7.6 21c1.3.6 2.8 1 4.4 1z"/></svg>
+                                </div>
+                                <div class="arch-node-label">S3</div>
+                                <div class="arch-node-sublabel">AWS Bucket</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legend / flow description -->
+                <div style="display:flex;justify-content:center;gap:32px;margin-top:40px;flex-wrap:wrap" class="scroll-reveal">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8">
+                        <span style="display:inline-block;width:24px;height:2px;background:linear-gradient(90deg,#3b82f6,#8b5cf6);border-radius:1px"></span>
+                        ${isId?'Aliran Data Terenkripsi':'Encrypted Data Flow'}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8">
+                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3b82f6;box-shadow:0 0 8px #3b82f6"></span>
+                        ${isId?'Partikel Data':'Data Particles'}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8">
+                        <span style="display:inline-block;width:12px;height:12px;border-radius:4px;border:1.5px solid rgba(59,130,246,.4);background:rgba(59,130,246,.1)"></span>
+                        ${isId?'Komponen Sistem':'System Component'}
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- ===== COMPARISON ===== -->
         <section class="scroll-reveal" style="padding:48px 20px 64px;position:relative">
             <div class="decor-orb decor-orb-1" style="top:-100px;left:-200px"></div>
@@ -6216,6 +6513,7 @@ function renderHomepage() {
     initParallaxOrbs();
     initScrollRevealEnhanced();
     initLiveActivityFeed();
+    initArchDiagram();
     initBlog();
 }
 
@@ -6631,6 +6929,53 @@ function initScrollRevealEnhanced() {
         });
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
     elements.forEach(el => observer.observe(el));
+}
+
+// ===== ARCHITECTURE DIAGRAM ANIMATION =====
+function initArchDiagram() {
+    const section = document.getElementById('arch-section');
+    if (!section) return;
+
+    const nodes = section.querySelectorAll('.arch-node');
+    const flowLines = section.querySelectorAll('.arch-flow-line');
+    const particles = section.querySelectorAll('.arch-particle');
+
+    // Staggered fade-in for nodes when section enters viewport
+    if ('IntersectionObserver' in window) {
+        const archObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Stagger node reveals
+                    nodes.forEach(node => {
+                        const delay = parseInt(node.getAttribute('data-arch-delay') || '0', 10);
+                        setTimeout(() => {
+                            node.classList.add('visible');
+                        }, delay * 150 + 200);
+                    });
+
+                    // Activate flow lines with stagger
+                    flowLines.forEach((line, i) => {
+                        setTimeout(() => {
+                            line.classList.add('active');
+                        }, i * 100 + 800);
+                    });
+
+                    // Activate particles
+                    setTimeout(() => {
+                        particles.forEach(p => p.classList.add('active'));
+                    }, 1200);
+
+                    archObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+        archObserver.observe(section);
+    } else {
+        // Fallback: show everything immediately
+        nodes.forEach(n => n.classList.add('visible'));
+        flowLines.forEach(l => l.classList.add('active'));
+        particles.forEach(p => p.classList.add('active'));
+    }
 }
 
 // ===== LIVE ACTIVITY FEED =====
