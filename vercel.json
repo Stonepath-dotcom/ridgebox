@@ -5,7 +5,11 @@
     { "src": "/.well-known/security.txt", "dest": "/.well-known/security.txt" },
     { "src": "/api/proxy", "dest": "/api/proxy.js" },
     { "src": "/api/gdrive/(.*)", "dest": "/api/gdrive/$1" },
+    { "src": "/api/onedrive/(.*)", "dest": "/api/onedrive/$1" },
+    { "src": "/api/dropbox/(.*)", "dest": "/api/dropbox/$1" },
     { "src": "/api/s3/(.*)", "dest": "/api/s3/$1" },
+    { "src": "/api/stripe/(.*)", "dest": "/api/stripe/$1" },
+    { "src": "/api/ai/(.*)", "dest": "/api/ai/$1" },
     { "src": "/api/(.*)", "dest": "/api/$1" }
   ],
   "headers": [
