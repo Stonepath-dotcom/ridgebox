@@ -3,6 +3,14 @@ import { getCORSHeaders } from './_cors.js';
 
 export const config = { runtime: 'edge' };
 
+// Allowed Telegram API methods for security
+const ALLOWED_METHODS = [
+  'deleteMessage',
+  'getFileInfo',
+  'getFile',
+  'sendMessage',
+];
+
 export default async function (request) {
   const CORS = getCORSHeaders(request);
   const rl = checkRateLimit(request);
@@ -17,18 +25,19 @@ export default async function (request) {
     return new Response(null, { status: 204, headers: { ...CORS, ...rateLimitHeaders(rl) } });
   }
 
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ ok: false, error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
-    });
-  }
-
   try {
-    const body = await request.json();
-    const { file_id, bot_index } = body;
-    const botIndex = bot_index || '0';
+    const url = new URL(request.url);
+    const method = url.searchParams.get('method');
 
+    if (!method || !ALLOWED_METHODS.includes(method)) {
+      return new Response(JSON.stringify({ ok: false, error: 'Method not allowed' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
+      });
+    }
+
+    // Get bot token from environment
+    const botIndex = url.searchParams.get('bot_index') || '0';
     const token = botIndex === '0'
       ? process.env.TG_BOT_TOKEN
       : process.env[`TG_BOT_${botIndex}_TOKEN`];
@@ -40,9 +49,17 @@ export default async function (request) {
       });
     }
 
-    const response = await fetch(
-      `https://api.telegram.org/bot${token}/getFile?file_id=${file_id}`
-    );
+    // Build Telegram API URL with all query params except our internal ones
+    const tgParams = new URLSearchParams();
+    for (const [key, value] of url.searchParams.entries()) {
+      if (!['method', 'bot_index'].includes(key)) {
+        tgParams.append(key, value);
+      }
+    }
+
+    const tgUrl = `https://api.telegram.org/bot${token}/${method}?${tgParams.toString()}`;
+
+    const response = await fetch(tgUrl);
     const data = await response.json();
 
     return new Response(JSON.stringify(data), {

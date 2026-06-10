@@ -1,13 +1,18 @@
 {
-    "name": "Ridgebox",
-    "short_name": "Ridgebox",
-    "description": "Cloud storage via Telegram Bot. Simpan file gratis, tanpa server.",
+    "name": "RidgeBox — Cloud Storage Gratis & Terenkripsi",
+    "short_name": "RidgeBox",
+    "description": "Cloud storage gratis tanpa server. Unlimited storage, end-to-end encryption AES-256, share file dengan self-destruct link. 105+ fitur gratis.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#3b82f6",
     "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "id",
+    "dir": "ltr",
     "categories": ["utilities", "productivity"],
+    "iarc_rating_id": "",
+    "prefer_related_applications": false,
     "icons": [
         {
             "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23ffffff'/%3E%3Crect x='56' y='56' width='80' height='80' rx='16' fill='%233b82f6'/%3E%3Cpath d='M96 76 L96 116 M86 90 L96 76 L106 90' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E",
@@ -21,5 +26,28 @@
             "type": "image/svg+xml",
             "purpose": "any maskable"
         }
-    ]
+    ],
+    "screenshots": [
+        {
+            "src": "https://ridgebox.vercel.app/api/og-image",
+            "sizes": "1200x630",
+            "type": "image/svg+xml",
+            "form_factor": "wide"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Dashboard",
+            "short_name": "Dashboard",
+            "url": "/#/dashboard",
+            "description": "Buka dashboard RidgeBox"
+        },
+        {
+            "name": "Upload",
+            "short_name": "Upload",
+            "url": "/#/dashboard",
+            "description": "Upload file ke RidgeBox"
+        }
+    ],
+    "related_applications": []
 }

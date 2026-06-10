@@ -3,6 +3,12 @@ import { getCORSHeaders } from './_cors.js';
 
 export const config = { runtime: 'edge' };
 
+// F76: Mask bot tokens before sending to client
+function maskToken(token) {
+  if (!token || token.length <= 5) return '***';
+  return token.substring(0, 5) + '***';
+}
+
 export default async function (request) {
   const CORS = getCORSHeaders(request);
   const rl = checkRateLimit(request);
@@ -18,15 +24,19 @@ export default async function (request) {
   }
 
   try {
+    // Collect all bot configs
     const bots = [];
     let i = 0;
 
     // Default bot
-    if (process.env.TG_BOT_TOKEN) {
+    const defaultToken = process.env.TG_BOT_TOKEN;
+    const defaultChatId = process.env.TG_CHAT_ID;
+    if (defaultToken && defaultChatId) {
       bots.push({
         index: '0',
         name: process.env.TG_BOT_NAME || 'Primary Bot',
-        configured: true,
+        token: defaultToken, // Full token for proxy mode, client masks it
+        chatId: defaultChatId,
       });
     }
 
@@ -34,19 +44,40 @@ export default async function (request) {
     while (true) {
       i++;
       const token = process.env[`TG_BOT_${i}_TOKEN`];
-      if (!token) break;
+      const chatId = process.env[`TG_BOT_${i}_CHAT_ID`];
+      if (!token || !chatId) break;
       bots.push({
         index: String(i),
         name: process.env[`TG_BOT_${i}_NAME`] || `Bot ${i + 1}`,
-        configured: true,
+        token,
+        chatId,
       });
     }
 
-    if (bots.length === 0) {
-      bots.push({ index: '0', name: 'No bot configured', configured: false });
-    }
+    // F76: Return masked tokens by default, full tokens only in proxy mode
+    const url = new URL(request.url);
+    const proxyMode = url.searchParams.get('proxy') !== 'false';
 
-    return new Response(JSON.stringify({ ok: true, bots }), {
+    const safeBots = bots.map(b => ({
+      ...b,
+      token: proxyMode ? maskToken(b.token) : b.token,
+      masked: proxyMode,
+    }));
+
+    // Supabase Auth config - only use env vars, no hardcoded fallbacks
+    const supabaseUrl = process.env.SUPABASE_URL || '';
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+    const supabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
+
+    const responseBody = {
+      ok: true,
+      bots: safeBots,
+      proxyMode,
+      supabaseConfigured,
+      ...(supabaseConfigured ? { supabaseUrl, supabaseAnonKey } : {}),
+    };
+
+    return new Response(JSON.stringify(responseBody), {
       headers: { 'Content-Type': 'application/json', ...rateLimitHeaders(rl), ...CORS },
     });
   } catch (error) {
