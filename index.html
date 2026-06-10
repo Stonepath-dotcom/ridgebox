@@ -2,30 +2,53 @@
 <html lang="id" class="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Ridgebox — Cloud Storage</title>
 <meta name="description" content="Simpan file gratis tanpa server. Unlimited storage, end-to-end encryption.">
 <meta name="theme-color" content="#3b82f6">
+<meta name="color-scheme" content="light dark">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="/logo-icon.png" type="image/png">
 <link rel="apple-touch-icon" href="/logo-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{primary:'#3b82f6','primary-dark':'#2563eb'},fontFamily:{sans:['Space Grotesk','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://js.stripe.com/v3/"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+<script src="https://js.stripe.com/v3/" defer></script>
 <style>
 :root{--accent:#3b82f6;--accent-hover:#2563eb;--bg:#ffffff;--bg-secondary:#f8fafc;--bg-card:#ffffff;--text:#0f172a;--text-secondary:#64748b;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--shadow-lg:0 10px 40px rgba(0,0,0,.15);--radius:12px;--sidebar-w:260px;--header-h:60px;--transition:all .2s ease}body[dir="rtl"] .sidebar-desktop{right:0;left:auto}body[dir="rtl"] .detail-panel{right:auto;left:0;transform:translateX(-100%)}body[dir="rtl"] .detail-panel.open{transform:translateX(0)}
 .dark{--bg:#0f172a;--bg-secondary:#1e293b;--bg-card:#1e293b;--text:#f1f5f9;--text-secondary:#94a3b8;--border:#334155;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 10px 40px rgba(0,0,0,.4)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh;-webkit-overflow-scrolling:touch;max-width:100vw}
 #app-main{max-width:100vw;overflow-x:hidden}
+/* Accessibility: Skip Navigation */
+.skip-nav{position:absolute;top:-100%;left:16px;z-index:9999;padding:12px 24px;background:var(--accent);color:#fff;border-radius:0 0 8px 8px;font-weight:600;font-size:14px;text-decoration:none;transition:top .2s ease}
+.skip-nav:focus{top:0;outline:3px solid #fbbf24;outline-offset:2px}
+/* Accessibility: Screen Reader Only */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+/* Accessibility: Focus Visible */
+*:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+.btn:focus-visible,.input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+/* Accessibility: Reduced Motion */
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+/* Accessibility: High Contrast */
+@media(prefers-contrast:high){:root{--border:#000;--text-secondary:#333}.dark{--border:#fff;--text-secondary:#ccc}.btn-primary{outline:2px solid #000}.input{border-width:2px}}
+/* Performance: Content visibility for offscreen sections */
+.page-transition>section{content-visibility:auto;contain-intrinsic-size:auto 500px}
+/* Performance: GPU acceleration for animated elements */
+.file-grid-item,.glass-card,.premium-card,.bento-card,.lux-feature,.toast,.modal-content{will-change:transform,opacity}
 .page-transition{max-width:100vw;overflow-x:hidden}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -2149,32 +2172,34 @@ body.no-transition,body.no-transition *{transition:none!important}
 </style>
 </head>
 <body>
-<div id="scroll-progress" class="scroll-progress" style="width:0"></div>
-<button id="back-to-top" class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-chevron-up"></i></button>
-<div id="upload-progress-global" class="upload-progress-global"><div class="bar" id="global-progress-bar" style="width:0"></div></div>
-<header id="app-header" style="max-width:100vw;overflow-x:hidden"></header>
-<div id="sidebar-mobile-overlay" class="sidebar-mobile-overlay" onclick="toggleMobileSidebar(false)"></div>
-<main id="app-main"></main>
-<div id="detail-panel" class="detail-panel"></div>
-<div id="modal-backdrop" class="modal-backdrop" style="display:none" onclick="closeModal()"><div id="modal-content" class="modal-content" onclick="event.stopPropagation()"></div></div>
-<div id="context-menu-backdrop" class="context-menu-backdrop"></div>
-<div id="context-menu" class="context-menu"></div>
-<div id="hover-preview" class="hover-preview"></div>
-<div id="cmd-palette-overlay" class="cmd-palette-overlay" onclick="closeCommandPalette()">
-    <div class="cmd-palette" onclick="event.stopPropagation()">
+<a href="#app-main" class="skip-nav">Skip to main content</a>
+<div id="scroll-progress" class="scroll-progress" style="width:0" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+<button id="back-to-top" class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top"><i class="fas fa-chevron-up" aria-hidden="true"></i></button>
+<div id="upload-progress-global" class="upload-progress-global" role="progressbar" aria-label="Upload progress"><div class="bar" id="global-progress-bar" style="width:0"></div></div>
+<header id="app-header" role="banner" style="max-width:100vw;overflow-x:hidden"></header>
+<div id="sidebar-mobile-overlay" class="sidebar-mobile-overlay" onclick="toggleMobileSidebar(false)" role="presentation"></div>
+<main id="app-main" role="main"></main>
+<aside id="detail-panel" class="detail-panel" role="complementary" aria-label="File details"></aside>
+<div id="modal-backdrop" class="modal-backdrop" style="display:none" onclick="closeModal()" role="dialog" aria-modal="true" aria-label="Dialog"><div id="modal-content" class="modal-content" onclick="event.stopPropagation()" role="document"></div></div>
+<div id="context-menu-backdrop" class="context-menu-backdrop" role="presentation"></div>
+<nav id="context-menu" class="context-menu" role="menu" aria-label="Context menu"></nav>
+<div id="hover-preview" class="hover-preview" role="tooltip" aria-hidden="true"></div>
+<div id="cmd-palette-overlay" class="cmd-palette-overlay" onclick="closeCommandPalette()" role="dialog" aria-modal="true" aria-label="Command palette">
+    <div class="cmd-palette" onclick="event.stopPropagation()" role="search">
         <div class="cmd-palette-input-wrap">
-            <i class="fas fa-search"></i>
-            <input id="cmd-palette-input" class="cmd-palette-input" type="text" autocomplete="off">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <label for="cmd-palette-input" class="sr-only">Search commands</label>
+            <input id="cmd-palette-input" class="cmd-palette-input" type="text" autocomplete="off" aria-label="Search commands" role="combobox" aria-expanded="true" aria-controls="cmd-palette-list">
             <kbd style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text-secondary)">Esc</kbd>
         </div>
         <div id="cmd-palette-list" class="cmd-palette-list"></div>
     </div>
 </div>
-<div id="toast-container" class="toast-container"></div>
-<div id="parallax-orbs" class="parallax-orbs"></div>
+<div id="toast-container" class="toast-container" role="status" aria-live="polite" aria-label="Notifications"></div>
+<div id="parallax-orbs" class="parallax-orbs" aria-hidden="true"></div>
 
-<div id="quick-actions-bar" class="quick-actions-bar"></div><div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:110"></div>
-<div id="pin-lock-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(30,41,59,.97));backdrop-filter:blur(20px);align-items:center;justify-content:center"></div>
+<div id="quick-actions-bar" class="quick-actions-bar" role="toolbar" aria-label="Quick actions"></div><div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:110" role="dialog" aria-modal="true" aria-label="Onboarding"></div>
+<div id="pin-lock-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(30,41,59,.97));backdrop-filter:blur(20px);align-items:center;justify-content:center" role="dialog" aria-modal="true" aria-label="PIN lock"></div>
 
 <script>
 /* ============================================================
@@ -3219,7 +3244,7 @@ function renderCommentsListHTML(fileId, comments) {
                 <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
                     <span style="font-size:12px;font-weight:600">${c.author}</span>
                     <span style="font-size:10px;color:var(--text-secondary)">${timeStr}</span>
-                    ${isAuthor ? `<button onclick="deleteComment('${fileId}','${c.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:11px;padding:2px 4px;border-radius:4px;transition:color .15s" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-secondary)'"><i class="fas fa-times"></i></button>` : ''}
+                    ${isAuthor ? `<button onclick="deleteComment('${fileId}','${c.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:11px;padding:2px 4px;border-radius:4px;transition:color .15s" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-secondary)'" aria-label="Delete comment"><i class="fas fa-times"></i></button>` : ''}
                 </div>
                 <div style="font-size:12px;color:var(--text);line-height:1.5;word-break:break-word">${escapeHtml(c.text)}</div>
             </div>
@@ -3240,7 +3265,7 @@ function renderCommentsSection(fileId) {
         </div>
         <div style="display:flex;gap:6px;margin-top:10px;align-items:flex-end">
             <textarea id="comment-input-${fileId}" maxlength="500" rows="1" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:12px;font-family:inherit;resize:none;min-height:36px;max-height:80px" placeholder="${isId ? 'Tulis komentar...' : 'Write a comment...'}" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addComment('${fileId}',this.value);this.value='';this.style.height='36px'}" oninput="this.style.height=Math.min(80,Math.max(36,this.scrollHeight))+'px'"></textarea>
-            <button class="btn btn-primary btn-sm" onclick="const inp=document.getElementById('comment-input-${fileId}');addComment('${fileId}',inp.value);inp.value='';inp.style.height='36px'" style="flex-shrink:0"><i class="fas fa-paper-plane"></i></button>
+            <button class="btn btn-primary btn-sm" onclick="const inp=document.getElementById('comment-input-${fileId}');addComment('${fileId}',inp.value);inp.value='';inp.style.height='36px'" style="flex-shrink:0" aria-label="Send comment"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>`;
 }
@@ -3302,7 +3327,7 @@ function renderFileHashSection(fileId) {
         </div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
             <span style="font-size:11px;color:var(--text-secondary);font-family:'JetBrains Mono',monospace;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${hash || ''}">SHA-256: ${hashDisplay}</span>
-            ${hash ? `<button onclick="copyToClipboard('${hash}')" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:12px;padding:2px 6px;border-radius:4px;transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.1)'" onmouseout="this.style.background='none'" title="${isId ? 'Salin hash' : 'Copy hash'}"><i class="fas fa-copy"></i></button>` : ''}
+            ${hash ? `<button onclick="copyToClipboard('${hash}')" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:12px;padding:2px 6px;border-radius:4px;transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.1)'" onmouseout="this.style.background='none'" title="${isId ? 'Salin hash' : 'Copy hash'}" aria-label="Copy hash"><i class="fas fa-copy"></i></button>` : ''}
         </div>
         ${largeFileWarning}
         <button class="btn btn-secondary btn-sm" style="margin-top:6px;width:100%" onclick="verifyFileIntegrity('${fileId}')"><i class="fas fa-shield-halved"></i> ${isId ? 'Verifikasi Integritas' : 'Verify Integrity'}</button>
@@ -4133,9 +4158,9 @@ function renderAuthPage() {
         
         <!-- RIGHT: Form Panel -->
         <div class="auth-fullpage-right">
-            <button class="auth-form-theme-toggle" onclick="toggleAuthTheme()" title="${isId ? 'Ganti tema' : 'Toggle theme'}"><i class="fas fa-${isDark ? 'sun' : 'moon'}"></i></button>
+            <button class="auth-form-theme-toggle" onclick="toggleAuthTheme()" title="${isId ? 'Ganti tema' : 'Toggle theme'}" aria-label="Toggle theme"><i class="fas fa-${isDark ? 'sun' : 'moon'}" aria-hidden="true"></i></button>
             <div class="auth-form-section">
-                <button class="auth-form-back" onclick="closeAuthOverlay()"><i class="fas fa-arrow-left"></i> ${isId ? 'Kembali' : 'Back'}</button>
+                <button class="auth-form-back" onclick="closeAuthOverlay()" aria-label="Go back"><i class="fas fa-arrow-left" aria-hidden="true"></i> ${isId ? 'Kembali' : 'Back'}</button>
                 
                 <div class="auth-form-header">
                     <div class="auth-form-logo"><img src="/logo-icon.png" alt="RidgeBox"/></div>
@@ -4149,6 +4174,7 @@ function renderAuthPage() {
                 ${isForgot ? `
                     <div class="auth-form-input-group">
                         <i class="fas fa-envelope input-icon"></i>
+                        <label for="auth-email" class="sr-only">Email</label>
                         <input type="email" id="auth-email" class="auth-form-input" placeholder="${t('authEmail')}" autocomplete="email">
                     </div>
                     <button id="auth-submit" class="auth-form-btn auth-form-btn-primary" onclick="handleForgotPassword()">
@@ -4161,17 +4187,20 @@ function renderAuthPage() {
                     ${isLogin ? '' : `
                         <div class="auth-form-input-group">
                             <i class="fas fa-user input-icon"></i>
+                            <label for="auth-name" class="sr-only">Full Name</label>
                             <input type="text" id="auth-name" class="auth-form-input" placeholder="${isId ? 'Nama Lengkap' : 'Full Name'}" autocomplete="name">
                         </div>
                     `}
                     <div class="auth-form-input-group">
                         <i class="fas fa-envelope input-icon"></i>
+                        <label for="auth-email" class="sr-only">Email</label>
                         <input type="email" id="auth-email" class="auth-form-input" placeholder="${t('authEmail')}" autocomplete="email">
                     </div>
                     <div class="auth-form-input-group">
                         <i class="fas fa-lock input-icon"></i>
+                        <label for="auth-password" class="sr-only">Password</label>
                         <input type="password" id="auth-password" class="auth-form-input" placeholder="${t('authPassword')}" autocomplete="${isLogin ? 'current-password' : 'new-password'}" oninput="onPasswordInput(this)">
-                        <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-password',this)"><i class="fas fa-eye"></i></button>
+                        <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-password',this)" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
                     </div>
                     ${!isLogin ? `
                         <div class="auth-form-strength" id="auth-strength">
@@ -4180,8 +4209,9 @@ function renderAuthPage() {
                         </div>
                         <div class="auth-form-input-group">
                             <i class="fas fa-lock input-icon"></i>
+                            <label for="auth-confirm-password" class="sr-only">Confirm Password</label>
                             <input type="password" id="auth-confirm-password" class="auth-form-input" placeholder="${t('authConfirmPassword')}" autocomplete="new-password">
-                            <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-confirm-password',this)"><i class="fas fa-eye"></i></button>
+                            <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-confirm-password',this)" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
                         </div>
                     ` : ''}
                     
@@ -4208,7 +4238,7 @@ function renderAuthPage() {
 
                     <div class="auth-form-divider">${t('authOr')}</div>
 
-                    <button class="auth-form-btn auth-form-btn-google" onclick="handleGoogleLogin()">
+                    <button class="auth-form-btn auth-form-btn-google" onclick="handleGoogleLogin()" aria-label="Sign in with Google">
                         <i class="fab fa-google"></i> ${t('authGoogle')}
                     </button>
 
@@ -4589,7 +4619,7 @@ function renderPinPad() {
         <div id="pin-numpad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:0 auto">
             ${[1,2,3,4,5,6,7,8,9,'',0,'del'].map(k => {
                 if (k === '') return '<div></div>';
-                if (k === 'del') return `<button class="btn btn-ghost" style="font-size:18px;padding:14px;color:#94a3b8" onclick="pinBackspace()"><i class="fas fa-backspace"></i></button>`;
+                if (k === 'del') return `<button class="btn btn-ghost" style="font-size:18px;padding:14px;color:#94a3b8" onclick="pinBackspace()" aria-label="Backspace"><i class="fas fa-backspace"></i></button>`;
                 return `<button style="width:56px;height:56px;border-radius:50%;border:1px solid #475569;background:rgba(30,41,59,.8);font-size:22px;font-weight:500;cursor:pointer;transition:all .1s;color:#e2e8f0" onmousedown="this.style.background='var(--accent)';this.style.color='#fff'" onmouseup="this.style.background='rgba(30,41,59,.8)';this.style.color='#e2e8f0'" onmouseleave="this.style.background='rgba(30,41,59,.8)';this.style.color='#e2e8f0'" onclick="pinDigit(${k})">${k}</button>`;
             }).join('')}
         </div>
@@ -4737,7 +4767,7 @@ function renderHeader() {
     const vm = APP.viewMode;
     header.innerHTML = `
         <header class="header-glass" style="position:sticky;top:0;z-index:60;height:var(--header-h);display:flex;align-items:center;padding:0 16px;gap:8px">
-            ${isDashboard ? `<button class="header-pill-btn sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)"><i class="fas fa-bars"></i></button>` : ''}
+            ${isDashboard ? `<button class="header-pill-btn sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)" aria-label="Open menu"><i class="fas fa-bars" aria-hidden="true"></i></button>` : ''}
             <a href="#/" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-size:16px">
                 <div class="header-logo-icon">
                     <img src="/logo-icon.png" alt="RidgeBox"/>
@@ -4745,24 +4775,24 @@ function renderHeader() {
                 <span class="hide-mobile-small rb-brand-text">RidgeBox</span>
             </a>
             <div style="flex:1"></div>
-            <button class="header-pill-btn ${vm==='mobile'?'active-pill':''}" onclick="toggleViewMode()" title="${vm === 'mobile' ? 'Desktop Mode' : 'Mobile Mode'}">
-                <i class="fas fa-${vm === 'mobile' ? 'mobile-screen' : 'display'}"></i>
+            <button class="header-pill-btn ${vm==='mobile'?'active-pill':''}" onclick="toggleViewMode()" title="${vm === 'mobile' ? 'Desktop Mode' : 'Mobile Mode'}" aria-label="Toggle view mode">
+                <i class="fas fa-${vm === 'mobile' ? 'mobile-screen' : 'display'}" aria-hidden="true"></i>
             </button>
             <div id="conn-status" style="cursor:pointer;padding:0 4px" onclick="updateConnectionStatus()">
                 <i class="fas fa-wifi" style="color:${APP.connected ? '#10b981' : '#ef4444'}"></i>
             </div>
             ${getSubTierBadge()}
             ${APP.activeUploads > 0 ? `<span style="font-size:11px;color:var(--accent)"><i class="fas fa-spinner fa-spin"></i></span>` : ''}
-            <button class="header-pill-btn" onclick="toggleTheme()" title="${t('theme')}">
-                <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'} ${APP.theme === 'dark' ? 'theme-icon-sun' : 'theme-icon-moon'}"></i>
+            <button class="header-pill-btn" onclick="toggleTheme()" title="${t('theme')}" aria-label="Toggle theme">
+                <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'} ${APP.theme === 'dark' ? 'theme-icon-sun' : 'theme-icon-moon'}" aria-hidden="true"></i>
             </button>
-            <button class="header-pill-btn" onclick="cycleLang()" title="${t('language')}">
+            <button class="header-pill-btn" onclick="cycleLang()" title="${t('language')}" aria-label="Switch language">
                 <span style="font-size:11px;font-weight:600">${APP.lang.toUpperCase()}</span>
             </button>
             ${!isHome ? `<a href="#/" class="header-pill-btn"><i class="fas fa-home"></i></a>` : ''}
             ${isHome ? `<a href="#/dashboard" class="header-pill-btn" style="background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;border:none;box-shadow:0 2px 10px rgba(59,130,246,.3)"><i class="fas fa-rocket"></i> <span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
             ${!isLoggedIn() && isAuthRequired() ? `<a href="#/login" class="header-pill-btn" style="background:var(--accent);color:#fff;border:none"><i class="fas fa-sign-in-alt"></i> <span class="hide-mobile-small">${APP.lang==='id'?'Masuk':'Login'}</span></a>` : ''}
-            ${isLoggedIn() ? `<button class="header-pill-btn" onclick="handleLogout()" title="${t('authLogout')}" style="gap:4px"><i class="fas fa-sign-out-alt"></i><span class="hide-mobile-small" style="font-size:11px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${APP.user?.email || ''}</span></button>` : ''}
+            ${isLoggedIn() ? `<button class="header-pill-btn" onclick="handleLogout()" title="${t('authLogout')}" style="gap:4px" aria-label="Sign out"><i class="fas fa-sign-out-alt" aria-hidden="true"></i><span class="hide-mobile-small" style="font-size:11px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${APP.user?.email || ''}</span></button>` : ''}
         </header>`;
 }
 
@@ -5309,7 +5339,7 @@ function openDetailPanel(fileId) {
         <div class="detail-premium">
             <div class="detail-header">
                 <h3 style="font-size:15px;font-weight:600">${t('preview')} <span id="detail-comment-badge" style="display:none;margin-left:6px;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:600;background:var(--accent);color:#fff;vertical-align:middle"></span></h3>
-                <button class="header-pill-btn" onclick="closeDetailPanel()" style="padding:4px 10px"><i class="fas fa-times"></i></button>
+                <button class="header-pill-btn" onclick="closeDetailPanel()" style="padding:4px 10px" aria-label="Close"><i class="fas fa-times"></i></button>
             </div>
             <div class="detail-body">
                 ${previewHtml}
@@ -5426,7 +5456,7 @@ function updateQuickActions() {
         <button class="btn btn-danger btn-sm" onclick="bulkDelete()"><i class="fas fa-trash"></i> ${t('bulkDelete')}</button>
         <button class="btn btn-secondary btn-sm" onclick="bulkDownloadZip()"><i class="fas fa-download"></i> ${t('bulkDownload')}</button>
         <button class="btn btn-secondary btn-sm" onclick="openCompareModal()"><i class="fas fa-columns"></i> ${t('compare')}</button>
-        <button class="btn btn-ghost btn-sm" onclick="clearSelection()"><i class="fas fa-times"></i></button>
+        <button class="btn btn-ghost btn-sm" onclick="clearSelection()" aria-label="Clear selection"><i class="fas fa-times"></i></button>
     `;
 }
 function clearSelection() {
@@ -6243,7 +6273,7 @@ function renderHomepage() {
 
                 <!-- Featured Post Banner -->
                 <div id="blog-featured" class="glass-card scroll-reveal" style="padding:0;margin-bottom:28px;overflow:hidden;cursor:pointer;border-radius:20px;position:relative">
-                    <img id="blog-featured-bg" src="/blog-img/feat-01-rocket.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0">
+                    <img id="blog-featured-bg" src="/blog-img/feat-01-rocket.png" alt="Featured blog post background" role="presentation" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0">
                     <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(15,23,42,.88) 0%,rgba(30,58,95,.75) 50%,rgba(59,130,246,.35) 100%);z-index:1"></div>
                     <div style="display:flex;flex-wrap:wrap;align-items:stretch;position:relative;z-index:2">
                         <div style="flex:1;min-width:280px;padding:36px 32px;position:relative;z-index:3">
@@ -6255,7 +6285,7 @@ function renderHomepage() {
                             <h3 id="blog-featured-title" style="font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.3;color:#fff">${isId?'RidgeBox v3.2: Upload Chunked & Gallery Publik':'RidgeBox v3.2: Chunked Upload & Public Gallery'}</h3>
                             <p id="blog-featured-desc" style="font-size:14px;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:16px">${isId?'Update besar! Upload file besar hingga 2GB dengan chunked upload, plus fitur gallery publik untuk showcase karya Anda.':'Major update! Upload large files up to 2GB with chunked upload, plus public gallery feature to showcase your work.'}</p>
                             <div style="display:flex;align-items:center;gap:8px">
-                                <div style="width:28px;height:28px;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(37,99,235,.3)"><img src="/logo-icon.png" alt="" style="width:100%;height:100%;object-fit:cover;display:block"/></div>
+                                <div style="width:28px;height:28px;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(37,99,235,.3)"><img src="/logo-icon.png" alt="RidgeBox" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block"/></div>
                                 <span style="font-size:12px;font-weight:600;color:#fff">RidgeBox Team</span>
                                 <span style="font-size:11px;color:rgba(255,255,255,.5)">· ${isId?'3 min baca':'3 min read'}</span>
                             </div>
@@ -6445,11 +6475,11 @@ function renderHomepage() {
         </section>
 
         <!-- ===== FOOTER ===== -->
-        <footer class="lux-footer">
+        <footer class="lux-footer" role="contentinfo">
             <div class="lux-footer-grid">
                 <div>
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-                        <div style="width:36px;height:36px;border-radius:10px;overflow:hidden;box-shadow:0 4px 12px rgba(37,99,235,.3)"><img src="/logo-icon.png" alt="" style="width:100%;height:100%;object-fit:cover;display:block"/></div>
+                        <div style="width:36px;height:36px;border-radius:10px;overflow:hidden;box-shadow:0 4px 12px rgba(37,99,235,.3)"><img src="/logo-icon.png" alt="RidgeBox" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block"/></div>
                         <span class="rb-brand-text" style="font-size:18px">RidgeBox</span>
                     </div>
                     <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;max-width:280px">${isId?'Cloud storage gratis & terenkripsi. Simpan file tanpa batas, aman dengan enkripsi militer.':'Free & encrypted cloud storage. Store files unlimited, secured with military-grade encryption.'}</p>
@@ -7373,14 +7403,14 @@ function renderDashboard() {
                 <div class="search-premium ${APP.aiSearchMode ? 'ai-search-active' : ''}" style="flex:1;min-width:200px">
                     <i class="fas ${APP.aiSearchMode ? 'fa-wand-magic-sparkles' : 'fa-search'}"></i>
                     <input type="text" placeholder="${APP.aiSearchMode ? (isId ? 'Cari dengan AI...' : 'AI Search...') : t('search')}" value="${APP.searchQuery}" oninput="APP.searchQuery=this.value;${APP.aiSearchMode ? '' : 'renderFileList()'}" onkeydown="if(event.key==='Enter'&&APP.aiSearchMode)executeAISearch(this.value)">
-                    <button class="ai-search-toggle ${APP.aiSearchMode ? 'active' : ''}" onclick="toggleAISearchMode()" title="${APP.aiSearchMode ? (isId ? 'Pencarian Biasa' : 'Regular Search') : (isId ? 'Pencarian AI' : 'AI Search')}"><i class="fas fa-wand-magic-sparkles"></i></button>
-                    <button class="toolbar-action-btn" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);padding:4px 6px;font-size:11px" onclick="openAdvancedSearch()" title="${t('advSearch')}"><i class="fas fa-search-plus"></i></button>
+                    <button class="ai-search-toggle ${APP.aiSearchMode ? 'active' : ''}" onclick="toggleAISearchMode()" title="${APP.aiSearchMode ? (isId ? 'Pencarian Biasa' : 'Regular Search') : (isId ? 'Pencarian AI' : 'AI Search')}" aria-label="Toggle AI search"><i class="fas fa-wand-magic-sparkles"></i></button>
+                    <button class="toolbar-action-btn" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);padding:4px 6px;font-size:11px" onclick="openAdvancedSearch()" title="${t('advSearch')}" aria-label="Advanced search"><i class="fas fa-search-plus"></i></button>
                 </div>
                 <button class="toolbar-upload-btn" onclick="triggerUpload()"><i class="fas fa-plus"></i> ${t('upload')}</button>
                 <div class="toolbar-group">
-                    <button class="toolbar-action-btn" onclick="openUrlUpload()" title="URL Upload"><i class="fas fa-link"></i></button>
-                    <button class="toolbar-action-btn" onclick="openCameraUpload()" title="Camera"><i class="fas fa-camera"></i></button>
-                    <button class="toolbar-action-btn ${APP.batchMode?'active-action':''}" onclick="APP.batchMode=!APP.batchMode;renderFileList()" title="${t('batchMode')}"><i class="fas fa-check-double"></i></button>
+                    <button class="toolbar-action-btn" onclick="openUrlUpload()" title="URL Upload" aria-label="URL upload"><i class="fas fa-link"></i></button>
+                    <button class="toolbar-action-btn" onclick="openCameraUpload()" title="Camera" aria-label="Camera upload"><i class="fas fa-camera"></i></button>
+                    <button class="toolbar-action-btn ${APP.batchMode?'active-action':''}" onclick="APP.batchMode=!APP.batchMode;renderFileList()" title="${t('batchMode')}" aria-label="Batch mode"><i class="fas fa-check-double"></i></button>
                 </div>
                 <select class="toolbar-sort" onchange="APP.sortBy=this.value;APP.activeSortPreset='';localStorage.setItem('rb_sort_preset','');renderFileList();updateSortPresetButtons()">
                     <option value="date" ${APP.sortBy==='date'?'selected':''}>${t('sortByDate')}</option>
@@ -7388,7 +7418,7 @@ function renderDashboard() {
                     <option value="size" ${APP.sortBy==='size'?'selected':''}>${t('sortBySize')}</option>
                 </select>
                 ${renderSortPresets()}
-                <button class="toolbar-view-btn" onclick="cycleViewMode()" title="${APP.currentView==='list'?t('gridView'):APP.currentView==='grid'?(APP.lang==='id'?'Kategori':'Categories'):t('listView')}"><i class="fas fa-${APP.currentView==='list'?'grip':APP.currentView==='grid'?'th-large':'list'}"></i></button>
+                <button class="toolbar-view-btn" onclick="cycleViewMode()" title="${APP.currentView==='list'?t('gridView'):APP.currentView==='grid'?(APP.lang==='id'?'Kategori':'Categories'):t('listView')}" aria-label="Switch view"><i class="fas fa-${APP.currentView==='list'?'grip':APP.currentView==='grid'?'th-large':'list'}"></i></button>
             </div>
             <!-- Breadcrumb (F74) -->
             <div id="breadcrumb-bar" class="breadcrumb-premium"></div>
@@ -7703,7 +7733,7 @@ function renderSidebarHTML() {
             <i class="fas ${f.icon || 'fa-folder'}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : '#f59e0b'};position:relative;z-index:1;font-size:14px"></i>
             <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${f.name}</span>
             ${count > 0 ? `<span style="font-size:11px;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};background:${active ? 'rgba(59,130,246,.1)' : 'var(--bg-secondary)'};padding:2px 8px;border-radius:99px;font-weight:600;position:relative;z-index:1">${count}</span>` : ''}
-            <button class="btn btn-ghost" style="padding:2px 4px;font-size:11px;position:relative;z-index:1" onclick="event.stopPropagation();deleteCustomFolder('${f.id}')"><i class="fas fa-times"></i></button>
+            <button class="btn btn-ghost" style="padding:2px 4px;font-size:11px;position:relative;z-index:1" onclick="event.stopPropagation();deleteCustomFolder('${f.id}')" aria-label="Delete folder"><i class="fas fa-times"></i></button>
         </div>`;
     }).join('');
 
@@ -7739,7 +7769,7 @@ function renderSidebarHTML() {
         <!-- RidgeBox Branding -->
         <div style="display:flex;align-items:center;gap:10px;padding:6px 8px 18px;border-bottom:1px solid var(--border);margin-bottom:14px">
             <div style="width:36px;height:36px;border-radius:10px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 12px rgba(37,99,235,.25)">
-                <img src="/logo-icon.png" alt="" style="width:100%;height:100%;object-fit:cover;display:block"/>
+                <img src="/logo-icon.png" alt="RidgeBox" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block"/>
             </div>
             <div>
                 <div class="rb-brand-text" style="font-size:16px;line-height:1.2">RidgeBox</div>
@@ -7762,7 +7792,7 @@ function renderSidebarHTML() {
         <!-- FOLDERS Section -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <div class="sidebar-section-label" style="margin:0">${isId ? 'FOLDER' : 'FOLDERS'}</div>
-            <button onclick="createFolderDialog()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:12px;padding:2px 6px;border-radius:6px;transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.1)'" onmouseout="this.style.background=''"><i class="fas fa-plus"></i></button>
+            <button onclick="createFolderDialog()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:12px;padding:2px 6px;border-radius:6px;transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.1)'" onmouseout="this.style.background=''" aria-label="Create folder"><i class="fas fa-plus"></i></button>
         </div>
         ${folderItemsHtml || `<div style="padding:8px 12px;font-size:12px;color:var(--text-secondary);font-style:italic">${isId ? 'Belum ada folder' : 'No folders yet'}</div>`}
 
@@ -8211,7 +8241,7 @@ function renderFileGridItem(file, index) {
         ondrop="handleDropReorder(event, '${file.id}')"
         data-file-id="${file.id}">
         ${selected ? '<div class="grid-select-check"><i class="fas fa-check"></i></div>' : ''}
-        ${file.trashed ? `<div style="position:absolute;top:8px;right:8px;z-index:6;display:flex;gap:4px"><button class="grid-quick-delete" style="background:rgba(16,185,129,.9);z-index:6;width:28px;height:28px" onclick="event.stopPropagation();restoreFile('${file.id}')" title="${isId?'Pulihkan':'Restore'}"><i class="fas fa-undo" style="font-size:10px"></i></button><button class="grid-quick-delete" style="background:rgba(239,68,68,.9);z-index:6;width:28px;height:28px" onclick="event.stopPropagation();deletePermanently('${file.id}')" title="${isId?'Hapus Permanen':'Delete Permanently'}"><i class="fas fa-times" style="font-size:10px"></i></button></div>` : `<button class="grid-quick-delete" style="z-index:6" onclick="event.stopPropagation();quickDeleteFile('${file.id}')"><i class="fas fa-times"></i></button>`}
+        ${file.trashed ? `<div style="position:absolute;top:8px;right:8px;z-index:6;display:flex;gap:4px"><button class="grid-quick-delete" style="background:rgba(16,185,129,.9);z-index:6;width:28px;height:28px" onclick="event.stopPropagation();restoreFile('${file.id}')" title="${isId?'Pulihkan':'Restore'}" aria-label="Restore"><i class="fas fa-undo" style="font-size:10px"></i></button><button class="grid-quick-delete" style="background:rgba(239,68,68,.9);z-index:6;width:28px;height:28px" onclick="event.stopPropagation();deletePermanently('${file.id}')" title="${isId?'Hapus Permanen':'Delete Permanently'}" aria-label="Delete permanently"><i class="fas fa-times" style="font-size:10px"></i></button></div>` : `<button class="grid-quick-delete" style="z-index:6" onclick="event.stopPropagation();quickDeleteFile('${file.id}')" aria-label="Quick delete"><i class="fas fa-times"></i></button>`}
         ${previewArea}
         ${tagStrip}
         <div class="grid-card-info">
@@ -8239,7 +8269,7 @@ function renderFileListRow(file, index) {
     let thumbHtml = '';
     if (type === 'image') {
         thumbHtml = `<div class="list-thumb" data-lazy-thumb="${downloadUrl}" data-file-id="${file.id}" style="background:${icon.color}15">
-            <img src="" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;opacity:0;transition:opacity .3s ease;position:absolute;inset:0" onload="this.style.opacity=1" onerror="this.style.display='none';this.parentElement.querySelector('.thumb-icon').style.display='flex'">
+            <img src="" alt="File thumbnail" style="width:100%;height:100%;object-fit:cover;border-radius:8px;opacity:0;transition:opacity .3s ease;position:absolute;inset:0" onload="this.style.opacity=1" onerror="this.style.display='none';this.parentElement.querySelector('.thumb-icon').style.display='flex'">
             <div class="thumb-icon" style="background:${icon.color}15;display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:8px">
                 <i class="fas ${icon.icon}" style="font-size:16px;color:${icon.color}"></i>
             </div>
@@ -8308,11 +8338,11 @@ function renderFileListRow(file, index) {
         <div class="list-col-size">${formatSize(file.size)}</div>
         <div class="list-col-date">${formatDate(file.uploadedAt)}</div>
         <div class="row-actions action-btns">
-            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openPreview('${file.id}')" title="${t('preview')}"><i class="fas fa-eye"></i></button>
-            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openShareModal('${file.id}')" title="${t('share')}"><i class="fas fa-share-alt"></i></button>
-            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();downloadFile('${file.id}')" title="${t('download')}"><i class="fas fa-download"></i></button>
+            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openPreview('${file.id}')" title="${t('preview')}" aria-label="Preview"><i class="fas fa-eye"></i></button>
+            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openShareModal('${file.id}')" title="${t('share')}" aria-label="Share"><i class="fas fa-share-alt"></i></button>
+            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();downloadFile('${file.id}')" title="${t('download')}" aria-label="Download"><i class="fas fa-download"></i></button>
         </div>
-        ${!file.trashed ? `<button class="mobile-delete-btn" onclick="event.stopPropagation();quickDeleteFile('${file.id}')" title="${t('delete')}"><i class="fas fa-trash"></i></button>` : `<div style="display:flex;gap:4px"><button class="mobile-restore-btn" onclick="event.stopPropagation();restoreFile('${file.id}')" title="${t('restore')}"><i class="fas fa-undo"></i></button><button class="mobile-delete-btn" style="background:rgba(239,68,68,.9)" onclick="event.stopPropagation();deletePermanently('${file.id}')" title="${t('deletePermanently')}"><i class="fas fa-times"></i></button></div>`}
+        ${!file.trashed ? `<button class="mobile-delete-btn" onclick="event.stopPropagation();quickDeleteFile('${file.id}')" title="${t('delete')}" aria-label="Delete"><i class="fas fa-trash"></i></button>` : `<div style="display:flex;gap:4px"><button class="mobile-restore-btn" onclick="event.stopPropagation();restoreFile('${file.id}')" title="${t('restore')}" aria-label="Restore"><i class="fas fa-undo"></i></button><button class="mobile-delete-btn" style="background:rgba(239,68,68,.9)" onclick="event.stopPropagation();deletePermanently('${file.id}')" title="${t('deletePermanently')}" aria-label="Delete permanently"><i class="fas fa-times"></i></button></div>`}
     </div>`;
 }
 
@@ -9309,7 +9339,7 @@ function showTagPicker(fileId) {
             <h3 style="font-size:18px;font-weight:600;margin-bottom:16px">${t('addTag')}</h3>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
                 ${colors.map(c => `<button class="detail-tag-dot ${file && file.tag === c ? 'active' : ''}" style="width:36px;height:36px;background:${c}" onclick="executeTag('${fileId}','${c}')"></button>`).join('')}
-                <button class="detail-tag-remove" style="width:36px;height:36px" onclick="executeTag('${fileId}','')" title="${APP.lang==='id'?'Hapus tag':'Remove tag'}"><i class="fas fa-times"></i></button>
+                <button class="detail-tag-remove" style="width:36px;height:36px" onclick="executeTag('${fileId}','')" title="${APP.lang==='id'?'Hapus tag':'Remove tag'}" aria-label="Remove tag"><i class="fas fa-times"></i></button>
             </div>
         </div>`);
 }
@@ -9811,7 +9841,7 @@ function openShareModal(fileId) {
                         <label style="font-size:12px;font-weight:500;margin-bottom:4px;display:block">${t('shareLink')}</label>
                         <div style="display:flex;gap:6px">
                             <input type="text" class="input" id="share-url-input" readonly style="font-size:12px;font-family:'JetBrains Mono',monospace">
-                            <button class="btn btn-primary btn-sm" onclick="copyShareLink(window._currentShareUrl)"><i class="fas fa-copy"></i></button>
+                            <button class="btn btn-primary btn-sm" onclick="copyShareLink(window._currentShareUrl)" aria-label="Copy link"><i class="fas fa-copy"></i></button>
                         </div>
                     </div>
                 ` : ''}
@@ -10430,7 +10460,7 @@ async function createGallery(folderId) {
                 <label style="font-size:12px;font-weight:500;margin-bottom:4px;display:block">${t('shareLink')}</label>
                 <div style="display:flex;gap:6px">
                     <input type="text" class="input" id="gallery-url-input" readonly style="font-size:12px;font-family:'JetBrains Mono',monospace" value="${galleryUrl}">
-                    <button class="btn btn-primary btn-sm" onclick="copyShareLink('${galleryUrl}')"><i class="fas fa-copy"></i></button>
+                    <button class="btn btn-primary btn-sm" onclick="copyShareLink('${galleryUrl}')" aria-label="Copy link"><i class="fas fa-copy"></i></button>
                 </div>
             </div>
             <div class="qr-container">
@@ -10576,8 +10606,8 @@ function openPreview(fileId) {
                     <span style="font-weight:600;font-size:14px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</span>
                 </div>
                 <div style="display:flex;gap:4px">
-                    <button class="btn btn-ghost btn-sm" onclick="downloadFile('${file.id}')"><i class="fas fa-download"></i></button>
-                    <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
+                    <button class="btn btn-ghost btn-sm" onclick="downloadFile('${file.id}')" aria-label="Download"><i class="fas fa-download"></i></button>
+                    <button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close"><i class="fas fa-times"></i></button>
                 </div>
             </div>
             ${previewContent}
@@ -10817,8 +10847,8 @@ function renderFileDetail(fileId) {
                     <button class="btn btn-primary" onclick="openPreview('${file.id}')"><i class="fas fa-eye"></i> ${t('preview')}</button>
                     <button class="btn btn-secondary" onclick="downloadFile('${file.id}')"><i class="fas fa-download"></i> ${t('download')}</button>
                     <button class="btn btn-secondary" onclick="openShareModal('${file.id}')"><i class="fas fa-share-alt"></i> ${t('share')}</button>
-                    <button class="btn btn-ghost" onclick="toggleStar('${file.id}')"><i class="fas fa-star" style="color:${file.starred?'#f59e0b':'inherit'}"></i></button>
-                    <button class="btn btn-ghost" onclick="togglePin('${file.id}')"><i class="fas fa-thumbtack" style="color:${file.pinned?'var(--accent)':'inherit'}"></i></button>
+                    <button class="btn btn-ghost" onclick="toggleStar('${file.id}')" aria-label="Toggle star"><i class="fas fa-star" style="color:${file.starred?'#f59e0b':'inherit'}"></i></button>
+                    <button class="btn btn-ghost" onclick="togglePin('${file.id}')" aria-label="Toggle pin"><i class="fas fa-thumbtack" style="color:${file.pinned?'var(--accent)':'inherit'}"></i></button>
                     ${!file.trashed ? `<button class="btn btn-danger" onclick="moveToTrash('${file.id}')"><i class="fas fa-trash"></i> ${t('delete')}</button>` : `<button class="btn btn-secondary" onclick="restoreFile('${file.id}')"><i class="fas fa-undo"></i> ${t('restore')}</button> <button class="btn btn-danger" onclick="deletePermanently('${file.id}')"><i class="fas fa-times-circle"></i> ${t('delete')}</button>`}
                 </div>
             </div>
@@ -10894,7 +10924,7 @@ function openSettings() {
                     </div>
                     <div style="display:flex;gap:8px">
                         <button class="btn ${APP.settings.pinLock ? 'btn-secondary' : 'btn-primary'} btn-sm" onclick="startPinCreate()">${APP.settings.pinLock ? (APP.lang==='id'?'Ubah':'Change') : (APP.lang==='id'?'Buat':'Create')}</button>
-                        ${APP.settings.pinLock ? `<button class="btn btn-danger btn-sm" onclick="removePinLock()"><i class="fas fa-trash"></i></button>` : ''}
+                        ${APP.settings.pinLock ? `<button class="btn btn-danger btn-sm" onclick="removePinLock()" aria-label="Remove PIN lock"><i class="fas fa-trash"></i></button>` : ''}
                     </div>
                 </div>
             </div>
@@ -11042,7 +11072,7 @@ function openSettings() {
                     </div>
                     <div style="display:flex;gap:8px">
                         <button class="btn ${localStorage.getItem('rb_biometric_id') ? 'btn-secondary' : 'btn-primary'} btn-sm" onclick="setupBiometric()">${localStorage.getItem('rb_biometric_id') ? (APP.lang==='id'?'Ubah':'Change') : (APP.lang==='id'?'Daftar':'Setup')}</button>
-                        ${localStorage.getItem('rb_biometric_id') ? `<button class="btn btn-danger btn-sm" onclick="removeBiometric()"><i class="fas fa-trash"></i></button>` : ''}
+                        ${localStorage.getItem('rb_biometric_id') ? `<button class="btn btn-danger btn-sm" onclick="removeBiometric()" aria-label="Remove biometric"><i class="fas fa-trash"></i></button>` : ''}
                     </div>
                 </div>
             </div>` : ''}
@@ -11169,7 +11199,7 @@ function openSettings() {
                         <p style="font-size:12px;color:var(--text-secondary)">${_pushSubscription ? (APP.lang==='id'?'Push aktif':'Push active') : (APP.lang==='id'?'Terima notifikasi di browser':'Receive browser notifications')}</p>
                     </div>
                     <div style="display:flex;gap:8px">
-                        ${_pushSubscription ? `<button class="btn btn-danger btn-sm" onclick="unsubscribePush()"><i class="fas fa-bell-slash"></i></button>` : `<button class="btn btn-primary btn-sm" onclick="subscribePush()"><i class="fas fa-bell"></i></button>`}
+                        ${_pushSubscription ? `<button class="btn btn-danger btn-sm" onclick="unsubscribePush()" aria-label="Unsubscribe notifications"><i class="fas fa-bell-slash"></i></button>` : `<button class="btn btn-primary btn-sm" onclick="subscribePush()" aria-label="Subscribe notifications"><i class="fas fa-bell"></i></button>`}
                     </div>
                 </div>
             </div>
@@ -11372,9 +11402,9 @@ function renderAdminLoginPage() {
             </div>
         </div>
         <div class="auth-fullpage-right">
-            <button class="auth-form-theme-toggle" onclick="toggleAuthTheme()" title="${isId ? 'Ganti tema' : 'Toggle theme'}"><i class="fas fa-${isDark ? 'sun' : 'moon'}"></i></button>
+            <button class="auth-form-theme-toggle" onclick="toggleAuthTheme()" title="${isId ? 'Ganti tema' : 'Toggle theme'}" aria-label="Toggle theme"><i class="fas fa-${isDark ? 'sun' : 'moon'}" aria-hidden="true"></i></button>
             <div class="auth-form-section">
-                <button class="auth-form-back" onclick="location.hash='#/'"><i class="fas fa-arrow-left"></i> ${isId ? 'Kembali' : 'Back'}</button>
+                <button class="auth-form-back" onclick="location.hash='#/'" aria-label="Go back"><i class="fas fa-arrow-left" aria-hidden="true"></i> ${isId ? 'Kembali' : 'Back'}</button>
                 <div class="auth-form-header">
                     <div class="auth-form-logo" style="background:linear-gradient(135deg,#ef4444,#f59e0b);box-shadow:0 8px 24px rgba(239,68,68,.3)"><i class="fas fa-shield-halved"></i></div>
                     <div class="auth-form-title">${isId ? 'Login Admin' : 'Admin Login'}</div>
@@ -11388,10 +11418,10 @@ function renderAdminLoginPage() {
                 <div class="auth-form-input-group">
                     <i class="fas fa-lock input-icon"></i>
                     <input type="password" id="admin-password" class="auth-form-input" placeholder="${isId ? 'Password Admin' : 'Admin Password'}" autocomplete="current-password">
-                    <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('admin-password',this)"><i class="fas fa-eye"></i></button>
+                    <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('admin-password',this)" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
                 </div>
                 <button id="admin-login-submit" class="auth-form-btn auth-form-btn-primary" style="background:linear-gradient(135deg,#ef4444,#f59e0b);box-shadow:0 6px 24px rgba(239,68,68,.3)" onclick="handleAdminLogin()">
-                    <i class="fas fa-sign-in-alt"></i> ${isId ? 'Masuk ke Admin' : 'Login as Admin'}
+                    <i class="fas fa-sign-in-alt" aria-hidden="true"></i> ${isId ? 'Masuk ke Admin' : 'Login as Admin'}
                 </button>
                 <div class="auth-form-trust">
                     <div class="auth-form-trust-badge"><i class="fas fa-shield-halved" style="color:#ef4444"></i> ${isId ? 'Khusus Admin' : 'Admin Only'}</div>
@@ -11512,7 +11542,7 @@ function renderAdminPanel() {
 
     main.innerHTML = `<div class="page-transition fade-in" style="max-width:640px;margin:0 auto;padding:24px 16px 48px">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
-            <button class="btn btn-ghost btn-sm" onclick="_adminVerified=false;location.hash='#/'"><i class="fas fa-arrow-left"></i></button>
+            <button class="btn btn-ghost btn-sm" onclick="_adminVerified=false;location.hash='#/'" aria-label="Go back"><i class="fas fa-arrow-left" aria-hidden="true"></i></button>
             <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(245,158,11,.1));display:flex;align-items:center;justify-content:center"><i class="fas fa-shield-halved" style="color:#ef4444;font-size:18px"></i></div>
             <div style="flex:1">
                 <h2 style="font-size:20px;font-weight:700">${isId ? 'Panel Admin' : 'Admin Panel'}</h2>
@@ -13449,19 +13479,19 @@ function openTagManager(fileId) {
             <div style="display:flex;gap:8px;margin-bottom:8px">
                 <input type="text" id="custom-tag-name" class="input" placeholder="${isId ? 'Nama tag...' : 'Tag name...'}" style="flex:1">
                 <input type="color" id="custom-tag-color" value="#3b82f6" style="width:36px;height:36px;border:none;border-radius:8px;cursor:pointer;background:none">
-                <button class="btn btn-primary btn-sm" onclick="addCustomTag()"><i class="fas fa-plus"></i></button>
+                <button class="btn btn-primary btn-sm" onclick="addCustomTag()" aria-label="Add tag"><i class="fas fa-plus"></i></button>
             </div>
             ${customTags.map(t => `<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:${t.color}15;border:1px solid ${t.color}30;margin:2px">
                 <div style="width:8px;height:8px;border-radius:50%;background:${t.color}"></div>
                 <span style="font-size:11px;font-weight:500">${t.name}</span>
-                <button style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:10px;padding:0 2px" onclick="removeCustomTag('${t.id}')"><i class="fas fa-times"></i></button>
+                <button style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:10px;padding:0 2px" onclick="removeCustomTag('${t.id}')" aria-label="Remove tag"><i class="fas fa-times"></i></button>
             </div>`).join('')}
         </div>
         ${file.tag ? `<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">${isId ? 'TAG SAAT INI' : 'CURRENT TAG'}</div>
             <div style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;background:${file.tag}15;border:1px solid ${file.tag}30">
                 <div style="width:10px;height:10px;border-radius:50%;background:${file.tag}"></div>
                 <span style="font-size:12px;font-weight:500">${CUSTOM_TAG_COLORS.find(c=>c.color===file.tag)?.name || 'Custom'}</span>
-                <button style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:11px;padding:0 4px" onclick="setFileTag('${fileId}','');closeModal()"><i class="fas fa-times"></i></button>
+                <button style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:11px;padding:0 4px" onclick="setFileTag('${fileId}','');closeModal()" aria-label="Remove tag"><i class="fas fa-times"></i></button>
             </div>
         </div>` : ''}
         <div style="display:flex;justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Tutup' : 'Close'}</button></div>
@@ -14782,7 +14812,7 @@ function renderStorageManagement() {
                     <button class="account-action-btn" onclick="checkGDriveConfig()"><i class="fas fa-sync-alt"></i> ${isId ? 'Cek Konfigurasi' : 'Check Config'}</button>
                 </div>
             </div>
-            <button class="setup-banner-close" onclick="document.getElementById('gdrive-setup-banner').style.display='none'"><i class="fas fa-times"></i></button>
+            <button class="setup-banner-close" onclick="document.getElementById('gdrive-setup-banner').style.display='none'" aria-label="Close"><i class="fas fa-times"></i></button>
         </div>` : '';
 
     main.innerHTML = `<div class="page-transition storage-page"><div class="storage-page-inner">
@@ -15741,8 +15771,16 @@ async function init() {
             };
         }
 
-        // Init Supabase Auth
-        initSupabaseAuth();
+        // Init Supabase Auth (wait for deferred script to load)
+        if (window.supabase) {
+            initSupabaseAuth();
+        } else {
+            await new Promise(resolve => {
+                const check = setInterval(() => { if (window.supabase) { clearInterval(check); resolve(); } }, 50);
+                setTimeout(() => { clearInterval(check); resolve(); }, 5000);
+            });
+            initSupabaseAuth();
+        }
 
         // If auth not required (no Supabase), proceed normally
         if (!isAuthRequired()) {
@@ -16706,9 +16744,9 @@ function renderCarousel() {
     return `<div class="carousel-wrap" id="carousel-wrap"
         onmouseenter="pauseCarousel()" onmouseleave="resumeCarousel()"
         ontouchstart="pauseCarousel()" ontouchend="resumeCarousel()">
-        <button class="carousel-nav prev" onclick="scrollCarousel(-1)"><i class="fas fa-chevron-left"></i></button>
+        <button class="carousel-nav prev" onclick="scrollCarousel(-1)" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
         <div class="carousel-track" id="carousel-track">${cards}</div>
-        <button class="carousel-nav next" onclick="scrollCarousel(1)"><i class="fas fa-chevron-right"></i></button>
+        <button class="carousel-nav next" onclick="scrollCarousel(1)" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
         <div class="carousel-dots" id="carousel-dots">${recentFiles.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" data-idx="${i}"></span>`).join('')}</div>
     </div>`;
 }
@@ -16766,7 +16804,7 @@ function renderTagFilterBar() {
         </button>`;
     }).join('');
     if (activeTag) {
-        html += `<button class="tag-filter-btn" onclick="toggleTagFilter(null)" title="${APP.lang==='id'?'Hapus filter':'Clear filter'}"><i class="fas fa-times" style="font-size:10px"></i></button>`;
+        html += `<button class="tag-filter-btn" onclick="toggleTagFilter(null)" title="${APP.lang==='id'?'Hapus filter':'Clear filter'}" aria-label="Clear filter"><i class="fas fa-times" style="font-size:10px"></i></button>`;
     }
     bar.innerHTML = html;
 }
@@ -17053,7 +17091,7 @@ function openDuplicateChecker() {
                         ${g.duplicates.map(f => `
                             <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
                                 <span style="font-size:12px;color:var(--text-secondary);flex:1">${formatSize(f.size)} · ${formatDate(f.uploadedAt)}</span>
-                                <button class="btn btn-danger btn-sm" style="font-size:11px;padding:2px 8px" onclick="deleteDuplicateFile('${f.id}',${gi})"><i class="fas fa-trash"></i></button>
+                                <button class="btn btn-danger btn-sm" style="font-size:11px;padding:2px 8px" onclick="deleteDuplicateFile('${f.id}',${gi})" aria-label="Delete duplicate"><i class="fas fa-trash"></i></button>
                             </div>
                         `).join('')}
                     </div>
@@ -17191,20 +17229,20 @@ function getStorageWarningBanner() {
             <i class="fas fa-exclamation-circle"></i>
             <span>${isId ? 'Penyimpanan penuh! Unggahan diblokir.' : 'Storage full! Uploads blocked.'}</span>
             <button class="btn btn-sm" style="background:rgba(239,68,68,.15);color:#ef4444;border:none;margin-left:8px;font-size:11px;font-weight:600" onclick="openPricingModal('pro')">${isId ? 'Upgrade' : 'Upgrade'}</button>
-            <button class="storage-warning-dismiss" onclick="dismissStorageWarning()"><i class="fas fa-times"></i></button>
+            <button class="storage-warning-dismiss" onclick="dismissStorageWarning()" aria-label="Dismiss"><i class="fas fa-times"></i></button>
         </div>`;
     } else if (pct >= 95) {
         return `<div class="storage-warning-banner warning-red">
             <i class="fas fa-exclamation-triangle"></i>
             <span>${isId ? 'Hampir kehabisan penyimpanan! Upgrade sekarang.' : 'Almost out of storage! Upgrade now.'}</span>
             <button class="btn btn-sm" style="background:rgba(239,68,68,.15);color:#ef4444;border:none;margin-left:8px;font-size:11px;font-weight:600" onclick="openPricingModal('pro')">${isId ? 'Upgrade' : 'Upgrade'}</button>
-            <button class="storage-warning-dismiss" onclick="dismissStorageWarning()"><i class="fas fa-times"></i></button>
+            <button class="storage-warning-dismiss" onclick="dismissStorageWarning()" aria-label="Dismiss"><i class="fas fa-times"></i></button>
         </div>`;
     } else if (pct >= 80) {
         return `<div class="storage-warning-banner warning-yellow">
             <i class="fas fa-info-circle"></i>
             <span>${isId ? `Anda telah menggunakan ${pct.toFixed(0)}% penyimpanan Anda` : `You've used ${pct.toFixed(0)}% of your storage`}</span>
-            <button class="storage-warning-dismiss" onclick="dismissStorageWarning()"><i class="fas fa-times"></i></button>
+            <button class="storage-warning-dismiss" onclick="dismissStorageWarning()" aria-label="Dismiss"><i class="fas fa-times"></i></button>
         </div>`;
     }
     return '';
@@ -18013,9 +18051,9 @@ function showEnhancedHoverPreview(fileId, cardEl) {
 
     // Quick action buttons
     contentHtml += `<div class="hover-preview-actions">
-        <button class="hover-preview-action-btn" onclick="event.stopPropagation();downloadFile('${fileId}');hideEnhancedHoverPreview()" title="${isId ? 'Download' : 'Download'}"><i class="fas fa-download"></i></button>
-        <button class="hover-preview-action-btn" onclick="event.stopPropagation();openShareModal('${fileId}');hideEnhancedHoverPreview()" title="${isId ? 'Bagikan' : 'Share'}"><i class="fas fa-share-nodes"></i></button>
-        <button class="hover-preview-action-btn" onclick="event.stopPropagation();copyFileLink('${fileId}')" title="${isId ? 'Salin Link' : 'Copy Link'}"><i class="fas fa-link"></i></button>
+        <button class="hover-preview-action-btn" onclick="event.stopPropagation();downloadFile('${fileId}');hideEnhancedHoverPreview()" title="${isId ? 'Download' : 'Download'}" aria-label="Download"><i class="fas fa-download"></i></button>
+        <button class="hover-preview-action-btn" onclick="event.stopPropagation();openShareModal('${fileId}');hideEnhancedHoverPreview()" title="${isId ? 'Bagikan' : 'Share'}" aria-label="Share"><i class="fas fa-share-nodes"></i></button>
+        <button class="hover-preview-action-btn" onclick="event.stopPropagation();copyFileLink('${fileId}')" title="${isId ? 'Salin Link' : 'Copy Link'}" aria-label="Copy link"><i class="fas fa-link"></i></button>
     </div>`;
 
     preview.innerHTML = contentHtml;
@@ -18732,4 +18770,4 @@ function downloadOCRText(fileId) {
 </body>
 </html>
 
-<!-- v2.0-1781056466 -->
+<!-- v2.1-perf-a11y -->
