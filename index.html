@@ -15,15 +15,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preload" href="/app.js" as="script">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
-<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+<!-- Heavy libs: lazy-loaded on demand -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
-<script src="https://js.stripe.com/v3/" defer></script>
 <style>
 :root{--accent:#3b82f6;--accent-hover:#2563eb;--bg:#ffffff;--bg-secondary:#f8fafc;--bg-card:#ffffff;--text:#0f172a;--text-secondary:#475569;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--shadow-lg:0 10px 40px rgba(0,0,0,.15);--radius:12px;--sidebar-w:260px;--header-h:60px;--transition:all .2s ease}body[dir="rtl"] .sidebar-desktop{right:0;left:auto}body[dir="rtl"] .detail-panel{right:auto;left:0;transform:translateX(-100%)}body[dir="rtl"] .detail-panel.open{transform:translateX(0)}
 .dark{--bg:#0f172a;--bg-secondary:#1e293b;--bg-card:#1e293b;--text:#f1f5f9;--text-secondary:#94a3b8;--border:#334155;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 10px 40px rgba(0,0,0,.4)}
@@ -2204,7 +2201,10 @@ body.no-transition,body.no-transition *{transition:none!important}
 <div id="quick-actions-bar" class="quick-actions-bar" role="toolbar" aria-label="Quick actions"></div><div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:110" role="dialog" aria-modal="true" aria-label="Onboarding"></div>
 <div id="pin-lock-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(30,41,59,.97));backdrop-filter:blur(20px);align-items:center;justify-content:center" role="dialog" aria-modal="true" aria-label="PIN lock"></div>
 
-<script src="/app.js" defer></script>
+<script src="/app.js" defer fetchpriority="high"></script>
+<script>/* Lazy Library Loader — loads heavy libs on demand */
+window.LazyLibs={_p:{},load:function(n){if(this._p[n])return this._p[n];var u={xlsx:'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',mammoth:'https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js',jszip:'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',qrious:'https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js',stripe:'https://js.stripe.com/v3/'};if(!u[n])return Promise.reject('Unknown lib: '+n);this._p[n]=new Promise(function(res,rej){var s=document.createElement('script');s.src=u[n];s.onload=res;s.onerror=function(){delete LazyLibs._p[n];rej(n+' load failed');};document.head.appendChild(s);});return this._p[n];}};
+</script>
 </body>
 </html>
 

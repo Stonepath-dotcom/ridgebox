@@ -7479,8 +7479,15 @@ async function bulkDelete() {
 }
 
 async function bulkDownloadZip() { // F83 + Feature 6: Enhanced with progress modal
-    if (typeof JSZip === 'undefined') { showToast('JSZip not loaded', 'error'); return; }
     const isId = APP.lang === 'id';
+    // Lazy-load JSZip on demand
+    if (typeof JSZip === 'undefined') {
+        showToast(isId ? 'Memuat pustaka ZIP...' : 'Loading ZIP library...', 'info', 3000);
+        try { await window.LazyLibs.load('jszip'); } catch(e) {
+            showToast(isId ? 'Gagal memuat pustaka ZIP' : 'Failed to load ZIP library', 'error');
+            return;
+        }
+    }
     const ids = [...APP.selectedFiles];
     const files = ids.map(id => APP.files.find(f => f.id === id)).filter(Boolean);
     if (files.length === 0) { showToast(isId ? 'Tidak ada file dipilih' : 'No files selected', 'warning'); return; }
@@ -7754,22 +7761,25 @@ function openShareModal(fileId) {
         </div>`);
     // Set share URL input value safely (base64 chars can break HTML attributes)
     if (shareUrl) {
-        setTimeout(() => {
+        setTimeout(async () => {
             const urlInput = document.getElementById('share-url-input');
             if (urlInput) urlInput.value = shareUrl;
-            // Generate QR code
+            // Generate QR code (lazy-load QRious on demand)
             const qrCanvas = document.getElementById('share-qr-canvas');
-            if (qrCanvas && typeof QRious !== 'undefined') {
-                try {
-                    new QRious({
-                        element: qrCanvas,
-                        value: shareUrl,
-                        size: 200,
-                        foreground: getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#0f172a',
-                        background: getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim() || '#f8fafc',
-                        level: 'M'
-                    });
-                } catch(e) { console.warn('QR generation error:', e); }
+            if (qrCanvas) {
+                if (typeof QRious === 'undefined') { try { await window.LazyLibs.load('qrious'); } catch(e) { console.warn('QRious load failed:', e); } }
+                if (typeof QRious !== 'undefined') {
+                    try {
+                        new QRious({
+                            element: qrCanvas,
+                            value: shareUrl,
+                            size: 200,
+                            foreground: getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#0f172a',
+                            background: getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim() || '#f8fafc',
+                            level: 'M'
+                        });
+                    } catch(e) { console.warn('QR generation error:', e); }
+                }
             }
         }, 50);
     }
@@ -7799,19 +7809,22 @@ function switchShareTab(tab) {
     document.getElementById('share-tab-qr')?.classList.toggle('active', tab === 'qr');
     // Regenerate QR if switching to QR tab
     if (tab === 'qr' && window._currentShareUrl) {
-        setTimeout(() => {
+        setTimeout(async () => {
             const qrCanvas = document.getElementById('share-qr-canvas');
-            if (qrCanvas && typeof QRious !== 'undefined') {
-                try {
-                    new QRious({
-                        element: qrCanvas,
-                        value: window._currentShareUrl,
-                        size: 200,
-                        foreground: getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#0f172a',
-                        background: getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim() || '#f8fafc',
-                        level: 'M'
-                    });
-                } catch(e) { console.warn('QR generation error:', e); }
+            if (qrCanvas) {
+                if (typeof QRious === 'undefined') { try { await window.LazyLibs.load('qrious'); } catch(e) {} }
+                if (typeof QRious !== 'undefined') {
+                    try {
+                        new QRious({
+                            element: qrCanvas,
+                            value: window._currentShareUrl,
+                            size: 200,
+                            foreground: getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#0f172a',
+                            background: getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim() || '#f8fafc',
+                            level: 'M'
+                        });
+                    } catch(e) { console.warn('QR generation error:', e); }
+                }
             }
         }, 100);
     }
@@ -8270,20 +8283,23 @@ async function createGallery(folderId) {
                 <a href="#/gallery/${galleryId}" class="btn btn-primary" onclick="closeModal()"><i class="fas fa-external-link-alt"></i> ${t('viewGallery')}</a>
             </div>
         </div>`);
-    // Generate QR for gallery
-    setTimeout(() => {
+    // Generate QR for gallery (lazy-load QRious on demand)
+    setTimeout(async () => {
         const qrCanvas = document.getElementById('gallery-qr-canvas');
-        if (qrCanvas && typeof QRious !== 'undefined') {
-            try {
-                new QRious({
-                    element: qrCanvas,
-                    value: galleryUrl,
-                    size: 200,
-                    foreground: getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#0f172a',
-                    background: getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim() || '#f8fafc',
-                    level: 'M'
-                });
-            } catch(e) { console.warn('Gallery QR error:', e); }
+        if (qrCanvas) {
+            if (typeof QRious === 'undefined') { try { await window.LazyLibs.load('qrious'); } catch(e) {} }
+            if (typeof QRious !== 'undefined') {
+                try {
+                    new QRious({
+                        element: qrCanvas,
+                        value: galleryUrl,
+                        size: 200,
+                        foreground: getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#0f172a',
+                        background: getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim() || '#f8fafc',
+                        level: 'M'
+                    });
+                } catch(e) { console.warn('Gallery QR error:', e); }
+            }
         }
     }, 100);
     showToast(t('galleryCreated'), 'success');
@@ -8439,14 +8455,18 @@ async function fetchDocxPreview(file, url) {
     if (!container) return;
     const isId = APP.lang === 'id';
     try {
+        // Lazy-load mammoth.js on demand
+        if (typeof mammoth === 'undefined') {
+            container.innerHTML = `<div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="font-size:24px;color:var(--accent)"></i><p style="margin-top:8px;color:var(--text-secondary)">${isId ? 'Memuat pustaka dokumen...' : 'Loading document library...'}</p></div>`;
+            try { await window.LazyLibs.load('mammoth'); } catch(e) {
+                container.innerHTML = `<div style="text-align:center;padding:40px"><i class="fas fa-exclamation-triangle" style="font-size:24px;color:#f59e0b"></i><p style="margin-top:8px;color:var(--text-secondary)">${isId ? 'Gagal memuat pustaka dokumen' : 'Failed to load document library'}</p></div>`;
+                return;
+            }
+        }
         const resp = await fetch(url);
         if (!resp.ok) throw new Error('Download failed');
         const blob = await resp.blob();
         const arrayBuffer = await blob.arrayBuffer();
-        if (typeof mammoth === 'undefined') {
-            container.innerHTML = `<div style="text-align:center;padding:40px"><i class="fas fa-exclamation-triangle" style="font-size:24px;color:#f59e0b"></i><p style="margin-top:8px;color:var(--text-secondary)">${isId ? 'Pustaka mammoth.js tidak tersedia' : 'mammoth.js library not available'}</p></div>`;
-            return;
-        }
         const result = await mammoth.convertToHtml({ arrayBuffer });
         container.innerHTML = `<div style="padding:20px;max-height:60vh;overflow:auto;background:var(--bg-secondary);border-radius:8px;line-height:1.7;font-size:14px">${result.value || '<p style="color:var(--text-secondary)">' + (isId ? 'Dokumen kosong' : 'Empty document') + '</p>'}</div>`;
         if (result.messages && result.messages.length > 0) {
@@ -8462,14 +8482,18 @@ async function fetchXlsxPreview(file, url) {
     if (!container) return;
     const isId = APP.lang === 'id';
     try {
+        // Lazy-load XLSX on demand
+        if (typeof XLSX === 'undefined') {
+            container.innerHTML = `<div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="font-size:24px;color:var(--accent)"></i><p style="margin-top:8px;color:var(--text-secondary)">${isId ? 'Memuat pustaka spreadsheet...' : 'Loading spreadsheet library...'}</p></div>`;
+            try { await window.LazyLibs.load('xlsx'); } catch(e) {
+                container.innerHTML = `<div style="text-align:center;padding:40px"><i class="fas fa-exclamation-triangle" style="font-size:24px;color:#f59e0b"></i><p style="margin-top:8px;color:var(--text-secondary)">${isId ? 'Gagal memuat pustaka spreadsheet' : 'Failed to load spreadsheet library'}</p></div>`;
+                return;
+            }
+        }
         const resp = await fetch(url);
         if (!resp.ok) throw new Error('Download failed');
         const blob = await resp.blob();
         const arrayBuffer = await blob.arrayBuffer();
-        if (typeof XLSX === 'undefined') {
-            container.innerHTML = `<div style="text-align:center;padding:40px"><i class="fas fa-exclamation-triangle" style="font-size:24px;color:#f59e0b"></i><p style="margin-top:8px;color:var(--text-secondary)">${isId ? 'Pustaka SheetJS tidak tersedia' : 'SheetJS library not available'}</p></div>`;
-            return;
-        }
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
@@ -9774,8 +9798,9 @@ async function setup2FA() {
     const secret = generateTOTPSecret();
     _totpSecret = secret;
     const uri = getTOTPUri(secret);
-    // Generate QR code
+    // Generate QR code (lazy-load QRious on demand)
     let qrDataUrl = '';
+    if (typeof QRious === 'undefined') { try { await window.LazyLibs.load('qrious'); } catch(e) {} }
     try { const qr = new QRious({ value: uri, size: 200, background: 'var(--bg)', foreground: 'var(--text)', level: 'M' }); qrDataUrl = qr.toDataURL(); } catch(e) { qrDataUrl = ''; }
     openModal(`<div style="padding:24px;text-align:center">
         <div style="width:56px;height:56px;border-radius:50%;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-shield-halved" style="color:#8b5cf6;font-size:22px"></i></div>
@@ -10982,6 +11007,13 @@ function openPricingModal(tier) {
 
 async function initStripeCheckout(tier) {
     const isId = APP.lang === 'id';
+    // Lazy-load Stripe on demand
+    if (typeof Stripe === 'undefined') {
+        try { await window.LazyLibs.load('stripe'); } catch(e) {
+            showToast(isId ? 'Gagal memuat Stripe' : 'Failed to load Stripe', 'error');
+            return;
+        }
+    }
     const plan = PRICING_TIERS[tier];
     if (!plan) { showToast('Invalid plan', 'error'); return; }
 
@@ -11544,10 +11576,13 @@ function showQRCode(url) {
             <p style="font-size:12px;color:var(--text-secondary);margin-top:12px;word-break:break-all">${url}</p>
             <button class="btn btn-secondary" style="margin-top:12px" onclick="closeModal()">${t('close')}</button>
         </div>`);
-    setTimeout(() => {
+    setTimeout(async () => {
         const canvas = document.getElementById('qr-canvas');
-        if (canvas && typeof QRious !== 'undefined') {
-            new QRious({ element: canvas, value: url, size: 200, foreground: getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#0f172a', background: 'transparent' });
+        if (canvas) {
+            if (typeof QRious === 'undefined') { try { await window.LazyLibs.load('qrious'); } catch(e) {} }
+            if (typeof QRious !== 'undefined') {
+                new QRious({ element: canvas, value: url, size: 200, foreground: getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#0f172a', background: 'transparent' });
+            }
         }
     }, 100);
 }
@@ -13540,43 +13575,54 @@ async function init() {
         // Init Google Drive config
         initGDriveConfig();
 
-        // Fetch bot config + Supabase config
-        try {
-            const resp = await fetch('/api/config');
-            const data = await resp.json();
-            if (data.ok && data.bots && data.bots.length > 0) {
-                APP.bots = data.bots;
-                APP.settings.proxyMode = data.proxyMode !== false;
-                APP.connected = true;
+        // Fetch bot config + Supabase config (non-blocking — don't await)
+        const configPromise = (async () => {
+            try {
+                const resp = await fetch('/api/config');
+                const data = await resp.json();
+                if (data.ok && data.bots && data.bots.length > 0) {
+                    APP.bots = data.bots;
+                    APP.settings.proxyMode = data.proxyMode !== false;
+                    APP.connected = true;
+                }
+                // Load Supabase config from server env vars
+                if (data.supabaseUrl && data.supabaseAnonKey) {
+                    window.__supabaseConfig = { url: data.supabaseUrl, anonKey: data.supabaseAnonKey };
+                }
+            } catch (e) {
+                console.warn('Config fetch failed:', e);
+                APP.connected = navigator.onLine;
             }
-            // Load Supabase config from server env vars
-            if (data.supabaseUrl && data.supabaseAnonKey) {
-                window.__supabaseConfig = { url: data.supabaseUrl, anonKey: data.supabaseAnonKey };
+
+            // Fallback: Hardcode Supabase config if server env vars not set
+            if (!window.__supabaseConfig || !window.__supabaseConfig.url) {
+                window.__supabaseConfig = {
+                    url: 'https://tztpwbasrajvkjbrvwfu.supabase.co',
+                    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHB3YmFzcmFqdmtqYnJ2d2Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NzQ1OTMsImV4cCI6MjA5NjM1MDU5M30.3O4-5PbSlRC8cro8hbbIgkxdnUOIXmWHa2mA5NVnhxc'
+                };
             }
-        } catch (e) {
-            console.warn('Config fetch failed:', e);
-            APP.connected = navigator.onLine;
-        }
 
-        // Fallback: Hardcode Supabase config if server env vars not set
-        // (anon key is safe for client-side — it's designed to be public)
-        if (!window.__supabaseConfig || !window.__supabaseConfig.url) {
-            window.__supabaseConfig = {
-                url: 'https://tztpwbasrajvkjbrvwfu.supabase.co',
-                anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHB3YmFzcmFqdmtqYnJ2d2Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NzQ1OTMsImV4cCI6MjA5NjM1MDU5M30.3O4-5PbSlRC8cro8hbbIgkxdnUOIXmWHa2mA5NVnhxc'
-            };
-        }
+            // Init Supabase Auth (deferred script should be loaded by now)
+            if (window.supabase) {
+                initSupabaseAuth();
+            } else {
+                // Wait briefly for deferred Supabase script (max 3s)
+                await new Promise(resolve => {
+                    const check = setInterval(() => { if (window.supabase) { clearInterval(check); resolve(); } }, 50);
+                    setTimeout(() => { clearInterval(check); resolve(); }, 3000);
+                });
+                if (window.supabase) initSupabaseAuth();
+            }
+        })();
 
-        // Init Supabase Auth (wait for deferred script)
-        if (window.supabase) {
-            initSupabaseAuth();
-        } else {
-            await new Promise(resolve => {
-                const check = setInterval(() => { if (window.supabase) { clearInterval(check); resolve(); } }, 50);
-                setTimeout(() => { clearInterval(check); resolve(); }, 5000);
-            });
-            initSupabaseAuth();
+        // Route immediately for faster FCP — auth will catch up
+        if (APP.files.length > 0 || location.hash !== '') {
+            checkUrlRouting();
         }
+        window.addEventListener('hashchange', checkUrlRouting);
+
+        // Wait for auth to resolve, then proceed with post-auth init
+        await configPromise;
 
         // If auth not required (no Supabase), proceed normally
         if (!isAuthRequired()) {
@@ -13627,9 +13673,8 @@ async function init() {
         // Feature 4: Check pending uploads (deferred)
         requestIdleCallback ? requestIdleCallback(() => checkPendingUploads()) : setTimeout(() => checkPendingUploads(), 1500);
 
-        // Route (skip if auth is still initializing - it will call checkUrlRouting when ready)
+        // Route (auth should be ready by now)
         if (APP.authReady) checkUrlRouting();
-        window.addEventListener('hashchange', checkUrlRouting);
 
         // Onboarding (F95) - show on first dashboard visit
         if (!APP.onboardingDone && location.hash === '#/dashboard') {
