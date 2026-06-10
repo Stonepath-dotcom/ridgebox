@@ -1,8 +1,5 @@
 {
   "name": "ridgebox",
   "private": true,
-  "version": "2.0.0",
-  "dependencies": {
-    "z-ai-web-dev-sdk": "^0.0.18"
-  }
+  "version": "2.0.0"
 }
