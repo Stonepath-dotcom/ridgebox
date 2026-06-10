@@ -28,7 +28,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://js.stripe.com/v3/" defer></script>
 <style>
-:root{--accent:#3b82f6;--accent-hover:#2563eb;--bg:#ffffff;--bg-secondary:#f8fafc;--bg-card:#ffffff;--text:#0f172a;--text-secondary:#64748b;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--shadow-lg:0 10px 40px rgba(0,0,0,.15);--radius:12px;--sidebar-w:260px;--header-h:60px;--transition:all .2s ease}body[dir="rtl"] .sidebar-desktop{right:0;left:auto}body[dir="rtl"] .detail-panel{right:auto;left:0;transform:translateX(-100%)}body[dir="rtl"] .detail-panel.open{transform:translateX(0)}
+:root{--accent:#3b82f6;--accent-hover:#2563eb;--bg:#ffffff;--bg-secondary:#f8fafc;--bg-card:#ffffff;--text:#0f172a;--text-secondary:#475569;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--shadow-lg:0 10px 40px rgba(0,0,0,.15);--radius:12px;--sidebar-w:260px;--header-h:60px;--transition:all .2s ease}body[dir="rtl"] .sidebar-desktop{right:0;left:auto}body[dir="rtl"] .detail-panel{right:auto;left:0;transform:translateX(-100%)}body[dir="rtl"] .detail-panel.open{transform:translateX(0)}
 .dark{--bg:#0f172a;--bg-secondary:#1e293b;--bg-card:#1e293b;--text:#f1f5f9;--text-secondary:#94a3b8;--border:#334155;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 10px 40px rgba(0,0,0,.4)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh;-webkit-overflow-scrolling:touch;max-width:100vw}
@@ -45,6 +45,8 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 /* Accessibility: High Contrast */
 @media(prefers-contrast:high){:root{--border:#000;--text-secondary:#333}.dark{--border:#fff;--text-secondary:#ccc}.btn-primary{outline:2px solid #000}.input{border-width:2px}}
+@keyframes skShimmer{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
+#app-skeleton div[style*="shimmer"]{animation:skShimmer 1.5s ease infinite!important}
 /* Performance: GPU hint only for frequently animated items */
 .file-grid-item{will-change:transform,opacity}
 .page-transition{max-width:100vw;overflow-x:hidden}
@@ -2173,10 +2175,16 @@ body.no-transition,body.no-transition *{transition:none!important}
 <a href="#app-main" class="skip-nav">Skip to main content</a>
 <div id="scroll-progress" class="scroll-progress" style="width:0" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
 <button id="back-to-top" class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top"><i class="fas fa-chevron-up" aria-hidden="true"></i></button>
-<div id="upload-progress-global" class="upload-progress-global" role="progressbar" aria-label="Upload progress"><div class="bar" id="global-progress-bar" style="width:0"></div></div>
+<div id="upload-progress-global" class="upload-progress-global" role="progressbar" aria-label="Upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="bar" id="global-progress-bar" style="width:0"></div></div>
 <header id="app-header" role="banner" style="max-width:100vw;overflow-x:hidden"></header>
 <div id="sidebar-mobile-overlay" class="sidebar-mobile-overlay" onclick="toggleMobileSidebar(false)" role="presentation"></div>
-<main id="app-main" role="main"></main>
+<main id="app-main" role="main">
+<div id="app-skeleton" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0a0a1a 0%,#1a1145 50%,#0a0a1a 100%);flex-direction:column;gap:24px;padding:20px">
+<div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,#2563eb,#7c3aed);animation:pulse 2s ease infinite;display:flex;align-items:center;justify-content:center"><svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 4L6 12v16l14 8 14-8V12L20 4z" fill="rgba(255,255,255,.9)"/></svg></div>
+<div style="width:180px;height:12px;border-radius:6px;background:rgba(255,255,255,.15);animation:shimmer 1.5s infinite"></div>
+<div style="width:120px;height:8px;border-radius:4px;background:rgba(255,255,255,.08);animation:shimmer 1.5s .3s infinite"></div>
+</div>
+</main>
 <aside id="detail-panel" class="detail-panel" role="complementary" aria-label="File details"></aside>
 <div id="modal-backdrop" class="modal-backdrop" style="display:none" onclick="closeModal()" role="dialog" aria-modal="true" aria-label="Dialog"><div id="modal-content" class="modal-content" onclick="event.stopPropagation()" role="document"></div></div>
 <div id="context-menu-backdrop" class="context-menu-backdrop" role="presentation"></div>
@@ -3423,7 +3431,7 @@ function renderNotesSection(fileId) {
             <i class="fas fa-sticky-note" style="font-size:12px;color:var(--accent)"></i>
             <span style="font-size:13px;font-weight:600">${t('notes')}</span>
         </div>
-        <textarea id="file-note-input" style="width:100%;min-height:60px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:12px;resize:vertical;font-family:inherit" placeholder="${t('addNotes')}" onblur="saveFileNote('${fileId}',this.value)" onkeydown="if(event.ctrlKey&&event.key==='Enter'){this.blur()}">${note}</textarea>
+        <textarea id="file-note-input" aria-label="Notes" style="width:100%;min-height:60px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:12px;resize:vertical;font-family:inherit" placeholder="${t('addNotes')}" onblur="saveFileNote('${fileId}',this.value)" onkeydown="if(event.ctrlKey&&event.key==='Enter'){this.blur()}">${note}</textarea>
     </div>`;
 }
 
@@ -3439,15 +3447,15 @@ function openBulkRenameModal() {
         <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">${files.length} ${isId?'file dipilih':'files selected'}</p>
         <div style="margin-bottom:12px">
             <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('prefix')}</label>
-            <input type="text" id="rename-prefix" class="input" style="width:100%" oninput="updateBulkRenamePreview()">
+            <input type="text" id="rename-prefix" class="input" aria-label="Prefix" style="width:100%" oninput="updateBulkRenamePreview()">
         </div>
         <div style="margin-bottom:12px">
             <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('suffix')}</label>
-            <input type="text" id="rename-suffix" class="input" style="width:100%" oninput="updateBulkRenamePreview()">
+            <input type="text" id="rename-suffix" class="input" aria-label="Suffix" style="width:100%" oninput="updateBulkRenamePreview()">
         </div>
         <div style="margin-bottom:12px">
             <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('pattern')} ({name}, {index}, {date})</label>
-            <input type="text" id="rename-pattern" class="input" style="width:100%" placeholder="{name}" oninput="updateBulkRenamePreview()">
+            <input type="text" id="rename-pattern" class="input" aria-label="Pattern" style="width:100%" placeholder="{name}" oninput="updateBulkRenamePreview()">
         </div>
         <div style="margin-bottom:16px;padding:10px;background:var(--bg-secondary);border-radius:8px">
             <div style="font-size:12px;font-weight:600;margin-bottom:6px">${t('preview')}</div>
@@ -3658,23 +3666,23 @@ function openAdvancedSearch() {
         <div style="display:flex;flex-direction:column;gap:12px">
             <div>
                 <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('nameContains')}</label>
-                <input type="text" id="adv-name" class="input" style="width:100%" value="${s.name||''}">
+                <input type="text" id="adv-name" class="input" aria-label="File name" style="width:100%" value="${s.name||''}">
             </div>
             <div>
                 <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('dateRange')}</label>
                 <div style="display:flex;gap:8px;align-items:center">
-                    <input type="date" id="adv-date-from" class="input" style="flex:1" value="${s.dateFrom||''}" placeholder="${t('from')}">
+                    <input type="date" id="adv-date-from" class="input" aria-label="Date from" style="flex:1" value="${s.dateFrom||''}" placeholder="${t('from')}">
                     <span style="color:var(--text-secondary)">—</span>
-                    <input type="date" id="adv-date-to" class="input" style="flex:1" value="${s.dateTo||''}" placeholder="${t('to')}">
+                    <input type="date" id="adv-date-to" class="input" aria-label="Date to" style="flex:1" value="${s.dateTo||''}" placeholder="${t('to')}">
                 </div>
             </div>
             <div>
                 <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('sizeRange')}</label>
                 <div style="display:flex;gap:8px;align-items:center">
-                    <input type="number" id="adv-size-min" class="input" style="flex:1" value="${s.sizeMin||''}" placeholder="${isId?'Minimum':'Min'}">
+                    <input type="number" id="adv-size-min" class="input" aria-label="Minimum size" style="flex:1" value="${s.sizeMin||''}" placeholder="${isId?'Minimum':'Min'}">
                     <span style="color:var(--text-secondary)">—</span>
-                    <input type="number" id="adv-size-max" class="input" style="flex:1" value="${s.sizeMax||''}" placeholder="${isId?'Maksimum':'Max'}">
-                    <select id="adv-size-unit" class="input" style="width:auto">
+                    <input type="number" id="adv-size-max" class="input" aria-label="Maximum size" style="flex:1" value="${s.sizeMax||''}" placeholder="${isId?'Maksimum':'Max'}">
+                    <select id="adv-size-unit" class="input" aria-label="Size unit" style="width:auto">
                         <option value="KB" ${s.sizeUnit==='KB'?'selected':''}>KB</option>
                         <option value="MB" ${s.sizeUnit==='MB'?'selected':''}>MB</option>
                         <option value="GB" ${s.sizeUnit==='GB'?'selected':''}>GB</option>
@@ -3683,7 +3691,7 @@ function openAdvancedSearch() {
             </div>
             <div>
                 <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${t('fileType')}</label>
-                <select id="adv-file-type" class="input" style="width:100%">
+                <select id="adv-file-type" class="input" aria-label="File type" style="width:100%">
                     <option value="all" ${s.fileType==='all'?'selected':''}>${isId?'Semua':'All'}</option>
                     <option value="document" ${s.fileType==='document'?'selected':''}>${t('documents')}</option>
                     <option value="image" ${s.fileType==='image'?'selected':''}>${t('photos')}</option>
@@ -3698,7 +3706,7 @@ function openAdvancedSearch() {
             </div>
             <div>
                 <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">${isId?'Urutkan':'Sort By'}</label>
-                <select id="adv-sort" class="input" style="width:100%">
+                <select id="adv-sort" class="input" aria-label="Sort by" style="width:100%">
                     <option value="">${isId?'Default':'Default'}</option>
                     <option value="name-asc">${t('sortByName')} A-Z</option>
                     <option value="name-desc">${t('sortByName')} Z-A</option>
@@ -4179,7 +4187,7 @@ function renderAuthPage() {
                         <i class="fas fa-paper-plane"></i> ${t('authSendReset')}
                     </button>
                     <div class="auth-form-switch" style="margin-top:16px">
-                        <a onclick="_authMode='login';renderAuthPage()">${t('authBackToLogin')}</a>
+                        <button onclick="_authMode='login';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authBackToLogin')}</button>
                     </div>
                 ` : `
                     ${isLogin ? '' : `
@@ -4219,7 +4227,7 @@ function renderAuthPage() {
                                 <input type="checkbox" id="auth-remember" checked>
                                 <label for="auth-remember">${isId ? 'Ingat saya' : 'Remember me'}</label>
                             </div>
-                            <div class="auth-form-forgot" style="margin-bottom:0"><a onclick="_authMode='forgot';renderAuthPage()">${t('authForgotPassword')}</a></div>
+                            <div class="auth-form-forgot" style="margin-bottom:0"><button onclick="_authMode='forgot';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authForgotPassword')}</button></div>
                         </div>
                     ` : ''}
                     
@@ -4241,7 +4249,7 @@ function renderAuthPage() {
                     </button>
 
                     <div class="auth-form-switch">
-                        ${isLogin ? `${t('authNoAccount')} <a onclick="_authMode='register';renderAuthPage()">${t('authRegister')}</a>` : `${t('authHasAccount')} <a onclick="_authMode='login';renderAuthPage()">${t('authLogin')}</a>`}
+                        ${isLogin ? `${t('authNoAccount')} <button onclick="_authMode='register';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authRegister')}</button>` : `${t('authHasAccount')} <button onclick="_authMode='login';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authLogin')}</button>`}
                     </div>
                 `}
                 
@@ -4787,7 +4795,7 @@ function renderHeader() {
             <button class="header-pill-btn" onclick="cycleLang()" title="${t('language')}" aria-label="Switch language">
                 <span style="font-size:11px;font-weight:600">${APP.lang.toUpperCase()}</span>
             </button>
-            ${!isHome ? `<a href="#/" class="header-pill-btn"><i class="fas fa-home"></i></a>` : ''}
+            ${!isHome ? `<a href="#/" class="header-pill-btn" aria-label="Home"><i class="fas fa-home"></i></a>` : ''}
             ${isHome ? `<a href="#/dashboard" class="header-pill-btn" style="background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;border:none;box-shadow:0 2px 10px rgba(59,130,246,.3)"><i class="fas fa-rocket"></i> <span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
             ${!isLoggedIn() && isAuthRequired() ? `<a href="#/login" class="header-pill-btn" style="background:var(--accent);color:#fff;border:none"><i class="fas fa-sign-in-alt"></i> <span class="hide-mobile-small">${APP.lang==='id'?'Masuk':'Login'}</span></a>` : ''}
             ${isLoggedIn() ? `<button class="header-pill-btn" onclick="handleLogout()" title="${t('authLogout')}" style="gap:4px" aria-label="Sign out"><i class="fas fa-sign-out-alt" aria-hidden="true"></i><span class="hide-mobile-small" style="font-size:11px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${APP.user?.email || ''}</span></button>` : ''}
@@ -4889,7 +4897,7 @@ function showConfirm(title, message, onConfirm, isDanger) {
 function showPrompt(title, placeholder, onSubmit) {
     openModal(`<div style="padding:24px">
         <h3 style="font-size:17px;font-weight:600;margin-bottom:12px">${title}</h3>
-        <input type="text" id="prompt-input" class="input" placeholder="${placeholder}" style="margin-bottom:16px" autofocus>
+        <input type="text" id="prompt-input" class="input" aria-label="Search prompt" placeholder="${placeholder}" style="margin-bottom:16px" autofocus>
         <div style="display:flex;gap:8px;justify-content:flex-end">
             <button class="btn btn-secondary" onclick="closeModal()">${APP.lang==='id'?'Batal':'Cancel'}</button>
             <button class="btn btn-primary" id="prompt-action-btn">${APP.lang==='id'?'Buat':'Create'}</button>
@@ -5651,7 +5659,7 @@ function renderHomepage() {
                     </div>
                 </div>
                 <div class="carousel-dots" id="carousel-dots">
-                    ${carouselFeatures.map((_, i) => `<button class="carousel-dot${i===0?' active':''}" onclick="goToCarouselSlide(${i})"></button>`).join('')}
+                    ${carouselFeatures.map((_, i) => `<button class="carousel-dot${i===0?' active':''}" onclick="goToCarouselSlide(${i})" aria-label="Go to slide"></button>`).join('')}
                 </div>
             </div>
         </section>
@@ -6408,7 +6416,7 @@ function renderHomepage() {
                         ].map((s, i) => `
                             <div class="lux-feature scroll-reveal reveal-delay-${i+1}" style="display:flex;align-items:flex-start;gap:16px;padding:20px 24px;margin-bottom:12px">
                                 <div class="lux-icon" style="background:${s.grad};min-width:48px;height:48px;box-shadow:0 4px 16px ${s.color}30"><i class="fas ${s.icon}" style="font-size:20px;color:#fff"></i></div>
-                                <div><h4 style="font-size:15px;font-weight:700;margin-bottom:4px">${s.title}</h4><p style="font-size:13px;color:var(--text-secondary);line-height:1.5">${s.desc}</p></div>
+                                <div><h3 style="font-size:15px;font-weight:700;margin-bottom:4px">${s.title}</h3><p style="font-size:13px;color:var(--text-secondary);line-height:1.5">${s.desc}</p></div>
                             </div>
                         `).join('')}
                     </div>
@@ -6449,7 +6457,7 @@ function renderHomepage() {
                     <h2 style="font-size:26px;font-weight:800;margin-bottom:8px">${isId?'Dapatkan Update Terbaru':'Get Latest Updates'}</h2>
                     <p style="color:var(--text-secondary);margin-bottom:28px;font-size:14px;line-height:1.7">${isId?'Daftar email untuk info fitur baru dan tips & trik Ridgebox':'Sign up for new feature alerts and Ridgebox tips & tricks'}</p>
                     <div style="display:flex;max-width:440px;margin:0 auto;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.06);flex-wrap:wrap" id="newsletter-form">
-                        <input type="email" class="newsletter-input" style="border-radius:14px 0 0 14px;border:2px solid var(--border);border-right:none" placeholder="${isId?'Masukkan email Anda':'Enter your email'}" id="newsletter-email">
+                        <input type="email" class="newsletter-input" aria-label="Email address" autocomplete="email" style="border-radius:14px 0 0 14px;border:2px solid var(--border);border-right:none" placeholder="${isId?'Masukkan email Anda':'Enter your email'}" id="newsletter-email">
                         <button class="newsletter-btn" style="border-radius:0 14px 14px 0" onclick="subscribeNewsletter()">${isId?'Berlangganan':'Subscribe'}</button>
                     </div>
                     <p style="font-size:11px;color:var(--text-secondary);margin-top:14px;opacity:.7">${isId?'Kami tidak akan mengirim spam. Berhenti kapan saja.':'No spam. Unsubscribe anytime.'}</p>
@@ -6487,7 +6495,7 @@ function renderHomepage() {
                     </div>
                 </div>
                 <div>
-                    <h4 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;color:var(--text-secondary)">${isId?'Produk':'Product'}</h4>
+                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;color:var(--text-secondary)">${isId?'Produk':'Product'}</h3>
                     <div style="display:flex;flex-direction:column;gap:10px">
                         <a href="#features" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Fitur':'Features'}</a>
                         <a href="#/dashboard" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">Dashboard</a>
@@ -6499,7 +6507,7 @@ function renderHomepage() {
                     </div>
                 </div>
                 <div>
-                    <h4 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;color:var(--text-secondary)">${isId?'Keamanan':'Security'}</h4>
+                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;color:var(--text-secondary)">${isId?'Keamanan':'Security'}</h3>
                     <div style="display:flex;flex-direction:column;gap:10px">
                         <span style="font-size:14px;color:var(--text-secondary);display:flex;align-items:center;gap:6px"><i class="fas fa-shield-halved" style="color:#10b981;font-size:12px"></i> E2E ${isId?'Enkripsi':'Encryption'}</span>
                         <span style="font-size:14px;color:var(--text-secondary);display:flex;align-items:center;gap:6px"><i class="fas fa-key" style="color:#3b82f6;font-size:12px"></i> PIN Lock</span>
@@ -6507,7 +6515,7 @@ function renderHomepage() {
                     </div>
                 </div>
                 <div>
-                    <h4 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;color:var(--text-secondary)">${isId?'Status':'Status'}</h4>
+                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;color:var(--text-secondary)">${isId?'Status':'Status'}</h3>
                     <div style="display:flex;flex-direction:column;gap:10px">
                         <span style="font-size:14px;color:var(--text-secondary);display:flex;align-items:center;gap:6px"><i class="fas fa-circle" style="color:#10b981;font-size:8px"></i> ${isId?'Online':'Online'}</span>
                         <span style="font-size:14px;color:var(--text-secondary);display:flex;align-items:center;gap:6px"><i class="fas fa-infinity" style="color:#8b5cf6;font-size:12px"></i> ${isId?'Unlimited':'Unlimited'}</span>
@@ -7400,7 +7408,7 @@ function renderDashboard() {
             <div class="toolbar-premium toolbar-wrap" style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                 <div class="search-premium ${APP.aiSearchMode ? 'ai-search-active' : ''}" style="flex:1;min-width:200px">
                     <i class="fas ${APP.aiSearchMode ? 'fa-wand-magic-sparkles' : 'fa-search'}"></i>
-                    <input type="text" placeholder="${APP.aiSearchMode ? (isId ? 'Cari dengan AI...' : 'AI Search...') : t('search')}" value="${APP.searchQuery}" oninput="APP.searchQuery=this.value;${APP.aiSearchMode ? '' : 'renderFileList()'}" onkeydown="if(event.key==='Enter'&&APP.aiSearchMode)executeAISearch(this.value)">
+                    <input type="text" aria-label="Search files" placeholder="${APP.aiSearchMode ? (isId ? 'Cari dengan AI...' : 'AI Search...') : t('search')}" value="${APP.searchQuery}" oninput="APP.searchQuery=this.value;${APP.aiSearchMode ? '' : 'renderFileList()'}" onkeydown="if(event.key==='Enter'&&APP.aiSearchMode)executeAISearch(this.value)">
                     <button class="ai-search-toggle ${APP.aiSearchMode ? 'active' : ''}" onclick="toggleAISearchMode()" title="${APP.aiSearchMode ? (isId ? 'Pencarian Biasa' : 'Regular Search') : (isId ? 'Pencarian AI' : 'AI Search')}" aria-label="Toggle AI search"><i class="fas fa-wand-magic-sparkles"></i></button>
                     <button class="toolbar-action-btn" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);padding:4px 6px;font-size:11px" onclick="openAdvancedSearch()" title="${t('advSearch')}" aria-label="Advanced search"><i class="fas fa-search-plus"></i></button>
                 </div>
@@ -7410,7 +7418,7 @@ function renderDashboard() {
                     <button class="toolbar-action-btn" onclick="openCameraUpload()" title="Camera" aria-label="Camera upload"><i class="fas fa-camera"></i></button>
                     <button class="toolbar-action-btn ${APP.batchMode?'active-action':''}" onclick="APP.batchMode=!APP.batchMode;renderFileList()" title="${t('batchMode')}" aria-label="Batch mode"><i class="fas fa-check-double"></i></button>
                 </div>
-                <select class="toolbar-sort" onchange="APP.sortBy=this.value;APP.activeSortPreset='';localStorage.setItem('rb_sort_preset','');renderFileList();updateSortPresetButtons()">
+                <select class="toolbar-sort" aria-label="Sort by" onchange="APP.sortBy=this.value;APP.activeSortPreset='';localStorage.setItem('rb_sort_preset','');renderFileList();updateSortPresetButtons()">
                     <option value="date" ${APP.sortBy==='date'?'selected':''}>${t('sortByDate')}</option>
                     <option value="name" ${APP.sortBy==='name'?'selected':''}>${t('sortByName')}</option>
                     <option value="size" ${APP.sortBy==='size'?'selected':''}>${t('sortBySize')}</option>
@@ -7805,7 +7813,7 @@ function renderSidebarHTML() {
 
         <!-- Storage Widget at Bottom -->
         <div class="storage-widget" style="margin-top:auto">
-            ${isLoggedIn() ? `<div style="padding:8px 12px;margin-bottom:6px;border-radius:8px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.1);display:flex;align-items:center;gap:8px;font-size:11px"><i class="fas fa-user-circle" style="color:var(--accent)"></i><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-secondary)">${APP.user?.email || ''}</span><button onclick="handleLogout()" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px 4px;font-size:12px" title="${t('authLogout')}"><i class="fas fa-sign-out-alt"></i></button></div>` : ''}
+            ${isLoggedIn() ? `<div style="padding:8px 12px;margin-bottom:6px;border-radius:8px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.1);display:flex;align-items:center;gap:8px;font-size:11px"><i class="fas fa-user-circle" style="color:var(--accent)"></i><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-secondary)">${APP.user?.email || ''}</span><button onclick="handleLogout()" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px 4px;font-size:12px" title="${t('authLogout')}" aria-label="Sign out"><i class="fas fa-sign-out-alt"></i></button></div>` : ''}
             <!-- Subscription Quota Bar -->
             ${getQuotaBarHtml()}
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;margin-top:8px">
@@ -7883,7 +7891,7 @@ function renderBreadcrumb() {
     const bar = document.getElementById('breadcrumb-bar');
     if (!bar) return;
     const isId = APP.lang === 'id';
-    let crumbs = [`<a href="#/dashboard" class="crumb-home" style="text-decoration:none;display:flex;align-items:center;gap:4px"><i class="fas fa-home" style="font-size:12px"></i></a>`];
+    let crumbs = [`<a href="#/dashboard" class="crumb-home" aria-label="Home" style="text-decoration:none;display:flex;align-items:center;gap:4px"><i class="fas fa-home" style="font-size:12px"></i></a>`];
     const folder = APP.folders.find(f => f.id === APP.currentFolder);
     if (folder) {
         crumbs.push(`<span class="crumb-sep">/</span> <span class="crumb-active">${folder.name}</span>`);
@@ -9019,8 +9027,8 @@ function openUrlUpload() {
     openModal(`
         <div style="padding:24px">
             <h3 style="font-size:18px;font-weight:600;margin-bottom:16px"><i class="fas fa-link" style="color:var(--accent)"></i> ${t('uploadFromUrl')}</h3>
-            <input type="url" id="url-upload-input" class="input" placeholder="https://example.com/file.pdf" style="margin-bottom:8px">
-            <input type="text" id="url-upload-name" class="input" placeholder="${APP.lang==='id'?'Nama file (opsional)':'Filename (optional)'}" style="margin-bottom:16px">
+            <input type="url" id="url-upload-input" class="input" aria-label="File URL" placeholder="https://example.com/file.pdf" style="margin-bottom:8px">
+            <input type="text" id="url-upload-name" class="input" aria-label="File name" placeholder="${APP.lang==='id'?'Nama file (opsional)':'Filename (optional)'}" style="margin-bottom:16px">
             <div style="display:flex;gap:8px;justify-content:flex-end">
                 <button class="btn btn-secondary" onclick="closeModal()">${t('cancel')}</button>
                 <button class="btn btn-primary" onclick="executeUrlUpload()"><i class="fas fa-upload"></i> ${t('upload')}</button>
@@ -9305,7 +9313,7 @@ function startRename(fileId) {
     openModal(`
         <div style="padding:24px">
             <h3 style="font-size:18px;font-weight:600;margin-bottom:16px">${t('rename')}</h3>
-            <input type="text" id="rename-input" class="input" value="${file.name}" style="margin-bottom:16px">
+            <input type="text" id="rename-input" class="input" aria-label="New file name" value="${file.name}" style="margin-bottom:16px">
             <div style="display:flex;gap:8px;justify-content:flex-end">
                 <button class="btn btn-secondary" onclick="closeModal()">${t('cancel')}</button>
                 <button class="btn btn-primary" onclick="executeRename('${fileId}')">${t('save')}</button>
@@ -9336,7 +9344,7 @@ function showTagPicker(fileId) {
         <div style="padding:24px">
             <h3 style="font-size:18px;font-weight:600;margin-bottom:16px">${t('addTag')}</h3>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-                ${colors.map(c => `<button class="detail-tag-dot ${file && file.tag === c ? 'active' : ''}" style="width:36px;height:36px;background:${c}" onclick="executeTag('${fileId}','${c}')"></button>`).join('')}
+                ${colors.map(c => `<button class="detail-tag-dot ${file && file.tag === c ? 'active' : ''}" style="width:36px;height:36px;background:${c}" onclick="executeTag('${fileId}','${c}')" aria-label="Tag"></button>`).join('')}
                 <button class="detail-tag-remove" style="width:36px;height:36px" onclick="executeTag('${fileId}','')" title="${APP.lang==='id'?'Hapus tag':'Remove tag'}" aria-label="Remove tag"><i class="fas fa-times"></i></button>
             </div>
         </div>`);
@@ -9359,7 +9367,7 @@ function showCaptionEditor(fileId) { // F87
     openModal(`
         <div style="padding:24px">
             <h3 style="font-size:18px;font-weight:600;margin-bottom:16px">${t('addCaption')}</h3>
-            <textarea id="caption-input" class="input" rows="3" placeholder="${t('fileDescription')}">${file.caption || ''}</textarea>
+            <textarea id="caption-input" class="input" aria-label="File description" rows="3" placeholder="${t('fileDescription')}">${file.caption || ''}</textarea>
             <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
                 <button class="btn btn-secondary" onclick="closeModal()">${t('cancel')}</button>
                 <button class="btn btn-primary" onclick="executeCaption('${fileId}')">${t('save')}</button>
@@ -9409,7 +9417,7 @@ async function createFolderDialog() {
     openModal(`
         <div style="padding:24px">
             <h3 style="font-size:18px;font-weight:600;margin-bottom:16px">${t('newFolder')}</h3>
-            <input type="text" id="folder-name-input" class="input" placeholder="${t('folderName')}" style="margin-bottom:16px">
+            <input type="text" id="folder-name-input" class="input" aria-label="Folder name" placeholder="${t('folderName')}" style="margin-bottom:16px">
             <div style="display:flex;gap:8px;justify-content:flex-end">
                 <button class="btn btn-secondary" onclick="closeModal()">${t('cancel')}</button>
                 <button class="btn btn-primary" onclick="executeCreateFolder()">${t('create')}</button>
@@ -9838,7 +9846,7 @@ function openShareModal(fileId) {
                     <div style="margin-bottom:16px">
                         <label style="font-size:12px;font-weight:500;margin-bottom:4px;display:block">${t('shareLink')}</label>
                         <div style="display:flex;gap:6px">
-                            <input type="text" class="input" id="share-url-input" readonly style="font-size:12px;font-family:'JetBrains Mono',monospace">
+                            <input type="text" class="input" id="share-url-input" aria-label="Share link" readonly style="font-size:12px;font-family:'JetBrains Mono',monospace">
                             <button class="btn btn-primary btn-sm" onclick="copyShareLink(window._currentShareUrl)" aria-label="Copy link"><i class="fas fa-copy"></i></button>
                         </div>
                     </div>
@@ -9846,11 +9854,11 @@ function openShareModal(fileId) {
                 <div style="display:flex;flex-direction:column;gap:12px">
                     <div>
                         <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('password')} (${APP.lang==='id'?'opsional':'optional'})</label>
-                        <input type="text" id="share-password" class="input" placeholder="••••••">
+                        <input type="text" id="share-password" class="input" aria-label="Link password" placeholder="••••••">
                     </div>
                     <div>
                         <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('expiry')}</label>
-                        <select id="share-expiry" class="input">
+                        <select id="share-expiry" class="input" aria-label="Link expiry">
                             <option value="0">${APP.lang==='id'?'Tidak pernah':'Never'}</option>
                             <option value="1">${t('expires1h')}</option>
                             <option value="24">${t('expires24h')}</option>
@@ -9864,7 +9872,7 @@ function openShareModal(fileId) {
                     </div>
                     <div>
                         <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${APP.lang==='id'?'Izin Akses':'Access Permission'}</label>
-                        <select id="share-permission" class="input">
+                        <select id="share-permission" class="input" aria-label="Permission">
                             <option value="view">${APP.lang==='id'?'Lihat Saja':'View Only'}</option>
                             <option value="download" selected>${APP.lang==='id'?'Bisa Download':'Can Download'}</option>
                             <option value="edit">${APP.lang==='id'?'Bisa Edit':'Can Edit'}</option>
@@ -9877,7 +9885,7 @@ function openShareModal(fileId) {
                     </div>
                     <div>
                         <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('customAlias')} (${APP.lang==='id'?'opsional':'optional'})</label>
-                        <input type="text" id="share-alias" class="input" placeholder="my-file">
+                        <input type="text" id="share-alias" class="input" aria-label="Custom alias" placeholder="my-file">
                     </div>
                 </div>
                 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap">
@@ -10189,7 +10197,7 @@ function renderSharePortal(rawAlias) {
                 </div>
                 <h2>${t('protectedFile')}</h2>
                 <p style="color:var(--text-secondary);margin-bottom:16px">${file.name}</p>
-                <input type="password" id="share-pw-input" class="input" placeholder="${t('enterPassword')}" onkeydown="if(event.key==='Enter')verifySharePassword('${share.id || ''}')">
+                <input type="password" id="share-pw-input" class="input" aria-label="Password" placeholder="${t('enterPassword')}" onkeydown="if(event.key==='Enter')verifySharePassword('${share.id || ''}')">
                 <p id="share-pw-error" style="color:#ef4444;font-size:12px;margin-top:4px;display:none">${t('wrongPassword')}</p>
                 <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="verifySharePassword('${share.id || ''}')">${t('confirm')}</button>
             </div>
@@ -10457,7 +10465,7 @@ async function createGallery(folderId) {
             <div style="margin-bottom:16px">
                 <label style="font-size:12px;font-weight:500;margin-bottom:4px;display:block">${t('shareLink')}</label>
                 <div style="display:flex;gap:6px">
-                    <input type="text" class="input" id="gallery-url-input" readonly style="font-size:12px;font-family:'JetBrains Mono',monospace" value="${galleryUrl}">
+                    <input type="text" class="input" id="gallery-url-input" aria-label="Gallery link" readonly style="font-size:12px;font-family:'JetBrains Mono',monospace" value="${galleryUrl}">
                     <button class="btn btn-primary btn-sm" onclick="copyShareLink('${galleryUrl}')" aria-label="Copy link"><i class="fas fa-copy"></i></button>
                 </div>
             </div>
@@ -10563,7 +10571,7 @@ function openPreview(fileId) {
     } else if (type === 'video' || type === 'audio') {
         openMediaPlayer(fileId); return;
     } else if (type === 'pdf') {
-        previewContent = `<iframe src="${downloadUrl}" style="width:100%;height:60vh;border:none;border-radius:8px"></iframe>`;
+        previewContent = `<iframe src="${downloadUrl}" title="PDF Preview" style="width:100%;height:60vh;border:none;border-radius:8px"></iframe>`;
     } else if (type === 'document') {
         // Feature 5: .docx preview using mammoth.js
         previewContent = `<div id="office-preview-container" style="min-height:200px">
@@ -10904,7 +10912,7 @@ function openSettings() {
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
                     <label style="font-size:14px;font-weight:500">${t('proxyMode')}</label>
                     <label style="position:relative;width:44px;height:24px">
-                        <input type="checkbox" id="setting-proxy" ${APP.settings.proxyMode !== false ? 'checked' : ''} onchange="updateSetting('proxyMode',this.checked)" style="display:none">
+                        <input type="checkbox" id="setting-proxy" ${APP.settings.proxyMode !== false ? 'checked' : ''} onchange="updateSetting('proxyMode',this.checked)" aria-label="Proxy Mode" style="display:none">
                         <span style="position:absolute;inset:0;background:${APP.settings.proxyMode !== false ? 'var(--accent)' : 'var(--border)'};border-radius:12px;cursor:pointer;transition:var(--transition)" onclick="this.previousElementSibling.click();this.style.background=this.previousElementSibling.checked?'var(--accent)':'var(--border)';this.querySelector('span').style.transform=this.previousElementSibling.checked?'translateX(20px)':'translateX(0)'">
                             <span style="position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:var(--transition);transform:${APP.settings.proxyMode !== false ? 'translateX(20px)' : 'translateX(0)'}"></span>
                         </span>
@@ -10930,7 +10938,7 @@ function openSettings() {
             <!-- F82: Trash Purge Days -->
             <div style="margin-bottom:20px">
                 <label style="font-size:14px;font-weight:500;display:block;margin-bottom:4px">${APP.lang==='id'?'Hapus Sampah Otomatis':'Auto Purge Trash'}</label>
-                <select id="setting-purge-days" class="input" style="width:auto" onchange="updateSetting('trashPurgeDays',parseInt(this.value))">
+                <select id="setting-purge-days" class="input" aria-label="Auto-delete after" style="width:auto" onchange="updateSetting('trashPurgeDays',parseInt(this.value))">
                     <option value="7" ${APP.settings.trashPurgeDays===7?'selected':''}>7 ${t('days')}</option>
                     <option value="14" ${APP.settings.trashPurgeDays===14?'selected':''}>14 ${t('days')}</option>
                     <option value="30" ${APP.settings.trashPurgeDays===30?'selected':''}>30 ${t('days')}</option>
@@ -10942,7 +10950,7 @@ function openSettings() {
             <!-- Auto Cleanup -->
             <div style="margin-bottom:20px">
                 <label style="font-size:14px;font-weight:500;display:block;margin-bottom:4px">${t('autoCleanup')}</label>
-                <select id="setting-cleanup" class="input" style="width:auto" onchange="updateSetting('autoCleanup',parseInt(this.value))">
+                <select id="setting-cleanup" class="input" aria-label="Auto cleanup" style="width:auto" onchange="updateSetting('autoCleanup',parseInt(this.value))">
                     <option value="0" ${APP.settings.autoCleanup===0?'selected':''}>${APP.lang==='id'?'Tidak aktif':'Disabled'}</option>
                     <option value="7" ${APP.settings.autoCleanup===7?'selected':''}>7 ${t('days')}</option>
                     <option value="30" ${APP.settings.autoCleanup===30?'selected':''}>30 ${t('days')}</option>
@@ -10958,7 +10966,7 @@ function openSettings() {
                         <p style="font-size:12px;color:var(--text-secondary)">AES-256-GCM</p>
                     </div>
                     <label style="position:relative;width:44px;height:24px">
-                        <input type="checkbox" id="setting-encryption" ${APP.settings.encryption?'checked':''} onchange="updateSetting('encryption',this.checked)" style="display:none">
+                        <input type="checkbox" id="setting-encryption" ${APP.settings.encryption?'checked':''} onchange="updateSetting('encryption',this.checked)" aria-label="Encryption" style="display:none">
                         <span style="position:absolute;inset:0;background:${APP.settings.encryption?'var(--accent)':'var(--border)'};border-radius:12px;cursor:pointer;transition:var(--transition)" onclick="this.previousElementSibling.click();this.style.background=this.previousElementSibling.checked?'var(--accent)':'var(--border)';this.querySelector('span').style.transform=this.previousElementSibling.checked?'translateX(20px)':'translateX(0)'">
                             <span style="position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:var(--transition);transform:${APP.settings.encryption?'translateX(20px)':'translateX(0)'}"></span>
                         </span>
@@ -10997,7 +11005,7 @@ function openSettings() {
                         <p style="font-size:12px;color:var(--text-secondary)">${t('notifSettingDesc')}</p>
                     </div>
                     <label style="position:relative;width:44px;height:24px">
-                        <input type="checkbox" id="setting-notifications" ${APP.settings.notifications?'checked':''} onchange="updateSetting('notifications',this.checked);initNotifications()" style="display:none">
+                        <input type="checkbox" id="setting-notifications" ${APP.settings.notifications?'checked':''} onchange="updateSetting('notifications',this.checked);initNotifications()" aria-label="Notifications" style="display:none">
                         <span style="position:absolute;inset:0;background:${APP.settings.notifications?'var(--accent)':'var(--border)'};border-radius:12px;cursor:pointer;transition:var(--transition)" onclick="this.previousElementSibling.click();this.style.background=this.previousElementSibling.checked?'var(--accent)':'var(--border)';this.querySelector('span').style.transform=this.previousElementSibling.checked?'translateX(20px)':'translateX(0)'">
                             <span style="position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:var(--transition);transform:${APP.settings.notifications?'translateX(20px)':'translateX(0)'}"></span>
                         </span>
@@ -11013,7 +11021,7 @@ function openSettings() {
                         <p style="font-size:12px;color:var(--text-secondary)">${isId ? 'Getaran saat berinteraksi di perangkat mobile' : 'Vibration feedback on mobile interactions'}</p>
                     </div>
                     <label style="position:relative;width:44px;height:24px">
-                        <input type="checkbox" id="setting-haptic" ${APP.settings.hapticFeedback !== false ? 'checked' : ''} onchange="updateSetting('hapticFeedback',this.checked)" style="display:none">
+                        <input type="checkbox" id="setting-haptic" ${APP.settings.hapticFeedback !== false ? 'checked' : ''} onchange="updateSetting('hapticFeedback',this.checked)" aria-label="Haptic Feedback" style="display:none">
                         <span style="position:absolute;inset:0;background:${APP.settings.hapticFeedback !== false ? 'var(--accent)' : 'var(--border)'};border-radius:12px;cursor:pointer;transition:var(--transition)" onclick="this.previousElementSibling.click();this.style.background=this.previousElementSibling.checked?'var(--accent)':'var(--border)';this.querySelector('span').style.transform=this.previousElementSibling.checked?'translateX(20px)':'translateX(0)'">
                             <span style="position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:var(--transition);transform:${APP.settings.hapticFeedback !== false ? 'translateX(20px)' : 'translateX(0)'}"></span>
                         </span>
@@ -11029,7 +11037,7 @@ function openSettings() {
                         <p style="font-size:12px;color:var(--text-secondary)">${isId ? 'Otomatis kategorikan file setelah upload dengan AI' : 'Auto-categorize files after upload using AI'}</p>
                     </div>
                     <label style="position:relative;width:44px;height:24px">
-                        <input type="checkbox" id="setting-ai-autocat" ${APP.settings.aiAutoCategorize !== false ? 'checked' : ''} onchange="updateSetting('aiAutoCategorize',this.checked);localStorage.setItem('rb_ai_autocat',this.checked?'1':'0')" style="display:none">
+                        <input type="checkbox" id="setting-ai-autocat" ${APP.settings.aiAutoCategorize !== false ? 'checked' : ''} onchange="updateSetting('aiAutoCategorize',this.checked);localStorage.setItem('rb_ai_autocat',this.checked?'1':'0')" aria-label="AI Auto-Categorize" style="display:none">
                         <span style="position:absolute;inset:0;background:${APP.settings.aiAutoCategorize !== false ? '#10b981' : 'var(--border)'};border-radius:12px;cursor:pointer;transition:var(--transition)" onclick="this.previousElementSibling.click();this.style.background=this.previousElementSibling.checked?'#10b981':'var(--border)';this.querySelector('span').style.transform=this.previousElementSibling.checked?'translateX(20px)':'translateX(0)'">
                             <span style="position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:var(--transition);transform:${APP.settings.aiAutoCategorize !== false ? 'translateX(20px)' : 'translateX(0)'}"></span>
                         </span>
@@ -11123,19 +11131,19 @@ function openSettings() {
                     <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">${APP.lang==='id'?'KONFIGURASI STRIPE':'STRIPE CONFIG'}</div>
                     <div style="margin-bottom:8px">
                         <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:2px">${APP.lang==='id'?'Publishable Key (pk_)':'Publishable Key (pk_)'}</label>
-                        <input type="text" id="stripe-pk" class="input" value="${APP.settings.stripePublishableKey || ''}" placeholder="pk_test_..." style="font-size:12px;font-family:'JetBrains Mono',monospace">
+                        <input type="text" id="stripe-pk" class="input" aria-label="Stripe Publishable Key" value="${APP.settings.stripePublishableKey || ''}" placeholder="pk_test_..." style="font-size:12px;font-family:'JetBrains Mono',monospace">
                     </div>
                     <div style="margin-bottom:8px">
                         <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:2px">${APP.lang==='id'?'Price ID - Gratis':'Price ID - Free'}</label>
-                        <input type="text" id="stripe-price-free" class="input" value="${APP.settings.stripePriceFree || ''}" placeholder="price_..." style="font-size:12px;font-family:'JetBrains Mono',monospace">
+                        <input type="text" id="stripe-price-free" class="input" aria-label="Free tier price ID" value="${APP.settings.stripePriceFree || ''}" placeholder="price_..." style="font-size:12px;font-family:'JetBrains Mono',monospace">
                     </div>
                     <div style="margin-bottom:8px">
                         <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:2px">${APP.lang==='id'?'Price ID - Pro ($4.99/mo)':'Price ID - Pro ($4.99/mo)'}</label>
-                        <input type="text" id="stripe-price-pro" class="input" value="${APP.settings.stripePricePro || ''}" placeholder="price_..." style="font-size:12px;font-family:'JetBrains Mono',monospace">
+                        <input type="text" id="stripe-price-pro" class="input" aria-label="Pro tier price ID" value="${APP.settings.stripePricePro || ''}" placeholder="price_..." style="font-size:12px;font-family:'JetBrains Mono',monospace">
                     </div>
                     <div style="margin-bottom:8px">
                         <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:2px">${APP.lang==='id'?'Price ID - Business ($9.99/mo)':'Price ID - Business ($9.99/mo)'}</label>
-                        <input type="text" id="stripe-price-business" class="input" value="${APP.settings.stripePriceBusiness || ''}" placeholder="price_..." style="font-size:12px;font-family:'JetBrains Mono',monospace">
+                        <input type="text" id="stripe-price-business" class="input" aria-label="Business tier price ID" value="${APP.settings.stripePriceBusiness || ''}" placeholder="price_..." style="font-size:12px;font-family:'JetBrains Mono',monospace">
                     </div>
                     <button class="btn btn-primary btn-sm" style="width:100%" onclick="saveStripeConfig()"><i class="fas fa-save"></i> ${APP.lang==='id'?'Simpan Konfigurasi':'Save Config'}</button>
                 </div>
@@ -11145,7 +11153,7 @@ function openSettings() {
             <div style="margin-bottom:20px">
                 <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px">${t('scheduledUpload')}</label>
                 <div style="display:flex;gap:8px">
-                    <input type="datetime-local" id="scheduled-time" class="input" style="flex:1">
+                    <input type="datetime-local" id="scheduled-time" class="input" aria-label="Scheduled time" style="flex:1">
                     <button class="btn btn-primary btn-sm" onclick="scheduleUpload()">${t('save')}</button>
                 </div>
             </div>
@@ -11251,11 +11259,11 @@ function openSettings() {
                 </div>
                 <div style="margin-bottom:8px">
                     <label style="font-size:12px;font-weight:500;color:var(--text);display:block;margin-bottom:4px">Client ID</label>
-                    <input id="od-client-id" type="text" value="${APP.onedriveConfig.clientId || ''}" placeholder="${APP.lang==='id'?'Masukkan Client ID dari Azure Portal':'Enter Client ID from Azure Portal'}" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                    <input id="od-client-id" type="text" aria-label="OneDrive Client ID" value="${APP.onedriveConfig.clientId || ''}" placeholder="${APP.lang==='id'?'Masukkan Client ID dari Azure Portal':'Enter Client ID from Azure Portal'}" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
                 </div>
                 <div style="margin-bottom:8px">
                     <label style="font-size:12px;font-weight:500;color:var(--text);display:block;margin-bottom:4px">Client Secret ${APP.lang==='id'?'(opsional)':'(optional)'}</label>
-                    <input id="od-client-secret" type="password" value="${APP.onedriveConfig.clientSecret || ''}" placeholder="${APP.lang==='id'?'Opsional untuk flow server-side':'Optional for server-side flow'}" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                    <input id="od-client-secret" type="password" aria-label="OneDrive Client Secret" value="${APP.onedriveConfig.clientSecret || ''}" placeholder="${APP.lang==='id'?'Opsional untuk flow server-side':'Optional for server-side flow'}" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
                 </div>
                 <div style="font-size:10px;color:var(--text-secondary);line-height:1.5;margin-bottom:8px">${APP.lang==='id' ? 'Buat app di <a href="https://portal.azure.com/" target="_blank" rel="noopener">Azure Portal</a> → App Registrations → Redirect URI: <code>' + window.location.origin + '/api/onedrive/callback</code>' : 'Create app at <a href="https://portal.azure.com/" target="_blank" rel="noopener">Azure Portal</a> → App Registrations → Redirect URI: <code>' + window.location.origin + '/api/onedrive/callback</code>'}</div>
                 <button class="btn btn-primary btn-sm" style="width:100%" onclick="saveOneDriveConfig()"><i class="fas fa-save"></i> ${APP.lang==='id'?'Simpan Konfigurasi':'Save Configuration'}</button>
@@ -11272,11 +11280,11 @@ function openSettings() {
                 </div>
                 <div style="margin-bottom:8px">
                     <label style="font-size:12px;font-weight:500;color:var(--text);display:block;margin-bottom:4px">Client ID</label>
-                    <input id="db-client-id" type="text" value="${APP.dropboxConfig.clientId || ''}" placeholder="${APP.lang==='id'?'Masukkan Client ID dari Dropbox App Console':'Enter Client ID from Dropbox App Console'}" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                    <input id="db-client-id" type="text" aria-label="Dropbox Client ID" value="${APP.dropboxConfig.clientId || ''}" placeholder="${APP.lang==='id'?'Masukkan Client ID dari Dropbox App Console':'Enter Client ID from Dropbox App Console'}" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
                 </div>
                 <div style="margin-bottom:8px">
                     <label style="font-size:12px;font-weight:500;color:var(--text);display:block;margin-bottom:4px">Client Secret ${APP.lang==='id'?'(opsional)':'(optional)'}</label>
-                    <input id="db-client-secret" type="password" value="${APP.dropboxConfig.clientSecret || ''}" placeholder="${APP.lang==='id'?'Opsional untuk flow server-side':'Optional for server-side flow'}" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                    <input id="db-client-secret" type="password" aria-label="Dropbox Client Secret" value="${APP.dropboxConfig.clientSecret || ''}" placeholder="${APP.lang==='id'?'Opsional untuk flow server-side':'Optional for server-side flow'}" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
                 </div>
                 <div style="font-size:10px;color:var(--text-secondary);line-height:1.5;margin-bottom:8px">${APP.lang==='id' ? 'Buat app di <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">Dropbox App Console</a> → Redirect URI: <code>' + window.location.origin + '/api/dropbox/callback</code>' : 'Create app at <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">Dropbox App Console</a> → Redirect URI: <code>' + window.location.origin + '/api/dropbox/callback</code>'}</div>
                 <button class="btn btn-primary btn-sm" style="width:100%" onclick="saveDropboxConfig()"><i class="fas fa-save"></i> ${APP.lang==='id'?'Simpan Konfigurasi':'Save Configuration'}</button>
@@ -11307,7 +11315,7 @@ function openSettings() {
                 </div>
                 <div style="margin-bottom:8px">
                     <label style="font-size:12px;font-weight:500;color:var(--text);display:block;margin-bottom:4px">${APP.lang==='id'?'Frekuensi Backup':'Backup Frequency'}</label>
-                    <select id="backup-frequency" class="input" style="width:100%;padding:6px 10px;font-size:12px" onchange="setBackupFrequency(this.value)">
+                    <select id="backup-frequency" class="input" aria-label="Backup frequency" style="width:100%;padding:6px 10px;font-size:12px" onchange="setBackupFrequency(this.value)">
                         <option value="manual" ${APP.backupConfig.frequency==='manual'?'selected':''}>${APP.lang==='id'?'Manual saja':'Manual only'}</option>
                         <option value="daily" ${APP.backupConfig.frequency==='daily'?'selected':''}>${APP.lang==='id'?'Harian':'Daily'}</option>
                         <option value="weekly" ${APP.backupConfig.frequency==='weekly'?'selected':''}>${APP.lang==='id'?'Mingguan':'Weekly'}</option>
@@ -11528,7 +11536,7 @@ function renderAdminPanel() {
                 <div>Token: <span style="color:var(--text)">${a.accessToken ? a.accessToken.slice(0, 6) + '••••••••' : '-'}</span></div>
             </div>`}
             <div style="margin-top:8px;display:flex;gap:6px">
-                <button class="btn btn-danger btn-sm" style="font-size:10px;padding:3px 8px" onclick="confirmDisconnectS3Account('${a.id}');setTimeout(()=>renderAdminPanel(),500)"><i class="fas fa-unlink"></i> ${isId ? 'Putuskan' : 'Disconnect'}</button>
+                <button class="btn btn-danger btn-sm" style="font-size:10px;padding:3px 8px" onclick="confirmDisconnectS3Account('${a.id}');setTimeout(()=>renderAdminPanel(),500)" aria-label="Disconnect"><i class="fas fa-unlink"></i> ${isId ? 'Putuskan' : 'Disconnect'}</button>
             </div>
         </div>`;
     }).join('');
@@ -11572,7 +11580,7 @@ function renderAdminPanel() {
                 <div style="display:flex;justify-content:space-between;align-items:center">
                     <span style="color:var(--text-secondary)">${t('botToken')}:</span>
                     <span style="color:var(--text)" id="admin-bot-token">${bot.masked ? bot.token : '••••••••••••••••••••'}</span>
-                    <button style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer" onclick="toggleAdminCredential('admin-bot-token','${bot.token || ''}','${bot.masked ? 'masked' : 'hidden'}')"><i class="fas fa-eye"></i></button>
+                    <button style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer" onclick="toggleAdminCredential('admin-bot-token','${bot.token || ''}','${bot.masked ? 'masked' : 'hidden'}')" aria-label="Show credential"><i class="fas fa-eye"></i></button>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center">
                     <span style="color:var(--text-secondary)">${t('chatId')}:</span>
@@ -11589,7 +11597,7 @@ function renderAdminPanel() {
                 <div style="display:flex;justify-content:space-between;align-items:center">
                     <span style="color:var(--text-secondary)">Access Token:</span>
                     <span style="color:var(--text)" id="admin-gdrive-token-${a.id}">••••••••••••</span>
-                    <button style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer" onclick="toggleAdminCredential('admin-gdrive-token-${a.id}','${(a.accessToken || '').slice(0, 20)}...','hidden')"><i class="fas fa-eye"></i></button>
+                    <button style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer" onclick="toggleAdminCredential('admin-gdrive-token-${a.id}','${(a.accessToken || '').slice(0, 20)}...','hidden')" aria-label="Show credential"><i class="fas fa-eye"></i></button>
                 </div>
                 <div style="color:var(--text-secondary)">Status: <span style="color:${a.status === 'connected' ? '#10b981' : '#ef4444'}">${a.status}</span></div>
             </div>`).join('') : `<div style="font-size:12px;color:var(--text-secondary);padding:8px">${isId ? 'Belum ada akun terhubung' : 'No accounts connected'}</div>`}
@@ -11606,7 +11614,7 @@ function renderAdminPanel() {
             <div style="font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;color:var(--text)"><i class="fas fa-bolt" style="color:#f59e0b"></i> Webhook</div>
             <div style="background:var(--bg-secondary);border-radius:10px;padding:12px">
                 <div style="display:flex;gap:8px;margin-bottom:8px">
-                    <input type="url" id="admin-webhook-url" class="input" placeholder="https://example.com/webhook" value="${APP.settings.webhookUrl||''}" style="flex:1;font-size:12px">
+                    <input type="url" id="admin-webhook-url" class="input" aria-label="Webhook URL" placeholder="https://example.com/webhook" value="${APP.settings.webhookUrl||''}" style="flex:1;font-size:12px">
                     <button class="btn btn-primary btn-sm" onclick="testWebhook()">${isId ? 'Tes' : 'Test'}</button>
                 </div>
                 <div style="display:flex;gap:8px">
@@ -11710,22 +11718,22 @@ function showChangeAdminPasswordModal() {
 
         <div style="margin-bottom:16px">
             <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Password Lama' : 'Current Password'}</label>
-            <input type="password" id="admin-old-password" class="input" placeholder="${isId ? 'Masukkan password lama' : 'Enter current password'}">
+            <input type="password" id="admin-old-password" class="input" aria-label="Current password" autocomplete="current-password" placeholder="${isId ? 'Masukkan password lama' : 'Enter current password'}">
         </div>
 
         <div style="margin-bottom:16px">
             <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Email Baru (opsional)' : 'New Email (optional)'}</label>
-            <input type="email" id="admin-new-email" class="input" placeholder="${isId ? 'Kosongkan jika tidak diubah' : 'Leave empty to keep current'}" value="${adminCred.email}">
+            <input type="email" id="admin-new-email" class="input" aria-label="New email" autocomplete="email" placeholder="${isId ? 'Kosongkan jika tidak diubah' : 'Leave empty to keep current'}" value="${adminCred.email}">
         </div>
 
         <div style="margin-bottom:16px">
             <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Password Baru' : 'New Password'}</label>
-            <input type="password" id="admin-new-password" class="input" placeholder="${isId ? 'Masukkan password baru (min. 6 karakter)' : 'Enter new password (min. 6 characters)'}">
+            <input type="password" id="admin-new-password" class="input" aria-label="New password" autocomplete="new-password" placeholder="${isId ? 'Masukkan password baru (min. 6 karakter)' : 'Enter new password (min. 6 characters)'}">
         </div>
 
         <div style="margin-bottom:20px">
             <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Konfirmasi Password Baru' : 'Confirm New Password'}</label>
-            <input type="password" id="admin-confirm-new-password" class="input" placeholder="${isId ? 'Ulangi password baru' : 'Repeat new password'}">
+            <input type="password" id="admin-confirm-new-password" class="input" aria-label="Confirm new password" autocomplete="new-password" placeholder="${isId ? 'Ulangi password baru' : 'Repeat new password'}">
         </div>
 
         <div id="admin-change-error" style="display:none;padding:10px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:8px;font-size:12px;color:#ef4444;margin-bottom:16px"></div>
@@ -11987,7 +11995,7 @@ async function setup2FA() {
         <div style="background:var(--bg-secondary);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-family:'JetBrains Mono',monospace;font-size:13px;word-break:break-all;user-select:all">${secret}</div>
         <p style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">${isId ? 'Masukkan kode 6 digit dari app authenticator:' : 'Enter 6-digit code from authenticator app:'}</p>
         <div style="display:flex;gap:6px;justify-content:center;margin-bottom:16px">
-            <input type="text" id="totp-verify-code" class="input" style="width:160px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:18px;letter-spacing:6px" maxlength="6" placeholder="000000" oninput="this.value=this.value.replace(/\\D/g,'')">
+            <input type="text" id="totp-verify-code" class="input" aria-label="Verification code" style="width:160px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:18px;letter-spacing:6px" maxlength="6" placeholder="000000" oninput="this.value=this.value.replace(/\\D/g,'')">
         </div>
         <div style="display:flex;gap:8px;justify-content:center">
             <button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
@@ -12068,14 +12076,14 @@ async function show2FAChallenge(callback) {
         <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">2FA ${isId ? 'Verifikasi' : 'Verification'}</h3>
         <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${isId ? 'Masukkan kode dari app authenticator' : 'Enter code from authenticator app'}</p>
         <div style="display:flex;gap:6px;justify-content:center;margin-bottom:16px">
-            <input type="text" id="totp-challenge-code" class="input" style="width:160px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:18px;letter-spacing:6px" maxlength="6" placeholder="000000" oninput="this.value=this.value.replace(/\\D/g,'')">
+            <input type="text" id="totp-challenge-code" class="input" aria-label="Verification code" style="width:160px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:18px;letter-spacing:6px" maxlength="6" placeholder="000000" oninput="this.value=this.value.replace(/\\D/g,'')">
         </div>
         <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">
             <button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
             <button class="btn btn-primary" onclick="verify2FAChallenge(${callback.toString()})">${isId ? 'Verifikasi' : 'Verify'}</button>
         </div>
         <div style="margin-top:8px">
-            <a style="font-size:12px;color:var(--accent);cursor:pointer;text-decoration:underline" onclick="showRecoveryCodeLogin(${callback.toString()})">${isId ? 'Gunakan kode pemulihan' : 'Use recovery code'}</a>
+            <button onclick="showRecoveryCodeLogin(${callback.toString()})" class="btn btn-ghost btn-sm" style="color:var(--accent);text-decoration:underline">${isId ? 'Gunakan kode pemulihan' : 'Use recovery code'}</button>
         </div>
     </div>`);
 }
@@ -12287,7 +12295,7 @@ function showRecoveryCodeLogin(callback) {
         <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">${isId ? 'Kode Pemulihan' : 'Recovery Code'}</h3>
         <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${isId ? 'Masukkan salah satu kode pemulihan Anda' : 'Enter one of your recovery codes'}</p>
         <div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px">
-            <input type="text" id="recovery-code-input" class="input" style="width:200px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:16px;letter-spacing:3px" maxlength="9" placeholder="XXXX-XXXX" oninput="formatRecoveryCodeInput(this)">
+            <input type="text" id="recovery-code-input" class="input" aria-label="Recovery code" style="width:200px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:16px;letter-spacing:3px" maxlength="9" placeholder="XXXX-XXXX" oninput="formatRecoveryCodeInput(this)">
         </div>
         <p style="font-size:11px;color:var(--text-secondary);margin-bottom:16px">${isId ? 'Kode hanya bisa digunakan sekali.' : 'Each code can only be used once.'}</p>
         <div style="display:flex;gap:8px;justify-content:center">
@@ -12637,7 +12645,7 @@ function showSupabaseSetupModal() {
             <span style="font-size:11px;color:#f59e0b;line-height:1.4">${isId ? 'Buka Supabase Dashboard → SQL Editor → paste SQL → jalankan' : 'Open Supabase Dashboard → SQL Editor → paste SQL → run'}</span>
         </div>
         <div style="position:relative;margin-bottom:12px">
-            <textarea readonly style="width:100%;height:200px;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--bg-secondary);color:var(--text);resize:vertical;line-height:1.5" id="supabase-sql-content">${SUPABASE_SQL.replace(/</g, '&lt;')}</textarea>
+            <textarea readonly aria-label="Supabase SQL" style="width:100%;height:200px;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--bg-secondary);color:var(--text);resize:vertical;line-height:1.5" id="supabase-sql-content">${SUPABASE_SQL.replace(/</g, '&lt;')}</textarea>
             <button class="btn btn-primary btn-sm" style="position:absolute;top:8px;right:8px" onclick="copySupabaseSQL()"><i class="fas fa-copy"></i> ${isId ? 'Salin SQL' : 'Copy SQL'}</button>
         </div>
         <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -12775,7 +12783,7 @@ function renderAnalytics() {
             <div style="margin-left:auto;display:flex;gap:8px">
                 <button class="btn btn-secondary btn-sm" onclick="exportReport('csv')"><i class="fas fa-file-csv"></i> CSV</button>
                 <button class="btn btn-secondary btn-sm" onclick="exportReport('pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
-                <button class="btn btn-ghost btn-sm" onclick="location.hash='#/dashboard'"><i class="fas fa-arrow-left"></i></button>
+                <button class="btn btn-ghost btn-sm" onclick="location.hash='#/dashboard'" aria-label="Back to dashboard"><i class="fas fa-arrow-left"></i></button>
             </div>
         </div>
 
@@ -13475,7 +13483,7 @@ function openTagManager(fileId) {
         <div style="margin-bottom:16px">
             <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">${isId ? 'TAG KUSTOM' : 'CUSTOM TAGS'}</div>
             <div style="display:flex;gap:8px;margin-bottom:8px">
-                <input type="text" id="custom-tag-name" class="input" placeholder="${isId ? 'Nama tag...' : 'Tag name...'}" style="flex:1">
+                <input type="text" id="custom-tag-name" class="input" aria-label="Tag name" placeholder="${isId ? 'Nama tag...' : 'Tag name...'}" style="flex:1">
                 <input type="color" id="custom-tag-color" value="#3b82f6" style="width:36px;height:36px;border:none;border-radius:8px;cursor:pointer;background:none">
                 <button class="btn btn-primary btn-sm" onclick="addCustomTag()" aria-label="Add tag"><i class="fas fa-plus"></i></button>
             </div>
@@ -14408,40 +14416,40 @@ function openProviderConfigModal(providerId, providerInfo) {
     const s3Fields = isS3Type ? `
         <div style="margin-bottom:12px">
             <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">${isId ? 'Nama Akun' : 'Account Label'}</label>
-            <input id="s3cfg-label" type="text" placeholder="${providerInfo.name}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <input id="s3cfg-label" type="text" aria-label="Connection label" placeholder="${providerInfo.name}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
         </div>
         <div style="margin-bottom:12px">
             <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">Endpoint URL</label>
-            <input id="s3cfg-endpoint" type="url" placeholder="${providerInfo.endpointHint}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <input id="s3cfg-endpoint" type="url" aria-label="Endpoint URL" placeholder="${providerInfo.endpointHint}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
             <div style="font-size:10px;color:var(--text-secondary);margin-top:2px">${isId ? 'Contoh: ' : 'Example: '}<code>${providerInfo.endpointHint}</code></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
             <div>
                 <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">Region</label>
-                <input id="s3cfg-region" type="text" placeholder="${providerInfo.regionDefault}" value="${providerInfo.regionDefault}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                <input id="s3cfg-region" type="text" aria-label="Region" placeholder="${providerInfo.regionDefault}" value="${providerInfo.regionDefault}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
             </div>
             <div>
                 <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">Bucket</label>
-                <input id="s3cfg-bucket" type="text" placeholder="${isId ? 'nama-bucket' : 'bucket-name'}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                <input id="s3cfg-bucket" type="text" aria-label="Bucket name" placeholder="${isId ? 'nama-bucket' : 'bucket-name'}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
             </div>
         </div>
         <div style="margin-bottom:12px">
             <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">Access Key ID</label>
-            <input id="s3cfg-akid" type="text" placeholder="AKIA..." style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <input id="s3cfg-akid" type="text" aria-label="Access Key ID" placeholder="AKIA..." style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
         </div>
         <div style="margin-bottom:12px">
             <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">Secret Access Key</label>
-            <input id="s3cfg-sakey" type="password" placeholder="********" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <input id="s3cfg-sakey" type="password" aria-label="Secret Access Key" placeholder="********" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
         </div>` : '';
 
     const tokenFields = isTokenType ? `
         <div style="margin-bottom:12px">
             <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">${isId ? 'Nama Akun' : 'Account Label'}</label>
-            <input id="tokcfg-label" type="text" placeholder="${providerInfo.name}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <input id="tokcfg-label" type="text" aria-label="Connection label" placeholder="${providerInfo.name}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
         </div>
         <div style="margin-bottom:12px">
             <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">API Access Token</label>
-            <input id="tokcfg-token" type="password" placeholder="eyJ..." style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <input id="tokcfg-token" type="password" aria-label="API Token" placeholder="eyJ..." style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-secondary);color:var(--text);outline:none;font-family:'JetBrains Mono',monospace" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
             <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;line-height:1.5">
                 ${providerId === 'onedrive' ? (isId ? 'Buat token di <a href="https://portal.azure.com/" target="_blank" rel="noopener">Azure Portal</a> → App Registrations → API Permissions (Files.ReadWrite.All)' : 'Create token at <a href="https://portal.azure.com/" target="_blank" rel="noopener">Azure Portal</a> → App Registrations → API Permissions (Files.ReadWrite.All)') : ''}
                 ${providerId === 'dropbox' ? (isId ? 'Buat token di <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">Dropbox App Console</a> → Buat app → Generated Access Token' : 'Create token at <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">Dropbox App Console</a> → Create app → Generated Access Token') : ''}
@@ -14774,7 +14782,7 @@ function renderStorageManagement() {
             <div class="account-actions">
                 <button class="account-action-btn" onclick="syncGDriveAccount('${a.id}')"><i class="fas fa-sync-alt"></i> ${isId ? 'Sinkronkan' : 'Sync'}</button>
                 <button class="account-action-btn" onclick="APP.storageProviders.gdrive.refreshAccount('${a.id}')"><i class="fas fa-redo"></i> ${isId ? 'Segarkan' : 'Refresh'}</button>
-                <button class="account-action-btn danger" onclick="confirmDisconnectGDrive('${a.id}')"><i class="fas fa-unlink"></i> ${isId ? 'Putuskan' : 'Disconnect'}</button>
+                <button class="account-action-btn danger" onclick="confirmDisconnectGDrive('${a.id}')" aria-label="Disconnect"><i class="fas fa-unlink"></i> ${isId ? 'Putuskan' : 'Disconnect'}</button>
             </div>
         </div>`;
     }).join('') : '';
@@ -14940,7 +14948,7 @@ function renderStorageManagement() {
                     <div class="account-actions">
                         <button class="account-action-btn" onclick="APP.storageProviders.onedrive.refreshAccount('${a.id}')"><i class="fas fa-redo"></i> ${isId?'Segarkan':'Refresh'}</button>
                         <button class="account-action-btn" onclick="browseOneDriveFiles('${a.id}')"><i class="fas fa-folder-open"></i> ${isId?'Jelajahi':'Browse'}</button>
-                        <button class="account-action-btn danger" onclick="confirmDisconnectOneDrive('${a.id}')"><i class="fas fa-unlink"></i> ${isId?'Putuskan':'Disconnect'}</button>
+                        <button class="account-action-btn danger" onclick="confirmDisconnectOneDrive('${a.id}')" aria-label="Disconnect"><i class="fas fa-unlink"></i> ${isId?'Putuskan':'Disconnect'}</button>
                     </div>
                 </div>`;
             }).join('') : ''}
@@ -14980,7 +14988,7 @@ function renderStorageManagement() {
                     <div class="account-actions">
                         <button class="account-action-btn" onclick="APP.storageProviders.dropbox.refreshAccount('${a.id}')"><i class="fas fa-redo"></i> ${isId?'Segarkan':'Refresh'}</button>
                         <button class="account-action-btn" onclick="browseDropboxFiles('${a.id}')"><i class="fas fa-folder-open"></i> ${isId?'Jelajahi':'Browse'}</button>
-                        <button class="account-action-btn danger" onclick="confirmDisconnectDropbox('${a.id}')"><i class="fas fa-unlink"></i> ${isId?'Putuskan':'Disconnect'}</button>
+                        <button class="account-action-btn danger" onclick="confirmDisconnectDropbox('${a.id}')" aria-label="Disconnect"><i class="fas fa-unlink"></i> ${isId?'Putuskan':'Disconnect'}</button>
                     </div>
                 </div>`;
             }).join('') : ''}
@@ -15045,7 +15053,7 @@ function renderStorageManagement() {
                             <button onclick="event.stopPropagation();APP.storageProviders['${provider}'].connect('${p.id}')" style="font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;border:1px solid ${isConnected ? 'var(--border)' : p.color};background:${isConnected ? 'transparent' : p.color+'15'};color:${isConnected ? 'var(--text-secondary)' : p.color};cursor:pointer;transition:all .15s" onmouseover="if(!${isConnected})this.style.background='${p.color}';if(!${isConnected})this.style.color='#fff'" onmouseout="if(!${isConnected})this.style.background='${p.color}15';if(!${isConnected})this.style.color='${p.color}'">
                                 <i class="fas ${connIcon}" style="margin-right:3px"></i> ${connLabel}
                             </button>
-                            ${isConnected ? connectedAccounts.map(a => `<button onclick="event.stopPropagation();${p.type === 'onedrive' ? `confirmDisconnectOneDrive('${a.id}')` : p.type === 'dropbox' ? `confirmDisconnectDropbox('${a.id}')` : `confirmDisconnectS3Account('${a.id}')`}" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:#ef4444;cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(239,68,68,.1)'" onmouseout="this.style.background='transparent'"><i class="fas fa-unlink"></i></button>`).join('') : ''}
+                            ${isConnected ? connectedAccounts.map(a => `<button onclick="event.stopPropagation();${p.type === 'onedrive' ? `confirmDisconnectOneDrive('${a.id}')` : p.type === 'dropbox' ? `confirmDisconnectDropbox('${a.id}')` : `confirmDisconnectS3Account('${a.id}')`}" aria-label="Disconnect" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:#ef4444;cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(239,68,68,.1)'" onmouseout="this.style.background='transparent'"><i class="fas fa-unlink"></i></button>`).join('') : ''}
                         </div>
                     </div>`;
                 }).join('')}
@@ -15081,7 +15089,7 @@ function renderStorageManagement() {
                     </div>
                     <div style="display:flex;gap:8px">
                         <button class="account-action-btn" onclick="refreshS3Account('${a.id}')"><i class="fas fa-sync-alt"></i> ${isId ? 'Sinkronkan' : 'Sync'}</button>
-                        <button class="account-action-btn danger" onclick="confirmDisconnectS3Account('${a.id}')"><i class="fas fa-unlink"></i> ${isId ? 'Putuskan' : 'Disconnect'}</button>
+                        <button class="account-action-btn danger" onclick="confirmDisconnectS3Account('${a.id}')" aria-label="Disconnect"><i class="fas fa-unlink"></i> ${isId ? 'Putuskan' : 'Disconnect'}</button>
                     </div>
                 </div>`;
             }).join('')}
@@ -16735,14 +16743,14 @@ function renderCarousel() {
         onmouseenter="pauseCarousel()" onmouseleave="resumeCarousel()"
         ontouchstart="pauseCarousel()" ontouchend="resumeCarousel()">
         <button class="carousel-nav prev" onclick="scrollCarousel(-1)" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
-        <div class="carousel-track" id="carousel-track">${cards}</div>
+        <div class="carousel-track" id="recent-carousel-track">${cards}</div>
         <button class="carousel-nav next" onclick="scrollCarousel(1)" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
-        <div class="carousel-dots" id="carousel-dots">${recentFiles.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" data-idx="${i}"></span>`).join('')}</div>
+        <div class="carousel-dots" id="recent-carousel-dots">${recentFiles.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" data-idx="${i}"></span>`).join('')}</div>
     </div>`;
 }
 
 function scrollCarousel(dir) {
-    const track = document.getElementById('carousel-track');
+    const track = document.getElementById('recent-carousel-track');
     if (!track) return;
     const cardW = 150; // card width + gap
     track.scrollBy({ left: dir * cardW * 2, behavior: 'smooth' });
@@ -16759,7 +16767,7 @@ function resumeCarousel() {
 function startCarouselAutoScroll() {
     if (APP.carouselTimer) clearInterval(APP.carouselTimer);
     APP.carouselTimer = setInterval(() => {
-        const track = document.getElementById('carousel-track');
+        const track = document.getElementById('recent-carousel-track');
         if (!track) { clearInterval(APP.carouselTimer); return; }
         const maxScroll = track.scrollWidth - track.clientWidth;
         if (track.scrollLeft >= maxScroll - 10) {
@@ -16772,8 +16780,8 @@ function startCarouselAutoScroll() {
 }
 
 function updateCarouselDots() {
-    const track = document.getElementById('carousel-track');
-    const dots = document.querySelectorAll('#carousel-dots .carousel-dot');
+    const track = document.getElementById('recent-carousel-track');
+    const dots = document.querySelectorAll('#recent-carousel-dots .carousel-dot');
     if (!track || !dots.length) return;
     const cardW = 150;
     const idx = Math.round(track.scrollLeft / cardW);
@@ -16811,9 +16819,9 @@ function renderDetailTagPicker(fileId) {
     let html = `<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">${t('addTag')}</div><div class="detail-tag-picker">`;
     html += TAG_COLORS.map(c => {
         const isActive = file.tag === c.hex;
-        return `<button class="detail-tag-dot ${isActive ? 'active' : ''}" style="background:${c.hex}" onclick="executeTagDetail('${fileId}','${c.hex}')" title="${c.name}"></button>`;
+        return `<button class="detail-tag-dot ${isActive ? 'active' : ''}" style="background:${c.hex}" onclick="executeTagDetail('${fileId}','${c.hex}')" title="${c.name}" aria-label="Tag"></button>`;
     }).join('');
-    html += `<button class="detail-tag-remove" onclick="executeTagDetail('${fileId}','')" title="${APP.lang==='id'?'Hapus tag':'Remove tag'}"><i class="fas fa-times"></i></button>`;
+    html += `<button class="detail-tag-remove" onclick="executeTagDetail('${fileId}','')" title="${APP.lang==='id'?'Hapus tag':'Remove tag'}" aria-label="Remove tag"><i class="fas fa-times"></i></button>`;
     html += '</div></div>';
     return html;
 }
@@ -17281,7 +17289,7 @@ function handleClipboardImage(blob, fileName) {
             </div>
             <div style="margin-bottom:12px">
                 <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${APP.lang==='id'?'Folder':'Folder'}</label>
-                <select id="screenshot-folder" class="input">
+                <select id="screenshot-folder" class="input" aria-label="Screenshot folder">
                     <option value="">${APP.lang==='id'?'Semua File':'All Files'}</option>
                     ${folderOpts}
                 </select>
@@ -17432,9 +17440,9 @@ function openMediaPlayer(fileId) {
                 '</div>' +
             '</div>' +
             '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px">' +
-                '<button id="' + pid + '-skip-back" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px"><i class="fas fa-backward"></i></button>' +
-                '<button id="' + pid + '-play" style="width:48px;height:48px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(59,130,246,.3)"><i class="fas fa-play"></i></button>' +
-                '<button id="' + pid + '-skip-fwd" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px"><i class="fas fa-forward"></i></button>' +
+                '<button id="' + pid + '-skip-back" aria-label="Skip back" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px"><i class="fas fa-backward"></i></button>' +
+                '<button id="' + pid + '-play" aria-label="Play" style="width:48px;height:48px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(59,130,246,.3)"><i class="fas fa-play"></i></button>' +
+                '<button id="' + pid + '-skip-fwd" aria-label="Skip forward" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px"><i class="fas fa-forward"></i></button>' +
             '</div>' +
             '<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:12px">' +
                 '<i class="fas fa-volume-down" style="color:var(--text-secondary);font-size:13px"></i>' +
@@ -18524,7 +18532,7 @@ function openDuplicateModal(exactGroups, similarGroups) {
                 </div>
             </div>
             ${group.map((f, i) => `<div class="dup-file-row">
-                <input type="checkbox" class="dup-check-${groupIdx}" data-file-id="${f.id}" ${i === 0 ? 'checked' : ''} style="accent-color:var(--accent)">
+                <input type="checkbox" class="dup-check-${groupIdx}" aria-label="Select duplicate file" data-file-id="${f.id}" ${i === 0 ? 'checked' : ''} style="accent-color:var(--accent)">
                 <i class="fas ${icon.icon}" style="color:${icon.color};font-size:11px"></i>
                 <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
                 <span style="font-size:11px;color:var(--text-secondary)">${formatSize(f.size)}</span>
@@ -18760,4 +18768,4 @@ function downloadOCRText(fileId) {
 </body>
 </html>
 
-<!-- v2.1.1-perf-fix -->
+<!-- v2.2-a11y-100 -->
