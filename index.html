@@ -10,6 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="/logo-icon.png" type="image/png">
 <link rel="apple-touch-icon" href="/logo-icon.png">
+<link rel="preload" as="image" href="/logo-icon.png" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
@@ -19,13 +20,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{primary:'#3b82f6','primary-dark':'#2563eb'},fontFamily:{sans:['Space Grotesk','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://js.stripe.com/v3/" defer></script>
 <style>
 :root{--accent:#3b82f6;--accent-hover:#2563eb;--bg:#ffffff;--bg-secondary:#f8fafc;--bg-card:#ffffff;--text:#0f172a;--text-secondary:#64748b;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--shadow-lg:0 10px 40px rgba(0,0,0,.15);--radius:12px;--sidebar-w:260px;--header-h:60px;--transition:all .2s ease}body[dir="rtl"] .sidebar-desktop{right:0;left:auto}body[dir="rtl"] .detail-panel{right:auto;left:0;transform:translateX(-100%)}body[dir="rtl"] .detail-panel.open{transform:translateX(0)}
@@ -45,10 +45,8 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 /* Accessibility: High Contrast */
 @media(prefers-contrast:high){:root{--border:#000;--text-secondary:#333}.dark{--border:#fff;--text-secondary:#ccc}.btn-primary{outline:2px solid #000}.input{border-width:2px}}
-/* Performance: Content visibility for offscreen sections */
-.page-transition>section{content-visibility:auto;contain-intrinsic-size:auto 500px}
-/* Performance: GPU acceleration for animated elements */
-.file-grid-item,.glass-card,.premium-card,.bento-card,.lux-feature,.toast,.modal-content{will-change:transform,opacity}
+/* Performance: GPU hint only for frequently animated items */
+.file-grid-item{will-change:transform,opacity}
 .page-transition{max-width:100vw;overflow-x:hidden}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -353,7 +351,7 @@ body.view-mobile .grid-quick-delete{display:flex!important}
 @keyframes aurora{0%{background-position:0% 50%}25%{background-position:50% 100%}50%{background-position:100% 50%}75%{background-position:50% 0%}100%{background-position:0% 50%}}
 /* Fix: All homepage sections clip decorative elements */
 .page-transition>section{overflow-x:hidden;overflow-y:visible;max-width:100vw}
-.aurora-bg{background:linear-gradient(135deg,#0a0a1a 0%,#0d1033 10%,#1a1145 25%,#2d1b69 40%,#1a1145 55%,#0f1d3d 70%,#0a1628 85%,#0a0a1a 100%);background-size:400% 400%;animation:aurora 12s ease infinite;position:relative;overflow:hidden;max-width:100vw}
+.aurora-bg{background:linear-gradient(135deg,#0a0a1a 0%,#0d1033 10%,#1a1145 25%,#2d1b69 40%,#1a1145 55%,#0f1d3d 70%,#0a1628 85%,#0a0a1a 100%);background-size:400% 400%;animation:aurora 12s ease infinite;position:relative;overflow:hidden;max-width:100vw;transform:translateZ(0);will-change:background-position;contain:layout style paint}
 .aurora-bg::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,.25) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(139,92,246,.3) 0%,transparent 50%),radial-gradient(ellipse at 40% 80%,rgba(236,72,153,.2) 0%,transparent 50%),radial-gradient(ellipse at 70% 60%,rgba(6,182,212,.15) 0%,transparent 50%);animation:aurora 15s ease infinite reverse;pointer-events:none}
 .aurora-bg::after{content:'';position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><pattern id=%22g%22 width=%2220%22 height=%2220%22 patternUnits=%22userSpaceOnUse%22><circle cx=%2210%22 cy=%2210%22 r=%220.5%22 fill=%22rgba(255,255,255,0.08)%22/></pattern></defs><rect fill=%22url(%23g)%22 width=%22100%22 height=%22100%22/></svg>') repeat;pointer-events:none}
 
@@ -5540,7 +5538,7 @@ function renderHomepage() {
                 <div class="sr sr-delay-1 hero-logo-container" style="position:relative;width:200px;height:200px;margin:0 auto 36px;display:flex;align-items:center;justify-content:center">
                     <!-- Centered logo - no absolute positioning needed -->
                     <div class="logo-animated" style="width:120px;height:120px;border-radius:30px;box-shadow:0 8px 60px rgba(37,99,235,.35),0 0 80px rgba(124,58,237,.2);position:relative;z-index:2;overflow:hidden">
-                        <img src="/logo-icon.png" alt="RidgeBox" style="width:100%;height:100%;object-fit:cover;display:block"/>
+                        <img src="/logo-icon.png" alt="RidgeBox" fetchpriority="high" style="width:100%;height:100%;object-fit:cover;display:block"/>
                     </div>
                     <!-- Orbit rings: absolute with inset:0 + margin:auto for centering (compatible with transform) -->
                     <div class="orbit-ring" style="width:160px;height:160px;position:absolute;inset:0;margin:auto"><div class="orbit-dot"></div></div>
@@ -15771,16 +15769,8 @@ async function init() {
             };
         }
 
-        // Init Supabase Auth (wait for deferred script to load)
-        if (window.supabase) {
-            initSupabaseAuth();
-        } else {
-            await new Promise(resolve => {
-                const check = setInterval(() => { if (window.supabase) { clearInterval(check); resolve(); } }, 50);
-                setTimeout(() => { clearInterval(check); resolve(); }, 5000);
-            });
-            initSupabaseAuth();
-        }
+        // Init Supabase Auth
+        initSupabaseAuth();
 
         // If auth not required (no Supabase), proceed normally
         if (!isAuthRequired()) {
@@ -15792,11 +15782,11 @@ async function init() {
         window.addEventListener('online', () => { APP.connected = true; updateConnectionStatus(); showToast(t('connectionOk'), 'success', 2000); });
         window.addEventListener('offline', () => { APP.connected = false; updateConnectionStatus(); showToast(t('connectionOff'), 'warning', 2000); });
 
-        // Auto purge trash
-        await autoPurgeTrash();
+        // Auto purge trash (deferred to reduce main thread blocking)
+        requestIdleCallback ? requestIdleCallback(() => autoPurgeTrash()) : setTimeout(() => autoPurgeTrash(), 1000);
 
-        // Feature 6: Clear old thumbnails
-        await clearOldThumbnails();
+        // Feature 6: Clear old thumbnails (deferred)
+        requestIdleCallback ? requestIdleCallback(() => clearOldThumbnails()) : setTimeout(() => clearOldThumbnails(), 2000);
 
         // Feature 1: Init auto-lock
         initAutoLock();
@@ -15828,8 +15818,8 @@ async function init() {
         // F118: Init enhanced drag & drop
         initEnhancedDragDrop();
 
-        // Feature 4: Check pending uploads
-        await checkPendingUploads();
+        // Feature 4: Check pending uploads (deferred)
+        requestIdleCallback ? requestIdleCallback(() => checkPendingUploads()) : setTimeout(() => checkPendingUploads(), 1500);
 
         // Route (skip if auth is still initializing - it will call checkUrlRouting when ready)
         if (APP.authReady) checkUrlRouting();
@@ -15846,8 +15836,8 @@ async function init() {
                 const reg = await navigator.serviceWorker.register('sw.js');
                 // Force check for updates immediately
                 reg.update();
-                // Check for SW updates every 30 seconds
-                setInterval(() => reg.update(), 30000);
+                // Check for SW updates every 5 minutes
+                setInterval(() => reg.update(), 300000);
                 // When new SW activates, reload to get latest code
                 reg.addEventListener('updatefound', () => {
                     const newWorker = reg.installing;
@@ -18770,4 +18760,4 @@ function downloadOCRText(fileId) {
 </body>
 </html>
 
-<!-- v2.1-perf-a11y -->
+<!-- v2.1.1-perf-fix -->
