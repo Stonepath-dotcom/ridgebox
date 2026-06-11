@@ -5457,7 +5457,7 @@ function renderDashboard() {
                     <option value="size" ${APP.sortBy==='size'?'selected':''}>${t('sortBySize')}</option>
                 </select>
                 ${renderSortPresets()}
-                <button class="toolbar-view-btn" onclick="cycleViewMode()" title="${APP.currentView==='list'?t('gridView'):APP.currentView==='grid'?(APP.lang==='id'?'Kategori':'Categories'):t('listView')}" aria-label="Switch view"><i class="fas fa-${APP.currentView==='list'?'grip':APP.currentView==='grid'?'th-large':'list'}"></i></button>
+                <button class="toolbar-view-btn" onclick="cycleViewMode()" title="${APP.currentView==='list'?t('gridView'):APP.currentView==='grid'?(APP.lang==='id'?'Bento':'Bento'):APP.currentView==='bento'?(APP.lang==='id'?'Timeline':'Timeline'):APP.currentView==='timeline'?(APP.lang==='id'?'Kategori':'Categories'):t('listView')}" aria-label="Switch view"><i class="fas fa-${APP.currentView==='list'?'grip':APP.currentView==='grid'?'table-cells-large':APP.currentView==='bento'?'timeline':APP.currentView==='timeline'?'th-large':'list'}"></i></button>
             </div>
             <!-- Breadcrumb (F74) -->
             <div id="breadcrumb-bar" class="breadcrumb-premium"></div>
@@ -6095,6 +6095,10 @@ async function renderFileList() {
 
     if (APP.currentView === 'categories') {
         container.innerHTML = `${actionBtns}${renderCategoriesView()}`;
+    } else if (APP.currentView === 'bento') {
+        container.innerHTML = `${actionBtns}${renderBentoGrid(files)}`;
+    } else if (APP.currentView === 'timeline') {
+        container.innerHTML = `${actionBtns}${renderTimelineView(files)}`;
     } else if (APP.currentView === 'grid') {
         container.innerHTML = `${actionBtns}<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px">
             ${files.map((f, i) => renderFileGridItem(f, i)).join('')}
@@ -6107,6 +6111,8 @@ async function renderFileList() {
     updateQuickActions();
     initSwipeGestures();
     initLongPressGestures();
+    initQuickPeekListeners();
+    checkBatchAutoDetect();
     loadThumbnailsForVisibleFiles(files);
 }
 
@@ -6567,36 +6573,45 @@ function initSwipeGestures() {
     });
 }
 function initLongPressGestures() {
-    const fileCards = document.querySelectorAll('.file-card-premium, .file-row-premium');
+    const fileCards = document.querySelectorAll('.file-card-premium, .file-row-premium, .bento-card, .timeline-item');
     fileCards.forEach(el => {
         if (el._longPressInit) return;
         el._longPressInit = true;
         let timer = null;
+        let pressX = 0, pressY = 0;
         const longPressDuration = 500;
 
         el.addEventListener('touchstart', (e) => {
-            // Don't trigger long-press on delete/restore buttons
-            if (e.target.closest('.mobile-delete-btn, .mobile-restore-btn, .grid-quick-delete')) return;
+            if (e.target.closest('.mobile-delete-btn, .mobile-restore-btn, .grid-quick-delete, button, a')) return;
+            pressX = e.touches[0].clientX;
+            pressY = e.touches[0].clientY;
             timer = setTimeout(() => {
                 if (navigator.vibrate) navigator.vibrate(30); haptic('tap');
                 const fileId = el.getAttribute('onclick')?.match(/'([^']+)'/)?.[1]
-                    || el.closest('[data-file-id]')?.getAttribute('data-file-id');
+                    || el.closest('[data-file-id]')?.getAttribute('data-file-id')
+                    || el.getAttribute('data-file-id');
                 if (fileId) {
-                    const rect = el.getBoundingClientRect();
-                    const fakeEvent = {
-                        preventDefault: () => {},
-                        stopPropagation: () => {},
-                        clientX: rect.left + rect.width / 2,
-                        clientY: rect.top + rect.height / 2
-                    };
-                    showContextMenu(fakeEvent, fileId);
+                    // Quick Peek: show floating preview card instead of context menu on quick hold
+                    showQuickPeek(fileId, pressX, pressY);
+                    // After 1.5s more, switch to context menu
+                    el._peekToContext = setTimeout(() => {
+                        hideQuickPeek();
+                        const rect = el.getBoundingClientRect();
+                        const fakeEvent = {
+                            preventDefault: () => {},
+                            stopPropagation: () => {},
+                            clientX: rect.left + rect.width / 2,
+                            clientY: rect.top + rect.height / 2
+                        };
+                        showContextMenu(fakeEvent, fileId);
+                    }, 1500);
                 }
             }, longPressDuration);
         }, { passive: true });
 
-        el.addEventListener('touchmove', () => { clearTimeout(timer); }, { passive: true });
-        el.addEventListener('touchend', () => { clearTimeout(timer); }, { passive: true });
-        el.addEventListener('touchcancel', () => { clearTimeout(timer); }, { passive: true });
+        el.addEventListener('touchmove', () => { clearTimeout(timer); clearTimeout(el._peekToContext); hideQuickPeek(); }, { passive: true });
+        el.addEventListener('touchend', () => { clearTimeout(timer); clearTimeout(el._peekToContext); hideQuickPeek(); }, { passive: true });
+        el.addEventListener('touchcancel', () => { clearTimeout(timer); clearTimeout(el._peekToContext); hideQuickPeek(); }, { passive: true });
     });
 }
 
@@ -6653,6 +6668,11 @@ async function restoreAllTrash() {
 
 // ===== EMPTY STATES (F97) =====
 function renderEmptyState() {
+    // Try the new interactive empty state first
+    if (typeof renderInteractiveEmptyState === 'function') {
+        return renderInteractiveEmptyState(APP.currentFolder);
+    }
+    // Fallback to original
     const folder = APP.folders.find(f => f.id === APP.currentFolder);
     let svg, title, desc;
     if (APP.searchQuery) {
@@ -15106,10 +15126,11 @@ function renderSortPresets() {
 
 // ===== VIEW MODE CYCLING =====
 function cycleViewMode() {
-    const views = ['list', 'grid', 'categories'];
+    const views = ['list', 'grid', 'bento', 'timeline', 'categories'];
     const idx = views.indexOf(APP.currentView);
     APP.currentView = views[(idx + 1) % views.length];
     renderFileList();
+    showToast(APP.currentView.charAt(0).toUpperCase() + APP.currentView.slice(1) + ' View', 'info', 1500);
 }
 
 // ===== PULL-TO-REFRESH (F21 Enhanced) =====
@@ -15643,10 +15664,14 @@ function getCommandPaletteItems() {
         // Actions
         { id: 'upload', icon: 'fa-cloud-arrow-up', label: isId ? 'Unggah File' : 'Upload File', category: isId ? 'Aksi' : 'Actions', shortcut: cs.upload || 'Ctrl+N', action: () => triggerUpload() },
         { id: 'new-folder', icon: 'fa-folder-plus', label: isId ? 'Buat Folder' : 'Create Folder', category: isId ? 'Aksi' : 'Actions', shortcut: cs.newFolder || 'F', action: () => createFolderDialog() },
-        { id: 'toggle-view', icon: 'fa-grip', label: isId ? 'Ganti Tampilan' : 'Toggle View', category: isId ? 'Aksi' : 'Actions', shortcut: cs.toggleView || 'V', action: () => { const views = ['list','grid','categories']; const idx = views.indexOf(APP.currentView); APP.currentView = views[(idx + 1) % views.length]; renderFileList(); } },
+        { id: 'toggle-view', icon: 'fa-grip', label: isId ? 'Ganti Tampilan' : 'Toggle View', category: isId ? 'Aksi' : 'Actions', shortcut: cs.toggleView || 'V', action: () => { const views = ['list','grid','bento','timeline','categories']; const idx = views.indexOf(APP.currentView); APP.currentView = views[(idx + 1) % views.length]; renderFileList(); } },
+        { id: 'view-bento', icon: 'fa-table-cells-large', label: isId ? 'Tampilan Bento' : 'Bento View', category: isId ? 'Aksi' : 'Actions', shortcut: 'B', action: () => { APP.currentView = 'bento'; renderFileList(); } },
+        { id: 'view-timeline', icon: 'fa-timeline', label: isId ? 'Tampilan Timeline' : 'Timeline View', category: isId ? 'Aksi' : 'Actions', shortcut: 'T', action: () => { APP.currentView = 'timeline'; renderFileList(); } },
         { id: 'toggle-theme', icon: 'fa-moon', label: isId ? 'Ganti Tema' : 'Toggle Theme', category: isId ? 'Aksi' : 'Actions', shortcut: cs.toggleTheme || 'D', action: () => toggleTheme() },
+        { id: 'warm-dark', icon: 'fa-temperature-half', label: isId ? 'Mode Gelap Hangat' : 'Warm Dark Mode', category: isId ? 'Aksi' : 'Actions', shortcut: 'W', action: () => toggleWarmDark(!document.documentElement.classList.contains('warm-dark')) },
         { id: 'search-files', icon: 'fa-search', label: isId ? 'Cari File' : 'Search Files', category: isId ? 'Aksi' : 'Actions', shortcut: cs.search || '/', action: () => { const s = document.querySelector('.search-premium input'); if (s) s.focus(); } },
         { id: 'new-note', icon: 'fa-sticky-note', label: isId ? 'Catatan Baru' : 'New Note', category: isId ? 'Aksi' : 'Actions', shortcut: '', action: () => { createFolderDialog(); } },
+        { id: 'split-view', icon: 'fa-columns', label: isId ? 'Tampilan Split' : 'Split View', category: isId ? 'Aksi' : 'Actions', shortcut: '\\', action: () => initSplitView() },
         // Navigation
         { id: 'nav-dashboard', icon: 'fa-gauge-high', label: isId ? 'Ke Dashboard' : 'Go to Dashboard', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'G D', action: () => { if (typeof selectFolder === 'function') selectFolder('all'); } },
         { id: 'nav-storage', icon: 'fa-hard-drive', label: isId ? 'Ke Penyimpanan' : 'Go to Storage', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'G A', action: () => { if (typeof selectFolder === 'function') selectFolder('all'); } },
@@ -15654,6 +15679,8 @@ function getCommandPaletteItems() {
         { id: 'nav-settings', icon: 'fa-gear', label: isId ? 'Ke Pengaturan' : 'Go to Settings', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'Ctrl+/', action: () => openSettings() },
         { id: 'nav-trash', icon: 'fa-trash-alt', label: isId ? 'Ke Sampah' : 'Go to Trash', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'G T', action: () => { if (typeof selectFolder === 'function') selectFolder('trash'); } },
         { id: 'nav-recent', icon: 'fa-clock', label: isId ? 'Ke Terbaru' : 'Go to Recent', category: isId ? 'Navigasi' : 'Navigation', shortcut: '', action: () => { if (typeof selectFolder === 'function') selectFolder('recent'); } },
+        { id: 'nav-vault', icon: 'fa-vault', label: isId ? 'Ke Brankas' : 'Go to Vault', category: isId ? 'Navigasi' : 'Navigation', shortcut: '', action: () => openVaultModal() },
+        { id: 'nav-favorites', icon: 'fa-star', label: isId ? 'Ke Favorit' : 'Go to Favorites', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'G F', action: () => { if (typeof selectFolder === 'function') selectFolder('favorites'); } },
         // Settings
         { id: 'set-language', icon: 'fa-language', label: isId ? 'Ganti Bahasa' : 'Change Language', category: isId ? 'Pengaturan' : 'Settings', shortcut: '', action: () => openSettings() },
         { id: 'set-theme', icon: 'fa-palette', label: isId ? 'Ganti Tema' : 'Change Theme', category: isId ? 'Pengaturan' : 'Settings', shortcut: '', action: () => openSettings() },
@@ -18071,6 +18098,7 @@ function toggleFAB() {
 }
 function renderFAB() {
     const isId = APP.lang === 'id';
+    const ctx = getContextFABConfig();
     return `<div id="quick-fab-wrap" style="position:fixed;bottom:${APP.viewMode==='mobile'?'80px':'24px'};right:24px;z-index:40">
         <div id="quick-fab-menu" style="display:none;flex-direction:column;gap:8px;margin-bottom:12px;align-items:flex-end">
             <div class="fab-item" onclick="triggerUpload();toggleFAB()"><span class="fab-label">${isId?'Unggah':'Upload'}</span><div class="fab-icon" style="background:#3b82f6"><i class="fas fa-cloud-arrow-up"></i></div></div>
@@ -18081,7 +18109,9 @@ function renderFAB() {
             <div class="fab-item" onclick="openFileDropLinkModal();toggleFAB()"><span class="fab-label">${isId?'Link Upload':'Drop Link'}</span><div class="fab-icon" style="background:#06b6d4"><i class="fas fa-cloud-arrow-up"></i></div></div>
             <div class="fab-item" onclick="openVaultModal();toggleFAB()"><span class="fab-label">${isId?'Brankas':'Vault'}</span><div class="fab-icon" style="background:#64748b"><i class="fas fa-vault"></i></div></div>
         </div>
-        <button id="quick-fab-btn" class="fab-main" onclick="toggleFAB()" aria-label="Quick actions"><i class="fas fa-plus"></i></button>
+        <button id="quick-fab-btn" class="fab-main fab-context-${ctx.context}" onclick="toggleFAB()" aria-label="${ctx.label}" title="${ctx.label}">
+            <i class="fas ${ctx.icon}"></i>
+        </button>
     </div>`;
 }
 
@@ -18627,11 +18657,1424 @@ function initNewFeatures() {
     };
 }
 
+// ===== UI/UX OVERHAUL: 20 NEW FEATURES =====
+
+// 1. BENTO GRID LAYOUT
+function renderBentoGrid(files) {
+    if (!files || files.length === 0) return '<div class="bento-empty">' + (APP.lang === 'id' ? 'Tidak ada file' : 'No files') + '</div>';
+    let html = '<div class="bento-grid">';
+    files.forEach((file, i) => {
+        const type = getFileType(file.name, file.mime);
+        const icon = getFileIcon(type);
+        const isLarge = (type === 'image' || type === 'video');
+        const selected = APP.selectedFiles.has(file.id);
+        const ext = (file.name || '').split('.').pop().toUpperCase();
+        const downloadUrl = '/api/download?path=' + encodeURIComponent(file.filePath) + '&bot_index=' + file.botIndex;
+        const isId = APP.lang === 'id';
+
+        let previewArea = '';
+        if (type === 'image') {
+            const thumbSrc = file.thumbUrl || '';
+            previewArea = '<div class="bento-card-preview" data-lazy-thumb="' + (thumbSrc || downloadUrl) + '" data-file-id="' + file.id + '">' +
+                '<img src="" alt="' + file.name + '" class="file-thumb-placeholder-img" style="width:100%;height:100%;object-fit:cover;border-radius:14px 14px 0 0;opacity:0;transition:opacity .3s ease" onload="this.style.opacity=1" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+                '<div class="preview-icon-area" style="display:none;position:absolute;inset:0"><div class="icon-glow" style="background:' + icon.color + '"></div><i class="fas ' + icon.icon + '" style="font-size:36px;color:' + icon.color + '"></i></div>' +
+                '<div class="gradient-overlay"></div><span class="grid-type-badge">' + ext + '</span></div>';
+        } else if (type === 'video') {
+            const thumbSrc = file.thumbnailUrl || file.thumbUrl || '';
+            previewArea = '<div class="bento-card-preview" style="background:linear-gradient(135deg,' + icon.color + '18,' + icon.color + '08)">' +
+                (thumbSrc ? '<img src="' + thumbSrc + '" alt="' + file.name + '" style="width:100%;height:100%;object-fit:cover;border-radius:14px 14px 0 0;opacity:.8">' : '<div class="preview-icon-area"><div class="icon-glow" style="background:' + icon.color + '"></div><i class="fas ' + icon.icon + '" style="font-size:36px;color:' + icon.color + '"></i></div>') +
+                '<div class="grid-play-overlay"><div class="play-btn"><i class="fas fa-play" style="margin-left:2px"></i></div></div><span class="grid-type-badge">' + ext + '</span></div>';
+        } else {
+            previewArea = '<div class="bento-card-preview" style="background:linear-gradient(135deg,' + icon.color + '12,' + icon.color + '05)">' +
+                '<div class="preview-icon-area"><div class="icon-glow" style="background:' + icon.color + '"></div><i class="fas ' + icon.icon + '" style="font-size:32px;color:' + icon.color + '"></i></div>' +
+                '<span class="grid-type-badge">' + ext + '</span></div>';
+        }
+
+        let statusIcons = '';
+        if (file.starred) statusIcons += '<span class="si starred"><i class="fas fa-star"></i></span>';
+        if (file.pinned) statusIcons += '<span class="si pinned"><i class="fas fa-thumbtack"></i></span>';
+        if (file.encrypted) statusIcons += '<span class="si encrypted"><i class="fas fa-lock"></i></span>';
+
+        html += '<div class="bento-item ' + (isLarge ? 'bento-item-large' : '') + ' file-card-premium ' + (selected ? 'selected' : '') + '" ' +
+            'onclick="handleFileClick(event, \'' + file.id + '\', ' + i + ')" ' +
+            'oncontextmenu="showContextMenu(event, \'' + file.id + '\')" ' +
+            'draggable="true" ondragstart="handleDragStart(event, \'' + file.id + '\')" ' +
+            'data-file-id="' + file.id + '">' +
+            (selected ? '<div class="grid-select-check"><i class="fas fa-check"></i></div>' : '') +
+            previewArea +
+            (file.tag ? '<div class="grid-tag-strip" style="background:' + file.tag + '"></div>' : '') +
+            '<div class="grid-card-info">' +
+                '<div class="grid-name" title="' + file.name + '">' + file.name + '</div>' +
+                '<div class="grid-meta">' +
+                    (statusIcons ? '<span class="grid-status-icons" style="gap:3px">' + statusIcons + '</span>' : '') +
+                    '<span>' + formatSize(file.size) + ' · ' + formatDate(file.uploadedAt) + '</span>' +
+                '</div>' +
+            '</div></div>';
+    });
+    html += '</div>';
+    return html;
+}
+
+// 2. GLASSMORPHISM — apply glass effect to panels
+function applyGlassEffect(element) {
+    if (!element) return;
+    element.classList.add('glass-panel');
+    // Inject glass styles if not already present
+    if (!document.getElementById('glass-panel-styles')) {
+        const style = document.createElement('style');
+        style.id = 'glass-panel-styles';
+        style.textContent = [
+            '.glass-panel {',
+            '  background: rgba(255,255,255,0.12) !important;',
+            '  backdrop-filter: blur(18px) saturate(180%) !important;',
+            '  -webkit-backdrop-filter: blur(18px) saturate(180%) !important;',
+            '  border: 1px solid rgba(255,255,255,0.18) !important;',
+            '  box-shadow: 0 8px 32px rgba(0,0,0,0.12) !important;',
+            '  border-radius: 16px !important;',
+            '}',
+            'html.warm-dark .glass-panel, html.dark .glass-panel {',
+            '  background: rgba(30,27,24,0.55) !important;',
+            '  border: 1px solid rgba(255,255,255,0.08) !important;',
+            '}',
+            'html.warm-dark .glass-panel {',
+            '  background: rgba(40,32,24,0.6) !important;',
+            '  border: 1px solid rgba(210,180,140,0.12) !important;',
+            '}'
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+}
+
+// 3. CONTEXT-AWARE FAB
+function getContextFABConfig() {
+    const folder = APP.currentFolder;
+    const isId = APP.lang === 'id';
+    const configs = {
+        all:       { icon: 'fa-plus',       label: isId ? 'Upload' : 'Upload',       color: '#3b82f6', action: 'upload' },
+        recent:    { icon: 'fa-clock',      label: isId ? 'Filter' : 'Filter',        color: '#8b5cf6', action: 'filter' },
+        favorites: { icon: 'fa-star',       label: isId ? 'Favorit' : 'Favorites',    color: '#f59e0b', action: 'filter-fav' },
+        shared:    { icon: 'fa-share-alt',  label: isId ? 'Bagikan' : 'Share',        color: '#10b981', action: 'share' },
+        encrypted: { icon: 'fa-lock',       label: isId ? 'Enkripsi' : 'Encrypt',     color: '#ef4444', action: 'encrypt' },
+        trash:     { icon: 'fa-trash-alt',  label: isId ? 'Kosongkan' : 'Empty',      color: '#ef4444', action: 'empty-trash' }
+    };
+    if (configs[folder]) return configs[folder];
+    // Check if it's a custom folder — look at folder name for context
+    const folderObj = APP.folders.find(f => f.id === folder);
+    if (folderObj) {
+        const name = (folderObj.name || '').toLowerCase();
+        if (name.includes('photo') || name.includes('foto')) return { icon: 'fa-camera', label: isId ? 'Foto' : 'Photo', color: '#10b981', action: 'upload-image' };
+        if (name.includes('document') || name.includes('dokumen') || name.includes('doc')) return { icon: 'fa-file-alt', label: isId ? 'Scan' : 'Scan', color: '#3b82f6', action: 'upload-doc' };
+        if (name.includes('music') || name.includes('musik') || name.includes('audio')) return { icon: 'fa-music', label: isId ? 'Rekam' : 'Record', color: '#f59e0b', action: 'upload-audio' };
+        if (name.includes('video') || name.includes('film')) return { icon: 'fa-video', label: isId ? 'Rekam' : 'Record', color: '#8b5cf6', action: 'upload-video' };
+    }
+    return configs.all;
+}
+
+// 4. MAGNETIC SNAP SIDEBAR
+function initMagneticSidebar() {
+    const sidebar = document.getElementById('sidebar-panel') || document.querySelector('.sidebar');
+    if (!sidebar || sidebar._magneticInit) return;
+    sidebar._magneticInit = true;
+
+    let isDragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
+    const handle = document.createElement('div');
+    handle.className = 'magnetic-sidebar-handle';
+    handle.innerHTML = '<i class="fas fa-grip-lines-vertical"></i>';
+    handle.setAttribute('aria-label', 'Drag sidebar');
+    Object.assign(handle.style, {
+        position: 'absolute', top: '50%', right: '-16px', transform: 'translateY(-50%)',
+        width: '14px', height: '48px', background: 'var(--primary, #3b82f6)', borderRadius: '0 8px 8px 0',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'grab',
+        zIndex: '1001', opacity: '0.6', transition: 'opacity .2s', fontSize: '8px', color: '#fff'
+    });
+    handle.addEventListener('mouseenter', () => handle.style.opacity = '1');
+    handle.addEventListener('mouseleave', () => handle.style.opacity = '0.6');
+    sidebar.style.position = 'relative';
+    sidebar.appendChild(handle);
+
+    // Inject magnetic sidebar styles
+    if (!document.getElementById('magnetic-sidebar-styles')) {
+        const style = document.createElement('style');
+        style.id = 'magnetic-sidebar-styles';
+        style.textContent = '.magnetic-sidebar-handle:active { cursor: grabbing; }';
+        document.head.appendChild(style);
+    }
+
+    function snapTo(pos) {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const sw = sidebar.offsetWidth;
+        const sh = sidebar.offsetHeight;
+        const SNAP_DIST = 20;
+        const positions = {
+            left:   { left: 0, top: '50%', transform: 'translateY(-50%)', width: sw + 'px', height: 'auto', bottom: '' },
+            right:  { left: (vw - sw) + 'px', top: '50%', transform: 'translateY(-50%)', width: sw + 'px', height: 'auto', bottom: '' },
+            bottom: { left: '50%', top: '', transform: 'translateX(-50%)', width: '90%', height: Math.min(sh, 220) + 'px', bottom: '0' }
+        };
+        let closest = 'left', minDist = Infinity;
+        for (const [key, val] of Object.entries(positions)) {
+            const cx = (key === 'left') ? 0 : (key === 'right') ? vw : vw / 2;
+            const cy = (key === 'bottom') ? vh : vh / 2;
+            const dist = Math.sqrt(Math.pow(pos.x - cx, 2) + Math.pow(pos.y - cy, 2));
+            if (dist < minDist) { minDist = dist; closest = key; }
+        }
+        sidebar.style.transition = 'all .35s cubic-bezier(.4,0,.2,1)';
+        const p = positions[closest];
+        sidebar.style.left = p.left; sidebar.style.top = p.top; sidebar.style.transform = p.transform;
+        sidebar.style.width = p.width; sidebar.style.height = p.height;
+        if (p.bottom) sidebar.style.bottom = p.bottom; else sidebar.style.bottom = '';
+        sidebar.dataset.snapPos = closest;
+        haptic('toggle');
+        setTimeout(() => sidebar.style.transition = '', 400);
+    }
+
+    function onPointerDown(e) {
+        isDragging = true;
+        startX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+        startY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+        const rect = sidebar.getBoundingClientRect();
+        origLeft = rect.left; origTop = rect.top;
+        sidebar.style.transition = 'none';
+        sidebar.style.position = 'fixed';
+        sidebar.style.left = origLeft + 'px'; sidebar.style.top = origTop + 'px';
+        sidebar.style.zIndex = '9999';
+        handle.style.cursor = 'grabbing';
+        e.preventDefault();
+    }
+    function onPointerMove(e) {
+        if (!isDragging) return;
+        const cx = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+        const cy = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+        const dx = cx - startX, dy = cy - startY;
+        sidebar.style.left = (origLeft + dx) + 'px';
+        sidebar.style.top = (origTop + dy) + 'px';
+        sidebar.style.transform = 'none';
+    }
+    function onPointerUp(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        handle.style.cursor = 'grab';
+        const cx = e.clientX || (e.changedTouches && e.changedTouches[0].clientX) || 0;
+        const cy = e.clientY || (e.changedTouches && e.changedTouches[0].clientY) || 0;
+        snapTo({ x: cx, y: cy });
+    }
+
+    handle.addEventListener('mousedown', onPointerDown);
+    handle.addEventListener('touchstart', onPointerDown, { passive: false });
+    document.addEventListener('mousemove', onPointerMove);
+    document.addEventListener('touchmove', onPointerMove, { passive: true });
+    document.addEventListener('mouseup', onPointerUp);
+    document.addEventListener('touchend', onPointerUp);
+}
+
+// 5. FLUID PAGE TRANSITIONS
+function navigateWithTransition(fromEl, toEl, callback) {
+    if (!fromEl || !toEl) { if (callback) callback(); return; }
+
+    // Use View Transition API if available
+    if (document.startViewTransition) {
+        document.startViewTransition(() => {
+            fromEl.style.display = 'none';
+            toEl.style.display = '';
+            if (callback) callback();
+        });
+        return;
+    }
+
+    // Fallback: CSS keyframe animation
+    if (!document.getElementById('page-transition-styles')) {
+        const style = document.createElement('style');
+        style.id = 'page-transition-styles';
+        style.textContent = [
+            '@keyframes pageSlideOut { from { opacity:1; transform:translateX(0) } to { opacity:0; transform:translateX(-30px) } }',
+            '@keyframes pageSlideIn { from { opacity:0; transform:translateX(30px) } to { opacity:1; transform:translateX(0) } }'
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+
+    fromEl.style.animation = 'pageSlideOut .25s ease forwards';
+    fromEl.addEventListener('animationend', function onOut() {
+        fromEl.removeEventListener('animationend', onOut);
+        fromEl.style.display = 'none';
+        fromEl.style.animation = '';
+        toEl.style.display = '';
+        toEl.style.animation = 'pageSlideIn .25s ease forwards';
+        toEl.addEventListener('animationend', function onIn() {
+            toEl.removeEventListener('animationend', onIn);
+            toEl.style.animation = '';
+            if (callback) callback();
+        });
+    });
+}
+
+// 6. SMART SEARCH BAR
+function initSmartSearch() {
+    const searchInput = document.getElementById('search-input') || document.querySelector('input[type="search"], .search-input');
+    if (!searchInput || searchInput._smartInit) return;
+    searchInput._smartInit = true;
+
+    let dropdown = document.getElementById('smart-search-dropdown');
+    if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.id = 'smart-search-dropdown';
+        Object.assign(dropdown.style, {
+            position: 'absolute', zIndex: '9000', background: 'var(--bg,#fff)', border: '1px solid var(--border,#e5e7eb)',
+            borderRadius: '12px', boxShadow: '0 12px 40px rgba(0,0,0,.15)', maxHeight: '320px', overflowY: 'auto',
+            display: 'none', minWidth: '260px', padding: '8px 0'
+        });
+        document.body.appendChild(dropdown);
+    }
+
+    // Inject dropdown item styles
+    if (!document.getElementById('smart-search-styles')) {
+        const style = document.createElement('style');
+        style.id = 'smart-search-styles';
+        style.textContent = [
+            '#smart-search-dropdown .ss-item { padding:10px 16px; cursor:pointer; display:flex; align-items:center; gap:10px; transition:background .15s }',
+            '#smart-search-dropdown .ss-item:hover { background:var(--hover,rgba(59,130,246,.08)) }',
+            '#smart-search-dropdown .ss-category { font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted,#94a3b8); padding:6px 16px 2px; font-weight:600 }',
+            '#smart-search-dropdown .ss-icon { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px }',
+            '#smart-search-dropdown .ss-label { font-size:13px; color:var(--fg,#1e293b) }',
+            '#smart-search-dropdown .ss-hint { font-size:11px; color:var(--muted,#94a3b8); margin-left:auto }'
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+
+    function positionDropdown() {
+        const rect = searchInput.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 6) + 'px';
+        dropdown.style.left = rect.left + 'px';
+        dropdown.style.width = Math.max(rect.width, 260) + 'px';
+    }
+
+    function renderSuggestions(query) {
+        const isId = APP.lang === 'id';
+        let html = '';
+
+        // Recent searches
+        const recent = JSON.parse(localStorage.getItem('rb_recent_searches') || '[]');
+        if (!query && recent.length > 0) {
+            html += '<div class="ss-category">' + (isId ? 'Terakhir Dicari' : 'Recent Searches') + '</div>';
+            recent.slice(0, 5).forEach(q => {
+                html += '<div class="ss-item" data-ss-query="' + q.replace(/"/g, '&quot;') + '">' +
+                    '<div class="ss-icon" style="background:rgba(148,163,184,.1);color:#94a3b8"><i class="fas fa-clock"></i></div>' +
+                    '<span class="ss-label">' + q + '</span></div>';
+            });
+        }
+
+        // Suggested filters
+        const filters = [
+            { icon: 'fa-image', color: '#10b981', label: isId ? 'Gambar' : 'Images', type: 'image' },
+            { icon: 'fa-film', color: '#8b5cf6', label: isId ? 'Video' : 'Videos', type: 'video' },
+            { icon: 'fa-music', color: '#f59e0b', label: isId ? 'Audio' : 'Audio', type: 'audio' },
+            { icon: 'fa-file-pdf', color: '#ef4444', label: 'PDF', type: 'pdf' },
+            { icon: 'fa-file-code', color: '#06b6d4', label: isId ? 'Kode' : 'Code', type: 'code' }
+        ];
+        const q = (query || '').toLowerCase();
+        const matchedFilters = filters.filter(f => !q || f.label.toLowerCase().includes(q) || f.type.includes(q));
+        if (matchedFilters.length > 0) {
+            html += '<div class="ss-category">' + (isId ? 'Filter Cepat' : 'Quick Filters') + '</div>';
+            matchedFilters.forEach(f => {
+                html += '<div class="ss-item" data-ss-filter="' + f.type + '">' +
+                    '<div class="ss-icon" style="background:' + f.color + '15;color:' + f.color + '"><i class="fas ' + f.icon + '"></i></div>' +
+                    '<span class="ss-label">' + f.label + '</span>' +
+                    '<span class="ss-hint">' + (APP.files.filter(fl => getFileType(fl.name, fl.mime) === f.type).length) + '</span></div>';
+            });
+        }
+
+        // Matching files (top 5)
+        if (q) {
+            const matches = APP.files.filter(f => !f.trashed && f.name.toLowerCase().includes(q)).slice(0, 5);
+            if (matches.length > 0) {
+                html += '<div class="ss-category">' + (isId ? 'File' : 'Files') + '</div>';
+                matches.forEach(f => {
+                    const type = getFileType(f.name, f.mime);
+                    const icon = getFileIcon(type);
+                    html += '<div class="ss-item" data-ss-file="' + f.id + '">' +
+                        '<div class="ss-icon" style="background:' + icon.color + '15;color:' + icon.color + '"><i class="fas ' + icon.icon + '"></i></div>' +
+                        '<span class="ss-label">' + f.name + '</span>' +
+                        '<span class="ss-hint">' + formatSize(f.size) + '</span></div>';
+                });
+            }
+        }
+
+        if (!html) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        dropdown.innerHTML = html;
+        dropdown.style.display = 'block';
+        positionDropdown();
+
+        // Click handler for dropdown items
+        dropdown.querySelectorAll('.ss-item').forEach(item => {
+            item.onclick = () => {
+                if (item.dataset.ssQuery) {
+                    searchInput.value = item.dataset.ssQuery;
+                    searchInput.dispatchEvent(new Event('input'));
+                } else if (item.dataset.ssFilter) {
+                    APP.filterType = item.dataset.ssFilter;
+                    if (typeof renderFileList === 'function') renderFileList();
+                } else if (item.dataset.ssFile) {
+                    if (typeof showFileDetail === 'function') showFileDetail(item.dataset.ssFile);
+                }
+                dropdown.style.display = 'none';
+            };
+        });
+    }
+
+    searchInput.addEventListener('focus', () => { renderSuggestions(searchInput.value); });
+    searchInput.addEventListener('input', () => {
+        // Save to recent searches
+        const val = searchInput.value.trim();
+        if (val.length >= 2) {
+            let recent = JSON.parse(localStorage.getItem('rb_recent_searches') || '[]');
+            recent = recent.filter(r => r !== val);
+            recent.unshift(val);
+            if (recent.length > 10) recent = recent.slice(0, 10);
+            localStorage.setItem('rb_recent_searches', JSON.stringify(recent));
+        }
+        renderSuggestions(val);
+    });
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && e.target !== searchInput) {
+            dropdown.style.display = 'none';
+        }
+    });
+}
+
+// 7. DRAG-TO-SORT with haptic (enhanced)
+function initDragSortEnhanced() {
+    if (!document.getElementById('drag-sort-enhanced-styles')) {
+        const style = document.createElement('style');
+        style.id = 'drag-sort-enhanced-styles';
+        style.textContent = [
+            '.drag-sort-lift { transform:scale(1.04) rotate(1deg) !important; box-shadow:0 20px 60px rgba(0,0,0,.25) !important; z-index:999 !important; transition:transform .2s ease, box-shadow .2s ease !important; }',
+            '.drag-sort-ghost { opacity:0.3 !important; }',
+            '.drag-sort-gap { border:2px dashed var(--primary,#3b82f6) !important; border-radius:14px; background:rgba(59,130,246,.05) !important; }'
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+
+    document.addEventListener('dragstart', (e) => {
+        const card = e.target.closest('.file-card-premium, .swipe-row-wrapper');
+        if (!card) return;
+        APP._dragSortSource = card;
+        requestAnimationFrame(() => {
+            card.classList.add('drag-sort-lift');
+            // Add ghost to all other cards
+            document.querySelectorAll('.file-card-premium, .swipe-row-wrapper').forEach(c => {
+                if (c !== card) c.style.transition = 'transform .2s ease, opacity .2s ease';
+            });
+        });
+    });
+
+    document.addEventListener('dragend', () => {
+        const card = APP._dragSortSource;
+        if (!card) return;
+        card.classList.remove('drag-sort-lift');
+        document.querySelectorAll('.drag-sort-ghost, .drag-sort-gap').forEach(c => {
+            c.classList.remove('drag-sort-ghost', 'drag-sort-gap');
+        });
+        document.querySelectorAll('.file-card-premium, .swipe-row-wrapper').forEach(c => {
+            c.style.transition = '';
+        });
+        APP._dragSortSource = null;
+    });
+
+    document.addEventListener('dragover', (e) => {
+        const target = e.target.closest('.file-card-premium, .swipe-row-wrapper');
+        if (!target || target === APP._dragSortSource) return;
+        // Remove ghost from others
+        document.querySelectorAll('.drag-sort-ghost').forEach(c => c.classList.remove('drag-sort-ghost'));
+        target.classList.add('drag-sort-ghost');
+    });
+
+    document.addEventListener('drop', () => {
+        haptic('toggle');
+    });
+}
+
+// 8. QUICK PEEK (Long Press Preview)
+let _quickPeekTimer = null;
+let _quickPeekEl = null;
+
+function showQuickPeek(fileId, x, y) {
+    const file = APP.files.find(f => f.id === fileId);
+    if (!file) return;
+
+    hideQuickPeek();
+
+    const type = getFileType(file.name, file.mime);
+    const icon = getFileIcon(type);
+    const isId = APP.lang === 'id';
+
+    _quickPeekEl = document.createElement('div');
+    _quickPeekEl.className = 'quick-peek-card';
+    Object.assign(_quickPeekEl.style, {
+        position: 'fixed', zIndex: '10000', pointerEvents: 'none',
+        background: 'var(--bg,#fff)', borderRadius: '16px', boxShadow: '0 16px 48px rgba(0,0,0,.2)',
+        border: '1px solid var(--border,#e5e7eb)', padding: '0', overflow: 'hidden',
+        width: '240px', opacity: '0', transform: 'scale(0.92) translateY(8px)',
+        transition: 'opacity .2s ease, transform .2s ease'
+    });
+
+    let preview = '';
+    if (type === 'image' && (file.thumbUrl || file.filePath)) {
+        const src = file.thumbUrl || '/api/download?path=' + encodeURIComponent(file.filePath) + '&bot_index=' + file.botIndex;
+        preview = '<div style="width:100%;height:120px;overflow:hidden;background:' + icon.color + '10"><img src="' + src + '" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'"></div>';
+    } else {
+        preview = '<div style="width:100%;height:80px;display:flex;align-items:center;justify-content:center;background:' + icon.color + '10">' +
+            '<i class="fas ' + icon.icon + '" style="font-size:32px;color:' + icon.color + '"></i></div>';
+    }
+
+    _quickPeekEl.innerHTML = preview +
+        '<div style="padding:12px">' +
+            '<div style="font-size:13px;font-weight:600;color:var(--fg,#1e293b);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + file.name + '">' + file.name + '</div>' +
+            '<div style="font-size:11px;color:var(--muted,#94a3b8);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">' +
+                '<span><i class="fas fa-weight-hanging"></i> ' + formatSize(file.size) + '</span>' +
+                '<span><i class="fas fa-calendar"></i> ' + formatDate(file.uploadedAt) + '</span>' +
+            '</div>' +
+            '<div style="margin-top:6px;font-size:10px;display:flex;gap:4px;align-items:center">' +
+                '<span style="background:' + icon.color + '18;color:' + icon.color + ';padding:2px 8px;border-radius:6px;font-weight:600">' + type.toUpperCase() + '</span>' +
+                (file.starred ? '<i class="fas fa-star" style="color:#f59e0b;font-size:10px"></i>' : '') +
+                (file.pinned ? '<i class="fas fa-thumbtack" style="color:#3b82f6;font-size:10px"></i>' : '') +
+                (file.encrypted ? '<i class="fas fa-lock" style="color:#ef4444;font-size:10px"></i>' : '') +
+            '</div>' +
+        '</div>';
+
+    document.body.appendChild(_quickPeekEl);
+
+    // Position: keep within viewport
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let left = x + 12, top = y - 60;
+    if (left + 260 > vw) left = x - 260;
+    if (top + 220 > vh) top = y - 220;
+    if (top < 8) top = 8;
+    if (left < 8) left = 8;
+    _quickPeekEl.style.left = left + 'px';
+    _quickPeekEl.style.top = top + 'px';
+
+    requestAnimationFrame(() => {
+        if (_quickPeekEl) {
+            _quickPeekEl.style.opacity = '1';
+            _quickPeekEl.style.transform = 'scale(1) translateY(0)';
+        }
+    });
+
+    // Auto dismiss after 3s
+    _quickPeekTimer = setTimeout(hideQuickPeek, 3000);
+}
+
+function hideQuickPeek() {
+    if (_quickPeekTimer) { clearTimeout(_quickPeekTimer); _quickPeekTimer = null; }
+    if (_quickPeekEl) {
+        _quickPeekEl.style.opacity = '0';
+        _quickPeekEl.style.transform = 'scale(0.92) translateY(8px)';
+        const el = _quickPeekEl;
+        setTimeout(() => el.remove(), 200);
+        _quickPeekEl = null;
+    }
+}
+
+// Long-press detection on file cards
+function initQuickPeekListeners() {
+    let lpTimer = null, lpFileId = null, lpX = 0, lpY = 0;
+
+    document.addEventListener('pointerdown', (e) => {
+        const card = e.target.closest('[data-file-id]');
+        if (!card) return;
+        lpFileId = card.dataset.fileId;
+        lpX = e.clientX; lpY = e.clientY;
+        lpTimer = setTimeout(() => {
+            haptic('tap');
+            showQuickPeek(lpFileId, lpX, lpY);
+        }, 500);
+    });
+
+    document.addEventListener('pointermove', (e) => {
+        if (lpTimer && (Math.abs(e.clientX - lpX) > 8 || Math.abs(e.clientY - lpY) > 8)) {
+            clearTimeout(lpTimer); lpTimer = null;
+        }
+    });
+
+    document.addEventListener('pointerup', () => {
+        if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+    });
+}
+
+// 9. BATCH MODE AUTO-DETECT
+function checkBatchAutoDetect() {
+    const batchBar = document.getElementById('batch-action-bar') || document.querySelector('.batch-action-bar');
+    const count = APP.selectedFiles ? APP.selectedFiles.size : 0;
+    if (count >= 2) {
+        document.body.classList.add('batch-auto-active');
+        if (batchBar) {
+            batchBar.style.display = 'flex';
+            batchBar.classList.add('batch-bar-visible');
+        }
+    } else {
+        document.body.classList.remove('batch-auto-active');
+        if (batchBar && !APP.batchMode) {
+            batchBar.style.display = 'none';
+            batchBar.classList.remove('batch-bar-visible');
+        }
+    }
+}
+
+// 10. TIMELINE VIEW
+function renderTimelineView(files) {
+    if (!files || files.length === 0) return '<div class="timeline-empty">' + (APP.lang === 'id' ? 'Tidak ada file' : 'No files') + '</div>';
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+    const weekStart = new Date(today); weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const groups = {
+        today: [], yesterday: [], thisWeek: [], thisMonth: [], older: []
+    };
+    const isId = APP.lang === 'id';
+
+    files.forEach(file => {
+        const d = new Date(file.uploadedAt || file.lastAccessed || Date.now());
+        const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        if (dayStart >= today) groups.today.push(file);
+        else if (dayStart >= yesterday) groups.yesterday.push(file);
+        else if (dayStart >= weekStart) groups.thisWeek.push(file);
+        else if (d >= monthStart) groups.thisMonth.push(file);
+        else groups.older.push(file);
+    });
+
+    const labels = {
+        today: isId ? 'Hari Ini' : 'Today',
+        yesterday: isId ? 'Kemarin' : 'Yesterday',
+        thisWeek: isId ? 'Minggu Ini' : 'This Week',
+        thisMonth: isId ? 'Bulan Ini' : 'This Month',
+        older: isId ? 'Lebih Lama' : 'Older'
+    };
+
+    let html = '<div class="timeline-view">';
+
+    for (const [key, group] of Object.entries(groups)) {
+        if (group.length === 0) continue;
+        html += '<div class="timeline-group">';
+        html += '<div class="timeline-header"><div class="timeline-dot"></div><span class="timeline-label">' + labels[key] + '</span><span class="timeline-count">' + group.length + '</span></div>';
+        html += '<div class="timeline-connector">';
+        group.forEach((file, i) => {
+            const type = getFileType(file.name, file.mime);
+            const icon = getFileIcon(type);
+            const selected = APP.selectedFiles.has(file.id);
+            const ext = (file.name || '').split('.').pop().toUpperCase();
+            html += '<div class="timeline-item ' + (selected ? 'selected' : '') + '" data-file-id="' + file.id + '" onclick="handleFileClick(event, \'' + file.id + '\', ' + i + ')" oncontextmenu="showContextMenu(event, \'' + file.id + '\')">';
+            html += '<div class="timeline-item-dot" style="background:' + icon.color + '"></div>';
+            html += '<div class="timeline-item-card">';
+            html += '<div class="timeline-item-icon" style="background:' + icon.color + '15;color:' + icon.color + '"><i class="fas ' + icon.icon + '"></i></div>';
+            html += '<div class="timeline-item-info"><div class="timeline-item-name">' + file.name + '</div>';
+            html += '<div class="timeline-item-meta"><span style="color:' + icon.color + ';font-weight:600">' + ext + '</span> · ' + formatSize(file.size) + ' · ' + formatDate(file.uploadedAt) + '</div></div>';
+            html += '<div class="timeline-item-actions">';
+            if (file.starred) html += '<i class="fas fa-star" style="color:#f59e0b;font-size:11px"></i>';
+            if (file.pinned) html += '<i class="fas fa-thumbtack" style="color:#3b82f6;font-size:11px"></i>';
+            html += '</div></div></div>';
+        });
+        html += '</div></div>';
+    }
+    html += '</div>';
+
+    // Inject timeline styles if not present
+    if (!document.getElementById('timeline-view-styles')) {
+        const style = document.createElement('style');
+        style.id = 'timeline-view-styles';
+        style.textContent = [
+            '.timeline-view { padding: 8px 0; }',
+            '.timeline-group { margin-bottom: 16px; }',
+            '.timeline-header { display:flex; align-items:center; gap:10px; padding:8px 16px; position:relative; }',
+            '.timeline-dot { width:10px; height:10px; border-radius:50%; background:var(--primary,#3b82f6); flex-shrink:0; }',
+            '.timeline-label { font-size:13px; font-weight:700; color:var(--fg,#1e293b); text-transform:uppercase; letter-spacing:.5px; }',
+            '.timeline-count { font-size:11px; color:var(--muted,#94a3b8); background:var(--hover,rgba(0,0,0,.05)); padding:2px 8px; border-radius:10px; }',
+            '.timeline-connector { border-left:2px solid var(--border,#e5e7eb); margin-left:20px; padding-left:20px; }',
+            '.timeline-item { display:flex; align-items:flex-start; gap:0; padding:6px 0; cursor:pointer; position:relative; }',
+            '.timeline-item.selected .timeline-item-card { outline:2px solid var(--primary,#3b82f6); outline-offset:1px; }',
+            '.timeline-item-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; position:absolute; left:-25px; top:16px; border:2px solid var(--bg,#fff); }',
+            '.timeline-item-card { display:flex; align-items:center; gap:12px; padding:10px 12px; background:var(--card,#fff); border:1px solid var(--border,#e5e7eb); border-radius:12px; width:100%; transition:background .15s, box-shadow .15s; }',
+            '.timeline-item-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08); }',
+            '.timeline-item-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }',
+            '.timeline-item-info { flex:1; min-width:0; }',
+            '.timeline-item-name { font-size:13px; font-weight:500; color:var(--fg,#1e293b); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }',
+            '.timeline-item-meta { font-size:11px; color:var(--muted,#94a3b8); margin-top:2px; }',
+            '.timeline-item-actions { display:flex; gap:4px; flex-shrink:0; }'
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+
+    return html;
+}
+
+// 11. UPLOAD PROGRESS ORB
+function renderUploadOrb(progress) {
+    progress = Math.max(0, Math.min(100, progress || 0));
+    const radius = 40;
+    const circumference = 2 * Math.PI * radius;
+    const dashOffset = circumference - (progress / 100) * circumference;
+    const isId = APP.lang === 'id';
+    const color = progress >= 100 ? '#10b981' : 'var(--primary, #3b82f6)';
+
+    return '<div class="upload-orb" style="position:relative;width:100px;height:100px;display:flex;align-items:center;justify-content:center">' +
+        '<svg width="100" height="100" viewBox="0 0 100 100" style="transform:rotate(-90deg)">' +
+            '<circle cx="50" cy="50" r="' + radius + '" fill="none" stroke="var(--border,#e5e7eb)" stroke-width="6" opacity="0.3"/>' +
+            '<circle cx="50" cy="50" r="' + radius + '" fill="none" stroke="' + color + '" stroke-width="6" ' +
+                'stroke-dasharray="' + circumference + '" stroke-dashoffset="' + dashOffset + '" ' +
+                'stroke-linecap="round" style="transition:stroke-dashoffset .4s ease"/>' +
+            (progress >= 100 ? '<circle cx="50" cy="50" r="' + radius + '" fill="none" stroke="' + color + '" stroke-width="6" opacity="0.2" stroke-dasharray="' + circumference + '" stroke-dashoffset="0" style="animation:uploadOrbPulse 1s ease infinite"/>' : '') +
+        '</svg>' +
+        '<div style="position:absolute;text-align:center">' +
+            (progress >= 100
+                ? '<i class="fas fa-check" style="font-size:24px;color:#10b981"></i>'
+                : '<span style="font-size:18px;font-weight:700;color:var(--fg,#1e293b)">' + Math.round(progress) + '</span><span style="font-size:10px;color:var(--muted,#94a3b8)">%</span>') +
+        '</div>' +
+    '</div>';
+}
+
+// Inject orb animation style
+(function() {
+    if (!document.getElementById('upload-orb-styles')) {
+        const style = document.createElement('style');
+        style.id = 'upload-orb-styles';
+        style.textContent = '@keyframes uploadOrbPulse { 0%,100%{opacity:.2;transform:scale(1)} 50%{opacity:.4;transform:scale(1.03)} }';
+        document.head.appendChild(style);
+    }
+})();
+
+// 12. PULL-TO-REFRESH with Particles
+function initPullToRefresh() {
+    const container = document.getElementById('file-list-container') || document.querySelector('.file-list, #file-list, .main-content');
+    if (!container || container._ptrInit) return;
+    container._ptrInit = true;
+
+    let startY = 0, pulling = false, currentPull = 0;
+    const THRESHOLD = 80;
+    const isId = APP.lang === 'id';
+
+    // Create pull indicator
+    const ptrIndicator = document.createElement('div');
+    ptrIndicator.className = 'ptr-indicator';
+    ptrIndicator.innerHTML = '<div class="ptr-arrow"><i class="fas fa-arrow-down"></i></div><span class="ptr-text">' + (isId ? 'Tarik untuk refresh' : 'Pull to refresh') + '</span>';
+    Object.assign(ptrIndicator.style, {
+        position: 'absolute', top: '0', left: '50%', transform: 'translateX(-50%) translateY(-100%)',
+        display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px',
+        background: 'var(--primary,#3b82f6)', color: '#fff', borderRadius: '0 0 16px 16px',
+        fontSize: '12px', fontWeight: '600', zIndex: '100', opacity: '0', transition: 'opacity .2s',
+        boxShadow: '0 4px 16px rgba(59,130,246,.3)'
+    });
+    container.style.position = 'relative';
+    container.insertBefore(ptrIndicator, container.firstChild);
+
+    // Particle canvas
+    const particleCanvas = document.createElement('canvas');
+    particleCanvas.className = 'ptr-particle-canvas';
+    Object.assign(particleCanvas.style, {
+        position: 'absolute', top: '0', left: '0', width: '100%', height: '100%',
+        pointerEvents: 'none', zIndex: '99', display: 'none'
+    });
+    container.appendChild(particleCanvas);
+
+    function burstParticles(x, y) {
+        particleCanvas.style.display = 'block';
+        const rect = container.getBoundingClientRect();
+        particleCanvas.width = rect.width;
+        particleCanvas.height = rect.height;
+        const ctx = particleCanvas.getContext('2d');
+        const particles = [];
+        const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
+        for (let i = 0; i < 24; i++) {
+            const angle = (Math.PI * 2 * i) / 24;
+            const speed = 2 + Math.random() * 4;
+            particles.push({
+                x: x - rect.left, y: y - rect.top,
+                vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
+                r: 3 + Math.random() * 3, color: colors[Math.floor(Math.random() * colors.length)],
+                alpha: 1, decay: 0.02 + Math.random() * 0.02
+            });
+        }
+        function animate() {
+            ctx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            let alive = false;
+            particles.forEach(p => {
+                if (p.alpha <= 0) return;
+                alive = true;
+                p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.alpha -= p.decay;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, Math.max(0.5, p.r * p.alpha), 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            if (alive) requestAnimationFrame(animate);
+            else particleCanvas.style.display = 'none';
+        }
+        animate();
+    }
+
+    container.addEventListener('touchstart', (e) => {
+        if (container.scrollTop <= 0) {
+            startY = e.touches[0].clientY;
+            pulling = true;
+        }
+    }, { passive: true });
+
+    container.addEventListener('touchmove', (e) => {
+        if (!pulling) return;
+        currentPull = Math.max(0, e.touches[0].clientY - startY);
+        const pct = Math.min(currentPull / THRESHOLD, 1);
+        ptrIndicator.style.opacity = pct;
+        ptrIndicator.style.transform = 'translateX(-50%) translateY(' + Math.min(currentPull * 0.5, THRESHOLD * 0.5) + 'px)';
+        const arrow = ptrIndicator.querySelector('.ptr-arrow i');
+        if (arrow) arrow.style.transform = 'rotate(' + (pct * 180) + 'deg)';
+        if (currentPull >= THRESHOLD) {
+            ptrIndicator.querySelector('.ptr-text').textContent = isId ? 'Lepaskan untuk refresh' : 'Release to refresh';
+            ptrIndicator.style.background = '#10b981';
+        } else {
+            ptrIndicator.querySelector('.ptr-text').textContent = isId ? 'Tarik untuk refresh' : 'Pull to refresh';
+            ptrIndicator.style.background = 'var(--primary,#3b82f6)';
+        }
+    }, { passive: true });
+
+    container.addEventListener('touchend', (e) => {
+        if (!pulling) return;
+        pulling = false;
+        if (currentPull >= THRESHOLD) {
+            haptic('ptr');
+            const touch = e.changedTouches[0];
+            burstParticles(touch.clientX, touch.clientY);
+            // Trigger refresh
+            if (typeof renderFileList === 'function') renderFileList();
+            if (typeof showToast === 'function') showToast(isId ? 'Diperbarui' : 'Refreshed', 'success', 1500);
+        }
+        currentPull = 0;
+        ptrIndicator.style.opacity = '0';
+        ptrIndicator.style.transform = 'translateX(-50%) translateY(-100%)';
+        ptrIndicator.style.background = 'var(--primary,#3b82f6)';
+    });
+}
+
+// 13. INTERACTIVE EMPTY STATE
+function renderInteractiveEmptyState(folderType) {
+    const isId = APP.lang === 'id';
+    const configs = {
+        all: {
+            icon: 'fa-folder-open', color: '#3b82f6',
+            title: isId ? 'Belum Ada File' : 'No Files Yet',
+            subtitle: isId ? 'Upload file pertama Anda untuk memulai' : 'Upload your first file to get started',
+            cta: isId ? 'Upload File' : 'Upload File', action: 'upload'
+        },
+        recent: {
+            icon: 'fa-clock', color: '#8b5cf6',
+            title: isId ? 'Belum Ada Aktivitas' : 'No Recent Activity',
+            subtitle: isId ? 'File yang Anda buka akan muncul di sini' : 'Files you open will appear here',
+            cta: isId ? 'Lihat Semua File' : 'Browse Files', action: 'browse'
+        },
+        favorites: {
+            icon: 'fa-star', color: '#f59e0b',
+            title: isId ? 'Belum Ada Favorit' : 'No Favorites Yet',
+            subtitle: isId ? 'Tandai file dengan bintang untuk menambahkan ke favorit' : 'Star files to add them to favorites',
+            cta: isId ? 'Lihat Semua File' : 'Browse Files', action: 'browse'
+        },
+        shared: {
+            icon: 'fa-share-alt', color: '#10b981',
+            title: isId ? 'Belum Ada File Dibagikan' : 'No Shared Files',
+            subtitle: isId ? 'File yang Anda bagikan akan muncul di sini' : 'Files you share will appear here',
+            cta: isId ? 'Bagikan File' : 'Share a File', action: 'share'
+        },
+        encrypted: {
+            icon: 'fa-lock', color: '#ef4444',
+            title: isId ? 'Belum Ada File Terenkripsi' : 'No Encrypted Files',
+            subtitle: isId ? 'Enkripsi file untuk menjaga keamanan data' : 'Encrypt files to keep your data secure',
+            cta: isId ? 'Enkripsi File' : 'Encrypt a File', action: 'encrypt'
+        },
+        trash: {
+            icon: 'fa-trash-alt', color: '#64748b',
+            title: isId ? 'Sampah Kosong' : 'Trash is Empty',
+            subtitle: isId ? 'File yang dihapus akan muncul di sini' : 'Deleted files will appear here',
+            cta: '', action: ''
+        }
+    };
+
+    const cfg = configs[folderType] || configs.all;
+    const ctaBtn = cfg.cta ? '<button class="empty-state-cta" onclick="document.getElementById(\'file-upload-input\')?.click()" style="margin-top:20px;padding:12px 28px;background:' + cfg.color + ';color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px ' + cfg.color + '40;transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform=\'scale(1.05)\';this.style.boxShadow=\'0 6px 24px ' + cfg.color + '50\'" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'0 4px 16px ' + cfg.color + '40\'">' + cfg.cta + '</button>' : '';
+
+    return '<div class="interactive-empty-state" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center">' +
+        '<div class="empty-icon-container" style="position:relative;margin-bottom:24px">' +
+            '<div class="empty-icon-bg" style="width:100px;height:100px;border-radius:50%;background:' + cfg.color + '12;display:flex;align-items:center;justify-content:center;animation:emptyPulse 2.5s ease infinite">' +
+                '<i class="fas ' + cfg.icon + '" style="font-size:36px;color:' + cfg.color + '"></i>' +
+            '</div>' +
+            '<div style="position:absolute;inset:-8px;border-radius:50%;border:2px dashed ' + cfg.color + '30;animation:emptySpin 12s linear infinite"></div>' +
+        '</div>' +
+        '<h3 style="font-size:18px;font-weight:700;color:var(--fg,#1e293b);margin:0">' + cfg.title + '</h3>' +
+        '<p style="font-size:13px;color:var(--muted,#94a3b8);margin:8px 0 0;max-width:280px;line-height:1.5">' + cfg.subtitle + '</p>' +
+        ctaBtn +
+    '</div>';
+}
+
+// Inject empty state animation styles
+(function() {
+    if (!document.getElementById('empty-state-styles')) {
+        const style = document.createElement('style');
+        style.id = 'empty-state-styles';
+        style.textContent = [
+            '@keyframes emptyPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.08);opacity:.85} }',
+            '@keyframes emptySpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }'
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+})();
+
+// 14. SWIPE ACTIONS ENHANCED (half-swipe)
+function initEnhancedSwipeActions() {
+    if (APP.viewMode !== 'mobile') return;
+
+    // Inject enhanced swipe styles
+    if (!document.getElementById('enhanced-swipe-styles')) {
+        const style = document.createElement('style');
+        style.id = 'enhanced-swipe-styles';
+        style.textContent = [
+            '.swipe-action-half { position:absolute; top:0; height:100%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:#fff; width:70px; transition:opacity .15s; opacity:0; }',
+            '.swipe-action-half.swipe-visible { opacity:1; }',
+            '.swipe-half-pin { left:0; background:#3b82f6; border-radius:12px 0 0 12px; }',
+            '.swipe-half-bookmark { right:0; background:#f59e0b; border-radius:0 12px 12px 0; }'
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+
+    document.addEventListener('touchstart', (e) => {
+        const wrapper = e.target.closest('.swipe-row-wrapper');
+        if (!wrapper || wrapper._enhancedSwipeInit) return;
+        wrapper._enhancedSwipeInit = true;
+
+        const content = wrapper.querySelector('.swipe-row-content');
+        if (!content) return;
+        const fileId = wrapper.getAttribute('data-swipe-file-id');
+
+        // Add half-swipe action elements
+        const pinAction = document.createElement('div');
+        pinAction.className = 'swipe-action-half swipe-half-pin';
+        pinAction.innerHTML = '<i class="fas fa-thumbtack"></i>';
+        wrapper.insertBefore(pinAction, content);
+
+        const bookmarkAction = document.createElement('div');
+        bookmarkAction.className = 'swipe-action-half swipe-half-bookmark';
+        bookmarkAction.innerHTML = '<i class="fas fa-bookmark"></i>';
+        wrapper.appendChild(bookmarkAction);
+
+        let startX = 0, currentX = 0, halfSwipeTriggered = false;
+        const HALF_THRESHOLD = 40;
+        const FULL_THRESHOLD = 80;
+
+        content.addEventListener('touchstart', (te) => {
+            startX = te.touches[0].clientX;
+            currentX = 0;
+            halfSwipeTriggered = false;
+            pinAction.classList.remove('swipe-visible');
+            bookmarkAction.classList.remove('swipe-visible');
+        }, { passive: true });
+
+        content.addEventListener('touchmove', (te) => {
+            currentX = te.touches[0].clientX - startX;
+            const absX = Math.abs(currentX);
+
+            if (absX > HALF_THRESHOLD && absX < FULL_THRESHOLD && !halfSwipeTriggered) {
+                halfSwipeTriggered = true;
+                haptic('tap');
+                if (currentX > 0) {
+                    // Right half-swipe = pin
+                    pinAction.classList.add('swipe-visible');
+                    const file = APP.files.find(f => f.id === fileId);
+                    if (file) {
+                        file.pinned = !file.pinned;
+                        if (typeof saveFiles === 'function') saveFiles();
+                        if (typeof showToast === 'function') showToast(file.pinned ? (APP.lang === 'id' ? 'Dipasang' : 'Pinned') : (APP.lang === 'id' ? 'Dilepas' : 'Unpinned'), 'success', 1500);
+                    }
+                } else {
+                    // Left half-swipe = bookmark/star
+                    bookmarkAction.classList.add('swipe-visible');
+                    const file = APP.files.find(f => f.id === fileId);
+                    if (file) {
+                        file.starred = !file.starred;
+                        if (typeof saveFiles === 'function') saveFiles();
+                        if (typeof showToast === 'function') showToast(file.starred ? (APP.lang === 'id' ? 'Ditandai' : 'Starred') : (APP.lang === 'id' ? 'Hapus tanda' : 'Unstarred'), 'success', 1500);
+                    }
+                }
+            }
+        }, { passive: true });
+
+        content.addEventListener('touchend', () => {
+            setTimeout(() => {
+                pinAction.classList.remove('swipe-visible');
+                bookmarkAction.classList.remove('swipe-visible');
+                halfSwipeTriggered = false;
+            }, 600);
+        });
+    }, { passive: true });
+}
+
+// 15. DARK MODE WARM SHIFT — handled in CSS, but add JS toggle
+function toggleWarmDark(enabled) {
+    document.documentElement.classList.toggle('warm-dark', enabled);
+    localStorage.setItem('rb_warm_dark', enabled ? '1' : '0');
+    // Inject warm dark CSS if not present
+    if (enabled && !document.getElementById('warm-dark-styles')) {
+        const style = document.createElement('style');
+        style.id = 'warm-dark-styles';
+        style.textContent = [
+            'html.warm-dark { --bg: #1a1612 !important; --fg: #e8ddd0 !important; --muted: #a89880 !important; --border: #3d3428 !important; --card: #241e18 !important; --hover: rgba(210,180,140,.08) !important; }',
+            'html.warm-dark body { background: #1a1612 !important; color: #e8ddd0 !important; }',
+            'html.warm-dark .sidebar, html.warm-dark .bottom-nav, html.warm-dark .header { background: #241e18 !important; }',
+            'html.warm-dark input, html.warm-dark textarea { background: #2a2218 !important; color: #e8ddd0 !important; border-color: #3d3428 !important; }'
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+}
+
+// 16. BOTTOM NAV ENHANCED — add morphing pill animation
+function enhanceBottomNavAnimation() {
+    if (!document.getElementById('bottom-nav-enhanced-styles')) {
+        const style = document.createElement('style');
+        style.id = 'bottom-nav-enhanced-styles';
+        style.textContent = [
+            '.bottom-nav-item.active .nav-pill { animation: pillMorph .4s cubic-bezier(.4,0,.2,1); }',
+            '@keyframes pillMorph { 0%{transform:scaleX(0.3) scaleY(1.5);opacity:0} 50%{transform:scaleX(1.1) scaleY(0.9)} 100%{transform:scaleX(1) scaleY(1);opacity:1} }',
+            '.bottom-nav-item .nav-pill { width:20px; height:4px; border-radius:4px; background:var(--primary,#3b82f6); position:absolute; bottom:2px; left:50%; transform:translateX(-50%); transition:width .3s ease; }',
+            '.bottom-nav-item.active .nav-pill { width:28px; }',
+            '.bottom-nav-item .nav-icon-wrap { transition:transform .25s cubic-bezier(.4,0,.2,1); }',
+            '.bottom-nav-item.active .nav-icon-wrap { transform:translateY(-3px) scale(1.1); }'
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+
+    // Add pill elements to nav items if missing
+    const navItems = document.querySelectorAll('.bottom-nav-item');
+    navItems.forEach(item => {
+        if (!item.querySelector('.nav-pill')) {
+            const pill = document.createElement('div');
+            pill.className = 'nav-pill';
+            item.appendChild(pill);
+        }
+        // Wrap icon for animation
+        const icon = item.querySelector('i');
+        if (icon && !icon.closest('.nav-icon-wrap')) {
+            const wrap = document.createElement('div');
+            wrap.className = 'nav-icon-wrap';
+            icon.parentNode.insertBefore(wrap, icon);
+            wrap.appendChild(icon);
+        }
+    });
+}
+
+// 17. SPLIT VIEW
+function initSplitView() {
+    if (APP.viewMode !== 'desktop') return;
+    const mainContent = document.querySelector('.main-content') || document.getElementById('main-content');
+    if (!mainContent || mainContent._splitViewInit) return;
+    mainContent._splitViewInit = true;
+
+    // Inject split view styles
+    if (!document.getElementById('split-view-styles')) {
+        const style = document.createElement('style');
+        style.id = 'split-view-styles';
+        style.textContent = [
+            '.split-view { display:flex; height:100%; position:relative; }',
+            '.split-view-master { flex:0 0 45%; min-width:280px; overflow-y:auto; border-right:1px solid var(--border,#e5e7eb); position:relative; }',
+            '.split-view-detail { flex:1; overflow-y:auto; background:var(--card,#fff); position:relative; }',
+            '.split-view-divider { width:6px; cursor:col-resize; background:transparent; position:relative; z-index:10; flex-shrink:0; transition:background .2s; }',
+            '.split-view-divider:hover, .split-view-divider.active { background:var(--primary,#3b82f6); }',
+            '.split-view-divider::after { content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:2px; height:32px; background:var(--border,#e5e7eb); border-radius:2px; }',
+            '.split-view-divider:hover::after { background:var(--primary,#3b82f6); }',
+            '.split-view-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--muted,#94a3b8); gap:12px; }',
+            '.split-view-empty i { font-size:48px; opacity:0.3; }',
+            '.split-view-empty span { font-size:13px; }'
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+
+    // Restructure into split layout
+    const fileList = document.getElementById('file-list-container') || document.querySelector('.file-list');
+    if (!fileList) return;
+
+    const splitContainer = document.createElement('div');
+    splitContainer.className = 'split-view';
+
+    const master = document.createElement('div');
+    master.className = 'split-view-master';
+    master.id = 'split-master';
+
+    const divider = document.createElement('div');
+    divider.className = 'split-view-divider';
+
+    const detail = document.createElement('div');
+    detail.className = 'split-view-detail';
+    detail.id = 'split-detail';
+    detail.innerHTML = '<div class="split-view-empty"><i class="fas fa-file-circle-plus"></i><span>' + (APP.lang === 'id' ? 'Pilih file untuk melihat detail' : 'Select a file to see details') + '</span></div>';
+
+    // Move file list into master panel
+    const parent = fileList.parentNode;
+    parent.insertBefore(splitContainer, fileList);
+    master.appendChild(fileList);
+    splitContainer.appendChild(master);
+    splitContainer.appendChild(divider);
+    splitContainer.appendChild(detail);
+
+    // Resizable divider
+    let isResizing = false;
+    divider.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        divider.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        const rect = splitContainer.getBoundingClientRect();
+        const newWidth = e.clientX - rect.left;
+        const minW = 280, maxW = rect.width - 280;
+        master.style.flex = '0 0 ' + Math.max(minW, Math.min(maxW, newWidth)) + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isResizing) {
+            isResizing = false;
+            divider.classList.remove('active');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    });
+}
+
+// 17b. Show file detail in split view panel
+function showSplitDetail(fileId) {
+    const detail = document.getElementById('split-detail');
+    if (!detail) return;
+    const file = APP.files.find(f => f.id === fileId);
+    if (!file) {
+        detail.innerHTML = '<div class="split-view-empty"><i class="fas fa-file-circle-plus"></i><span>' + (APP.lang === 'id' ? 'Pilih file untuk melihat detail' : 'Select a file to see details') + '</span></div>';
+        return;
+    }
+    const type = getFileType(file.name, file.mime);
+    const icon = getFileIcon(type);
+    const isId = APP.lang === 'id';
+    const ext = (file.name || '').split('.').pop().toUpperCase();
+    const downloadUrl = '/api/download?path=' + encodeURIComponent(file.filePath) + '&bot_index=' + file.botIndex;
+
+    let preview = '';
+    if (type === 'image' && (file.thumbUrl || file.filePath)) {
+        const src = file.thumbUrl || downloadUrl;
+        preview = '<div style="width:100%;max-height:300px;overflow:hidden;background:' + icon.color + '08;display:flex;align-items:center;justify-content:center;border-radius:12px;margin-bottom:16px"><img src="' + src + '" style="max-width:100%;max-height:300px;object-fit:contain" onerror="this.style.display=\'none\'"></div>';
+    } else if (type === 'video') {
+        preview = '<div style="width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;margin-bottom:16px"><video src="' + downloadUrl + '" controls style="width:100%;height:100%"></video></div>';
+    } else if (type === 'audio') {
+        preview = '<div style="width:100%;padding:24px;background:' + icon.color + '08;border-radius:12px;margin-bottom:16px;text-align:center"><i class="fas fa-music" style="font-size:40px;color:' + icon.color + ';margin-bottom:12px"></i><audio src="' + downloadUrl + '" controls style="width:100%"></audio></div>';
+    } else {
+        preview = '<div style="width:100%;padding:40px;background:' + icon.color + '08;border-radius:12px;margin-bottom:16px;text-align:center"><i class="fas ' + icon.icon + '" style="font-size:56px;color:' + icon.color + '"></i></div>';
+    }
+
+    detail.innerHTML = '<div style="padding:20px;overflow-y:auto;height:100%">' +
+        preview +
+        '<h3 style="font-size:16px;font-weight:700;color:var(--fg,#1e293b);margin:0 0 8px;word-break:break-all">' + file.name + '</h3>' +
+        '<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">' +
+            '<span style="background:' + icon.color + '18;color:' + icon.color + ';padding:4px 10px;border-radius:8px;font-size:11px;font-weight:600">' + ext + '</span>' +
+            (file.starred ? '<span style="background:#f59e0b18;color:#f59e0b;padding:4px 10px;border-radius:8px;font-size:11px"><i class="fas fa-star"></i></span>' : '') +
+            (file.pinned ? '<span style="background:#3b82f618;color:#3b82f6;padding:4px 10px;border-radius:8px;font-size:11px"><i class="fas fa-thumbtack"></i></span>' : '') +
+            (file.encrypted ? '<span style="background:#ef444418;color:#ef4444;padding:4px 10px;border-radius:8px;font-size:11px"><i class="fas fa-lock"></i></span>' : '') +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">' +
+            '<div style="padding:12px;background:var(--hover,rgba(0,0,0,.03));border-radius:10px"><div style="font-size:10px;color:var(--muted,#94a3b8);text-transform:uppercase">' + (isId ? 'Ukuran' : 'Size') + '</div><div style="font-size:14px;font-weight:600;color:var(--fg,#1e293b);margin-top:2px">' + formatSize(file.size) + '</div></div>' +
+            '<div style="padding:12px;background:var(--hover,rgba(0,0,0,.03));border-radius:10px"><div style="font-size:10px;color:var(--muted,#94a3b8);text-transform:uppercase">' + (isId ? 'Tanggal' : 'Date') + '</div><div style="font-size:14px;font-weight:600;color:var(--fg,#1e293b);margin-top:2px">' + formatDate(file.uploadedAt) + '</div></div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+            '<button onclick="window.open(\'' + downloadUrl + '\')" style="padding:10px 20px;background:var(--primary,#3b82f6);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="fas fa-download"></i> ' + (isId ? 'Unduh' : 'Download') + '</button>' +
+            '<button onclick="if(typeof shareFile===\'function\')shareFile(\'' + file.id + '\')" style="padding:10px 20px;background:var(--hover,rgba(0,0,0,.05));color:var(--fg,#1e293b);border:1px solid var(--border,#e5e7eb);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="fas fa-share-alt"></i> ' + (isId ? 'Bagikan' : 'Share') + '</button>' +
+        '</div>' +
+    '</div>';
+}
+
+// 18. COMMAND PALETTE ENHANCED
+function getEnhancedCommands(query) {
+    const isId = APP.lang === 'id';
+    const q = (query || '').toLowerCase();
+
+    const commands = [
+        // Files
+        { id: 'upload', label: isId ? 'Upload File' : 'Upload File', icon: 'fa-upload', category: 'Files', action: () => document.getElementById('file-upload-input')?.click() },
+        { id: 'new-folder', label: isId ? 'Folder Baru' : 'New Folder', icon: 'fa-folder-plus', category: 'Files', action: () => { if (typeof createFolder === 'function') createFolder(); } },
+        { id: 'search-files', label: isId ? 'Cari File' : 'Search Files', icon: 'fa-search', category: 'Files', action: () => { const s = document.getElementById('search-input'); if (s) s.focus(); } },
+        { id: 'sort-name', label: isId ? 'Urutkan: Nama' : 'Sort by Name', icon: 'fa-sort-alpha-down', category: 'Files', action: () => { APP.sortBy = 'name'; if (typeof renderFileList === 'function') renderFileList(); } },
+        { id: 'sort-date', label: isId ? 'Urutkan: Tanggal' : 'Sort by Date', icon: 'fa-sort-amount-down', category: 'Files', action: () => { APP.sortBy = 'date'; if (typeof renderFileList === 'function') renderFileList(); } },
+        { id: 'sort-size', label: isId ? 'Urutkan: Ukuran' : 'Sort by Size', icon: 'fa-sort-amount-down', category: 'Files', action: () => { APP.sortBy = 'size'; if (typeof renderFileList === 'function') renderFileList(); } },
+        // Navigation
+        { id: 'nav-all', label: isId ? 'Semua File' : 'All Files', icon: 'fa-folder', category: 'Navigation', action: () => { if (typeof selectFolder === 'function') selectFolder('all'); } },
+        { id: 'nav-recent', label: isId ? 'Terakhir Dibuka' : 'Recent', icon: 'fa-clock', category: 'Navigation', action: () => { if (typeof selectFolder === 'function') selectFolder('recent'); } },
+        { id: 'nav-favorites', label: isId ? 'Favorit' : 'Favorites', icon: 'fa-star', category: 'Navigation', action: () => { if (typeof selectFolder === 'function') selectFolder('favorites'); } },
+        { id: 'nav-shared', label: isId ? 'Dibagikan' : 'Shared', icon: 'fa-share-alt', category: 'Navigation', action: () => { if (typeof selectFolder === 'function') selectFolder('shared'); } },
+        { id: 'nav-trash', label: isId ? 'Sampah' : 'Trash', icon: 'fa-trash-alt', category: 'Navigation', action: () => { if (typeof selectFolder === 'function') selectFolder('trash'); } },
+        // Actions
+        { id: 'batch-select', label: isId ? 'Mode Pilih' : 'Batch Select', icon: 'fa-check-double', category: 'Actions', action: () => { APP.batchMode = !APP.batchMode; if (typeof renderFileList === 'function') renderFileList(); } },
+        { id: 'toggle-view', label: isId ? 'Ganti Tampilan' : 'Toggle View', icon: 'fa-th-large', category: 'Actions', action: () => { APP.currentView = APP.currentView === 'grid' ? 'list' : 'grid'; if (typeof renderFileList === 'function') renderFileList(); } },
+        { id: 'toggle-bento', label: isId ? 'Tampilan Bento' : 'Bento View', icon: 'fa-grip-vertical', category: 'Actions', action: () => { APP.currentView = 'bento'; if (typeof renderFileList === 'function') renderFileList(); } },
+        { id: 'toggle-timeline', label: isId ? 'Tampilan Timeline' : 'Timeline View', icon: 'fa-stream', category: 'Actions', action: () => { APP.currentView = 'timeline'; if (typeof renderFileList === 'function') renderFileList(); } },
+        { id: 'encrypt', label: isId ? 'Enkripsi File' : 'Encrypt File', icon: 'fa-lock', category: 'Actions', action: () => { if (typeof selectFolder === 'function') selectFolder('encrypted'); } },
+        { id: 'scan', label: isId ? 'Scan File' : 'Scan File', icon: 'fa-shield-halved', category: 'Actions', action: () => { if (typeof verifyAllIntegrity === 'function') verifyAllIntegrity(); } },
+        // Settings
+        { id: 'settings', label: isId ? 'Pengaturan' : 'Settings', icon: 'fa-cog', category: 'Settings', action: () => { if (typeof openSettings === 'function') openSettings(); } },
+        { id: 'theme-toggle', label: isId ? 'Ganti Tema' : 'Toggle Theme', icon: 'fa-moon', category: 'Settings', action: () => { if (typeof toggleTheme === 'function') toggleTheme(); } },
+        { id: 'warm-dark', label: isId ? 'Mode Gelap Hangat' : 'Warm Dark Mode', icon: 'fa-sun', category: 'Settings', action: () => { toggleWarmDark(!document.documentElement.classList.contains('warm-dark')); } },
+        { id: 'haptic-toggle', label: isId ? 'Feedback Haptic' : 'Haptic Feedback', icon: 'fa-hand-pointer', category: 'Settings', action: () => { APP.settings.hapticFeedback = !APP.settings.hapticFeedback; localStorage.setItem('rb_haptic', APP.settings.hapticFeedback ? '1' : '0'); showToast(APP.settings.hapticFeedback ? (isId ? 'Haptic aktif' : 'Haptic on') : (isId ? 'Haptic nonaktif' : 'Haptic off'), 'info', 1500); } }
+    ];
+
+    if (!q) return commands;
+    return commands.filter(c => c.label.toLowerCase().includes(q) || c.category.toLowerCase().includes(q) || c.id.includes(q));
+}
+
+// 19. BREADCRUMB CLICKABLE & DRAGGABLE
+function initBreadcrumbDrag() {
+    // Inject breadcrumb drag styles
+    if (!document.getElementById('breadcrumb-drag-styles')) {
+        const style = document.createElement('style');
+        style.id = 'breadcrumb-drag-styles';
+        style.textContent = [
+            '.breadcrumb-item.drag-over { background:var(--primary,#3b82f6) !important; color:#fff !important; border-radius:8px; outline:2px dashed var(--primary,#3b82f6); outline-offset:2px; transform:scale(1.08); transition:all .2s ease; }',
+            '.breadcrumb-item { transition:background .15s, transform .15s; border-radius:6px; padding:4px 10px; }',
+            '.breadcrumb-item:hover { background:var(--hover,rgba(59,130,246,.08)); }'
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+
+    // Set up event delegation for breadcrumb items
+    document.addEventListener('dragover', (e) => {
+        const crumb = e.target.closest('.breadcrumb-item');
+        if (!crumb) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        crumb.classList.add('drag-over');
+    });
+
+    document.addEventListener('dragleave', (e) => {
+        const crumb = e.target.closest('.breadcrumb-item');
+        if (crumb) crumb.classList.remove('drag-over');
+    });
+
+    document.addEventListener('drop', (e) => {
+        const crumb = e.target.closest('.breadcrumb-item');
+        if (!crumb) return;
+        crumb.classList.remove('drag-over');
+        const fileId = e.dataTransfer?.getData('text/file-id');
+        if (!fileId) return;
+        const folderId = crumb.dataset.folderId || crumb.getAttribute('data-folder-id');
+        if (!folderId) return;
+        // Move file to the breadcrumb's folder
+        const file = APP.files.find(f => f.id === fileId);
+        if (file && file.folderId !== folderId) {
+            file.folderId = folderId;
+            if (typeof saveFiles === 'function') saveFiles();
+            if (typeof renderFileList === 'function') renderFileList();
+            haptic('copy');
+            if (typeof showToast === 'function') showToast(APP.lang === 'id' ? 'File dipindahkan' : 'File moved', 'success', 2000);
+        }
+    });
+
+    // Also add dragstart data to existing file cards
+    document.addEventListener('dragstart', (e) => {
+        const card = e.target.closest('[data-file-id]');
+        if (card) {
+            e.dataTransfer.setData('text/file-id', card.dataset.fileId);
+            e.dataTransfer.effectAllowed = 'move';
+        }
+    });
+}
+
+// 20. STORAGE RING WIDGET
+function initStorageRingWidget() {
+    // Prevent duplicate init
+    if (document.getElementById('storage-ring-widget')) return;
+
+    const isId = APP.lang === 'id';
+    const widget = document.createElement('div');
+    widget.id = 'storage-ring-widget';
+    Object.assign(widget.style, {
+        position: 'fixed', bottom: '80px', left: '16px', zIndex: '800',
+        width: '56px', height: '56px', cursor: 'pointer',
+        transition: 'transform .2s ease, box-shadow .2s ease',
+        filter: 'drop-shadow(0 4px 12px rgba(0,0,0,.15))'
+    });
+    widget.addEventListener('mouseenter', () => { widget.style.transform = 'scale(1.1)'; widget.style.filter = 'drop-shadow(0 6px 20px rgba(0,0,0,.2))'; });
+    widget.addEventListener('mouseleave', () => { widget.style.transform = 'scale(1)'; widget.style.filter = 'drop-shadow(0 4px 12px rgba(0,0,0,.15))'; });
+
+    // Calculate storage usage
+    function calcUsage() {
+        const totalUsed = APP.files.filter(f => !f.trashed).reduce((sum, f) => sum + (f.size || 0), 0);
+        const maxStorage = (APP.settings.maxUploadSize || 50) * 1024 * 1024 * 1024; // approximate
+        const pct = Math.min(100, maxStorage > 0 ? (totalUsed / maxStorage) * 100 : 0);
+        return { totalUsed, maxStorage, pct };
+    }
+
+    function renderRing() {
+        const { totalUsed, maxStorage, pct } = calcUsage();
+        const radius = 22;
+        const circumference = 2 * Math.PI * radius;
+        const dashOffset = circumference - (pct / 100) * circumference;
+        const color = pct > 90 ? '#ef4444' : pct > 70 ? '#f59e0b' : '#10b981';
+
+        widget.innerHTML = '<svg width="56" height="56" viewBox="0 0 56 56" style="transform:rotate(-90deg)">' +
+            '<circle cx="28" cy="28" r="' + radius + '" fill="var(--bg,#fff)" stroke="var(--border,#e5e7eb)" stroke-width="4" opacity="0.3"/>' +
+            '<circle cx="28" cy="28" r="' + radius + '" fill="none" stroke="' + color + '" stroke-width="4" ' +
+                'stroke-dasharray="' + circumference + '" stroke-dashoffset="' + dashOffset + '" stroke-linecap="round" style="transition:stroke-dashoffset .6s ease"/>' +
+        '</svg>' +
+        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:' + color + '">' + Math.round(pct) + '%</div>';
+    }
+
+    renderRing();
+    document.body.appendChild(widget);
+
+    // Click to show details
+    widget.addEventListener('click', () => {
+        const { totalUsed, maxStorage, pct } = calcUsage();
+        const color = pct > 90 ? '#ef4444' : pct > 70 ? '#f59e0b' : '#10b981';
+
+        // Create or update detail popup
+        let popup = document.getElementById('storage-ring-detail');
+        if (popup) popup.remove();
+
+        popup = document.createElement('div');
+        popup.id = 'storage-ring-detail';
+        Object.assign(popup.style, {
+            position: 'fixed', bottom: '144px', left: '16px', zIndex: '9000',
+            background: 'var(--bg,#fff)', borderRadius: '16px', padding: '20px',
+            boxShadow: '0 12px 40px rgba(0,0,0,.15)', border: '1px solid var(--border,#e5e7eb)',
+            width: '220px', opacity: '0', transform: 'translateY(10px)', transition: 'opacity .2s, transform .2s'
+        });
+
+        const types = ['image','video','audio','pdf','document','code','archive','other'];
+        const typeBreakdown = types.map(type => {
+            const files = APP.files.filter(f => !f.trashed && getFileType(f.name, f.mime) === type);
+            const size = files.reduce((s, f) => s + (f.size || 0), 0);
+            return { type, count: files.length, size, icon: getFileIcon(type) };
+        }).filter(t => t.count > 0).sort((a, b) => b.size - a.size);
+
+        let breakdownHtml = typeBreakdown.slice(0, 5).map(t =>
+            '<div style="display:flex;align-items:center;gap:8px;padding:4px 0">' +
+                '<div style="width:24px;height:24px;border-radius:6px;background:' + t.icon.color + '15;color:' + t.icon.color + ';display:flex;align-items:center;justify-content:center;font-size:10px"><i class="fas ' + t.icon.icon + '"></i></div>' +
+                '<span style="font-size:12px;color:var(--fg,#1e293b);flex:1">' + t.type + '</span>' +
+                '<span style="font-size:11px;color:var(--muted,#94a3b8)">' + formatSize(t.size) + '</span>' +
+            '</div>'
+        ).join('');
+
+        popup.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+                '<span style="font-size:13px;font-weight:700;color:var(--fg,#1e293b)">' + (isId ? 'Penyimpanan' : 'Storage') + '</span>' +
+                '<button onclick="document.getElementById(\'storage-ring-detail\').remove()" style="background:none;border:none;color:var(--muted,#94a3b8);cursor:pointer;font-size:14px"><i class="fas fa-times"></i></button>' +
+            '</div>' +
+            '<div style="width:100%;height:8px;background:var(--border,#e5e7eb);border-radius:4px;overflow:hidden;margin-bottom:8px">' +
+                '<div style="height:100%;width:' + pct + '%;background:' + color + ';border-radius:4px;transition:width .4s ease"></div>' +
+            '</div>' +
+            '<div style="font-size:11px;color:var(--muted,#94a3b8);margin-bottom:12px">' + formatSize(totalUsed) + ' ' + (isId ? 'digunakan' : 'used') + '</div>' +
+            breakdownHtml;
+
+        document.body.appendChild(popup);
+        requestAnimationFrame(() => { popup.style.opacity = '1'; popup.style.transform = 'translateY(0)'; });
+
+        // Auto dismiss
+        setTimeout(() => {
+            if (popup.parentNode) {
+                popup.style.opacity = '0';
+                popup.style.transform = 'translateY(10px)';
+                setTimeout(() => popup.remove(), 200);
+            }
+        }, 5000);
+    });
+
+    // Update ring when files change
+    const origRender = typeof renderFileList === 'function' ? renderFileList : null;
+    if (origRender) {
+        const _origRenderFileList = renderFileList;
+        // We just re-render the ring periodically
+        setInterval(renderRing, 10000);
+    }
+}
+
+// ===== INIT ALL UI/UX FEATURES =====
+function initUIUXFeatures() {
+    initMagneticSidebar();
+    initSmartSearch();
+    initDragSortEnhanced();
+    initPullToRefresh();
+    initEnhancedSwipeActions();
+    initSplitView();
+    initBreadcrumbDrag();
+    initStorageRingWidget();
+    enhanceBottomNavAnimation();
+    initQuickPeekListeners();
+
+    // Check warm dark preference
+    if (localStorage.getItem('rb_warm_dark') === '1' && APP.theme === 'dark') {
+        document.documentElement.classList.add('warm-dark');
+    }
+
+    // Init batch auto-detect observer
+    setInterval(checkBatchAutoDetect, 500);
+
+    // Auto-detect view mode changes
+    checkBatchAutoDetect();
+
+    // Inject bento grid CSS
+    if (!document.getElementById('bento-grid-styles')) {
+        const style = document.createElement('style');
+        style.id = 'bento-grid-styles';
+        style.textContent = [
+            '.bento-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; padding:8px; }',
+            '.bento-item-large { grid-column:span 2; grid-row:span 1; }',
+            '.bento-item .bento-card-preview { height:120px; }',
+            '.bento-item-large .bento-card-preview { height:180px; }',
+            '@media(min-width:768px) { .bento-grid { grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:16px; } .bento-item .bento-card-preview { height:140px; } .bento-item-large .bento-card-preview { height:220px; } }',
+            '.bento-empty { text-align:center; padding:60px 20px; color:var(--muted,#94a3b8); font-size:14px; }'
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+
+    // Hook split view into file clicks for desktop
+    if (APP.viewMode === 'desktop') {
+        document.addEventListener('click', (e) => {
+            const card = e.target.closest('[data-file-id]');
+            if (card && document.getElementById('split-detail')) {
+                showSplitDetail(card.dataset.fileId);
+            }
+        });
+    }
+
+    // Hook renderUploadOrb into upload progress
+    const origProgressEl = document.getElementById('upload-progress-bar') || document.querySelector('.upload-progress');
+    if (origProgressEl) {
+        const orbContainer = document.createElement('div');
+        orbContainer.id = 'upload-orb-container';
+        orbContainer.style.cssText = 'display:flex;justify-content:center;padding:16px;';
+        origProgressEl.parentNode.insertBefore(orbContainer, origProgressEl);
+        // Observe progress changes
+        const observer = new MutationObserver(() => {
+            const pct = APP.totalUploadProgress || 0;
+            orbContainer.innerHTML = renderUploadOrb(pct);
+        });
+        observer.observe(origProgressEl, { attributes: true, childList: true, subtree: true });
+    }
+
+    console.log('[RidgeBox] UI/UX Overhaul: 20 features initialized');
+}
+
 // Auto-init when app loads
 if (typeof window !== 'undefined') {
     const _origInit = window.addEventListener;
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(initNewFeatures, 2000); // Delay to let main app init first
+        setTimeout(initUIUXFeatures, 3000); // UI/UX features init after other features
     });
 }
 
