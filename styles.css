@@ -2139,3 +2139,29 @@ body.no-transition,body.no-transition *{transition:none!important}
 .arch-connector-label{display:none}
 }
 
+/* ===== F127: Quick Action FAB ===== */
+.fab-main{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(59,130,246,.4);transition:all .3s cubic-bezier(.4,0,.2,1);position:relative}
+.fab-main:hover{transform:scale(1.08);box-shadow:0 8px 28px rgba(59,130,246,.5)}
+.fab-main.fab-open{transform:rotate(45deg);background:#ef4444;box-shadow:0 6px 20px rgba(239,68,68,.4)}
+.fab-main.fab-open:hover{transform:rotate(45deg) scale(1.08)}
+.fab-item{display:flex;align-items:center;gap:8px;animation:fabSlideIn .25s ease both;cursor:pointer}
+.fab-item:nth-child(1){animation-delay:.03s}
+.fab-item:nth-child(2){animation-delay:.06s}
+.fab-item:nth-child(3){animation-delay:.09s}
+.fab-item:nth-child(4){animation-delay:.12s}
+.fab-item:nth-child(5){animation-delay:.15s}
+.fab-item:nth-child(6){animation-delay:.18s}
+@keyframes fabSlideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.fab-icon{width:40px;height:40px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 3px 12px rgba(0,0,0,.15);transition:all .2s}
+.fab-icon:hover{transform:scale(1.1)}
+.fab-label{background:var(--bg-card);color:var(--text);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.1);white-space:nowrap;border:1px solid var(--border)}
+
+/* ===== F131: Drag Select ===== */
+#drag-select-box{transition:none}
+
+/* ===== F128: Storage Pie Chart ===== */
+.dash-card svg text{font-family:'JetBrains Mono',monospace}
+
+/* ===== F137: Waveform ===== */
+canvas[id$="-waveform"]{display:block}
+

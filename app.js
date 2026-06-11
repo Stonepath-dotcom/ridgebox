@@ -107,7 +107,22 @@ const APP = {
     notificationCenterUnread: 0,
     lockedFiles: new Set(JSON.parse(localStorage.getItem('rb_locked_files') || '[]')),
     bookmarkedFolders: JSON.parse(localStorage.getItem('rb_bookmarked_folders') || '[]'),
-    scheduledUploadTasks: JSON.parse(localStorage.getItem('rb_scheduled_uploads') || '[]')
+    scheduledUploadTasks: JSON.parse(localStorage.getItem('rb_scheduled_uploads') || '[]'),
+    // F126-F137: New Feature Flags & State
+    previewCarouselIndex: -1,
+    fabExpanded: false,
+    activityLog: JSON.parse(localStorage.getItem('rb_activity_log') || '[]'),
+    achievementBadges: JSON.parse(localStorage.getItem('rb_badges') || '{}'),
+    vaultPin: localStorage.getItem('rb_vault_pin') || '',
+    vaultFiles: JSON.parse(localStorage.getItem('rb_vault_files') || '[]'),
+    vaultUnlocked: false,
+    selfDestructFolders: JSON.parse(localStorage.getItem('rb_sd_folders') || '{}'),
+    fakeFolders: JSON.parse(localStorage.getItem('rb_fake_folders') || '{}'),
+    fakeFolderPin: localStorage.getItem('rb_fake_pin') || '',
+    dragSelectActive: false,
+    dragSelectStart: null,
+    fileDropLinks: JSON.parse(localStorage.getItem('rb_drop_links') || '[]'),
+    waveformCache: {}
 };
 
 // ===== i18n (F105) =====
@@ -873,16 +888,7 @@ function t(key) { return (T[APP.lang] && T[APP.lang][key]) || (T.en[key]) || key
 function applyLangDir() { document.body.dir = APP.lang === 'ar' ? 'rtl' : 'ltr'; document.documentElement.lang = APP.lang; }
 function setLang(lang) { APP.lang = lang; localStorage.setItem('rb_lang', lang); applyLangDir(); renderHeader(); checkUrlRouting(); }
 
-const ACCENT_PRESETS = [
-  {name:'Ocean Blue',color:'#3b82f6',hover:'#2563eb'},
-  {name:'Royal Purple',color:'#8b5cf6',hover:'#7c3aed'},
-  {name:'Emerald Green',color:'#10b981',hover:'#059669'},
-  {name:'Sunset Orange',color:'#f97316',hover:'#ea580c'},
-  {name:'Rose Pink',color:'#ec4899',hover:'#db2777'},
-  {name:'Crimson Red',color:'#ef4444',hover:'#dc2626'},
-  {name:'Golden Yellow',color:'#eab308',hover:'#ca8a04'},
-  {name:'Slate Gray',color:'#64748b',hover:'#475569'}
-];
+
 
 function setAccentColor(color, hover) {
   document.documentElement.style.setProperty('--accent', color);
@@ -2965,6 +2971,7 @@ function showContextMenu(e, fileId) {
         <div class="context-menu-separator"></div>
         <div class="context-menu-item" onclick="closeContextMenu();${isFileLocked(fileId) ? `unlockFile('${fileId}')` : `lockFile('${fileId}')`}"><i class="fas fa-${isFileLocked(fileId) ? 'lock-open' : 'lock'}"></i> ${isFileLocked(fileId) ? t('unlockFile') : t('lockFile')}</div>
         <div class="context-menu-item" onclick="closeContextMenu();openFileExpiryModal('${fileId}')"><i class="fas fa-hourglass-half"></i> ${t('fileExpiry')}</div>
+        <div class="context-menu-item" onclick="closeContextMenu();moveToVault('${fileId}')"><i class="fas fa-vault"></i> ${isFileInVault(fileId) ? (APP.lang==='id'?'Di Brankas':'In Vault') : (APP.lang==='id'?'Pindah ke Brankas':'Move to Vault')}</div>
         <div class="context-menu-item" onclick="closeContextMenu();${isFolderBookmarked(APP.currentFolder) ? `unbookmarkFolder('${APP.currentFolder}')` : `bookmarkFolder('${APP.currentFolder}')`}"><i class="fas fa-bookmark"></i> ${isFolderBookmarked(APP.currentFolder) ? t('unbookmarkFolder') : t('bookmarkFolder')}</div>
         <div class="context-menu-separator"></div>
         <div class="context-menu-item danger" onclick="closeContextMenu();moveToTrash('${fileId}')"><i class="fas fa-trash"></i> ${t('delete')}</div>
@@ -5340,7 +5347,12 @@ function renderDashboard() {
         { icon: 'fa-robot', label: isId ? 'Otomatis' : 'Automate', action: 'openAutomationRulesModal()', primary: false },
         { icon: 'fa-file-import', label: isId ? 'Minta File' : 'Request', action: 'openFileRequestModal()', primary: false },
         { icon: 'fa-chart-pie', label: isId ? 'Insight' : 'Insights', action: 'openStorageInsightsModal()', primary: false },
-        { icon: 'fa-calendar-alt', label: isId ? 'Jadwal' : 'Schedule', action: 'openUploadScheduleModal()', primary: false }
+        { icon: 'fa-calendar-alt', label: isId ? 'Jadwal' : 'Schedule', action: 'openUploadScheduleModal()', primary: false },
+        { icon: 'fa-clone', label: isId ? 'Duplikat' : 'Dupes', action: 'openDuplicateFinder()', primary: false },
+        { icon: 'fa-vault', label: isId ? 'Brankas' : 'Vault', action: 'openVaultModal()', primary: false },
+        { icon: 'fa-clock-rotate-left', label: isId ? 'Aktivitas' : 'Activity', action: 'openActivityFeed()', primary: false },
+        { icon: 'fa-trophy', label: isId ? 'Badge' : 'Badges', action: 'openBadgeShowcase()', primary: false },
+        { icon: 'fa-cloud-arrow-up', label: isId ? 'Drop Link' : 'Drop Link', action: 'openFileDropLinkModal()', primary: false }
     ];
     // Add "Pilih Drive" option when GDrive accounts are connected
     if (APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0) {
@@ -5528,6 +5540,21 @@ function renderDashboard() {
                         <div class="dash-card" id="usage-trend-card">${renderUsageTrendCard()}</div>
                         <div class="dash-card" id="storage-breakdown-card">${renderStorageBreakdownCard()}</div>
                     </div>
+                    <!-- F128: Storage Pie Chart -->
+                    <div class="dash-cards-row">
+                        <div class="dash-card">
+                            <div class="dash-card-title"><i class="fas fa-chart-pie" style="color:#8b5cf6"></i> ${isId ? 'Distribusi File' : 'File Distribution'}</div>
+                            ${renderStoragePieChart()}
+                        </div>
+                        <!-- F136: Achievement Badges Widget -->
+                        <div class="dash-card" style="cursor:pointer" onclick="openBadgeShowcase()">
+                            <div class="dash-card-title"><i class="fas fa-trophy" style="color:#f59e0b"></i> ${isId ? 'Pencapaian' : 'Achievements'}</div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0">${BADGE_DEFINITIONS.slice(0,6).map(b => {
+                                const earned = !!APP.achievementBadges[b.id];
+                                return `<div style="width:36px;height:36px;border-radius:10px;background:${earned?b.color+'15':'var(--bg-secondary)'};display:flex;align-items:center;justify-content:center;opacity:${earned?1:0.3};transition:all .2s" title="${isId?b.nameId:b.nameEn}"><i class="fas ${b.icon}" style="color:${earned?b.color:'var(--text-secondary)'};font-size:14px"></i></div>`;
+                            }).join('')}<div style="display:flex;align-items:center;font-size:11px;color:var(--text-secondary);padding:4px 8px">${Object.keys(APP.achievementBadges).length}/${BADGE_DEFINITIONS.length}</div></div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <!-- File List -->
@@ -5535,7 +5562,8 @@ function renderDashboard() {
             <div id="file-list-container" style="flex:1;overflow-y:auto;padding:0 20px 80px"></div>
         </div>
     </div>
-    <input type="file" id="file-upload-input" multiple style="display:none" onchange="handleFileSelect(this.files)">`;
+    <input type="file" id="file-upload-input" multiple style="display:none" onchange="handleFileSelect(this.files)">
+    ${renderFAB()}`;
 
     renderBreadcrumb();
     renderQuickFilter();
@@ -5753,12 +5781,16 @@ function renderSidebarHTML() {
     const folderItemsHtml = customFolders.map(f => {
         const active = f.id === APP.currentFolder;
         const count = APP.files.filter(x => !x.trashed && x.folderId === f.id).length;
+        const isSD = !!APP.selfDestructFolders[f.id];
+        const isFake = !!APP.fakeFolders[f.id];
         return `<div class="sidebar-item ${active ? 'active' : ''} sidebar-folder-drop-target" data-folder-id="${f.id}" onclick="selectFolder('${f.id}')" style="position:relative">
             <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${active ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
             <i class="fas ${f.icon || 'fa-folder'}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : '#f59e0b'};position:relative;z-index:1;font-size:14px"></i>
             <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${f.name}</span>
+            ${isSD ? '<i class="fas fa-bomb" style="font-size:9px;color:#ef4444;position:relative;z-index:1" title="Auto-Delete"></i>' : ''}
+            ${isFake ? '<i class="fas fa-user-secret" style="font-size:9px;color:#64748b;position:relative;z-index:1" title="Fake Folder"></i>' : ''}
             ${count > 0 ? `<span style="font-size:11px;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};background:${active ? 'rgba(59,130,246,.1)' : 'var(--bg-secondary)'};padding:2px 8px;border-radius:99px;font-weight:600;position:relative;z-index:1">${count}</span>` : ''}
-            <button class="btn btn-ghost" style="padding:2px 4px;font-size:11px;position:relative;z-index:1" onclick="event.stopPropagation();deleteCustomFolder('${f.id}')" aria-label="Delete folder"><i class="fas fa-times"></i></button>
+            <button class="btn btn-ghost" style="padding:2px 4px;font-size:11px;position:relative;z-index:1" onclick="event.stopPropagation();openFolderOptions('${f.id}')" aria-label="Folder options"><i class="fas fa-ellipsis-vertical"></i></button>
         </div>`;
     }).join('');
 
@@ -5767,6 +5799,11 @@ function renderSidebarHTML() {
         { id: 'storage-management', icon: 'fa-server', name: isId ? 'Kelola Penyimpanan' : 'Storage Manager', action: "location.hash='#/storage'" },
         { id: 'storage-analytics', icon: 'fa-chart-pie', name: isId ? 'Analisis Penyimpanan' : 'Storage Analytics', action: 'openStorageAnalytics()' },
         { id: 'analytics', icon: 'fa-chart-line', name: isId ? 'Dashboard Analitik' : 'Analytics Dashboard', action: "location.hash='#/analytics'" },
+        { id: 'badges', icon: 'fa-trophy', name: isId ? 'Pencapaian' : 'Achievements', action: 'openBadgeShowcase()' },
+        { id: 'activity', icon: 'fa-clock-rotate-left', name: isId ? 'Riwayat Aktivitas' : 'Activity Feed', action: 'openActivityFeed()' },
+        { id: 'duplicates', icon: 'fa-clone', name: isId ? 'Cari Duplikat' : 'Find Duplicates', action: 'openDuplicateFinder()' },
+        { id: 'file-drop', icon: 'fa-cloud-arrow-up', name: isId ? 'Link Upload Masuk' : 'File Drop Link', action: 'openFileDropLinkModal()' },
+        { id: 'vault', icon: 'fa-vault', name: isId ? 'Brankas' : 'Vault', action: 'openVaultModal()' },
         { id: 'shortcuts', icon: 'fa-keyboard', name: isId ? 'Pintasan Keyboard' : 'Shortcuts', action: 'openKeyboardShortcuts()' },
         { id: 'settings', icon: 'fa-gear', name: isId ? 'Pengaturan' : 'Settings', action: 'openSettings()' }
     ];
@@ -5868,6 +5905,14 @@ function renderSidebarHTML() {
 
 // ===== SELECT FOLDER (integrated) =====
 function selectFolder(folderId) {
+    // F135: Fake folder check - prompt for PIN
+    if (isFakeFolderProtected(folderId)) {
+        APP._fakeFolderUnlocked = APP._fakeFolderUnlocked || new Set();
+        if (!APP._fakeFolderUnlocked.has(folderId)) {
+            unlockFakeFolder(folderId);
+            return;
+        }
+    }
     APP.currentFolder = folderId;
     APP.quickFilter = null;
     APP.tagFilter = null;
@@ -6099,6 +6144,20 @@ function getFilteredFiles() {
         files = files.filter(f => f.encrypted);
     } else if (APP.currentFolder !== 'all' && APP.currentFolder !== 'trash') {
         files = files.filter(f => f.folderId === APP.currentFolder);
+    }
+
+    // F133: Hide vault files from regular views (unless in vault modal)
+    if (APP.vaultPin && APP.vaultFiles.length > 0) {
+        const vaultIds = new Set(APP.vaultFiles.map(v => v.fileId));
+        files = files.filter(f => !vaultIds.has(f.id));
+    }
+
+    // F135: Fake folder - show empty if not unlocked
+    if (isFakeFolderProtected(APP.currentFolder)) {
+        APP._fakeFolderUnlocked = APP._fakeFolderUnlocked || new Set();
+        if (!APP._fakeFolderUnlocked.has(APP.currentFolder)) {
+            files = [];
+        }
     }
 
     // Quick filter (F65)
@@ -7480,6 +7539,38 @@ async function deleteCustomFolder(folderId) {
     );
 }
 
+// ===== FOLDER OPTIONS (Self-Destruct + Fake Folder) =====
+function openFolderOptions(folderId) {
+    const isId = APP.lang === 'id';
+    const folder = APP.folders.find(f => f.id === folderId);
+    if (!folder) return;
+    const isSD = !!APP.selfDestructFolders[folderId];
+    const isFake = !!APP.fakeFolders[folderId];
+    openModal(`<div style="padding:20px;max-width:400px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:18px;font-weight:600"><i class="fas fa-folder" style="color:#f59e0b;margin-right:8px"></i>${folder.name}</h3>
+            <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s" onclick="closeModal();openSelfDestructSetup('${folderId}')" onmouseover="this.style.borderColor='#ef4444';this.style.background='rgba(239,68,68,.05)'" onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
+                <div style="width:40px;height:40px;border-radius:10px;background:#ef444415;display:flex;align-items:center;justify-content:center"><i class="fas fa-bomb" style="color:#ef4444;font-size:16px"></i></div>
+                <div style="flex:1"><div style="font-size:13px;font-weight:600">${isId?'Auto-Hapus Folder':'Self-Destruct'}</div><div style="font-size:11px;color:var(--text-secondary)">${isSD?(isId?'Aktif — hapus file setelah':'Active — delete files after')+' '+APP.selfDestructFolders[folderId].interval+' '+(isId?'hari':'days'):(isId?'Hapus otomatis file lama':'Auto-delete old files')}</div></div>
+                ${isSD?'<i class="fas fa-check-circle" style="color:#ef4444"></i>':''}
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s" onclick="closeModal();openFakeFolderSetup('${folderId}')" onmouseover="this.style.borderColor='#64748b';this.style.background='rgba(100,116,139,.05)'" onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
+                <div style="width:40px;height:40px;border-radius:10px;background:#64748b15;display:flex;align-items:center;justify-content:center"><i class="fas fa-user-secret" style="color:#64748b;font-size:16px"></i></div>
+                <div style="flex:1"><div style="font-size:13px;font-weight:600">${isId?'Folder Palsu':'Fake Folder'}</div><div style="font-size:11px;color:var(--text-secondary)">${isFake?(isId?'Aktif — folder terlihat kosong':'Active — folder appears empty'):(isId?'Sembunyikan isi folder dengan PIN':'Hide folder contents with a PIN')}</div></div>
+                ${isFake?'<i class="fas fa-check-circle" style="color:#64748b"></i>':''}
+            </div>
+            <div style="border-top:1px solid var(--border);margin:4px 0"></div>
+            <div style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid rgba(239,68,68,.2);border-radius:10px;cursor:pointer;transition:all .15s" onclick="closeModal();deleteCustomFolder('${folderId}')" onmouseover="this.style.background='rgba(239,68,68,.05)'" onmouseout="this.style.background=''">
+                <div style="width:40px;height:40px;border-radius:10px;background:rgba(239,68,68,.08);display:flex;align-items:center;justify-content:center"><i class="fas fa-trash" style="color:#ef4444;font-size:16px"></i></div>
+                <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#ef4444">${isId?'Hapus Folder':'Delete Folder'}</div><div style="font-size:11px;color:var(--text-secondary)">${isId?'File tidak akan dihapus':'Files won\'t be deleted'}</div></div>
+            </div>
+        </div>
+    </div>`);
+}
+
 async function emptyTrash() {
     showConfirm(
         t('emptyTrashConfirm'),
@@ -8594,39 +8685,35 @@ async function handlePortalUpload(fileList, folderId) {
 // ===== PREVIEW (F6, F47, F63, F100, F101) =====
 function openPreview(fileId) {
     haptic('tap');
+    // F126: Use carousel preview for images/videos/audio/PDFs
     const file = APP.files.find(f => f.id === fileId);
     if (!file) return;
-    // Track last accessed time
+    const type = getFileType(file.name, file.mime);
+    if (['image','video','audio','pdf'].includes(type)) {
+        openPreviewCarousel(fileId);
+        return;
+    }
+    // Original preview for docs, code, etc.
     updateLastAccessed(fileId);
     closeContextMenu();
     closeDetailPanel();
-    const type = getFileType(file.name, file.mime);
     const icon = getFileIcon(type);
     const isId = APP.lang === 'id';
     let previewContent = '';
     const downloadUrl = APP.settings.proxyMode !== false
         ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`
         : `https://api.telegram.org/file/bot${APP.bots[0]?.token}/${file.filePath}`;
-    if (type === 'image') {
-        previewContent = `<div style="text-align:center"><img src="${downloadUrl}" style="max-width:100%;max-height:60vh;border-radius:8px" alt="${file.name}" onerror="this.src='';this.alt='Failed to load'"></div>`;
-    } else if (type === 'video' || type === 'audio') {
-        openMediaPlayer(fileId); return;
-    } else if (type === 'pdf') {
-        previewContent = `<iframe src="${downloadUrl}" title="PDF Preview" style="width:100%;height:60vh;border:none;border-radius:8px"></iframe>`;
-    } else if (type === 'document') {
-        // Feature 5: .docx preview using mammoth.js
+    if (type === 'document') {
         previewContent = `<div id="office-preview-container" style="min-height:200px">
             <div style="text-align:center;padding:40px"><div style="display:inline-block;width:32px;height:32px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite"></div><p style="margin-top:12px;color:var(--text-secondary);font-size:13px">${isId ? 'Memuat dokumen...' : 'Loading document...'}</p></div>
         </div>`;
         setTimeout(() => fetchDocxPreview(file, downloadUrl), 100);
     } else if (type === 'spreadsheet') {
-        // Feature 5: .xlsx preview using SheetJS
         previewContent = `<div id="office-preview-container" style="min-height:200px">
             <div style="text-align:center;padding:40px"><div style="display:inline-block;width:32px;height:32px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite"></div><p style="margin-top:12px;color:var(--text-secondary);font-size:13px">${isId ? 'Memuat spreadsheet...' : 'Loading spreadsheet...'}</p></div>
         </div>`;
         setTimeout(() => fetchXlsxPreview(file, downloadUrl), 100);
     } else if (type === 'presentation') {
-        // Feature 5: .pptx - too complex to render, show download option
         previewContent = `<div style="text-align:center;padding:40px">
             <div style="width:80px;height:80px;border-radius:20px;background:#f9731615;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
                 <i class="fas fa-file-powerpoint" style="font-size:36px;color:#f97316"></i>
@@ -9131,14 +9218,6 @@ function openSettings() {
                     </div>
                 </div>
             </div>` : ''}
-
-            <!-- Theme Color / Accent -->
-            <div style="margin-bottom:20px">
-                <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px"><i class="fas fa-palette" style="color:var(--accent);margin-right:6px"></i>${t('themeColor') || (APP.lang==='id'?'Warna Tema':'Theme Color')}</label>
-                <div style="display:flex;gap:10px;flex-wrap:wrap">
-                    ${ACCENT_PRESETS.map(p => `<div onclick="setAccentColor('${p.color}','${p.hover}');openSettings()" style="width:32px;height:32px;border-radius:50%;background:${p.color};cursor:pointer;border:3px solid ${localStorage.getItem('rb_accent')===p.color?'var(--text)':'transparent'};transition:all .2s ease" title="${p.name}"></div>`).join('')}
-                </div>
-            </div>
 
             <!-- Language Selector -->
             <div style="margin-bottom:20px">
@@ -15526,6 +15605,7 @@ function openMediaPlayer(fileId) {
                 '<i class="fas fa-volume-down" style="color:var(--text-secondary);font-size:13px"></i>' +
                 '<input type="range" min="0" max="1" step="0.05" value="1" id="' + pid + '-vol" style="width:100px;accent-color:var(--accent)">' +
             '</div>' +
+            '<canvas id="' + pid + '-waveform" style="width:100%;height:48px;border-radius:8px;background:var(--bg-secondary)"></canvas>' +
             '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)">' +
                 '<span>' + formatSize(file.size) + ' · ' + file.name.split('.').pop().toUpperCase() + '</span>' +
                 '<span>' + formatDate(file.uploadedAt) + '</span>' +
@@ -15567,6 +15647,8 @@ function openMediaPlayer(fileId) {
                 var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
                 if (a.duration) a.currentTime = pct * a.duration;
             };
+            // F137: Initialize audio waveform visualizer
+            setTimeout(function() { renderAudioWaveform(a, pid + '-waveform'); }, 300);
         });
     }
 }
@@ -17912,6 +17994,581 @@ function submitScheduledUpload() {
     openUploadScheduleModal();
 }
 
+// ===== F126: FILE PREVIEW CAROUSEL =====
+function openPreviewCarousel(fileId) {
+    const files = getFilteredFiles().filter(f => !f.trashed);
+    const idx = files.findIndex(f => f.id === fileId);
+    APP.previewCarouselIndex = idx >= 0 ? idx : 0;
+    renderPreviewCarousel();
+}
+function renderPreviewCarousel() {
+    const files = getFilteredFiles().filter(f => !f.trashed);
+    const idx = APP.previewCarouselIndex;
+    const file = files[idx];
+    if (!file) return;
+    const isId = APP.lang === 'id';
+    const type = getFileType(file.name, file.mime);
+    const icon = getFileIcon(type);
+    const downloadUrl = APP.settings.proxyMode !== false
+        ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`
+        : `https://api.telegram.org/file/bot${APP.bots[0]?.token}/${file.filePath}`;
+    let previewContent = '';
+    if (type === 'image') {
+        previewContent = `<img src="${downloadUrl}" style="max-width:100%;max-height:55vh;border-radius:8px" alt="${file.name}" onerror="this.src='';this.alt='Failed to load'">`;
+    } else if (type === 'video') {
+        previewContent = `<video src="${downloadUrl}" controls playsinline style="max-width:100%;max-height:55vh;border-radius:8px"></video>`;
+    } else if (type === 'audio') {
+        previewContent = `<div style="text-align:center;padding:30px"><div style="width:100px;height:100px;border-radius:20px;background:linear-gradient(135deg,#f59e0b20,#8b5cf620);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-music" style="font-size:40px;color:#f59e0b"></i></div><audio src="${downloadUrl}" controls style="width:100%;margin-top:12px"></audio></div>`;
+    } else if (type === 'pdf') {
+        previewContent = `<iframe src="${downloadUrl}" style="width:100%;height:55vh;border:none;border-radius:8px"></iframe>`;
+    } else {
+        previewContent = `<div style="text-align:center;padding:40px"><div style="width:80px;height:80px;border-radius:20px;background:${icon.color}15;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas ${icon.icon}" style="font-size:36px;color:${icon.color}"></i></div><p style="color:var(--text-secondary)">${isId ? 'Pratinjau tidak tersedia' : 'Preview not available'}</p></div>`;
+    }
+    const hasPrev = idx > 0;
+    const hasNext = idx < files.length - 1;
+    openModal(`<div style="padding:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
+                <i class="fas ${icon.icon}" style="color:${icon.color}"></i>
+                <span style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</span>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center">
+                <span style="font-size:11px;color:var(--text-secondary);margin-right:4px">${idx+1}/${files.length}</span>
+                <button class="btn btn-ghost btn-sm" onclick="downloadFile('${file.id}')" aria-label="Download"><i class="fas fa-download"></i></button>
+                <button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div style="position:relative">
+            ${hasPrev ? `<button onclick="APP.previewCarouselIndex--;renderPreviewCarousel()" style="position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:var(--shadow);transition:all .15s" onmouseover="this.style.background='var(--accent)';this.style.color='#fff'" onmouseout="this.style.background='var(--bg-card)';this.style.color=''"><i class="fas fa-chevron-left" style="font-size:12px"></i></button>` : ''}
+            ${hasNext ? `<button onclick="APP.previewCarouselIndex++;renderPreviewCarousel()" style="position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:var(--shadow);transition:all .15s" onmouseover="this.style.background='var(--accent)';this.style.color='#fff'" onmouseout="this.style.background='var(--bg-card)';this.style.color=''"><i class="fas fa-chevron-right" style="font-size:12px"></i></button>` : ''}
+            ${previewContent}
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--text-secondary);display:flex;justify-content:space-between">
+            <span>${formatSize(file.size)} · ${type}</span>
+            <span>${formatDate(file.uploadedAt)}</span>
+        </div>
+        <div style="display:flex;gap:4px;justify-content:center;margin-top:10px">${files.slice(Math.max(0,idx-3),idx+4).map((f,i) => {
+            const realIdx = Math.max(0,idx-3)+i;
+            return `<div onclick="APP.previewCarouselIndex=${realIdx};renderPreviewCarousel()" style="width:${realIdx===idx?'24px':'8px'};height:8px;border-radius:4px;background:${realIdx===idx?'var(--accent)':'var(--border)'};cursor:pointer;transition:all .2s"></div>`;
+        }).join('')}</div>
+    </div>`);
+    // Keyboard navigation
+    const _carouselKey = (e) => {
+        if (e.key === 'ArrowLeft' && hasPrev) { APP.previewCarouselIndex--; renderPreviewCarousel(); }
+        else if (e.key === 'ArrowRight' && hasNext) { APP.previewCarouselIndex++; renderPreviewCarousel(); }
+        else if (e.key === 'Escape') { document.removeEventListener('keydown', _carouselKey); }
+    };
+    document.removeEventListener('keydown', window._carouselKeyHandler);
+    window._carouselKeyHandler = _carouselKey;
+    document.addEventListener('keydown', _carouselKey);
+}
+
+// ===== F127: QUICK ACTION FAB =====
+function toggleFAB() {
+    APP.fabExpanded = !APP.fabExpanded;
+    const fab = document.getElementById('quick-fab-menu');
+    if (fab) fab.style.display = APP.fabExpanded ? 'flex' : 'none';
+    const btn = document.getElementById('quick-fab-btn');
+    if (btn) { btn.innerHTML = APP.fabExpanded ? '<i class="fas fa-times"></i>' : '<i class="fas fa-plus"></i>'; btn.className = APP.fabExpanded ? 'fab-main fab-open' : 'fab-main'; }
+}
+function renderFAB() {
+    const isId = APP.lang === 'id';
+    return `<div id="quick-fab-wrap" style="position:fixed;bottom:${APP.viewMode==='mobile'?'80px':'24px'};right:24px;z-index:40">
+        <div id="quick-fab-menu" style="display:none;flex-direction:column;gap:8px;margin-bottom:12px;align-items:flex-end">
+            <div class="fab-item" onclick="triggerUpload();toggleFAB()"><span class="fab-label">${isId?'Unggah':'Upload'}</span><div class="fab-icon" style="background:#3b82f6"><i class="fas fa-cloud-arrow-up"></i></div></div>
+            <div class="fab-item" onclick="createFolderDialog();toggleFAB()"><span class="fab-label">${isId?'Folder Baru':'New Folder'}</span><div class="fab-icon" style="background:#10b981"><i class="fas fa-folder-plus"></i></div></div>
+            <div class="fab-item" onclick="openUrlUpload();toggleFAB()"><span class="fab-label">${isId?'URL Upload':'URL Upload'}</span><div class="fab-icon" style="background:#8b5cf6"><i class="fas fa-link"></i></div></div>
+            <div class="fab-item" onclick="openCameraUpload();toggleFAB()"><span class="fab-label">${isId?'Kamera':'Camera'}</span><div class="fab-icon" style="background:#f59e0b"><i class="fas fa-camera"></i></div></div>
+            <div class="fab-item" onclick="openDuplicateFinder();toggleFAB()"><span class="fab-label">${isId?'Cari Duplikat':'Find Dupes'}</span><div class="fab-icon" style="background:#ef4444"><i class="fas fa-clone"></i></div></div>
+            <div class="fab-item" onclick="openVaultModal();toggleFAB()"><span class="fab-label">${isId?'Brankas':'Vault'}</span><div class="fab-icon" style="background:#64748b"><i class="fas fa-vault"></i></div></div>
+        </div>
+        <button id="quick-fab-btn" class="fab-main" onclick="toggleFAB()" aria-label="Quick actions"><i class="fas fa-plus"></i></button>
+    </div>`;
+}
+
+// ===== F128: STORAGE BREAKDOWN PIE CHART =====
+function renderStoragePieChart() {
+    const files = APP.files.filter(f => !f.trashed);
+    const isId = APP.lang === 'id';
+    const typeConfig = [
+        { key: 'image', label: isId?'Foto':'Photos', color: '#10b981' },
+        { key: 'video', label: isId?'Video':'Videos', color: '#ef4444' },
+        { key: 'audio', label: isId?'Audio':'Audio', color: '#8b5cf6' },
+        { key: 'document', label: isId?'Dokumen':'Docs', color: '#3b82f6' },
+        { key: 'other', label: isId?'Lainnya':'Others', color: '#64748b' }
+    ];
+    const docTypes = ['document','pdf','spreadsheet','presentation','text','code'];
+    const sizes = {};
+    typeConfig.forEach(t => sizes[t.key] = 0);
+    files.forEach(f => {
+        const fType = getFileType(f.name, f.mime);
+        if (fType === 'image') sizes.image += (f.size || 0);
+        else if (fType === 'video') sizes.video += (f.size || 0);
+        else if (fType === 'audio') sizes.audio += (f.size || 0);
+        else if (docTypes.includes(fType)) sizes.document += (f.size || 0);
+        else sizes.other += (f.size || 0);
+    });
+    const total = Object.values(sizes).reduce((s,v)=>s+v,0) || 1;
+    const data = typeConfig.map(t => ({...t, size: sizes[t.key], pct: (sizes[t.key]/total*100)})).filter(t=>t.size>0);
+    // SVG Donut chart
+    const r = 50, cx = 60, cy = 60, sw = 20;
+    const circ = 2 * Math.PI * r;
+    let offset = 0;
+    const segments = data.map(d => {
+        const len = (d.pct / 100) * circ;
+        const seg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.color}" stroke-width="${sw}" stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" style="transition:all .6s ease"/>`;
+        offset += len;
+        return seg;
+    });
+    const legend = data.map(d => `<div style="display:flex;align-items:center;gap:6px;font-size:12px"><div style="width:10px;height:10px;border-radius:3px;background:${d.color}"></div><span style="flex:1;color:var(--text)">${d.label}</span><span style="color:var(--text-secondary);font-family:'JetBrains Mono',monospace">${d.pct.toFixed(1)}%</span></div>`).join('');
+    return `<div style="display:flex;gap:16px;align-items:center">
+        <svg width="120" height="120" viewBox="0 0 120 120">${segments.join('')}<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" style="font-size:13px;font-weight:700;fill:var(--text)">${formatSize(total)}</text></svg>
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px">${legend}</div>
+    </div>`;
+}
+
+// ===== F129: ACTIVITY LOG =====
+function logActivity(type, description) {
+    APP.activityLog.unshift({ type, description, timestamp: Date.now() });
+    if (APP.activityLog.length > 200) APP.activityLog = APP.activityLog.slice(0, 200);
+    localStorage.setItem('rb_activity_log', JSON.stringify(APP.activityLog));
+    APP._activityCache = APP.activityLog;
+}
+function openActivityFeed() {
+    const isId = APP.lang === 'id';
+    const log = APP.activityLog;
+    const typeConfig = {
+        upload: { icon: 'fa-cloud-arrow-up', color: '#10b981' },
+        download: { icon: 'fa-download', color: '#3b82f6' },
+        share: { icon: 'fa-share-alt', color: '#8b5cf6' },
+        delete: { icon: 'fa-trash', color: '#ef4444' },
+        rename: { icon: 'fa-pen', color: '#f59e0b' },
+        move: { icon: 'fa-arrows-alt', color: '#06b6d4' },
+        vault: { icon: 'fa-vault', color: '#64748b' },
+        encrypt: { icon: 'fa-lock', color: '#8b5cf6' },
+        login: { icon: 'fa-sign-in-alt', color: '#3b82f6' },
+        badge: { icon: 'fa-trophy', color: '#f59e0b' }
+    };
+    const items = log.length > 0 ? log.map(a => {
+        const cfg = typeConfig[a.type] || typeConfig.move;
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+            <div style="width:36px;height:36px;border-radius:10px;background:${cfg.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${cfg.icon}" style="color:${cfg.color};font-size:13px"></i></div>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.description}</div><div style="font-size:11px;color:var(--text-secondary)">${timeAgo(a.timestamp)}</div></div>
+        </div>`;
+    }).join('') : `<div style="text-align:center;padding:40px;color:var(--text-secondary)"><i class="fas fa-clock-rotate-left" style="font-size:32px;opacity:.3"></i><p style="margin-top:12px">${isId?'Belum ada aktivitas':'No activity yet'}</p></div>`;
+    openModal(`<div style="padding:20px;max-width:500px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:18px;font-weight:600"><i class="fas fa-clock-rotate-left" style="color:#10b981;margin-right:8px"></i>${isId?'Riwayat Aktivitas':'Activity Feed'}</h3>
+            <div style="display:flex;gap:6px">
+                <button class="btn btn-ghost btn-sm" onclick="APP.activityLog=[];localStorage.removeItem('rb_activity_log');openActivityFeed()"><i class="fas fa-trash"></i></button>
+                <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div style="max-height:60vh;overflow-y:auto">${items}</div>
+    </div>`);
+}
+
+// ===== F130: DUPLICATE FINDER =====
+function openDuplicateFinder() {
+    const isId = APP.lang === 'id';
+    const files = APP.files.filter(f => !f.trashed);
+    // Group by name+size
+    const groups = {};
+    files.forEach(f => {
+        const key = f.name + '_' + f.size;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(f);
+    });
+    const duplicates = Object.values(groups).filter(g => g.length > 1);
+    const totalWaste = duplicates.reduce((sum, g) => sum + (g.length - 1) * (g[0].size || 0), 0);
+    const dupHtml = duplicates.length > 0 ? duplicates.map(g => {
+        return `<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <i class="fas ${getFileIcon(getFileType(g[0].name, g[0].mime)).icon}" style="color:${getFileIcon(getFileType(g[0].name, g[0].mime)).color}"></i>
+                <span style="font-weight:600;font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${g[0].name}</span>
+                <span style="font-size:11px;color:var(--text-secondary)">${g.length} ${isId?'salinan':'copies'} · ${formatSize(g[0].size)}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">${g.map((f,i) => `<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;background:var(--bg-secondary);border-radius:6px;font-size:11px">
+                <span style="flex:1;color:var(--text-secondary)">${formatDate(f.uploadedAt)}</span>
+                ${i>0?`<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px" onclick="deleteFile('${f.id}');openDuplicateFinder()"><i class="fas fa-trash" style="color:#ef4444"></i></button>`:`<span style="font-size:10px;color:#10b981;font-weight:600">${isId?'Asli':'Original'}</span>`}
+            </div>`).join('')}</div>
+        </div>`;
+    }).join('') : `<div style="text-align:center;padding:40px;color:var(--text-secondary)"><i class="fas fa-check-circle" style="font-size:40px;color:#10b981;opacity:.5"></i><p style="margin-top:12px">${isId?'Tidak ada file duplikat':'No duplicate files found'}</p></div>`;
+    openModal(`<div style="padding:20px;max-width:500px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:18px;font-weight:600"><i class="fas fa-clone" style="color:#ef4444;margin-right:8px"></i>${isId?'Pencarian Duplikat':'Duplicate Finder'}</h3>
+            <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        ${duplicates.length > 0 ? `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="fas fa-exclamation-triangle" style="color:#ef4444"></i><span style="font-size:12px;color:var(--text)">${duplicates.length} ${isId?'kelompok duplikat':'duplicate groups'} · ${formatSize(totalWaste)} ${isId?'terbuang':'wasted'}</span></div>` : ''}
+        <div style="max-height:55vh;overflow-y:auto">${dupHtml}</div>
+    </div>`);
+}
+
+// ===== F131: MULTI-SELECT DRAG =====
+function initDragSelect() {
+    const container = document.getElementById('file-list-container');
+    if (!container) return;
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let selBox = null;
+    container.addEventListener('mousedown', e => {
+        if (e.target.closest('.file-card, .file-row, button, a, input, select')) return;
+        if (!APP.batchMode) return;
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        selBox = document.createElement('div');
+        selBox.id = 'drag-select-box';
+        selBox.style.cssText = 'position:fixed;border:2px dashed var(--accent);background:rgba(59,130,246,.08);pointer-events:none;z-index:100;border-radius:4px';
+        document.body.appendChild(selBox);
+        e.preventDefault();
+    });
+    document.addEventListener('mousemove', e => {
+        if (!isDragging || !selBox) return;
+        const x = Math.min(startX, e.clientX);
+        const y = Math.min(startY, e.clientY);
+        const w = Math.abs(e.clientX - startX);
+        const h = Math.abs(e.clientY - startY);
+        selBox.style.left = x + 'px';
+        selBox.style.top = y + 'px';
+        selBox.style.width = w + 'px';
+        selBox.style.height = h + 'px';
+        // Select files within the box
+        const box = selBox.getBoundingClientRect();
+        document.querySelectorAll('.file-card, .file-row').forEach(el => {
+            const r = el.getBoundingClientRect();
+            const overlap = !(r.right < box.left || r.left > box.right || r.bottom < box.top || r.top > box.bottom);
+            const fid = el.dataset.fileId;
+            if (overlap && fid) APP.selectedFiles.add(fid);
+            else if (fid) APP.selectedFiles.delete(fid);
+            el.classList.toggle('selected', overlap && !!fid);
+        });
+    });
+    document.addEventListener('mouseup', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        if (selBox) { selBox.remove(); selBox = null; }
+        updateBatchUI();
+    });
+}
+
+// ===== F132: FILE DROP LINK =====
+function openFileDropLinkModal() {
+    const isId = APP.lang === 'id';
+    const links = APP.fileDropLinks || [];
+    const linksHtml = links.length > 0 ? links.map(l => {
+        return `<div style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px">
+            <i class="fas fa-cloud-arrow-up" style="color:#3b82f6"></i>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.name}</div><div style="font-size:11px;color:var(--text-secondary)">${l.uploads || 0} ${isId?'upload':'uploads'} · ${l.expiresAt ? formatDate(l.expiresAt) : (isId?'Tanpa batas':'No expiry')}</div></div>
+            <button class="btn btn-ghost btn-sm" onclick="copyToClipboard('${location.origin}/#/drop/${l.token}')"><i class="fas fa-copy"></i></button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteFileDropLink('${l.token}');openFileDropLinkModal()"><i class="fas fa-trash" style="color:#ef4444"></i></button>
+        </div>`;
+    }).join('') : `<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:12px">${isId?'Belum ada link drop':'No drop links yet'}</div>`;
+    openModal(`<div style="padding:20px;max-width:480px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:18px;font-weight:600"><i class="fas fa-cloud-arrow-up" style="color:#3b82f6;margin-right:8px"></i>${isId?'Link Upload Masuk':'File Drop Link'}</h3>
+            <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">${isId?'Buat link untuk orang lain upload file ke akun kamu tanpa perlu login':'Create a link for others to upload files to your account without logging in'}</p>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+            <input id="drop-link-name" class="input" style="flex:1" placeholder="${isId?'Nama link (opsional)':'Link name (optional)'}">
+            <button class="btn btn-primary btn-sm" onclick="createFileDropLink()"><i class="fas fa-plus"></i> ${isId?'Buat':'Create'}</button>
+        </div>
+        <div style="max-height:40vh;overflow-y:auto">${linksHtml}</div>
+    </div>`);
+}
+function createFileDropLink() {
+    const nameEl = document.getElementById('drop-link-name');
+    const name = nameEl ? nameEl.value.trim() : '';
+    const isId = APP.lang === 'id';
+    const token = genId();
+    const link = { token, name: name || (isId ? 'Upload Link' : 'Upload Link'), uploads: 0, createdAt: Date.now(), expiresAt: null };
+    APP.fileDropLinks.push(link);
+    localStorage.setItem('rb_drop_links', JSON.stringify(APP.fileDropLinks));
+    const url = `${location.origin}/#/drop/${token}`;
+    copyToClipboard(url);
+    showToast(isId ? 'Link dibuat & disalin!' : 'Link created & copied!', 'success');
+    openFileDropLinkModal();
+}
+function deleteFileDropLink(token) {
+    APP.fileDropLinks = APP.fileDropLinks.filter(l => l.token !== token);
+    localStorage.setItem('rb_drop_links', JSON.stringify(APP.fileDropLinks));
+}
+
+// ===== F133: HIDDEN VAULT =====
+function openVaultModal() {
+    const isId = APP.lang === 'id';
+    if (!APP.vaultPin) {
+        openModal(`<div style="padding:20px;max-width:400px">
+            <div style="text-align:center;margin-bottom:20px"><div style="width:80px;height:80px;border-radius:20px;background:rgba(100,116,139,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-vault" style="font-size:36px;color:#64748b"></i></div><h3 style="font-size:18px;font-weight:600">${isId?'Buat Brankas':'Create Vault'}</h3><p style="font-size:12px;color:var(--text-secondary);margin-top:4px">${isId?'Buat PIN untuk mengamankan file rahasia':'Create a PIN to secure your secret files'}</p></div>
+            <input id="vault-pin-setup" type="password" maxlength="6" class="input" style="text-align:center;font-size:24px;letter-spacing:8px" placeholder="●●●●●●" oninput="if(this.value.length===6)document.getElementById('vault-pin-confirm').focus()">
+            <input id="vault-pin-confirm" type="password" maxlength="6" class="input" style="text-align:center;font-size:24px;letter-spacing:8px;margin-top:8px" placeholder="${isId?'Konfirmasi PIN':'Confirm PIN'}">
+            <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="setupVaultPin()"><i class="fas fa-lock"></i> ${isId?'Buat Brankas':'Create Vault'}</button>
+        </div>`);
+    } else if (!APP.vaultUnlocked) {
+        openModal(`<div style="padding:20px;max-width:400px">
+            <div style="text-align:center;margin-bottom:20px"><div style="width:80px;height:80px;border-radius:20px;background:rgba(100,116,139,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-vault" style="font-size:36px;color:#64748b"></i></div><h3 style="font-size:18px;font-weight:600">${isId?'Buka Brankas':'Unlock Vault'}</h3><p style="font-size:12px;color:var(--text-secondary);margin-top:4px">${isId?'Masukkan PIN brankas':'Enter vault PIN'}</p></div>
+            <input id="vault-pin-input" type="password" maxlength="6" class="input" style="text-align:center;font-size:24px;letter-spacing:8px" placeholder="●●●●●●" onkeydown="if(event.key==='Enter')unlockVault()">
+            <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="unlockVault()"><i class="fas fa-unlock"></i> ${isId?'Buka':'Unlock'}</button>
+        </div>`);
+    } else {
+        showVaultContents();
+    }
+}
+function setupVaultPin() {
+    const pin = document.getElementById('vault-pin-setup').value;
+    const confirm = document.getElementById('vault-pin-confirm').value;
+    const isId = APP.lang === 'id';
+    if (pin.length < 4) { showToast(isId?'PIN minimal 4 digit':'PIN must be at least 4 digits', 'error'); return; }
+    if (pin !== confirm) { showToast(isId?'PIN tidak cocok':'PINs do not match', 'error'); return; }
+    APP.vaultPin = pin;
+    localStorage.setItem('rb_vault_pin', pin);
+    APP.vaultUnlocked = true;
+    showToast(isId?'Brankas dibuat!':'Vault created!', 'success');
+    logActivity('vault', isId?'Brankas dibuat':'Vault created');
+    showVaultContents();
+}
+function unlockVault() {
+    const pin = document.getElementById('vault-pin-input').value;
+    const isId = APP.lang === 'id';
+    if (pin === APP.vaultPin) {
+        APP.vaultUnlocked = true;
+        showToast(isId?'Brankas terbuka!':'Vault unlocked!', 'success');
+        showVaultContents();
+    } else {
+        showToast(isId?'PIN salah!':'Wrong PIN!', 'error');
+    }
+}
+function showVaultContents() {
+    const isId = APP.lang === 'id';
+    const vaultFiles = APP.vaultFiles.map(vf => {
+        const f = APP.files.find(x => x.id === vf.fileId);
+        if (!f) return null;
+        const type = getFileType(f.name, f.mime);
+        const icon = getFileIcon(type);
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px">
+            <i class="fas ${icon.icon}" style="color:${icon.color}"></i>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</div><div style="font-size:11px;color:var(--text-secondary)">${formatSize(f.size)}</div></div>
+            <button class="btn btn-ghost btn-sm" onclick="removeFromVault('${f.id}');showVaultContents()"><i class="fas fa-unlock" style="color:#10b981"></i></button>
+        </div>`;
+    }).filter(Boolean);
+    openModal(`<div style="padding:20px;max-width:480px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:18px;font-weight:600"><i class="fas fa-vault" style="color:#64748b;margin-right:8px"></i>${isId?'Brankas Rahasia':'Secret Vault'}</h3>
+            <button class="btn btn-ghost btn-sm" onclick="APP.vaultUnlocked=false;closeModal()"><i class="fas fa-lock"></i></button>
+        </div>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">${isId?'File di brankas tersembunyi dari daftar file biasa':'Files in vault are hidden from the regular file list'}</p>
+        <div style="max-height:50vh;overflow-y:auto">${vaultFiles.length > 0 ? vaultFiles.join('') : `<div style="text-align:center;padding:30px;color:var(--text-secondary)"><i class="fas fa-vault" style="font-size:32px;opacity:.3"></i><p style="margin-top:8px">${isId?'Brankas kosong':'Vault is empty'}</p><p style="font-size:11px">${isId?'Klik kanan file → Pindah ke Brankas':'Right-click file → Move to Vault'}</p></div>`}</div>
+    </div>`);
+}
+function moveToVault(fileId) {
+    const isId = APP.lang === 'id';
+    if (!APP.vaultPin) { openVaultModal(); return; }
+    if (!APP.vaultUnlocked) { openVaultModal(); return; }
+    if (APP.vaultFiles.some(v => v.fileId === fileId)) return;
+    APP.vaultFiles.push({ fileId, addedAt: Date.now() });
+    localStorage.setItem('rb_vault_files', JSON.stringify(APP.vaultFiles));
+    logActivity('vault', isId?'File dipindah ke brankas':'File moved to vault');
+    showToast(isId?'File dipindah ke brankas':'File moved to vault', 'success');
+    renderFileList();
+}
+function removeFromVault(fileId) {
+    APP.vaultFiles = APP.vaultFiles.filter(v => v.fileId !== fileId);
+    localStorage.setItem('rb_vault_files', JSON.stringify(APP.vaultFiles));
+    renderFileList();
+}
+function isFileInVault(fileId) {
+    return APP.vaultPin && APP.vaultFiles.some(v => v.fileId === fileId);
+}
+
+// ===== F134: SELF-DESTRUCT FOLDER =====
+function openSelfDestructSetup(folderId) {
+    const isId = APP.lang === 'id';
+    const sd = APP.selfDestructFolders[folderId] || {};
+    openModal(`<div style="padding:20px;max-width:400px">
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:16px"><i class="fas fa-bomb" style="color:#ef4444;margin-right:8px"></i>${isId?'Auto-Hapus Folder':'Self-Destruct Folder'}</h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">${isId?'File di folder ini akan otomatis dihapus setelah waktu yang ditentukan':'Files in this folder will auto-delete after the set time'}</p>
+        <label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px">${isId?'Hapus setelah':'Delete after'}</label>
+        <select id="sd-interval" class="input" style="width:100%">
+            <option value="0" ${!sd.interval?'selected':''}>${isId?'Nonaktif':'Disabled'}</option>
+            <option value="1" ${sd.interval==='1'?'selected':''}>1 ${isId?'hari':'day'}</option>
+            <option value="7" ${sd.interval==='7'?'selected':''}>7 ${isId?'hari':'days'}</option>
+            <option value="30" ${sd.interval==='30'?'selected':''}>30 ${isId?'hari':'days'}</option>
+            <option value="90" ${sd.interval==='90'?'selected':''}>90 ${isId?'hari':'days'}</option>
+        </select>
+        <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="saveSelfDestruct('${folderId}')"><i class="fas fa-save"></i> ${isId?'Simpan':'Save'}</button>
+    </div>`);
+}
+function saveSelfDestruct(folderId) {
+    const interval = document.getElementById('sd-interval').value;
+    const isId = APP.lang === 'id';
+    if (interval === '0') {
+        delete APP.selfDestructFolders[folderId];
+    } else {
+        APP.selfDestructFolders[folderId] = { interval: parseInt(interval), setAt: Date.now() };
+    }
+    localStorage.setItem('rb_sd_folders', JSON.stringify(APP.selfDestructFolders));
+    showToast(isId?'Pengaturan disimpan':'Settings saved', 'success');
+    closeModal();
+}
+function checkSelfDestructFolders() {
+    const now = Date.now();
+    Object.entries(APP.selfDestructFolders).forEach(([folderId, config]) => {
+        if (!config.interval) return;
+        const ms = config.interval * 24 * 60 * 60 * 1000;
+        const files = APP.files.filter(f => !f.trashed && f.folderId === folderId);
+        files.forEach(f => {
+            const age = now - (f.uploadedAt || 0);
+            if (age > ms) {
+                f.trashed = true;
+                f.trashedAt = Date.now();
+                logActivity('delete', `Auto-delete: ${f.name}`);
+            }
+        });
+    });
+    saveFiles();
+}
+
+// ===== F135: FAKE FOLDER =====
+function openFakeFolderSetup(folderId) {
+    const isId = APP.lang === 'id';
+    const ff = APP.fakeFolders[folderId] || {};
+    openModal(`<div style="padding:20px;max-width:400px">
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:16px"><i class="fas fa-user-secret" style="color:#64748b;margin-right:8px"></i>${isId?'Folder Palsu':'Fake Folder'}</h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">${isId?'Folder akan terlihat kosong jika dibuka tanpa PIN rahasia':'Folder will appear empty when opened without the secret PIN'}</p>
+        <input id="fake-pin-input" type="password" maxlength="6" class="input" placeholder="${isId?'PIN Rahasia (4-6 digit)':'Secret PIN (4-6 digits)'}" value="${ff.pin||''}">
+        <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="saveFakeFolder('${folderId}')"><i class="fas fa-save"></i> ${isId?'Simpan':'Save'}</button>
+    </div>`);
+}
+function saveFakeFolder(folderId) {
+    const pin = document.getElementById('fake-pin-input').value;
+    const isId = APP.lang === 'id';
+    if (pin.length < 4) { showToast(isId?'PIN minimal 4 digit':'PIN must be at least 4 digits', 'error'); return; }
+    APP.fakeFolders[folderId] = { pin };
+    localStorage.setItem('rb_fake_folders', JSON.stringify(APP.fakeFolders));
+    showToast(isId?'Folder palsu diaktifkan':'Fake folder enabled', 'success');
+    closeModal();
+}
+function isFakeFolderProtected(folderId) {
+    return !!APP.fakeFolders[folderId];
+}
+function unlockFakeFolder(folderId) {
+    const isId = APP.lang === 'id';
+    const pin = prompt(isId ? 'Masukkan PIN folder:' : 'Enter folder PIN:');
+    if (pin === APP.fakeFolders[folderId]?.pin) {
+        APP._fakeFolderUnlocked = APP._fakeFolderUnlocked || new Set();
+        APP._fakeFolderUnlocked.add(folderId);
+        selectFolder(folderId);
+    } else {
+        showToast(isId?'PIN salah!':'Wrong PIN!', 'error');
+    }
+}
+
+// ===== F136: STORAGE ACHIEVEMENT BADGES =====
+const BADGE_DEFINITIONS = [
+    { id: 'first_upload', icon: 'fa-cloud-arrow-up', color: '#3b82f6', nameId: 'Upload Pertama', nameEn: 'First Upload', check: () => APP.files.length >= 1 },
+    { id: 'ten_files', icon: 'fa-folder-open', color: '#10b981', nameId: '10 File', nameEn: '10 Files', check: () => APP.files.filter(f=>!f.trashed).length >= 10 },
+    { id: 'fifty_files', icon: 'fa-box-archive', color: '#8b5cf6', nameId: '50 File', nameEn: '50 Files', check: () => APP.files.filter(f=>!f.trashed).length >= 50 },
+    { id: 'hundred_files', icon: 'fa-trophy', color: '#f59e0b', nameId: '100 File', nameEn: '100 Files', check: () => APP.files.filter(f=>!f.trashed).length >= 100 },
+    { id: 'first_share', icon: 'fa-share-alt', color: '#ec4899', nameId: 'Bagikan Pertama', nameEn: 'First Share', check: () => APP.shares.length >= 1 },
+    { id: 'power_sharer', icon: 'fa-share-nodes', color: '#f97316', nameId: 'Power Sharer', nameEn: 'Power Sharer', check: () => APP.shares.length >= 10 },
+    { id: 'storage_100mb', icon: 'fa-hard-drive', color: '#06b6d4', nameId: '100MB Terpakai', nameEn: '100MB Used', check: () => APP.files.filter(f=>!f.trashed).reduce((s,f)=>s+(f.size||0),0) >= 100*1024*1024 },
+    { id: 'storage_1gb', icon: 'fa-database', color: '#ef4444', nameId: '1GB Terpakai', nameEn: '1GB Used', check: () => APP.files.filter(f=>!f.trashed).reduce((s,f)=>s+(f.size||0),0) >= 1024*1024*1024 },
+    { id: 'first_encrypt', icon: 'fa-lock', color: '#8b5cf6', nameId: 'Enkripsi Pertama', nameEn: 'First Encryption', check: () => APP.files.some(f=>f.encrypted) },
+    { id: 'vault_user', icon: 'fa-vault', color: '#64748b', nameId: 'Pengguna Brankas', nameEn: 'Vault User', check: () => !!APP.vaultPin },
+    { id: 'week_streak', icon: 'fa-fire', color: '#f97316', nameId: 'Streak 7 Hari', nameEn: '7-Day Streak', check: () => { const log = APP.activityLog; if (log.length < 7) return false; const days = new Set(log.slice(0,50).map(a => new Date(a.timestamp).toDateString())); return days.size >= 7; } }
+];
+function checkAndAwardBadges() {
+    const isId = APP.lang === 'id';
+    let newBadge = false;
+    BADGE_DEFINITIONS.forEach(b => {
+        if (!APP.achievementBadges[b.id] && b.check()) {
+            APP.achievementBadges[b.id] = { earnedAt: Date.now() };
+            newBadge = true;
+            logActivity('badge', `${isId?'Badge diraih: ':'Badge earned: '}${isId?b.nameId:b.nameEn}`);
+        }
+    });
+    if (newBadge) {
+        localStorage.setItem('rb_badges', JSON.stringify(APP.achievementBadges));
+    }
+}
+function openBadgeShowcase() {
+    const isId = APP.lang === 'id';
+    const badgesHtml = BADGE_DEFINITIONS.map(b => {
+        const earned = !!APP.achievementBadges[b.id];
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;${earned?'background:var(--bg-card);border:1px solid var(--border)':'background:var(--bg-secondary);opacity:.4'}">
+            <div style="width:40px;height:40px;border-radius:10px;background:${earned?b.color+'15':'var(--border)'};display:flex;align-items:center;justify-content:center"><i class="fas ${b.icon}" style="color:${earned?b.color:'var(--text-secondary)'};font-size:16px"></i></div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:${earned?'600':'400'};color:${earned?'var(--text)':'var(--text-secondary)'}">${isId?b.nameId:b.nameEn}</div><div style="font-size:10px;color:var(--text-secondary)">${earned?formatDate(APP.achievementBadges[b.id].earnedAt):(isId?'Belum diraih':'Not earned')}</div></div>
+            ${earned?'<i class="fas fa-check-circle" style="color:#10b981"></i>':''}
+        </div>`;
+    }).join('');
+    const earnedCount = Object.keys(APP.achievementBadges).length;
+    openModal(`<div style="padding:20px;max-width:480px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:18px;font-weight:600"><i class="fas fa-trophy" style="color:#f59e0b;margin-right:8px"></i>${isId?'Pencapaian':'Achievements'}</h3>
+            <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="text-align:center;margin-bottom:16px;padding:16px;background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(139,92,246,.05));border-radius:12px">
+            <div style="font-size:36px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--accent)">${earnedCount}/${BADGE_DEFINITIONS.length}</div>
+            <div style="font-size:12px;color:var(--text-secondary)">${isId?'Pencapaian diraih':'Badges earned'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto">${badgesHtml}</div>
+    </div>`);
+}
+
+// ===== F137: AUDIO WAVEFORM VISUALIZER =====
+function renderAudioWaveform(audioEl, containerId) {
+    const canvas = document.getElementById(containerId);
+    if (!canvas || !audioEl) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width = canvas.offsetWidth || 300;
+    const H = canvas.height = canvas.offsetHeight || 60;
+    const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3b82f6';
+    // Fetch audio data for waveform
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaElementSource(audioEl);
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        function draw() {
+            requestAnimationFrame(draw);
+            analyser.getByteFrequencyData(dataArray);
+            ctx.clearRect(0, 0, W, H);
+            const barW = Math.max(2, W / bufferLength);
+            let x = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 255;
+                const barH = Math.max(2, v * H);
+                ctx.fillStyle = accentColor;
+                ctx.globalAlpha = 0.3 + v * 0.7;
+                ctx.fillRect(x, H - barH, barW - 1, barH);
+                x += barW;
+            }
+            ctx.globalAlpha = 1;
+        }
+        draw();
+    } catch(e) {
+        // Fallback: static bars
+        ctx.fillStyle = accentColor;
+        for (let i = 0; i < 40; i++) {
+            const h = Math.random() * H * 0.6 + H * 0.1;
+            ctx.globalAlpha = 0.3 + Math.random() * 0.4;
+            ctx.fillRect(i * (W/40), H - h, W/40 - 1, h);
+        }
+        ctx.globalAlpha = 1;
+    }
+}
+
+// ===== HELPER: Save files to IndexedDB =====
+function saveFiles() {
+    if (typeof saveAllData === 'function') saveAllData();
+    else if (typeof saveToDB === 'function') saveToDB();
+}
+
 // ===== INIT ALL NEW FEATURES =====
 function initNewFeatures() {
     // Init Transfer Queue
@@ -17926,6 +18583,19 @@ function initNewFeatures() {
 
     // Setup upload scheduler
     setupUploadScheduler();
+
+    // Init drag select
+    initDragSelect();
+
+    // Check badges on init
+    checkAndAwardBadges();
+
+    // Check self-destruct folders every 10 minutes
+    setInterval(checkSelfDestructFolders, 600000);
+    checkSelfDestructFolders();
+
+    // Activity log preload
+    if (!APP._activityCache) APP._activityCache = APP.activityLog;
 
     // Apply automation rules on new file uploads (hook into existing upload flow)
     const _origHandleFileSelect = handleFileSelect;
