@@ -2099,168 +2099,102 @@ function renderAuthPage() {
     // Hide header on auth page
     const header = document.getElementById('app-header');
     if (header) header.style.display = 'none';
-    
-    // Quotes for brand section
-    const authQuotes = isId ? [
-        `"File Anda, aturan Anda." — <span>RidgeBox</span>`,
-        `"3.200+ pengguna percaya pada RidgeBox"`,
-        `"Keamanan militer, harga nol rupiah." — <span>RidgeBox</span>`,
-        `"Upload 100MB dalam ~3 detik" — <span>RidgeBox</span>`,
-        `"105 fitur gratis, tanpa hidden cost." — <span>RidgeBox</span>`,
-        `"Cloud storage yang menghormati privasi Anda." — <span>RidgeBox</span>`,
-    ] : [
-        `"Your files, your rules." — <span>RidgeBox</span>`,
-        `"3,200+ users trust RidgeBox"`,
-        `"Military-grade security, zero cost." — <span>RidgeBox</span>`,
-        `"Upload 100MB in ~3 seconds" — <span>RidgeBox</span>`,
-        `"105 features free, no hidden costs." — <span>RidgeBox</span>`,
-        `"Cloud storage that respects your privacy." — <span>RidgeBox</span>`,
-    ];
-    const randomQuote = authQuotes[Math.floor(Math.random() * authQuotes.length)];
-    
-    // Generate floating particles for left side
-    const particleIcons = ['fa-cloud','fa-file','fa-shield-halved','fa-lock','fa-upload','fa-folder','fa-globe','fa-bolt'];
-    let particlesHTML = '';
-    for (let i = 0; i < 14; i++) {
-        const icon = particleIcons[i % particleIcons.length];
-        const left = Math.random() * 100;
-        const size = 14 + Math.random() * 18;
-        const dur = 12 + Math.random() * 20;
-        const delay = Math.random() * dur;
-        particlesHTML += `<i class="fas ${icon} auth-form-particle" style="left:${left}%;font-size:${size}px;animation-duration:${dur}s;animation-delay:-${delay}s"></i>`;
-    }
-
-    // Brand features for left panel
-    const brandFeatures = [
-        { icon: 'fa-infinity', color: '#3b82f6', bg: 'rgba(59,130,246,.15)', title: isId ? 'Storage Unlimited' : 'Unlimited Storage', desc: isId ? 'Simpan sebanyak apapun tanpa batas kuota' : 'Store as much as you want without limits' },
-        { icon: 'fa-shield-halved', color: '#10b981', bg: 'rgba(16,185,129,.15)', title: isId ? 'Enkripsi End-to-End' : 'End-to-End Encryption', desc: isId ? 'AES-256-GCM melindungi semua file Anda' : 'AES-256-GCM protects all your files' },
-        { icon: 'fa-bolt', color: '#f59e0b', bg: 'rgba(245,158,11,.15)', title: isId ? 'Upload Super Cepat' : 'Lightning Fast Upload', desc: isId ? '100MB dalam ~3 detik dengan progress real-time' : '100MB in ~3 seconds with real-time progress' },
-        { icon: 'fa-share-nodes', color: '#8b5cf6', bg: 'rgba(139,92,246,.15)', title: isId ? 'Bagikan dengan Aman' : 'Share Securely', desc: isId ? 'Link dengan password, expiry, dan self-destruct' : 'Links with password, expiry, and self-destruct' },
-    ];
 
     const main = document.getElementById('app-main');
     if (!main) return;
     
     main.innerHTML = `
-    <div class="auth-fullpage fade-in">
-        <!-- LEFT: Brand Panel (dark aurora) -->
-        <div class="auth-fullpage-left">
-            <div class="auth-form-particles">${particlesHTML}</div>
-            <div class="auth-brand-section">
-                <div class="auth-brand-logo"><img src="/logo-icon.png" alt="RidgeBox"/></div>
-                <div class="auth-brand-title">Ridge<span>Box</span></div>
-                <div class="auth-brand-subtitle">${isId ? 'Cloud storage gratis, unlimited, dan terenkripsi. Simpan file Anda tanpa batas.' : 'Free, unlimited, encrypted cloud storage. Store your files without limits.'}</div>
-                <div class="auth-brand-features">
-                    ${brandFeatures.map(f => `
-                    <div class="auth-brand-feature">
-                        <div class="auth-brand-feature-icon" style="background:${f.bg};color:${f.color}"><i class="fas ${f.icon}"></i></div>
-                        <div class="auth-brand-feature-text"><strong>${f.title}</strong>${f.desc}</div>
-                    </div>`).join('')}
-                </div>
-                <div class="auth-brand-quote" id="auth-quote">${randomQuote}</div>
-            </div>
-        </div>
-        
-        <!-- RIGHT: Form Panel -->
-        <div class="auth-fullpage-right">
+    <div class="auth-fullpage fade-in" style="background:var(--bg)">
+        <div class="auth-form-section" style="position:relative">
             <button class="auth-form-theme-toggle" onclick="toggleAuthTheme()" title="${isId ? 'Ganti tema' : 'Toggle theme'}" aria-label="Toggle theme"><i class="fas fa-${isDark ? 'sun' : 'moon'}" aria-hidden="true"></i></button>
-            <div class="auth-form-section">
-                <button class="auth-form-back" onclick="closeAuthOverlay()" aria-label="Go back"><i class="fas fa-arrow-left" aria-hidden="true"></i> ${isId ? 'Kembali' : 'Back'}</button>
-                
-                <div class="auth-form-header">
-                    <div class="auth-form-logo"><img src="/logo-icon.png" alt="RidgeBox"/></div>
-                    <div class="auth-form-title">${isForgot ? (isId ? 'Reset Kata Sandi' : 'Reset Password') : (isLogin ? t('authWelcomeBack') : t('authCreateAccount'))}</div>
-                    <div class="auth-form-subtitle">${isForgot ? (isId ? 'Masukkan email untuk reset kata sandi' : 'Enter your email to reset password') : (isLogin ? t('authLoginDesc') : t('authRegisterDesc'))}</div>
+            <button class="auth-form-back" onclick="closeAuthOverlay()" aria-label="Go back"><i class="fas fa-arrow-left" aria-hidden="true"></i> ${isId ? 'Kembali' : 'Back'}</button>
+            
+            <div class="auth-form-header">
+                <div class="auth-form-logo"><img src="/logo-icon.png" alt="RidgeBox"/></div>
+                <div class="auth-form-title">${isForgot ? (isId ? 'Reset Kata Sandi' : 'Reset Password') : (isLogin ? t('authWelcomeBack') : t('authCreateAccount'))}</div>
+                <div class="auth-form-subtitle">${isForgot ? (isId ? 'Masukkan email untuk reset kata sandi' : 'Enter your email to reset password') : (isLogin ? t('authLoginDesc') : t('authRegisterDesc'))}</div>
+            </div>
+
+            <div id="auth-error" class="auth-form-error"><i class="fas fa-exclamation-circle"></i><span id="auth-error-text"></span></div>
+            <div id="auth-success" class="auth-form-success"><i class="fas fa-check-circle"></i><span id="auth-success-text"></span></div>
+
+            ${isForgot ? `
+                <div class="auth-form-input-group">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <label for="auth-email" class="sr-only">Email</label>
+                    <input type="email" id="auth-email" class="auth-form-input" placeholder="${t('authEmail')}" autocomplete="email">
                 </div>
-
-                <div id="auth-error" class="auth-form-error"><i class="fas fa-exclamation-circle"></i><span id="auth-error-text"></span></div>
-                <div id="auth-success" class="auth-form-success"><i class="fas fa-check-circle"></i><span id="auth-success-text"></span></div>
-
-                ${isForgot ? `
+                <button id="auth-submit" class="auth-form-btn auth-form-btn-primary" onclick="handleForgotPassword()">
+                    ${t('authSendReset')}
+                </button>
+                <div class="auth-form-switch" style="margin-top:16px">
+                    <button onclick="_authMode='login';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authBackToLogin')}</button>
+                </div>
+            ` : `
+                ${isLogin ? '' : `
                     <div class="auth-form-input-group">
-                        <i class="fas fa-envelope input-icon"></i>
-                        <label for="auth-email" class="sr-only">Email</label>
-                        <input type="email" id="auth-email" class="auth-form-input" placeholder="${t('authEmail')}" autocomplete="email">
+                        <i class="fas fa-user input-icon"></i>
+                        <label for="auth-name" class="sr-only">Full Name</label>
+                        <input type="text" id="auth-name" class="auth-form-input" placeholder="${isId ? 'Nama Lengkap' : 'Full Name'}" autocomplete="name">
                     </div>
-                    <button id="auth-submit" class="auth-form-btn auth-form-btn-primary" onclick="handleForgotPassword()">
-                        <i class="fas fa-paper-plane"></i> ${t('authSendReset')}
-                    </button>
-                    <div class="auth-form-switch" style="margin-top:16px">
-                        <button onclick="_authMode='login';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authBackToLogin')}</button>
-                    </div>
-                ` : `
-                    ${isLogin ? '' : `
-                        <div class="auth-form-input-group">
-                            <i class="fas fa-user input-icon"></i>
-                            <label for="auth-name" class="sr-only">Full Name</label>
-                            <input type="text" id="auth-name" class="auth-form-input" placeholder="${isId ? 'Nama Lengkap' : 'Full Name'}" autocomplete="name">
-                        </div>
-                    `}
-                    <div class="auth-form-input-group">
-                        <i class="fas fa-envelope input-icon"></i>
-                        <label for="auth-email" class="sr-only">Email</label>
-                        <input type="email" id="auth-email" class="auth-form-input" placeholder="${t('authEmail')}" autocomplete="email">
+                `}
+                <div class="auth-form-input-group">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <label for="auth-email" class="sr-only">Email</label>
+                    <input type="email" id="auth-email" class="auth-form-input" placeholder="${t('authEmail')}" autocomplete="email">
+                </div>
+                <div class="auth-form-input-group">
+                    <i class="fas fa-lock input-icon"></i>
+                    <label for="auth-password" class="sr-only">Password</label>
+                    <input type="password" id="auth-password" class="auth-form-input" placeholder="${t('authPassword')}" autocomplete="${isLogin ? 'current-password' : 'new-password'}" oninput="onPasswordInput(this)">
+                    <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-password',this)" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                </div>
+                ${!isLogin ? `
+                    <div class="auth-form-strength" id="auth-strength">
+                        <div class="auth-form-strength-bar"><div class="auth-form-strength-fill" id="auth-strength-fill"></div></div>
+                        <div class="auth-form-strength-label"><span id="auth-strength-text"></span></div>
                     </div>
                     <div class="auth-form-input-group">
                         <i class="fas fa-lock input-icon"></i>
-                        <label for="auth-password" class="sr-only">Password</label>
-                        <input type="password" id="auth-password" class="auth-form-input" placeholder="${t('authPassword')}" autocomplete="${isLogin ? 'current-password' : 'new-password'}" oninput="onPasswordInput(this)">
-                        <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-password',this)" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                        <label for="auth-confirm-password" class="sr-only">Confirm Password</label>
+                        <input type="password" id="auth-confirm-password" class="auth-form-input" placeholder="${t('authConfirmPassword')}" autocomplete="new-password">
+                        <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-confirm-password',this)" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
                     </div>
-                    ${!isLogin ? `
-                        <div class="auth-form-strength" id="auth-strength">
-                            <div class="auth-form-strength-bar"><div class="auth-form-strength-fill" id="auth-strength-fill"></div></div>
-                            <div class="auth-form-strength-label"><span id="auth-strength-text"></span></div>
-                        </div>
-                        <div class="auth-form-input-group">
-                            <i class="fas fa-lock input-icon"></i>
-                            <label for="auth-confirm-password" class="sr-only">Confirm Password</label>
-                            <input type="password" id="auth-confirm-password" class="auth-form-input" placeholder="${t('authConfirmPassword')}" autocomplete="new-password">
-                            <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-confirm-password',this)" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
-                        </div>
-                    ` : ''}
-                    
-                    ${isLogin ? `
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                            <div class="auth-form-remember">
-                                <input type="checkbox" id="auth-remember" checked>
-                                <label for="auth-remember">${isId ? 'Ingat saya' : 'Remember me'}</label>
-                            </div>
-                            <div class="auth-form-forgot" style="margin-bottom:0"><button onclick="_authMode='forgot';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authForgotPassword')}</button></div>
-                        </div>
-                    ` : ''}
-                    
-                    <button id="auth-submit" class="auth-form-btn auth-form-btn-primary" onclick="${isLogin ? 'handleLogin()' : 'handleRegister()'}">
-                        <i class="fas fa-${isLogin ? 'sign-in-alt' : 'user-plus'}"></i>
-                        ${isLogin ? t('authLogin') : t('authRegister')}
-                    </button>
-
-                    <div class="auth-form-trust">
-                        <div class="auth-form-trust-badge"><i class="fas fa-shield-halved" style="color:#10b981"></i> AES-256</div>
-                        <div class="auth-form-trust-badge"><i class="fas fa-lock" style="color:#3b82f6"></i> ${isId ? 'Enkripsi E2E' : 'E2E Encrypted'}</div>
-                        <div class="auth-form-trust-badge"><i class="fas fa-bolt" style="color:#f59e0b"></i> 105+ ${isId ? 'Fitur' : 'Features'}</div>
-                    </div>
-
-                    <div class="auth-form-divider">${t('authOr')}</div>
-
-                    <button class="auth-form-btn auth-form-btn-google" onclick="handleGoogleLogin()" aria-label="Sign in with Google">
-                        <i class="fab fa-google"></i> ${t('authGoogle')}
-                    </button>
-
-                    <div class="auth-form-switch">
-                        ${isLogin ? `${t('authNoAccount')} <button onclick="_authMode='register';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authRegister')}</button>` : `${t('authHasAccount')} <button onclick="_authMode='login';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authLogin')}</button>`}
-                    </div>
-                `}
+                ` : ''}
                 
-                <div class="auth-form-terms">${t('authTerms')}</div>
-            </div>
+                ${isLogin ? `
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                        <div class="auth-form-remember">
+                            <input type="checkbox" id="auth-remember" checked>
+                            <label for="auth-remember">${isId ? 'Ingat saya' : 'Remember me'}</label>
+                        </div>
+                        <div class="auth-form-forgot" style="margin-bottom:0"><button onclick="_authMode='forgot';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authForgotPassword')}</button></div>
+                    </div>
+                ` : ''}
+                
+                <button id="auth-submit" class="auth-form-btn auth-form-btn-primary" onclick="${isLogin ? 'handleLogin()' : 'handleRegister()'}">
+                    ${isLogin ? t('authLogin') : t('authRegister')}
+                </button>
+
+                <div class="auth-form-divider">${t('authOr')}</div>
+
+                <button class="auth-form-btn auth-form-btn-google" onclick="handleGoogleLogin()" aria-label="Sign in with Google">
+                    <i class="fab fa-google"></i> ${t('authGoogle')}
+                </button>
+
+                <div class="auth-form-switch">
+                    ${isLogin ? `${t('authNoAccount')} <button onclick="_authMode='register';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authRegister')}</button>` : `${t('authHasAccount')} <button onclick="_authMode='login';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authLogin')}</button>`}
+                </div>
+            `}
+            
+            <div class="auth-form-terms">${t('authTerms')}</div>
         </div>
     </div>`;
     
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'instant' });
     
-    // Add enter key support + password strength + quote rotation
+    // Add enter key support + auto-focus
     setTimeout(() => {
         const inputs = main.querySelectorAll('.auth-form-input');
         inputs.forEach(inp => {
@@ -2271,21 +2205,8 @@ function renderAuthPage() {
                 }
             });
         });
-        // Auto-focus first input
         const firstInput = main.querySelector('.auth-form-input');
         if (firstInput) firstInput.focus();
-        // Rotate quote every 5s
-        if (!window._authQuoteInterval) {
-            window._authQuoteInterval = setInterval(() => {
-                const quoteEl = document.getElementById('auth-quote');
-                if (!quoteEl || document.hidden) return;
-                quoteEl.style.opacity = '0';
-                setTimeout(() => {
-                    quoteEl.innerHTML = authQuotes[Math.floor(Math.random() * authQuotes.length)];
-                    quoteEl.style.opacity = '1';
-                }, 300);
-            }, 5000);
-        }
     }, 300);
 }
 
@@ -2760,38 +2681,29 @@ function renderHeader() {
     const vm = APP.viewMode;
     header.innerHTML = `
         <header class="app-header">
-            ${isDashboard ? `<button class="header-pill-btn sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)" aria-label="Open menu"><i class="fas fa-bars" aria-hidden="true"></i></button>` : ''}
+            ${isDashboard ? `<button class="header-icon-btn sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)" aria-label="Open menu"><i class="fas fa-bars" aria-hidden="true"></i></button>` : ''}
             <a href="#/" class="header-brand">
                 <img src="/logo-icon.png" alt="RidgeBox"/>
                 <span class="hide-mobile-small rb-brand-text">RidgeBox</span>
             </a>
-            <div style="flex:1"></div>
-            <button class="header-pill-btn ${vm==='mobile'?'active-pill':''}" onclick="toggleViewMode()" title="${vm === 'mobile' ? 'Desktop Mode' : 'Mobile Mode'}" aria-label="Toggle view mode">
-                <i class="fas fa-${vm === 'mobile' ? 'mobile-screen' : 'display'}" aria-hidden="true"></i>
-            </button>
-            <div id="conn-status" class="header-pill-btn" onclick="updateConnectionStatus()">
-                <i class="fas fa-wifi" style="color:${APP.connected ? '#10b981' : '#ef4444'}"></i>
+            <div class="header-spacer"></div>
+            <div class="header-actions">
+                ${isHome ? `<a href="#/dashboard" class="btn btn-primary btn-sm"><span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
+                ${!isLoggedIn() && isAuthRequired() ? `<a href="#/login" class="btn btn-primary btn-sm"><span class="hide-mobile-small">${APP.lang==='id'?'Masuk':'Login'}</span></a>` : ''}
+                ${APP.activeUploads > 0 ? `<span class="header-icon-btn" style="cursor:default"><i class="fas fa-spinner fa-spin" style="color:var(--accent)"></i></span>` : ''}
+                <button class="header-icon-btn" onclick="openTransferQueueModal()" title="${t('transferQueue')}" aria-label="Transfer Queue">
+                    <i class="fas fa-list-check" aria-hidden="true"></i>
+                    <span id="transfer-queue-badge" class="notif-badge"></span>
+                </button>
+                <button class="header-icon-btn" onclick="openNotificationCenter()" title="${t('notificationCenter')}" aria-label="Notifications">
+                    <i class="fas fa-bell" aria-hidden="true"></i>
+                    <span id="notification-badge" class="notif-badge"></span>
+                </button>
+                <button class="header-icon-btn" onclick="toggleTheme()" title="${t('theme')}" aria-label="Toggle theme">
+                    <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'}" aria-hidden="true"></i>
+                </button>
+                ${isLoggedIn() ? `<button class="header-icon-btn" onclick="handleLogout()" title="${t('authLogout')}" aria-label="Sign out"><i class="fas fa-sign-out-alt" aria-hidden="true"></i></button>` : ''}
             </div>
-            ${getSubTierBadge()}
-            ${APP.activeUploads > 0 ? `<span class="header-pill-btn"><i class="fas fa-spinner fa-spin" style="color:var(--accent)"></i></span>` : ''}
-            <button class="header-pill-btn" onclick="openTransferQueueModal()" title="${t('transferQueue')}" aria-label="Transfer Queue">
-                <i class="fas fa-list-check" aria-hidden="true"></i>
-                <span id="transfer-queue-badge" class="notif-badge"></span>
-            </button>
-            <button class="header-pill-btn" onclick="openNotificationCenter()" title="${t('notificationCenter')}" aria-label="Notifications">
-                <i class="fas fa-bell" aria-hidden="true"></i>
-                <span id="notification-badge" class="notif-badge"></span>
-            </button>
-            <button class="header-pill-btn" onclick="toggleTheme()" title="${t('theme')}" aria-label="Toggle theme">
-                <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'} ${APP.theme === 'dark' ? 'theme-icon-sun' : 'theme-icon-moon'}" aria-hidden="true"></i>
-            </button>
-            <button class="header-pill-btn" onclick="cycleLang()" title="${t('language')}" aria-label="Switch language">
-                <span class="lang-label">${APP.lang.toUpperCase()}</span>
-            </button>
-            ${!isHome ? `<a href="#/" class="header-pill-btn" aria-label="Home"><i class="fas fa-home"></i></a>` : ''}
-            ${isHome ? `<a href="#/dashboard" class="btn btn-primary btn-sm"><i class="fas fa-rocket"></i> <span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
-            ${!isLoggedIn() && isAuthRequired() ? `<a href="#/login" class="btn btn-primary btn-sm"><i class="fas fa-sign-in-alt"></i> <span class="hide-mobile-small">${APP.lang==='id'?'Masuk':'Login'}</span></a>` : ''}
-            ${isLoggedIn() ? `<button class="header-pill-btn" onclick="handleLogout()" title="${t('authLogout')}" aria-label="Sign out"><i class="fas fa-sign-out-alt" aria-hidden="true"></i><span class="hide-mobile-small user-email">${APP.user?.email || ''}</span></button>` : ''}
         </header>`;
 }
 
@@ -3495,172 +3407,51 @@ function renderDashboard() {
     const main = document.getElementById('app-main');
     if (!main) return;
     renderHeader();
-    const hasFiles = APP.files.filter(f => !f.trashed).length > 0;
     const isId = APP.lang === 'id';
-
-    // === PREMIUM DASHBOARD: Compute analytics data ===
     const activeFiles = APP.files.filter(f => !f.trashed);
-    const totalFiles = activeFiles.length;
-    const totalDownloads = APP.shares.reduce((sum, s) => sum + (s.downloadCount || 0), 0);
-    const totalShares = APP.shares.length;
     const totalUsed = activeFiles.reduce((sum, f) => sum + (f.size || 0), 0);
     const maxStorage = getStorageLimitBytes();
-    const usedPercent = maxStorage > 0 ? Math.min((totalUsed / maxStorage) * 100, 100) : 0;
-
-    // Hero stats
-    const heroStats = [
-        { icon: 'fa-folder-open', label: isId ? 'Total File' : 'Total Files', value: totalFiles, color: '#3b82f6' },
-        { icon: 'fa-download', label: isId ? 'Total Unduhan' : 'Total Downloads', value: totalDownloads, color: '#10b981' },
-        { icon: 'fa-share-nodes', label: isId ? 'Total Dibagikan' : 'Total Shares', value: totalShares, color: '#8b5cf6' },
-        { icon: 'fa-hard-drive', label: isId ? 'Penyimpanan' : 'Storage Used', value: usedPercent.toFixed(1) + '%', color: '#f59e0b', sub: formatSize(totalUsed) + ' / ' + formatSize(maxStorage) }
-    ];
-
-    const heroStatsHtml = heroStats.map(s => `
-        <div class="dash-stat-card">
-            <div class="stat-icon" style="background:${s.color}18;color:${s.color}"><i class="fas ${s.icon}"></i></div>
-            <div class="stat-value">${s.value}</div>
-            <div class="stat-label">${s.label}</div>
-            ${s.sub ? `<div class="stat-sub">${s.sub}</div>` : ''}
-        </div>
-    `).join('');
-
-    // Quick Actions
-    const quickActions = [
-        { icon: 'fa-cloud-arrow-up', label: isId ? 'Unggah File' : 'Upload Files', action: 'triggerUpload()', primary: true },
-        { icon: 'fa-folder-plus', label: isId ? 'Folder Baru' : 'New Folder', action: 'createFolderDialog()', primary: false },
-        { icon: 'fa-camera', label: isId ? 'Kamera' : 'Camera Upload', action: 'openCameraUpload()', primary: false },
-        { icon: 'fa-share-from-square', label: isId ? 'Bagikan' : 'Share File', action: 'APP.batchMode=false;renderFileList()', primary: false },
-        { icon: 'fa-clone', label: isId ? 'Duplikat' : 'Dupes', action: 'openDuplicateFinder()', primary: false },
-        { icon: 'fa-vault', label: isId ? 'Brankas' : 'Vault', action: 'openVaultModal()', primary: false }
-    ];
-    // Add "Pilih Drive" option when GDrive accounts are connected
-    if (APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0) {
-        quickActions.push({ icon: 'fa-hard-drive', label: isId ? 'Pilih Drive' : 'Select Drive', action: 'triggerUploadWithDriveSelect()', primary: false });
-    }
-
-    const quickActionsHtml = quickActions.map(a => `
-        <button class="quick-action-btn ${a.primary ? 'primary' : ''}" onclick="${a.action}">
-            <i class="fas ${a.icon}"></i>
-            <span>${a.label}</span>
-        </button>
-    `).join('');
-
-    // Recent Activity Widget (last 8)
-    const activityLog = APP._activityCache || [];
-    const recentActivity = activityLog.slice(0, 8);
-    const typeConfig = {
-        upload: { icon: 'fa-cloud-arrow-up', color: '#10b981' },
-        download: { icon: 'fa-download', color: '#3b82f6' },
-        share: { icon: 'fa-share-alt', color: '#8b5cf6' },
-        delete: { icon: 'fa-trash', color: '#ef4444' },
-        rename: { icon: 'fa-pen', color: '#f59e0b' },
-        move: { icon: 'fa-arrows-alt', color: '#06b6d4' }
-    };
-    const recentActivityHtml = recentActivity.length > 0 ? recentActivity.map(a => {
-        const cfg = typeConfig[a.type] || typeConfig.move;
-        return `<div class="recent-item">
-            <div class="recent-item-icon" style="background:${cfg.color}15;color:${cfg.color}"><i class="fas ${cfg.icon}"></i></div>
-            <div class="recent-item-info">
-                <div class="recent-item-name">${a.description}</div>
-                <div class="recent-item-meta">${timeAgo(a.timestamp)}</div>
-            </div>
-        </div>`;
-    }).join('') : `<div class="sidebar-empty-msg" style="text-align:center;padding:20px 0">${isId ? 'Belum ada aktivitas' : 'No activity yet'}</div>`;
-
-    // Widgets trimmed — keeping only hero stats + smart upload zone + recent activity
 
     main.innerHTML = `
-    <div class="page-transition" style="display:flex;min-height:calc(100vh - var(--header-h));max-width:100vw;overflow-x:hidden">
-        <!-- Sidebar Desktop -->
-        <aside id="sidebar-panel" class="${APP.viewMode === 'mobile' ? 'sidebar-mobile' : 'sidebar-desktop'}">
+    <div class="dashboard-layout">
+        <aside id="sidebar-panel" class="dashboard-sidebar">
             ${renderSidebarHTML()}
         </aside>
-        <!-- Main Content -->
-        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
-            <!-- Storage Warning Banner -->
-            ${renderStorageWarningBanner()}
-            <!-- Toolbar -->
-            <div class="toolbar-wrap" style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <div class="search-wrap ${APP.aiSearchMode ? 'ai-search-active' : ''}" style="flex:1;min-width:200px">
-                    <i class="fas ${APP.aiSearchMode ? 'fa-wand-magic-sparkles' : 'fa-search'}"></i>
-                    <input type="text" aria-label="Search files" placeholder="${APP.aiSearchMode ? (isId ? 'Cari dengan AI...' : 'AI Search...') : t('search')}" value="${APP.searchQuery}" oninput="APP.searchQuery=this.value;${APP.aiSearchMode ? '' : 'renderFileList()'}" onkeydown="if(event.key==='Enter'&&APP.aiSearchMode)executeAISearch(this.value)">
-                    <button class="ai-search-toggle ${APP.aiSearchMode ? 'active' : ''}" onclick="toggleAISearchMode()" title="${APP.aiSearchMode ? (isId ? 'Pencarian Biasa' : 'Regular Search') : (isId ? 'Pencarian AI' : 'AI Search')}" aria-label="Toggle AI search"><i class="fas fa-wand-magic-sparkles"></i></button>
-                    <button class="toolbar-action-btn" onclick="openAdvancedSearch()" title="${t('advSearch')}" aria-label="Advanced search"><i class="fas fa-search-plus"></i></button>
+        <div class="dashboard-main">
+            <div class="dash-stats">
+                <div class="dash-stat-card"><div class="stat-label">${isId ? 'Total File' : 'Total Files'}</div><div class="stat-value">${activeFiles.length}</div></div>
+                <div class="dash-stat-card"><div class="stat-label">${isId ? 'Total Unduhan' : 'Total Downloads'}</div><div class="stat-value">${APP.shares.reduce((s, sh) => s + (sh.downloadCount || 0), 0)}</div></div>
+                <div class="dash-stat-card"><div class="stat-label">${isId ? 'Total Dibagikan' : 'Total Shares'}</div><div class="stat-value">${APP.shares.length}</div></div>
+                <div class="dash-stat-card"><div class="stat-label">${isId ? 'Penyimpanan' : 'Storage'}</div><div class="stat-value">${formatSize(totalUsed)}</div><div class="stat-sub">${formatSize(totalUsed)} / ${formatSize(maxStorage)}</div></div>
+            </div>
+            <div class="dash-quick-actions">
+                <button class="dash-quick-action primary" onclick="triggerUpload()"><i class="fas fa-cloud-arrow-up"></i> ${isId ? 'Unggah' : 'Upload'}</button>
+                <button class="dash-quick-action" onclick="createFolderDialog()"><i class="fas fa-folder-plus"></i> ${isId ? 'Folder Baru' : 'New Folder'}</button>
+                <button class="dash-quick-action" onclick="openCameraUpload()"><i class="fas fa-camera"></i> ${isId ? 'Kamera' : 'Camera'}</button>
+            </div>
+            <div class="file-toolbar">
+                <div class="file-toolbar-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" aria-label="Search files" placeholder="${t('search')}" value="${APP.searchQuery}" oninput="APP.searchQuery=this.value;renderFileList()">
                 </div>
-                <button class="toolbar-upload-btn" onclick="triggerUpload()"><i class="fas fa-plus"></i> ${t('upload')}</button>
-                <div class="toolbar-group">
-                    <button class="toolbar-action-btn" onclick="openUrlUpload()" title="URL Upload" aria-label="URL upload"><i class="fas fa-link"></i></button>
-                    <button class="toolbar-action-btn" onclick="openCameraUpload()" title="Camera" aria-label="Camera upload"><i class="fas fa-camera"></i></button>
-                    <button class="toolbar-action-btn ${APP.batchMode?'active-action':''}" onclick="APP.batchMode=!APP.batchMode;renderFileList()" title="${t('batchMode')}" aria-label="Batch mode"><i class="fas fa-check-double"></i></button>
-                </div>
-                <select class="toolbar-sort" aria-label="Sort by" onchange="APP.sortBy=this.value;APP.activeSortPreset='';localStorage.setItem('rb_sort_preset','');renderFileList();updateSortPresetButtons()">
+                <select class="input" style="width:auto;min-width:100px;padding:7px 28px 7px 10px;font-size:12px" aria-label="Sort by" onchange="APP.sortBy=this.value;APP.activeSortPreset='';localStorage.setItem('rb_sort_preset','');renderFileList();updateSortPresetButtons()">
                     <option value="date" ${APP.sortBy==='date'?'selected':''}>${t('sortByDate')}</option>
                     <option value="name" ${APP.sortBy==='name'?'selected':''}>${t('sortByName')}</option>
                     <option value="size" ${APP.sortBy==='size'?'selected':''}>${t('sortBySize')}</option>
                 </select>
-                ${renderSortPresets()}
-                <button class="toolbar-view-btn" onclick="cycleViewMode()" title="${APP.currentView==='list'?t('gridView'):t('listView')}" aria-label="Switch view"><i class="fas fa-${APP.currentView==='list'?'grip':'list'}"></i></button>
-            </div>
-            <!-- Breadcrumb -->
-            <div id="breadcrumb-bar" class="breadcrumb"></div>
-            <!-- Quick Filter -->
-            <div id="quick-filter-bar" style="padding:4px 20px 8px;display:flex;gap:6px;flex-wrap:wrap"></div>
-            <div id="provider-filter-bar" class="provider-filter-bar" style="padding:0 20px 8px"></div>
-            <!-- Tag Filter Bar -->
-            <div id="tag-filter-bar" class="tag-filter-bar" style="padding:0 20px 8px;display:flex;gap:6px;flex-wrap:wrap"></div>
-            <!-- Upload Drop Zone (hidden) -->
-            <div id="drop-zone" class="drop-zone" style="margin:0 20px 8px;padding:24px;text-align:center;display:none;border-radius:var(--radius-lg)">
-                <i class="fas fa-cloud-arrow-up" style="font-size:28px;color:var(--accent)"></i>
-                <p style="font-size:13px;margin-top:4px;color:var(--text-secondary)">${t('uploadDrop')}</p>
-            </div>
-            <!-- File Preview Carousel -->
-            <div id="carousel-section">${renderCarousel()}</div>
-            <!-- Dashboard Widgets Section -->
-            <div id="dashboard-widgets" class="dash-widgets-wrap ${hasFiles && localStorage.getItem('rb_widgets_collapsed')==='1' ? 'collapsed' : ''}">
-                <div class="dash-widget-toggle" onclick="toggleDashWidgets()">
-                    <i class="fas fa-chevron-down" style="font-size:10px"></i>
-                    <span>${isId ? 'Widget Dashboard' : 'Dashboard Widgets'}</span>
+                <div class="view-toggle">
+                    <button class="${APP.currentView==='list'?'active':''}" onclick="APP.currentView='list';renderFileList()" aria-label="List view"><i class="fas fa-list"></i></button>
+                    <button class="${APP.currentView==='grid'?'active':''}" onclick="APP.currentView='grid';renderFileList()" aria-label="Grid view"><i class="fas fa-grip"></i></button>
                 </div>
-                <div class="dash-widget-body" style="display:flex;flex-direction:column;gap:12px">
-                    <!-- Smart Upload Zone -->
-                    <div id="smart-upload-zone" class="smart-upload-zone ${hasFiles ? 'minimized' : ''}" onclick="handleSmartUploadClick(event)">
-                        <i class="fas fa-cloud-arrow-up upload-icon"></i>
-                        <div>
-                            <div class="upload-title">${isId ? 'Seret & Lepas File' : 'Drag & Drop Files'}</div>
-                            <div class="upload-sub">${isId ? 'atau ' : 'or '}<span>${isId ? 'klik untuk mencari' : 'click to browse'}</span></div>
-                        </div>
-                        <div class="upload-methods">
-                            <div class="upload-method" onclick="event.stopPropagation();triggerUpload()"><i class="fas fa-folder-open"></i> ${isId ? 'Pilih File' : 'Browse'}</div>
-                            <div class="upload-method" onclick="event.stopPropagation();handleClipboardPaste()"><i class="fas fa-paste"></i> ${isId ? 'Tempel' : 'Paste'}</div>
-                            <div class="upload-method" onclick="event.stopPropagation();openCameraUpload()"><i class="fas fa-camera"></i> ${isId ? 'Kamera' : 'Camera'}</div>
-                        </div>
-                    </div>
-                    <!-- Upload Preview Queue -->
-                    <div id="upload-preview-queue" class="upload-preview-queue" style="display:none"></div>
-
-                    <!-- Storage Warning Banner -->
-                    ${localStorage.getItem('rb_storage_warning_dismissed') !== '1' ? getStorageWarningBanner() : ''}
-
-                    <!-- ===== HERO STATS BAR ===== -->
-                    <div class="dash-stats-bar">${heroStatsHtml}</div>
-
-                    <!-- ===== QUICK ACTIONS ROW ===== -->
-                    <div class="quick-actions-premium">${quickActionsHtml}</div>
-
-                    <!-- ===== 3-COLUMN WIDGET ROW: Activity only ===== -->
-                    <div class="dash-3col-row">
-                        <div class="dash-card">
-                            <div class="dash-card-title"><i class="fas fa-clock-rotate-left" style="color:#10b981"></i> ${isId ? 'Aktivitas Terbaru' : 'Recent Activity'}</div>
-                            <div style="max-height:240px;overflow-y:auto">${recentActivityHtml}</div>
-                            <div style="margin-top:10px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('recent')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
-                        </div>
-                    </div>
-
-                    <!-- Dashboard widgets trimmed -->
-                </div>
+                <button class="btn btn-sm ${APP.batchMode?'btn-primary':''}" onclick="APP.batchMode=!APP.batchMode;renderFileList()" title="${t('batchMode')}"><i class="fas fa-check-double"></i></button>
+                <button class="btn btn-sm" onclick="openAdvancedSearch()" title="${t('advSearch')}"><i class="fas fa-sliders"></i></button>
             </div>
-            <!-- File List -->
-            <div id="file-list-container" style="flex:1;overflow-y:auto;padding:0 20px 80px"></div>
+            <div id="breadcrumb-bar" class="breadcrumb-bar"></div>
+            <div id="quick-filter-bar" class="quick-filter-bar"></div>
+            <div id="provider-filter-bar" class="provider-filter-bar"></div>
+            <div id="tag-filter-bar" class="tag-filter-bar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
+            <div id="drop-zone" class="drop-zone"><i class="fas fa-cloud-arrow-up" style="font-size:28px;color:var(--accent)"></i><p style="font-size:13px;margin-top:4px;color:var(--text-secondary)">${t('uploadDrop')}</p></div>
+            <div id="file-list-container" style="min-height:200px"></div>
         </div>
     </div>
     <input type="file" id="file-upload-input" multiple style="display:none" onchange="handleFileSelect(this.files)">
@@ -3671,17 +3462,11 @@ function renderDashboard() {
     renderTagFilterBar();
     renderFileList();
     setupDragDrop();
-    setupSmartUploadZone();
     preloadActivityLog();
-    restoreScheduledUploads(); // F80
+    restoreScheduledUploads();
     initHoverPreview();
     checkStorageWarningToast();
-    setupPullToRefresh();
     renderBottomNav();
-    // Start carousel auto-scroll
-    if (APP.files.filter(f => !f.trashed).length > 0) {
-        setTimeout(() => startCarouselAutoScroll(), 1000);
-    }
 }
 
 // ===== DASHBOARD STATS BAR =====
@@ -4022,7 +3807,7 @@ function renderBreadcrumb() {
     const bar = document.getElementById('breadcrumb-bar');
     if (!bar) return;
     const isId = APP.lang === 'id';
-    let crumbs = [`<a href="#/dashboard" class="crumb-home" aria-label="Home" style="text-decoration:none;display:flex;align-items:center;gap:4px"><i class="fas fa-home" style="font-size:12px"></i></a>`];
+    let crumbs = [`<a href="#/dashboard" class="crumb-home" aria-label="Home" style="text-decoration:none;display:flex;align-items:center;gap:4px;color:var(--text-secondary)"><i class="fas fa-home" style="font-size:12px"></i></a>`];
     const folder = APP.folders.find(f => f.id === APP.currentFolder);
     if (folder) {
         crumbs.push(`<span class="crumb-sep">/</span> <span class="crumb-active">${folder.name}</span>`);
@@ -4172,11 +3957,11 @@ async function renderFileList() {
     }
 
     if (APP.currentView === 'grid') {
-        container.innerHTML = `${actionBtns}<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px">
+        container.innerHTML = `${actionBtns}<div class="file-grid">
             ${files.map((f, i) => renderFileGridItem(f, i)).join('')}
         </div>`;
     } else {
-        container.innerHTML = `${actionBtns}<div style="border:1px solid var(--border);border-radius:14px;overflow:hidden">
+        container.innerHTML = `${actionBtns}<div class="file-list-table">
             ${files.map((f, i) => renderSwipeRow(f, i)).join('')}
         </div>`;
     }
@@ -4280,98 +4065,48 @@ function renderFileGridItem(file, index) {
     const icon = getFileIcon(type);
     const selected = APP.selectedFiles.has(file.id);
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
-    const trashDays = file.trashed && APP.settings.trashPurgeDays > 0 ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : -1;
     const ext = (file.name || '').split('.').pop().toUpperCase();
     const downloadUrl = `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`;
     const isId = APP.lang === 'id';
 
-    // Build status icons row
     let statusIcons = '';
     if (file.starred) statusIcons += '<span class="si starred"><i class="fas fa-star"></i></span>';
     if (file.pinned) statusIcons += '<span class="si pinned"><i class="fas fa-thumbtack"></i></span>';
     if (file.encrypted) statusIcons += '<span class="si encrypted"><i class="fas fa-lock"></i></span>';
-    if (file.notes) statusIcons += '<span class="si has-notes"><i class="fas fa-sticky-note"></i></span>';
-    if (file._integrityVerified) statusIcons += '<span class="si verified" style="color:#10b981"><i class="fas fa-shield-halved"></i></span>';
 
-    // Build preview area based on file type
     let previewArea = '';
     if (type === 'image') {
-        // Use thumbUrl if available, otherwise use download URL for lazy loading
         const thumbSrc = file.thumbUrl || '';
         previewArea = `<div class="grid-card-preview" data-lazy-thumb="${thumbSrc || downloadUrl}" data-file-id="${file.id}">
-            <img src="" alt="${file.name}" class="file-thumb-placeholder-img" style="width:100%;height:100%;object-fit:cover;border-radius:13px 13px 0 0;opacity:0;transition:opacity .3s ease" onload="this.style.opacity=1" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-            <div class="preview-icon-area" style="display:none;position:absolute;inset:0">
-                <div class="icon-glow" style="background:${icon.color}"></div>
-                <i class="fas ${icon.icon}" style="font-size:32px;color:${icon.color}"></i>
-            </div>
-            <div class="gradient-overlay"></div>
+            <img src="" alt="${file.name}" class="file-thumb-placeholder-img" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s ease" onload="this.style.opacity=1" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="preview-icon-area" style="display:none"><i class="fas ${icon.icon}" style="font-size:28px;color:${icon.color}"></i></div>
             <span class="grid-type-badge">${ext}</span>
             ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
         </div>`;
     } else if (type === 'video') {
-        // Video thumbnail with play button overlay
         const thumbSrc = file.thumbnailUrl || file.thumbUrl || '';
-        const videoThumbUrl = thumbSrc || `/api/thumb?file_id=${file.telegramFileId || file.id}&bot_index=${file.botIndex || 0}`;
-        previewArea = `<div class="grid-card-preview" ${thumbSrc ? '' : `data-lazy-thumb="${videoThumbUrl}" data-file-id="${file.id}"`} style="background:var(--bg-secondary)">
-            ${thumbSrc ? `<img src="${thumbSrc}" alt="${file.name}" style="width:100%;height:100%;object-fit:cover;border-radius:13px 13px 0 0;opacity:.8">` : `<img src="" alt="${file.name}" class="file-thumb-placeholder-img" style="width:100%;height:100%;object-fit:cover;border-radius:13px 13px 0 0;opacity:0;transition:opacity .3s ease" onload="this.style.opacity=0.8" onerror="this.style.display='none'">`}
-            <div class="grid-play-overlay">
-                <div class="play-btn"><i class="fas fa-play" style="margin-left:2px"></i></div>
-            </div>
-            <span class="grid-type-badge">${ext}</span>
-            ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
-        </div>`;
-    } else if (type === 'pdf') {
-        // PDF thumbnail with page count overlay
-        previewArea = `<div class="grid-card-preview" data-lazy-thumb="${downloadUrl}" data-file-id="${file.id}" style="background:var(--bg-secondary)">
-            <div class="preview-icon-area">
-                <div class="icon-glow" style="background:${icon.color}"></div>
-                <i class="fas fa-file-pdf" style="font-size:36px;color:${icon.color}"></i>
-            </div>
-            <span class="grid-type-badge">PDF</span>
-            <span class="grid-pdf-badge"><i class="fas fa-file-pdf" style="margin-right:3px"></i>PDF</span>
-            ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
-        </div>`;
-    } else if (type === 'audio') {
-        const barColors = [icon.color, icon.color + 'cc', icon.color + '99', icon.color + 'b3', icon.color + '80', icon.color + 'cc', icon.color];
-        const bars = barColors.map((c, i) => `<span style="background:${c};animation-delay:${i * 0.15}s"></span>`).join('');
-        previewArea = `<div class="grid-card-preview" style="background:var(--bg-secondary)">
-            <div class="preview-icon-area" style="flex-direction:column;gap:12px">
-                <div class="icon-glow" style="background:${icon.color}"></div>
-                <i class="fas fa-music" style="font-size:28px;color:${icon.color}"></i>
-                <div class="grid-audio-wave">${bars}</div>
-            </div>
+        previewArea = `<div class="grid-card-preview" ${thumbSrc ? '' : `data-lazy-thumb="${thumbSrc}" data-file-id="${file.id}"`} style="background:var(--bg-secondary)">
+            ${thumbSrc ? `<img src="${thumbSrc}" alt="${file.name}" style="width:100%;height:100%;object-fit:cover;opacity:.8">` : `<div class="preview-icon-area"><i class="fas fa-video" style="font-size:28px;color:${icon.color}"></i></div>`}
+            <div class="grid-play-overlay"><div class="play-btn"><i class="fas fa-play" style="margin-left:2px"></i></div></div>
             <span class="grid-type-badge">${ext}</span>
             ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
         </div>`;
     } else {
         previewArea = `<div class="grid-card-preview" style="background:var(--bg-secondary)">
-            <div class="preview-icon-area">
-                <div class="icon-glow" style="background:${icon.color}"></div>
-                <i class="fas ${icon.icon}" style="font-size:32px;color:${icon.color}"></i>
-            </div>
+            <div class="preview-icon-area"><i class="fas ${icon.icon}" style="font-size:28px;color:${icon.color}"></i></div>
             <span class="grid-type-badge">${ext}</span>
             ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
         </div>`;
     }
 
-    // Tag strip
     const tagStrip = file.tag ? `<div class="grid-tag-strip" style="background:${file.tag}"></div>` : '';
-
-    // Trash progress
+    const trashDays = file.trashed && APP.settings.trashPurgeDays > 0 ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : -1;
     let trashInfo = '';
     if (file.trashed && trashDays >= 0) {
-        const urgent = trashDays < 1;
-        const warn = trashDays < 3;
-        const color = urgent ? '#ef4444' : warn ? '#f97316' : '#f59e0b';
-        const pct = APP.settings.trashPurgeDays > 0 ? Math.max(0, Math.min(100, ((APP.settings.trashPurgeDays - trashDays) / APP.settings.trashPurgeDays) * 100)) : 0;
-        trashInfo = `<div style="margin-top:4px;width:100%">
-            <div style="font-size:10px;color:${color};font-weight:${urgent?'700':'400'}"><i class="fas fa-clock"></i> ${isId?'Dihapus dalam':'Deleted in'} ${trashDays} ${isId?'hari':'day(s)'}</div>
-            <div style="height:3px;background:var(--border);border-radius:2px;margin-top:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:2px;transition:width .3s ease"></div></div>
-        </div>`;
+        const color = trashDays < 1 ? '#ef4444' : trashDays < 3 ? '#f97316' : '#f59e0b';
+        trashInfo = `<div style="margin-top:4px;width:100%"><div style="font-size:10px;color:${color}"><i class="fas fa-clock"></i> ${trashDays}d</div></div>`;
     }
-
-    // Version badge
-    const versionBadge = versions.length > 1 ? `<span class="detail-version-badge" style="font-size:9px;padding:1px 6px;margin-left:4px">v${file.version || 1}/${versions.length}</span>` : '';
+    const versionBadge = versions.length > 1 ? `<span class="detail-version-badge">v${file.version || 1}/${versions.length}</span>` : '';
 
     return `<div class="file-grid-item ${selected ? 'selected' : ''} ${file.trashed ? 'trashed-file' : ''}" 
         onclick="handleFileClick(event, '${file.id}', ${index})"
@@ -4389,7 +4124,6 @@ function renderFileGridItem(file, index) {
             <div class="grid-name" title="${file.name}">${file.name}${versionBadge}</div>
             <div class="grid-meta">
                 ${file.tag ? `<span class="tag-dot-inline" style="background:${file.tag}" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
-                ${file.storageProvider === 'gdrive' ? '<span class="provider-badge gdrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'gdrive\';renderFileList()" title="Google Drive"><i class="fab fa-google"></i></span>' : ''}${file.storageProvider === 'onedrive' ? '<span class="provider-badge onedrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'onedrive\';renderFileList()" title="OneDrive"><i class="fab fa-microsoft"></i></span>' : ''}${file.storageProvider === 'dropbox' ? '<span class="provider-badge dropbox" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'dropbox\';renderFileList()" title="Dropbox"><i class="fab fa-dropbox"></i></span>' : ''}${file.storageProvider === 's3' ? '<span class="provider-badge s3" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'s3\';renderFileList()" title="S3 / Cloud Storage"><i class="fas fa-database"></i></span>' : ''}
                 <span>${formatSize(file.size)} · ${formatDate(file.uploadedAt)}</span>
             </div>
             ${trashInfo}
@@ -4402,51 +4136,33 @@ function renderFileListRow(file, index) {
     const icon = getFileIcon(type);
     const selected = APP.selectedFiles.has(file.id);
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
-    const trashDays = file.trashed && APP.settings.trashPurgeDays > 0 ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : -1;
     const downloadUrl = `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`;
     const isId = APP.lang === 'id';
 
-    // Thumbnail or icon
     let thumbHtml = '';
     if (type === 'image') {
         thumbHtml = `<div class="list-thumb" data-lazy-thumb="${downloadUrl}" data-file-id="${file.id}">
-            <img src="" alt="File thumbnail" class="list-thumb-img" onload="this.style.opacity=1" onerror="this.style.display='none';this.parentElement.querySelector('.thumb-icon').style.display='flex'">
-            <div class="thumb-icon">
-                <i class="fas ${icon.icon}"></i>
-            </div>
+            <img src="" alt="" class="list-thumb-img" onload="this.style.opacity=1" onerror="this.style.display='none';this.parentElement.querySelector('.thumb-icon').style.display='flex'">
+            <div class="thumb-icon"><i class="fas ${icon.icon}" style="color:${icon.color}"></i></div>
         </div>`;
     } else {
-        thumbHtml = `<div class="list-thumb">
-            <div class="thumb-icon">
-                <i class="fas ${icon.icon}"></i>
-            </div>
-        </div>`;
+        thumbHtml = `<div class="list-thumb"><div class="thumb-icon"><i class="fas ${icon.icon}" style="color:${icon.color}"></i></div></div>`;
     }
 
-    // Inline status icons
     let inlineStatus = '';
     if (file.pinned) inlineStatus += '<i class="fas fa-thumbtack inline-status pinned"></i>';
     if (file.starred) inlineStatus += '<i class="fas fa-star inline-status starred"></i>';
     if (file.encrypted) inlineStatus += '<i class="fas fa-lock inline-status encrypted"></i>';
-    if (file._integrityVerified) inlineStatus += '<i class="fas fa-shield-halved inline-status" style="color:#10b981"></i>';
 
-    // Version badge inline
-    const versionBadge = versions.length > 1 ? `<span class="detail-version-badge" style="font-size:9px;padding:1px 5px">v${file.version || 1}</span>` : '';
+    const versionBadge = versions.length > 1 ? `<span class="detail-version-badge">v${file.version || 1}</span>` : '';
 
-    // Trash countdown
+    const trashDays = file.trashed && APP.settings.trashPurgeDays > 0 ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : -1;
     let trashBadge = '';
     if (file.trashed && trashDays >= 0) {
-        const urgent = trashDays < 1;
-        const warn = trashDays < 3;
-        const color = urgent ? '#ef4444' : warn ? '#f97316' : '#f59e0b';
-        trashBadge = `<span style="font-size:10px;color:${color};font-weight:${urgent?'700':'400'}"><i class="fas fa-clock"></i> ${trashDays}d</span>`;
+        const color = trashDays < 1 ? '#ef4444' : trashDays < 3 ? '#f97316' : '#f59e0b';
+        trashBadge = `<span style="font-size:10px;color:${color}"><i class="fas fa-clock"></i> ${trashDays}d</span>`;
     }
 
-    // Sub-meta line
-    let subMeta = `${formatSize(file.size)}`;
-    if (file.caption) subMeta += ` · ${file.caption.substring(0, 30)}`;
-
-    // Trash progress bar
     let trashProgress = '';
     if (file.trashed && trashDays >= 0) {
         const pct = APP.settings.trashPurgeDays > 0 ? Math.max(0, Math.min(100, ((APP.settings.trashPurgeDays - trashDays) / APP.settings.trashPurgeDays) * 100)) : 0;
@@ -4468,22 +4184,19 @@ function renderFileListRow(file, index) {
             <div class="list-name-row">
                 <span class="fname">${file.name}</span>
                 ${inlineStatus}
-                ${file.storageProvider === 'gdrive' ? '<span class="provider-badge gdrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'gdrive\';renderFileList()" title="Google Drive"><i class="fab fa-google"></i></span>' : ''}${file.storageProvider === 'onedrive' ? '<span class="provider-badge onedrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'onedrive\';renderFileList()" title="OneDrive"><i class="fab fa-microsoft"></i></span>' : ''}${file.storageProvider === 'dropbox' ? '<span class="provider-badge dropbox" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'dropbox\';renderFileList()" title="Dropbox"><i class="fab fa-dropbox"></i></span>' : ''}${file.storageProvider === 's3' ? '<span class="provider-badge s3" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'s3\';renderFileList()" title="S3 / Cloud Storage"><i class="fas fa-database"></i></span>' : ''}
                 ${file.tag ? `<span class="tag-dot-inline" style="background:${file.tag}" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
                 ${versionBadge}
                 ${trashBadge}
             </div>
-            <div class="list-sub-meta">${subMeta}${file.storageProvider === 'gdrive' ? ' · <i class="fab fa-google" style="font-size:9px;color:#4285f4"></i> Drive' : ''}${file.storageProvider === 'onedrive' ? ' · <i class="fab fa-microsoft" style="font-size:9px;color:#0078d4"></i> OneDrive' : ''}${file.storageProvider === 'dropbox' ? ' · <i class="fab fa-dropbox" style="font-size:9px;color:#0061ff"></i> Dropbox' : ''}${file.storageProvider === 's3' ? ' · <i class="fas fa-database" style="font-size:9px;color:#f48120"></i> Cloud' : ''}</div>
+            <div class="list-sub-meta">${formatSize(file.size)}</div>
             ${trashProgress}
         </div>
-        <div class="list-col-size">${formatSize(file.size)}</div>
         <div class="list-col-date">${formatDate(file.uploadedAt)}</div>
         <div class="row-actions action-btns">
             <button class="file-action-btn" onclick="event.stopPropagation();openPreview('${file.id}')" title="${t('preview')}" aria-label="Preview"><i class="fas fa-eye"></i></button>
             <button class="file-action-btn" onclick="event.stopPropagation();openShareModal('${file.id}')" title="${t('share')}" aria-label="Share"><i class="fas fa-share-alt"></i></button>
             <button class="file-action-btn" onclick="event.stopPropagation();downloadFile('${file.id}')" title="${t('download')}" aria-label="Download"><i class="fas fa-download"></i></button>
         </div>
-        ${!file.trashed ? `<button class="mobile-delete-btn" onclick="event.stopPropagation();quickDeleteFile('${file.id}')" title="${t('delete')}" aria-label="Delete"><i class="fas fa-trash"></i></button>` : `<div style="display:flex;gap:4px"><button class="mobile-restore-btn" onclick="event.stopPropagation();restoreFile('${file.id}')" title="${t('restore')}" aria-label="Restore"><i class="fas fa-undo"></i></button><button class="mobile-delete-btn" style="background:rgba(239,68,68,.9)" onclick="event.stopPropagation();deletePermanently('${file.id}')" title="${t('deletePermanently')}" aria-label="Delete permanently"><i class="fas fa-times"></i></button></div>`}
     </div>`;
 }
 
