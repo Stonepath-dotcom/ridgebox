@@ -2213,15 +2213,9 @@ function renderAuthPage() {
 let _authRedirectTo = '';
 
 function closeAuthOverlay() {
-    // Restore header
     const header = document.getElementById('app-header');
     if (header) header.style.display = '';
-    _authMode = 'login';
-    _authRedirectTo = '';
-    // Go back to homepage if not logged in
-    if (!isLoggedIn()) {
-        location.hash = '#/';
-    }
+    location.hash = '#/';
     if (window._authQuoteInterval) {
         clearInterval(window._authQuoteInterval);
         window._authQuoteInterval = null;
@@ -2328,7 +2322,12 @@ function setAuthLoading(loading) {
     const btn = document.getElementById('auth-submit');
     if (btn) {
         btn.disabled = loading;
-        if (loading) btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('authLoggingIn')}`;
+        if (loading) {
+            btn.dataset.origText = btn.textContent;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('authLoggingIn')}`;
+        } else {
+            btn.innerHTML = btn.dataset.origText || t('authLogin');
+        }
     }
 }
 
@@ -3400,8 +3399,163 @@ function saveStripeConfig() { showToast('Stripe config is not available', 'info'
 
 // ===== HOMEPAGE — redirect to dashboard =====
 function renderHomepage() {
-    // Simple redirect to dashboard — no marketing page needed
-    location.hash = '#/dashboard';
+    // Hide app header on landing page
+    const header = document.getElementById('app-header');
+    if (header) header.style.display = 'none';
+
+    const main = document.getElementById('app-main');
+    main.innerHTML = `
+    <div class="landing fade-in">
+        <!-- Floating Navbar -->
+        <nav class="landing-nav">
+            <a href="#/" class="landing-logo">
+                <img src="/logo-icon.png" alt="RidgeBox" />
+                RidgeBox
+            </a>
+            <div class="landing-nav-btns">
+                <button onclick="location.hash='#/login'" style="padding:6px 16px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);font-size:14px;cursor:pointer">Masuk</button>
+                <button onclick="location.hash='#/register'" style="padding:6px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;cursor:pointer;font-weight:600">Daftar</button>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="landing-hero">
+            <img src="/logo-icon.png" alt="RidgeBox" width="56" height="56" style="border-radius:12px;margin-bottom:20px" />
+            <h1>Penyimpanan Cloud Gratis & Aman</h1>
+            <p>Simpan file tanpa server. Unlimited storage, end-to-end encryption. Gratis.</p>
+            <div class="landing-hero-btns">
+                <button onclick="location.hash='#/register'" style="padding:12px 32px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:16px;font-weight:600;cursor:pointer">Mulai Sekarang</button>
+                <button onclick="location.hash='#/login'" style="padding:12px 32px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-size:16px;cursor:pointer">Masuk</button>
+            </div>
+        </section>
+
+        <!-- Features Grid -->
+        <section class="landing-section">
+            <h2>Fitur Unggulan</h2>
+            <p>Semua yang Anda butuhkan untuk penyimpanan cloud yang aman dan gratis.</p>
+            <div class="landing-features">
+                <div class="landing-feature">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <h3>Upload Gratis</h3>
+                    <p>Upload file tanpa batas langsung ke Telegram. Gratis, tanpa server.</p>
+                </div>
+                <div class="landing-feature">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <h3>Enkripsi E2E</h3>
+                    <p>File dilindungi end-to-end encryption. Hanya Anda yang bisa akses.</p>
+                </div>
+                <div class="landing-feature">
+                    <i class="fa-solid fa-mobile-screen"></i>
+                    <h3>Multi-Platform</h3>
+                    <p>Akses dari HP, tablet, dan laptop. Responsive di semua perangkat.</p>
+                </div>
+                <div class="landing-feature">
+                    <i class="fa-solid fa-rotate"></i>
+                    <h3>Auto Backup</h3>
+                    <p>Backup otomatis ke Google Drive, OneDrive, Dropbox, dan S3.</p>
+                </div>
+                <div class="landing-feature">
+                    <i class="fa-solid fa-folder-tree"></i>
+                    <h3>File Manager</h3>
+                    <p>Organisir file dengan folder, tag, dan pencarian cerdas.</p>
+                </div>
+                <div class="landing-feature">
+                    <i class="fa-solid fa-clock"></i>
+                    <h3>Self-Destruct</h3>
+                    <p>File auto-hapus setelah waktu tertentu. Privasi terjaga.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section class="landing-section">
+            <h2>Cara Kerja</h2>
+            <p>Tiga langkah mudah untuk mulai menyimpan file di cloud.</p>
+            <div class="landing-steps">
+                <div class="landing-step">
+                    <i class="fa-solid fa-user-plus" style="font-size:24px;color:var(--accent);margin-bottom:8px;display:block"></i>
+                    <h3>Daftar Gratis</h3>
+                    <p>Buat akun dalam 30 detik.</p>
+                </div>
+                <div class="landing-step">
+                    <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px;color:var(--accent);margin-bottom:8px;display:block"></i>
+                    <h3>Upload File</h3>
+                    <p>Drag & drop atau pilih file dari device.</p>
+                </div>
+                <div class="landing-step">
+                    <i class="fa-solid fa-globe" style="font-size:24px;color:var(--accent);margin-bottom:8px;display:block"></i>
+                    <h3>Akses di Mana Saja</h3>
+                    <p>Buka file dari perangkat apa saja.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="landing-section">
+            <h2>Harga</h2>
+            <p>Pilih paket yang sesuai kebutuhan Anda.</p>
+            <div class="landing-pricing">
+                <div class="landing-price">
+                    <h3>Free</h3>
+                    <div class="price">Rp0</div>
+                    <div class="price-period">/bulan</div>
+                    <ul>
+                        <li>5GB Storage</li>
+                        <li>Upload dasar</li>
+                        <li>Enkripsi E2E</li>
+                    </ul>
+                    <button onclick="location.hash='#/register'" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-weight:600">Mulai Gratis</button>
+                </div>
+                <div class="landing-price featured">
+                    <h3>Pro</h3>
+                    <div class="price">Rp49K</div>
+                    <div class="price-period">/bulan</div>
+                    <ul>
+                        <li>100GB Storage</li>
+                        <li>Auto backup</li>
+                        <li>AI search</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <button onclick="location.hash='#/register'" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-weight:600">Pilih Pro</button>
+                </div>
+                <div class="landing-price">
+                    <h3>Business</h3>
+                    <div class="price">Rp99K</div>
+                    <div class="price-period">/bulan</div>
+                    <ul>
+                        <li>1TB Storage</li>
+                        <li>Admin panel</li>
+                        <li>Custom branding</li>
+                        <li>API access</li>
+                    </ul>
+                    <button onclick="location.hash='#/register'" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-weight:600">Pilih Business</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="landing-cta">
+            <h2>Mulai Simpan File Sekarang — Gratis</h2>
+            <p>Tidak perlu kartu kredit. Daftar dan langsung pakai.</p>
+            <button onclick="location.hash='#/register'" style="padding:14px 40px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:16px;font-weight:600;cursor:pointer">Daftar Gratis</button>
+        </section>
+
+        <!-- Footer -->
+        <footer class="landing-footer">
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px">
+                <img src="/logo-icon.png" alt="RidgeBox" width="20" height="20" style="border-radius:4px" />
+                <span style="font-weight:600;font-size:14px;color:var(--text)">RidgeBox</span>
+            </div>
+            <p>© 2025 RidgeBox. Cloud storage gratis & aman.</p>
+            <div style="margin-top:8px">
+                <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank">GitHub</a>
+                <a href="#/">Privasi</a>
+                <a href="#/">Ketentuan</a>
+            </div>
+        </footer>
+    </div>`;
+
+    window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 
@@ -10503,7 +10657,7 @@ async function init() {
         if (APP.authReady) checkUrlRouting();
 
         // Onboarding (F95) - show on first dashboard visit
-        if (!APP.onboardingDone && location.hash === '#/dashboard') {
+        if (!APP.onboardingDone && location.hash === '#/dashboard' && isLoggedIn()) {
             setTimeout(startOnboarding, 500);
         }
 
