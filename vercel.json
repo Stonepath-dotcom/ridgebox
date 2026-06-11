@@ -142,6 +142,19 @@
       ]
     },
     {
+      "source": "/styles.css",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/css"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, s-maxage=604800, immutable"
+        }
+      ]
+    },
+    {
       "source": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff2|woff|ttf))",
       "headers": [
         {
@@ -184,7 +197,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=0, s-maxage=0, no-cache"
+          "value": "public, max-age=0, s-maxage=300, stale-while-revalidate=60"
         }
       ]
     }
