@@ -730,12 +730,14 @@ select.input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg 
 }
 .auth-form-input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(59,130,246,.12) }
 .auth-form-pw-toggle {
-  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  position:absolute; right:4px; top:50%; transform:translateY(-50%);
   background:none; border:none; color:var(--text-tertiary);
-  padding:4px; cursor:pointer;
+  padding:8px; cursor:pointer; min-width:44px; min-height:44px;
+  display:flex; align-items:center; justify-content:center;
 }
 .auth-form-pw-toggle:hover { color:var(--text) }
-.auth-form-strength { margin-bottom:14px }
+.auth-form-strength { margin-bottom:8px; min-height:0; transition:margin .2s ease }
+.auth-form-strength:empty { margin-bottom:0 }
 .auth-form-strength-bar {
   height:4px; background:var(--border); border-radius:2px; overflow:hidden;
 }
@@ -1016,8 +1018,8 @@ select.input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg 
   .bottom-nav { display:block }
 }
 
-/* ── FAB ── */
-.fab {
+/* ── FAB (Floating Action Button) ── */
+.fab-main {
   position:fixed; bottom:72px; right:16px; z-index:35;
   width:52px; height:52px; border-radius:50%;
   background:var(--accent); color:#fff; border:none;
@@ -1025,17 +1027,23 @@ select.input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg 
   display:flex; align-items:center; justify-content:center;
   cursor:pointer; transition:background var(--transition), transform var(--transition);
 }
-.fab:hover { background:var(--accent-hover); transform:scale(1.05) }
-.fab:active { transform:scale(.95) }
-.fab-menu {
+.fab-main:hover { background:var(--accent-hover); transform:scale(1.05) }
+.fab-main:active { transform:scale(.95) }
+.fab-main.fab-open { background:var(--text-secondary); transform:rotate(45deg) }
+.fab-expanded {
   position:fixed; bottom:132px; right:16px; z-index:35;
   display:flex; flex-direction:column; gap:8px;
 }
-.fab-menu-item {
-  display:flex; align-items:center; gap:8px;
-  padding:8px 14px; background:var(--bg); border:1px solid var(--border);
-  border-radius:var(--radius); box-shadow:var(--shadow);
-  font-size:13px; cursor:pointer; white-space:nowrap;
+.fab-option {
+  display:flex; align-items:center; justify-content:center;
+  width:44px; height:44px; border-radius:50%;
+  background:var(--bg); border:1px solid var(--border);
+  box-shadow:var(--shadow); font-size:16px; color:var(--text);
+  cursor:pointer; transition:var(--transition);
+}
+.fab-option:hover { background:var(--accent-soft); border-color:var(--accent); color:var(--accent) }
+.fab-wrap {
+  position:fixed; bottom:16px; right:16px; z-index:35;
 }
 
 /* ════════════════════════════════════════════
@@ -1127,10 +1135,11 @@ select.input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg 
 
 /* Landing Page */
 .landing{min-height:100vh;background:var(--bg)}
-.landing-nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--bg);border-bottom:1px solid var(--border);backdrop-filter:blur(8px)}
+.landing-nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--bg);border-bottom:1px solid var(--border)}
 .landing-logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;color:var(--text);text-decoration:none}
 .landing-logo img{width:32px;height:32px;border-radius:6px}
-.landing-nav-btns{display:flex;gap:8px}
+.landing-nav-btns{display:flex;gap:8px;align-items:center}
+.landing-nav-btns .btn{min-height:36px;padding:6px 16px}
 .landing-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 60px;max-width:720px;margin:0 auto}
 .landing-hero h1{font-size:2.5rem;font-weight:800;line-height:1.2;margin-bottom:16px;color:var(--text)}
 .landing-hero p{font-size:1.125rem;color:var(--text-secondary);margin-bottom:32px;max-width:560px}
@@ -1150,21 +1159,21 @@ select.input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg 
 .landing-step h3{font-size:1rem;font-weight:600;margin-bottom:6px;color:var(--text)}
 .landing-step p{font-size:.875rem;color:var(--text-secondary)}
 .landing-pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.landing-price{padding:28px 24px;border:1px solid var(--border);border-radius:12px;text-align:center;background:var(--bg-card);transition:var(--transition)}
+.landing-price{padding:28px 24px;border:1px solid var(--border);border-radius:12px;text-align:center;background:var(--bg-card);transition:var(--transition);display:flex;flex-direction:column}
 .landing-price.featured{border-color:var(--accent);box-shadow:0 4px 16px rgba(59,130,246,.12);position:relative}
-.landing-price.featured::before{content:'Populer';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:2px 12px;border-radius:99px}
 .landing-price h3{font-size:1rem;font-weight:600;margin-bottom:4px;color:var(--text)}
 .landing-price .price{font-size:2rem;font-weight:800;color:var(--accent);margin:12px 0 4px}
 .landing-price .price-period{font-size:.8rem;color:var(--text-tertiary)}
-.landing-price ul{list-style:none;padding:0;margin:16px 0;text-align:left}
+.landing-price ul{list-style:none;padding:0;margin:16px 0;text-align:left;flex:1}
 .landing-price li{font-size:.875rem;color:var(--text-secondary);padding:4px 0;display:flex;align-items:center;gap:8px}
-.landing-price li::before{content:'✓';color:var(--accent);font-weight:700}
+.landing-price li::before{content:'\2713';color:var(--accent);font-weight:700}
+.landing-price .btn{margin-top:auto;align-self:center;width:100%}
 .landing-cta{padding:60px 24px;text-align:center;background:var(--accent-soft);border-radius:16px;margin:40px auto;max-width:960px}
 .landing-cta h2{font-size:1.75rem;font-weight:700;margin-bottom:8px;color:var(--text)}
 .landing-cta p{color:var(--text-secondary);margin-bottom:24px}
 .landing-footer{padding:24px;border-top:1px solid var(--border);text-align:center;max-width:960px;margin:0 auto}
 .landing-footer p{font-size:.8rem;color:var(--text-tertiary)}
-.landing-footer a{color:var(--text-secondary);text-decoration:none;margin:0 8px}
+.landing-footer a{color:var(--text-secondary);text-decoration:none;margin:0 8px;min-height:44px;display:inline-flex;align-items:center;padding:4px 4px}
 .landing-footer a:hover{text-decoration:underline}
 @media(max-width:768px){
   .landing-hero h1{font-size:1.75rem}

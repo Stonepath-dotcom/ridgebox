@@ -3399,37 +3399,35 @@ function saveStripeConfig() { showToast('Stripe config is not available', 'info'
 
 // ===== HOMEPAGE — redirect to dashboard =====
 function renderHomepage() {
-    // Hide app header on landing page
     const header = document.getElementById('app-header');
     if (header) header.style.display = 'none';
+    const isDark = document.documentElement.classList.contains('dark');
 
     const main = document.getElementById('app-main');
     main.innerHTML = `
     <div class="landing fade-in">
-        <!-- Floating Navbar -->
         <nav class="landing-nav">
             <a href="#/" class="landing-logo">
                 <img src="/logo-icon.png" alt="RidgeBox" />
                 RidgeBox
             </a>
             <div class="landing-nav-btns">
-                <button onclick="location.hash='#/login'" style="padding:6px 16px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);font-size:14px;cursor:pointer">Masuk</button>
-                <button onclick="location.hash='#/register'" style="padding:6px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;cursor:pointer;font-weight:600">Daftar</button>
+                <button onclick="toggleTheme()" class="btn btn-ghost btn-sm" title="Ganti tema" aria-label="Toggle theme"><i class="fas fa-${isDark ? 'sun' : 'moon'}"></i></button>
+                <button onclick="location.hash='#/login'" class="btn btn-ghost btn-sm">Masuk</button>
+                <button onclick="location.hash='#/register'" class="btn btn-primary btn-sm">Daftar</button>
             </div>
         </nav>
 
-        <!-- Hero Section -->
         <section class="landing-hero">
             <img src="/logo-icon.png" alt="RidgeBox" width="56" height="56" style="border-radius:12px;margin-bottom:20px" />
             <h1>Penyimpanan Cloud Gratis & Aman</h1>
             <p>Simpan file tanpa server. Unlimited storage, end-to-end encryption. Gratis.</p>
             <div class="landing-hero-btns">
-                <button onclick="location.hash='#/register'" style="padding:12px 32px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:16px;font-weight:600;cursor:pointer">Mulai Sekarang</button>
-                <button onclick="location.hash='#/login'" style="padding:12px 32px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-size:16px;cursor:pointer">Masuk</button>
+                <button onclick="location.hash='#/register'" class="btn btn-primary" style="padding:12px 32px;font-size:16px;border-radius:10px">Mulai Sekarang</button>
+                <button onclick="location.hash='#/login'" class="btn" style="padding:12px 32px;font-size:16px;border-radius:10px">Masuk</button>
             </div>
         </section>
 
-        <!-- Features Grid -->
         <section class="landing-section">
             <h2>Fitur Unggulan</h2>
             <p>Semua yang Anda butuhkan untuk penyimpanan cloud yang aman dan gratis.</p>
@@ -3467,30 +3465,25 @@ function renderHomepage() {
             </div>
         </section>
 
-        <!-- How It Works -->
         <section class="landing-section">
             <h2>Cara Kerja</h2>
             <p>Tiga langkah mudah untuk mulai menyimpan file di cloud.</p>
             <div class="landing-steps">
                 <div class="landing-step">
-                    <i class="fa-solid fa-user-plus" style="font-size:24px;color:var(--accent);margin-bottom:8px;display:block"></i>
                     <h3>Daftar Gratis</h3>
                     <p>Buat akun dalam 30 detik.</p>
                 </div>
                 <div class="landing-step">
-                    <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px;color:var(--accent);margin-bottom:8px;display:block"></i>
                     <h3>Upload File</h3>
                     <p>Drag & drop atau pilih file dari device.</p>
                 </div>
                 <div class="landing-step">
-                    <i class="fa-solid fa-globe" style="font-size:24px;color:var(--accent);margin-bottom:8px;display:block"></i>
                     <h3>Akses di Mana Saja</h3>
                     <p>Buka file dari perangkat apa saja.</p>
                 </div>
             </div>
         </section>
 
-        <!-- Pricing -->
         <section class="landing-section">
             <h2>Harga</h2>
             <p>Pilih paket yang sesuai kebutuhan Anda.</p>
@@ -3504,9 +3497,10 @@ function renderHomepage() {
                         <li>Upload dasar</li>
                         <li>Enkripsi E2E</li>
                     </ul>
-                    <button onclick="location.hash='#/register'" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-weight:600">Mulai Gratis</button>
+                    <button onclick="location.hash='#/register'" class="btn" style="width:100%">Mulai Gratis</button>
                 </div>
                 <div class="landing-price featured">
+                    <span style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:3px 14px;border-radius:99px;white-space:nowrap">Populer</span>
                     <h3>Pro</h3>
                     <div class="price">Rp49K</div>
                     <div class="price-period">/bulan</div>
@@ -3516,7 +3510,7 @@ function renderHomepage() {
                         <li>AI search</li>
                         <li>Priority support</li>
                     </ul>
-                    <button onclick="location.hash='#/register'" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-weight:600">Pilih Pro</button>
+                    <button onclick="location.hash='#/register'" class="btn btn-primary" style="width:100%">Pilih Pro</button>
                 </div>
                 <div class="landing-price">
                     <h3>Business</h3>
@@ -3528,27 +3522,25 @@ function renderHomepage() {
                         <li>Custom branding</li>
                         <li>API access</li>
                     </ul>
-                    <button onclick="location.hash='#/register'" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-weight:600">Pilih Business</button>
+                    <button onclick="location.hash='#/register'" class="btn" style="width:100%">Pilih Business</button>
                 </div>
             </div>
         </section>
 
-        <!-- CTA Section -->
         <section class="landing-cta">
             <h2>Mulai Simpan File Sekarang — Gratis</h2>
             <p>Tidak perlu kartu kredit. Daftar dan langsung pakai.</p>
-            <button onclick="location.hash='#/register'" style="padding:14px 40px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:16px;font-weight:600;cursor:pointer">Daftar Gratis</button>
+            <button onclick="location.hash='#/register'" class="btn btn-primary" style="padding:14px 40px;font-size:16px;border-radius:10px">Daftar Gratis</button>
         </section>
 
-        <!-- Footer -->
         <footer class="landing-footer">
             <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px">
                 <img src="/logo-icon.png" alt="RidgeBox" width="20" height="20" style="border-radius:4px" />
                 <span style="font-weight:600;font-size:14px;color:var(--text)">RidgeBox</span>
             </div>
-            <p>© 2025 RidgeBox. Cloud storage gratis & aman.</p>
+            <p>&copy; 2025 RidgeBox. Cloud storage gratis &amp; aman.</p>
             <div style="margin-top:8px">
-                <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank">GitHub</a>
+                <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" rel="noopener">GitHub</a>
                 <a href="#/">Privasi</a>
                 <a href="#/">Ketentuan</a>
             </div>
