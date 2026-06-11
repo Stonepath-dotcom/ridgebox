@@ -4312,7 +4312,7 @@ function renderFileGridItem(file, index) {
         // Video thumbnail with play button overlay
         const thumbSrc = file.thumbnailUrl || file.thumbUrl || '';
         const videoThumbUrl = thumbSrc || `/api/thumb?file_id=${file.telegramFileId || file.id}&bot_index=${file.botIndex || 0}`;
-        previewArea = `<div class="grid-card-preview" ${thumbSrc ? '' : `data-lazy-thumb="${videoThumbUrl}" data-file-id="${file.id}"`} style="background:linear-gradient(135deg,${icon.color}18,${icon.color}08)">
+        previewArea = `<div class="grid-card-preview" ${thumbSrc ? '' : `data-lazy-thumb="${videoThumbUrl}" data-file-id="${file.id}"`} style="background:var(--bg-secondary)">
             ${thumbSrc ? `<img src="${thumbSrc}" alt="${file.name}" style="width:100%;height:100%;object-fit:cover;border-radius:13px 13px 0 0;opacity:.8">` : `<img src="" alt="${file.name}" class="file-thumb-placeholder-img" style="width:100%;height:100%;object-fit:cover;border-radius:13px 13px 0 0;opacity:0;transition:opacity .3s ease" onload="this.style.opacity=0.8" onerror="this.style.display='none'">`}
             <div class="grid-play-overlay">
                 <div class="play-btn"><i class="fas fa-play" style="margin-left:2px"></i></div>
@@ -4322,7 +4322,7 @@ function renderFileGridItem(file, index) {
         </div>`;
     } else if (type === 'pdf') {
         // PDF thumbnail with page count overlay
-        previewArea = `<div class="grid-card-preview" data-lazy-thumb="${downloadUrl}" data-file-id="${file.id}" style="background:linear-gradient(135deg,${icon.color}12,${icon.color}05)">
+        previewArea = `<div class="grid-card-preview" data-lazy-thumb="${downloadUrl}" data-file-id="${file.id}" style="background:var(--bg-secondary)">
             <div class="preview-icon-area">
                 <div class="icon-glow" style="background:${icon.color}"></div>
                 <i class="fas fa-file-pdf" style="font-size:36px;color:${icon.color}"></i>
@@ -4334,7 +4334,7 @@ function renderFileGridItem(file, index) {
     } else if (type === 'audio') {
         const barColors = [icon.color, icon.color + 'cc', icon.color + '99', icon.color + 'b3', icon.color + '80', icon.color + 'cc', icon.color];
         const bars = barColors.map((c, i) => `<span style="background:${c};animation-delay:${i * 0.15}s"></span>`).join('');
-        previewArea = `<div class="grid-card-preview" style="background:linear-gradient(135deg,${icon.color}15,${icon.color}08)">
+        previewArea = `<div class="grid-card-preview" style="background:var(--bg-secondary)">
             <div class="preview-icon-area" style="flex-direction:column;gap:12px">
                 <div class="icon-glow" style="background:${icon.color}"></div>
                 <i class="fas fa-music" style="font-size:28px;color:${icon.color}"></i>
@@ -4344,7 +4344,7 @@ function renderFileGridItem(file, index) {
             ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
         </div>`;
     } else {
-        previewArea = `<div class="grid-card-preview" style="background:linear-gradient(135deg,${icon.color}12,${icon.color}05)">
+        previewArea = `<div class="grid-card-preview" style="background:var(--bg-secondary)">
             <div class="preview-icon-area">
                 <div class="icon-glow" style="background:${icon.color}"></div>
                 <i class="fas ${icon.icon}" style="font-size:32px;color:${icon.color}"></i>
