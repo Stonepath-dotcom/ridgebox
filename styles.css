@@ -306,7 +306,7 @@ select.input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg 
     transition:transform .3s ease; box-shadow:var(--shadow-lg);
   }
   .dashboard-sidebar.open { transform:translateX(0) }
-  .dashboard-main { padding:16px }
+  .dashboard-main { padding:16px; padding-bottom:80px }
 }
 
 /* ════════════════════════════════════════════
@@ -1001,9 +1001,10 @@ select.input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg 
    ════════════════════════════════════════════ */
 .bottom-nav {
   display:none; position:fixed; bottom:0; left:0; right:0;
-  background:var(--bg); border-top:1px solid var(--border);
-  z-index:40; padding:4px 0;
-  padding-bottom:env(safe-area-inset-bottom, 4px);
+  background:var(--bg-card); border-top:1px solid var(--border);
+  z-index:80; padding:6px 0;
+  padding-bottom:env(safe-area-inset-bottom, 8px);
+  box-shadow:0 -2px 12px rgba(0,0,0,.06);
 }
 .bottom-nav-items { display:flex; justify-content:space-around }
 .bottom-nav-item {
@@ -1014,8 +1015,44 @@ select.input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg 
 }
 .bottom-nav-item i { font-size:18px }
 .bottom-nav-item.active { color:var(--accent) }
+
+/* Bottom nav tabs (used by renderBottomNav) */
+.bottom-nav-tab {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:6px 0; font-size:10px; font-weight:600;
+  color:var(--text-secondary); background:none; border:none;
+  cursor:pointer; flex:1; position:relative;
+  transition:color var(--transition);
+}
+.bottom-nav-tab i { font-size:20px; transition:transform .15s ease }
+.bottom-nav-tab.active { color:var(--accent) }
+.bottom-nav-tab.active i { transform:scale(1.1) }
+.bottom-nav-tab:active { opacity:.7 }
+
+/* Bottom nav badge */
+.bottom-nav-badge {
+  position:absolute; top:2px; right:calc(50% - 18px);
+  min-width:16px; height:16px; border-radius:8px;
+  background:var(--accent); color:#fff; font-size:9px;
+  font-weight:700; display:flex; align-items:center;
+  justify-content:center; padding:0 4px;
+}
+
+/* Bottom nav FAB button */
+.bottom-nav-fab {
+  position:absolute; top:-24px; left:50%; transform:translateX(-50%);
+  width:48px; height:48px; border-radius:50%;
+  background:var(--accent); color:#fff; border:none;
+  box-shadow:0 4px 12px rgba(59,130,246,.35); font-size:20px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; z-index:2;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.bottom-nav-fab:hover { transform:translateX(-50%) scale(1.08); box-shadow:0 6px 20px rgba(59,130,246,.4) }
+.bottom-nav-fab:active { transform:translateX(-50%) scale(.95) }
+
 @media(max-width:768px) {
-  .bottom-nav { display:block }
+  .bottom-nav { display:flex; justify-content:space-around; align-items:flex-end }
 }
 
 /* ── FAB (Floating Action Button) ── */
@@ -1044,6 +1081,9 @@ select.input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg 
 .fab-option:hover { background:var(--accent-soft); border-color:var(--accent); color:var(--accent) }
 .fab-wrap {
   position:fixed; bottom:16px; right:16px; z-index:35;
+}
+@media(max-width:768px) {
+  .fab-wrap { display:none }
 }
 
 /* ════════════════════════════════════════════

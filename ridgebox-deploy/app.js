@@ -8181,22 +8181,7 @@ function openEnhancedPreview(file) {
 }
 
 // ===== MOBILE PWA IMPROVEMENTS (F118) =====
-function renderMobileBottomNav() {
-    const isId = APP.lang === 'id';
-    const items = [
-        { icon: 'fa-house', label: isId ? 'Beranda' : 'Home', action: "selectFolder('all')", active: APP.currentFolder === 'all' },
-        { icon: 'fa-folder-open', label: isId ? 'File' : 'Files', action: "location.hash='#/dashboard'", active: location.hash === '#/dashboard' },
-        { icon: 'fa-cloud-arrow-up', label: isId ? 'Unggah' : 'Upload', action: 'triggerUpload()', active: false },
-        { icon: 'fa-chart-pie', label: isId ? 'Analitik' : 'Analytics', action: "location.hash='#/analytics'", active: location.hash === '#/analytics' },
-        { icon: 'fa-gear', label: isId ? 'Pengaturan' : 'Settings', action: 'openSettings()', active: false }
-    ];
-    return `<div id="mobile-bottom-nav" style="position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);border-top:1px solid var(--border);display:flex;z-index:80;padding:6px 0 env(safe-area-inset-bottom,8px);box-shadow:0 -2px 12px rgba(0,0,0,.08)">
-        ${items.map(i => `<div onclick="${i.action}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;opacity:${i.active ? 1 : 0.5};transition:opacity .15s">
-            <i class="fas ${i.icon}" style="font-size:18px;color:${i.active ? 'var(--accent)' : 'var(--text-secondary)'}"></i>
-            <span style="font-size:9px;font-weight:600;color:${i.active ? 'var(--accent)' : 'var(--text-secondary)'}">${i.label}</span>
-        </div>`).join('')}
-    </div>`;
-}
+// renderMobileBottomNav() removed — use renderBottomNav() instead (F22)
 
 // Pull-to-refresh
 let _pullStartY = 0, _pulling = false;
@@ -12839,8 +12824,9 @@ function renderBottomNav() {
     const tabs = [
         { id: 'files', icon: 'fa-folder', label: isId ? 'File' : 'Files', badge: 0 },
         { id: 'recent', icon: 'fa-clock', label: isId ? 'Terkini' : 'Recent', badge: recentCount },
+        { id: 'upload', icon: 'fa-plus', label: isId ? 'Unggah' : 'Upload', badge: 0, isFab: true },
         { id: 'shared', icon: 'fa-share-alt', label: isId ? 'Dibagikan' : 'Shared', badge: sharedCount },
-        { id: 'settings', icon: 'fa-cog', label: isId ? 'Pengaturan' : 'Settings', badge: 0 }
+        { id: 'settings', icon: 'fa-gear', label: isId ? 'Pengaturan' : 'Settings', badge: 0 }
     ];
 
     let navEl = document.getElementById('bottom-nav');
@@ -12850,19 +12836,19 @@ function renderBottomNav() {
         navEl.className = 'bottom-nav';
         document.body.appendChild(navEl);
     }
-    navEl.innerHTML = `
-        ${tabs.map(tab => {
-            const isActive = APP.bottomNavTab === tab.id;
-            return `<div class="bottom-nav-tab ${isActive ? 'active' : ''}" onclick="switchBottomTab('${tab.id}')">
+    navEl.innerHTML = tabs.map(tab => {
+        if (tab.isFab) {
+            return `<button class="bottom-nav-fab" onclick="triggerUpload()" title="${isId ? 'Unggah File' : 'Upload Files'}">
                 <i class="fas ${tab.icon}"></i>
-                <span>${tab.label}</span>
-                ${tab.badge > 0 ? `<span class="bottom-nav-badge">${tab.badge > 99 ? '99+' : tab.badge}</span>` : ''}
-            </div>`;
-        }).join('')}
-        <button class="bottom-nav-fab" onclick="triggerUpload()" title="${isId ? 'Unggah File' : 'Upload Files'}">
-            <i class="fas fa-plus"></i>
-        </button>
-    `;
+            </button>`;
+        }
+        const isActive = APP.bottomNavTab === tab.id;
+        return `<div class="bottom-nav-tab ${isActive ? 'active' : ''}" onclick="switchBottomTab('${tab.id}')">
+            <i class="fas ${tab.icon}"></i>
+            <span>${tab.label}</span>
+            ${tab.badge > 0 ? `<span class="bottom-nav-badge">${tab.badge > 99 ? '99+' : tab.badge}</span>` : ''}
+        </div>`;
+    }).join('');
 }
 
 function switchBottomTab(tabId) {
