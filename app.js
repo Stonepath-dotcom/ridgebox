@@ -2834,11 +2834,11 @@ function applyViewMode() {
         if (APP.viewMode === 'desktop') {
             sidebar.classList.remove('sidebar-mobile');
             sidebar.classList.add('sidebar-desktop');
-            sidebar.style.cssText = 'width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);overflow-y:auto;padding:16px 12px;transition:transform .3s ease;z-index:50';
+            sidebar.style.cssText = 'width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:var(--bg);overflow-y:auto;padding:16px 12px;transition:transform .3s ease;z-index:50';
         } else {
             sidebar.classList.remove('sidebar-desktop');
             sidebar.classList.add('sidebar-mobile');
-            sidebar.style.cssText = 'position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);overflow-y:auto;padding:16px 12px;transform:translateX(-100%);transition:transform .3s ease;box-shadow:var(--shadow-lg)';
+            sidebar.style.cssText = 'position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;background:var(--bg);overflow-y:auto;padding:16px 12px;transform:translateX(-100%);transition:transform .3s ease;box-shadow:var(--shadow-lg)';
         }
     }
 }
@@ -3281,7 +3281,7 @@ function openDetailPanel(fileId) {
             <video src="${downloadUrl}" controls preload="metadata" style="width:100%;height:100%;object-fit:contain" onclick="event.stopPropagation()"></video>
         </div>`;
     } else if (type === 'audio') {
-        previewHtml = `<div class="detail-preview-area" style="background:linear-gradient(135deg,${icon.color}18,${icon.color}08);min-height:160px">
+        previewHtml = `<div class="detail-preview-area" style="background:var(--bg-secondary);min-height:160px">
             <div class="preview-placeholder">
                 <div class="big-icon" style="background:${icon.color}12"><i class="fas ${icon.icon}" style="color:${icon.color}"></i></div>
                 <audio controls preload="metadata" style="width:90%;max-width:320px" onclick="event.stopPropagation()">
@@ -4159,7 +4159,7 @@ async function renderFileList() {
                     const d = Math.max(0, purgeDays - Math.floor((now - (f.trashedAt || 0)) / 86400000));
                     return d < min ? d : min;
                 }, Infinity);
-                actionBtns = `<div style="padding:10px 14px;background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(249,115,22,.08));border:1px solid rgba(239,68,68,.2);border-radius:10px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+                actionBtns = `<div style="padding:10px 14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
                     <i class="fas fa-exclamation-triangle" style="color:#ef4444"></i>
                     <span style="font-size:13px;color:#ef4444;font-weight:500">${urgentFiles.length} ${isId?'file akan dihapus permanen dalam':'file(s) will be permanently deleted in'} ${minDays} ${isId?'hari':'day(s)'}</span>
                 </div>` + actionBtns;
