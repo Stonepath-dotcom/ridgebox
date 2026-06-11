@@ -112,13 +112,12 @@ const APP = {
     previewCarouselIndex: -1,
     fabExpanded: false,
     activityLog: JSON.parse(localStorage.getItem('rb_activity_log') || '[]'),
-    achievementBadges: JSON.parse(localStorage.getItem('rb_badges') || '{}'),
+    // achievementBadges removed (F136)
     vaultPin: localStorage.getItem('rb_vault_pin') || '',
     vaultFiles: JSON.parse(localStorage.getItem('rb_vault_files') || '[]'),
     vaultUnlocked: false,
     selfDestructFolders: JSON.parse(localStorage.getItem('rb_sd_folders') || '{}'),
-    fakeFolders: JSON.parse(localStorage.getItem('rb_fake_folders') || '{}'),
-    fakeFolderPin: localStorage.getItem('rb_fake_pin') || '',
+    // fakeFolders removed (F135)
     dragSelectActive: false,
     dragSelectStart: null,
     fileDropLinks: JSON.parse(localStorage.getItem('rb_drop_links') || '[]'),
@@ -2569,6 +2568,9 @@ function checkUrlRouting() {
     } else if (hash.startsWith('#/upload/')) {
         const token = hash.replace('#/upload/', '');
         renderUploadPortal(token);
+    } else if (hash.startsWith('#/drop/')) {
+        const token = hash.replace('#/drop/', '');
+        renderDropPortal(token);
     } else if (hash.startsWith('#/s/')) {
         const alias = hash.replace('#/s/', '');
         renderSharePortal(alias);
@@ -5351,7 +5353,7 @@ function renderDashboard() {
         { icon: 'fa-clone', label: isId ? 'Duplikat' : 'Dupes', action: 'openDuplicateFinder()', primary: false },
         { icon: 'fa-vault', label: isId ? 'Brankas' : 'Vault', action: 'openVaultModal()', primary: false },
         { icon: 'fa-clock-rotate-left', label: isId ? 'Aktivitas' : 'Activity', action: 'openActivityFeed()', primary: false },
-        { icon: 'fa-trophy', label: isId ? 'Badge' : 'Badges', action: 'openBadgeShowcase()', primary: false },
+
         { icon: 'fa-cloud-arrow-up', label: isId ? 'Drop Link' : 'Drop Link', action: 'openFileDropLinkModal()', primary: false }
     ];
     // Add "Pilih Drive" option when GDrive accounts are connected
@@ -5546,14 +5548,7 @@ function renderDashboard() {
                             <div class="dash-card-title"><i class="fas fa-chart-pie" style="color:#8b5cf6"></i> ${isId ? 'Distribusi File' : 'File Distribution'}</div>
                             ${renderStoragePieChart()}
                         </div>
-                        <!-- F136: Achievement Badges Widget -->
-                        <div class="dash-card" style="cursor:pointer" onclick="openBadgeShowcase()">
-                            <div class="dash-card-title"><i class="fas fa-trophy" style="color:#f59e0b"></i> ${isId ? 'Pencapaian' : 'Achievements'}</div>
-                            <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0">${BADGE_DEFINITIONS.slice(0,6).map(b => {
-                                const earned = !!APP.achievementBadges[b.id];
-                                return `<div style="width:36px;height:36px;border-radius:10px;background:${earned?b.color+'15':'var(--bg-secondary)'};display:flex;align-items:center;justify-content:center;opacity:${earned?1:0.3};transition:all .2s" title="${isId?b.nameId:b.nameEn}"><i class="fas ${b.icon}" style="color:${earned?b.color:'var(--text-secondary)'};font-size:14px"></i></div>`;
-                            }).join('')}<div style="display:flex;align-items:center;font-size:11px;color:var(--text-secondary);padding:4px 8px">${Object.keys(APP.achievementBadges).length}/${BADGE_DEFINITIONS.length}</div></div>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -5782,13 +5777,13 @@ function renderSidebarHTML() {
         const active = f.id === APP.currentFolder;
         const count = APP.files.filter(x => !x.trashed && x.folderId === f.id).length;
         const isSD = !!APP.selfDestructFolders[f.id];
-        const isFake = !!APP.fakeFolders[f.id];
+        // fakeFolders removed
         return `<div class="sidebar-item ${active ? 'active' : ''} sidebar-folder-drop-target" data-folder-id="${f.id}" onclick="selectFolder('${f.id}')" style="position:relative">
             <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${active ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
             <i class="fas ${f.icon || 'fa-folder'}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : '#f59e0b'};position:relative;z-index:1;font-size:14px"></i>
             <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${f.name}</span>
             ${isSD ? '<i class="fas fa-bomb" style="font-size:9px;color:#ef4444;position:relative;z-index:1" title="Auto-Delete"></i>' : ''}
-            ${isFake ? '<i class="fas fa-user-secret" style="font-size:9px;color:#64748b;position:relative;z-index:1" title="Fake Folder"></i>' : ''}
+
             ${count > 0 ? `<span style="font-size:11px;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};background:${active ? 'rgba(59,130,246,.1)' : 'var(--bg-secondary)'};padding:2px 8px;border-radius:99px;font-weight:600;position:relative;z-index:1">${count}</span>` : ''}
             <button class="btn btn-ghost" style="padding:2px 4px;font-size:11px;position:relative;z-index:1" onclick="event.stopPropagation();openFolderOptions('${f.id}')" aria-label="Folder options"><i class="fas fa-ellipsis-vertical"></i></button>
         </div>`;
@@ -5799,11 +5794,11 @@ function renderSidebarHTML() {
         { id: 'storage-management', icon: 'fa-server', name: isId ? 'Kelola Penyimpanan' : 'Storage Manager', action: "location.hash='#/storage'" },
         { id: 'storage-analytics', icon: 'fa-chart-pie', name: isId ? 'Analisis Penyimpanan' : 'Storage Analytics', action: 'openStorageAnalytics()' },
         { id: 'analytics', icon: 'fa-chart-line', name: isId ? 'Dashboard Analitik' : 'Analytics Dashboard', action: "location.hash='#/analytics'" },
-        { id: 'badges', icon: 'fa-trophy', name: isId ? 'Pencapaian' : 'Achievements', action: 'openBadgeShowcase()' },
+
         { id: 'activity', icon: 'fa-clock-rotate-left', name: isId ? 'Riwayat Aktivitas' : 'Activity Feed', action: 'openActivityFeed()' },
         { id: 'duplicates', icon: 'fa-clone', name: isId ? 'Cari Duplikat' : 'Find Duplicates', action: 'openDuplicateFinder()' },
         { id: 'file-drop', icon: 'fa-cloud-arrow-up', name: isId ? 'Link Upload Masuk' : 'File Drop Link', action: 'openFileDropLinkModal()' },
-        { id: 'vault', icon: 'fa-vault', name: isId ? 'Brankas' : 'Vault', action: 'openVaultModal()' },
+        { id: 'vault', icon: 'fa-vault', name: isId ? 'Brankas' : 'Vault', action: 'openVaultModal()', badge: APP.vaultPin ? APP.vaultFiles.length : null },
         { id: 'shortcuts', icon: 'fa-keyboard', name: isId ? 'Pintasan Keyboard' : 'Shortcuts', action: 'openKeyboardShortcuts()' },
         { id: 'settings', icon: 'fa-gear', name: isId ? 'Pengaturan' : 'Settings', action: 'openSettings()' }
     ];
@@ -5814,6 +5809,7 @@ function renderSidebarHTML() {
             <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${active ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
             <i class="fas ${t.icon}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};position:relative;z-index:1;font-size:14px"></i>
             <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${t.name}</span>
+            ${t.badge ? `<span style="font-size:10px;color:#fff;background:var(--accent);padding:1px 7px;border-radius:99px;font-weight:700;position:relative;z-index:1">${t.badge}</span>` : ''}
         </div>`;
     }).join('');
 
@@ -5905,14 +5901,7 @@ function renderSidebarHTML() {
 
 // ===== SELECT FOLDER (integrated) =====
 function selectFolder(folderId) {
-    // F135: Fake folder check - prompt for PIN
-    if (isFakeFolderProtected(folderId)) {
-        APP._fakeFolderUnlocked = APP._fakeFolderUnlocked || new Set();
-        if (!APP._fakeFolderUnlocked.has(folderId)) {
-            unlockFakeFolder(folderId);
-            return;
-        }
-    }
+    // Fake folder removed (F135)
     APP.currentFolder = folderId;
     APP.quickFilter = null;
     APP.tagFilter = null;
@@ -6150,14 +6139,6 @@ function getFilteredFiles() {
     if (APP.vaultPin && APP.vaultFiles.length > 0) {
         const vaultIds = new Set(APP.vaultFiles.map(v => v.fileId));
         files = files.filter(f => !vaultIds.has(f.id));
-    }
-
-    // F135: Fake folder - show empty if not unlocked
-    if (isFakeFolderProtected(APP.currentFolder)) {
-        APP._fakeFolderUnlocked = APP._fakeFolderUnlocked || new Set();
-        if (!APP._fakeFolderUnlocked.has(APP.currentFolder)) {
-            files = [];
-        }
     }
 
     // Quick filter (F65)
@@ -7539,13 +7520,13 @@ async function deleteCustomFolder(folderId) {
     );
 }
 
-// ===== FOLDER OPTIONS (Self-Destruct + Fake Folder) =====
+// ===== FOLDER OPTIONS (Self-Destruct) =====
 function openFolderOptions(folderId) {
     const isId = APP.lang === 'id';
     const folder = APP.folders.find(f => f.id === folderId);
     if (!folder) return;
     const isSD = !!APP.selfDestructFolders[folderId];
-    const isFake = !!APP.fakeFolders[folderId];
+    // fakeFolders removed
     openModal(`<div style="padding:20px;max-width:400px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
             <h3 style="font-size:18px;font-weight:600"><i class="fas fa-folder" style="color:#f59e0b;margin-right:8px"></i>${folder.name}</h3>
@@ -7557,11 +7538,7 @@ function openFolderOptions(folderId) {
                 <div style="flex:1"><div style="font-size:13px;font-weight:600">${isId?'Auto-Hapus Folder':'Self-Destruct'}</div><div style="font-size:11px;color:var(--text-secondary)">${isSD?(isId?'Aktif — hapus file setelah':'Active — delete files after')+' '+APP.selfDestructFolders[folderId].interval+' '+(isId?'hari':'days'):(isId?'Hapus otomatis file lama':'Auto-delete old files')}</div></div>
                 ${isSD?'<i class="fas fa-check-circle" style="color:#ef4444"></i>':''}
             </div>
-            <div style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s" onclick="closeModal();openFakeFolderSetup('${folderId}')" onmouseover="this.style.borderColor='#64748b';this.style.background='rgba(100,116,139,.05)'" onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
-                <div style="width:40px;height:40px;border-radius:10px;background:#64748b15;display:flex;align-items:center;justify-content:center"><i class="fas fa-user-secret" style="color:#64748b;font-size:16px"></i></div>
-                <div style="flex:1"><div style="font-size:13px;font-weight:600">${isId?'Folder Palsu':'Fake Folder'}</div><div style="font-size:11px;color:var(--text-secondary)">${isFake?(isId?'Aktif — folder terlihat kosong':'Active — folder appears empty'):(isId?'Sembunyikan isi folder dengan PIN':'Hide folder contents with a PIN')}</div></div>
-                ${isFake?'<i class="fas fa-check-circle" style="color:#64748b"></i>':''}
-            </div>
+
             <div style="border-top:1px solid var(--border);margin:4px 0"></div>
             <div style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid rgba(239,68,68,.2);border-radius:10px;cursor:pointer;transition:all .15s" onclick="closeModal();deleteCustomFolder('${folderId}')" onmouseover="this.style.background='rgba(239,68,68,.05)'" onmouseout="this.style.background=''">
                 <div style="width:40px;height:40px;border-radius:10px;background:rgba(239,68,68,.08);display:flex;align-items:center;justify-content:center"><i class="fas fa-trash" style="color:#ef4444;font-size:16px"></i></div>
@@ -18018,7 +17995,13 @@ function renderPreviewCarousel() {
     } else if (type === 'video') {
         previewContent = `<video src="${downloadUrl}" controls playsinline style="max-width:100%;max-height:55vh;border-radius:8px"></video>`;
     } else if (type === 'audio') {
-        previewContent = `<div style="text-align:center;padding:30px"><div style="width:100px;height:100px;border-radius:20px;background:linear-gradient(135deg,#f59e0b20,#8b5cf620);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-music" style="font-size:40px;color:#f59e0b"></i></div><audio src="${downloadUrl}" controls style="width:100%;margin-top:12px"></audio></div>`;
+        const waveformId = 'carousel-audio-waveform-' + file.id;
+        previewContent = `<div style="text-align:center;padding:30px"><div style="width:100px;height:100px;border-radius:20px;background:linear-gradient(135deg,#f59e0b20,#8b5cf620);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-music" style="font-size:40px;color:#f59e0b"></i></div><canvas id="${waveformId}" style="width:100%;height:60px;margin:8px 0"></canvas><audio id="carousel-audio-${file.id}" src="${downloadUrl}" controls style="width:100%;margin-top:12px"></audio></div>`;
+        setTimeout(() => {
+            const audioEl = document.getElementById('carousel-audio-' + file.id);
+            const canvasEl = document.getElementById(waveformId);
+            if (audioEl && canvasEl) renderAudioWaveform(audioEl, waveformId);
+        }, 300);
     } else if (type === 'pdf') {
         previewContent = `<iframe src="${downloadUrl}" style="width:100%;height:55vh;border:none;border-radius:8px"></iframe>`;
     } else {
@@ -18061,6 +18044,21 @@ function renderPreviewCarousel() {
     document.removeEventListener('keydown', window._carouselKeyHandler);
     window._carouselKeyHandler = _carouselKey;
     document.addEventListener('keydown', _carouselKey);
+    // Touch swipe support for carousel
+    const modalEl = document.querySelector('.modal-overlay, [class*="modal"]');
+    if (modalEl) {
+        let touchStartX = 0;
+        const handleSwipe = (e) => {
+            const diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0 && hasNext) { APP.previewCarouselIndex++; renderPreviewCarousel(); }
+                else if (diff < 0 && hasPrev) { APP.previewCarouselIndex--; renderPreviewCarousel(); }
+            }
+            modalEl.removeEventListener('touchend', handleSwipe);
+        };
+        modalEl.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+        modalEl.addEventListener('touchend', handleSwipe);
+    }
 }
 
 // ===== F127: QUICK ACTION FAB =====
@@ -18080,6 +18078,7 @@ function renderFAB() {
             <div class="fab-item" onclick="openUrlUpload();toggleFAB()"><span class="fab-label">${isId?'URL Upload':'URL Upload'}</span><div class="fab-icon" style="background:#8b5cf6"><i class="fas fa-link"></i></div></div>
             <div class="fab-item" onclick="openCameraUpload();toggleFAB()"><span class="fab-label">${isId?'Kamera':'Camera'}</span><div class="fab-icon" style="background:#f59e0b"><i class="fas fa-camera"></i></div></div>
             <div class="fab-item" onclick="openDuplicateFinder();toggleFAB()"><span class="fab-label">${isId?'Cari Duplikat':'Find Dupes'}</span><div class="fab-icon" style="background:#ef4444"><i class="fas fa-clone"></i></div></div>
+            <div class="fab-item" onclick="openFileDropLinkModal();toggleFAB()"><span class="fab-label">${isId?'Link Upload':'Drop Link'}</span><div class="fab-icon" style="background:#06b6d4"><i class="fas fa-cloud-arrow-up"></i></div></div>
             <div class="fab-item" onclick="openVaultModal();toggleFAB()"><span class="fab-label">${isId?'Brankas':'Vault'}</span><div class="fab-icon" style="background:#64748b"><i class="fas fa-vault"></i></div></div>
         </div>
         <button id="quick-fab-btn" class="fab-main" onclick="toggleFAB()" aria-label="Quick actions"><i class="fas fa-plus"></i></button>
@@ -18133,6 +18132,8 @@ function logActivity(type, description) {
     if (APP.activityLog.length > 200) APP.activityLog = APP.activityLog.slice(0, 200);
     localStorage.setItem('rb_activity_log', JSON.stringify(APP.activityLog));
     APP._activityCache = APP.activityLog;
+    // Update activity timeline if visible
+    if (typeof refreshActivityUI === 'function') refreshActivityUI();
 }
 function openActivityFeed() {
     const isId = APP.lang === 'id';
@@ -18146,8 +18147,7 @@ function openActivityFeed() {
         move: { icon: 'fa-arrows-alt', color: '#06b6d4' },
         vault: { icon: 'fa-vault', color: '#64748b' },
         encrypt: { icon: 'fa-lock', color: '#8b5cf6' },
-        login: { icon: 'fa-sign-in-alt', color: '#3b82f6' },
-        badge: { icon: 'fa-trophy', color: '#f59e0b' }
+        login: { icon: 'fa-sign-in-alt', color: '#3b82f6' }
     };
     const items = log.length > 0 ? log.map(a => {
         const cfg = typeConfig[a.type] || typeConfig.move;
@@ -18190,7 +18190,7 @@ function openDuplicateFinder() {
             </div>
             <div style="display:flex;flex-direction:column;gap:4px">${g.map((f,i) => `<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;background:var(--bg-secondary);border-radius:6px;font-size:11px">
                 <span style="flex:1;color:var(--text-secondary)">${formatDate(f.uploadedAt)}</span>
-                ${i>0?`<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px" onclick="deleteFile('${f.id}');openDuplicateFinder()"><i class="fas fa-trash" style="color:#ef4444"></i></button>`:`<span style="font-size:10px;color:#10b981;font-weight:600">${isId?'Asli':'Original'}</span>`}
+                ${i>0?`<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px" onclick="moveToTrash('${f.id}');openDuplicateFinder()"><i class="fas fa-trash" style="color:#ef4444"></i></button>`:`<span style="font-size:10px;color:#10b981;font-weight:600">${isId?'Asli':'Original'}</span>`}
             </div>`).join('')}</div>
         </div>`;
     }).join('') : `<div style="text-align:center;padding:40px;color:var(--text-secondary)"><i class="fas fa-check-circle" style="font-size:40px;color:#10b981;opacity:.5"></i><p style="margin-top:12px">${isId?'Tidak ada file duplikat':'No duplicate files found'}</p></div>`;
@@ -18199,9 +18199,29 @@ function openDuplicateFinder() {
             <h3 style="font-size:18px;font-weight:600"><i class="fas fa-clone" style="color:#ef4444;margin-right:8px"></i>${isId?'Pencarian Duplikat':'Duplicate Finder'}</h3>
             <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
         </div>
-        ${duplicates.length > 0 ? `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="fas fa-exclamation-triangle" style="color:#ef4444"></i><span style="font-size:12px;color:var(--text)">${duplicates.length} ${isId?'kelompok duplikat':'duplicate groups'} · ${formatSize(totalWaste)} ${isId?'terbuang':'wasted'}</span></div>` : ''}
+        ${duplicates.length > 0 ? `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="fas fa-exclamation-triangle" style="color:#ef4444"></i><span style="font-size:12px;color:var(--text);flex:1">${duplicates.length} ${isId?'kelompok duplikat':'duplicate groups'} · ${formatSize(totalWaste)} ${isId?'terbuang':'wasted'}</span><button class="btn btn-sm" style="background:#ef4444;color:#fff;font-size:11px;padding:4px 10px" onclick="deleteAllDuplicates()">${isId?'Hapus Semua':'Delete All'}</button></div>` : ''}
         <div style="max-height:55vh;overflow-y:auto">${dupHtml}</div>
     </div>`);
+}
+function deleteAllDuplicates() {
+    const files = APP.files.filter(f => !f.trashed);
+    const groups = {};
+    files.forEach(f => {
+        const key = f.name + '_' + f.size;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(f);
+    });
+    const duplicates = Object.values(groups).filter(g => g.length > 1);
+    let deleted = 0;
+    duplicates.forEach(g => {
+        // Keep the first (oldest), trash the rest
+        g.slice(1).forEach(f => {
+            moveToTrash(f.id);
+            deleted++;
+        });
+    });
+    showToast(`${deleted} ${APP.lang==='id'?'duplikat dihapus':'duplicates removed'}`, 'success');
+    openDuplicateFinder();
 }
 
 // ===== F131: MULTI-SELECT DRAG =====
@@ -18213,7 +18233,12 @@ function initDragSelect() {
     let selBox = null;
     container.addEventListener('mousedown', e => {
         if (e.target.closest('.file-card, .file-row, button, a, input, select')) return;
-        if (!APP.batchMode) return;
+        // Allow drag select when in batch mode OR when shift key is held
+        if (!APP.batchMode && !e.shiftKey) return;
+        // Auto-enable batch mode
+        if (!APP.batchMode) { APP.batchMode = true; renderFileList(); }
+        // Remember which files were already selected before drag
+        APP._dragPreselected = new Set(APP.selectedFiles);
         isDragging = true;
         startX = e.clientX;
         startY = e.clientY;
@@ -18239,16 +18264,24 @@ function initDragSelect() {
             const r = el.getBoundingClientRect();
             const overlap = !(r.right < box.left || r.left > box.right || r.bottom < box.top || r.top > box.bottom);
             const fid = el.dataset.fileId;
-            if (overlap && fid) APP.selectedFiles.add(fid);
-            else if (fid) APP.selectedFiles.delete(fid);
-            el.classList.toggle('selected', overlap && !!fid);
+            if (overlap && fid) {
+                APP.selectedFiles.add(fid);
+                el.classList.add('selected');
+            } else if (fid) {
+                // Only deselect if not previously selected before drag started
+                if (!APP._dragPreselected?.has(fid)) {
+                    APP.selectedFiles.delete(fid);
+                }
+                el.classList.toggle('selected', APP.selectedFiles.has(fid));
+            }
         });
     });
     document.addEventListener('mouseup', () => {
         if (!isDragging) return;
         isDragging = false;
+        APP._dragPreselected = null;
         if (selBox) { selBox.remove(); selBox = null; }
-        updateBatchUI();
+        updateQuickActions();
     });
 }
 
@@ -18293,6 +18326,79 @@ function createFileDropLink() {
 function deleteFileDropLink(token) {
     APP.fileDropLinks = APP.fileDropLinks.filter(l => l.token !== token);
     localStorage.setItem('rb_drop_links', JSON.stringify(APP.fileDropLinks));
+}
+function renderDropPortal(token) {
+    const main = document.getElementById('app-main');
+    if (!main) return;
+    const dropLink = APP.fileDropLinks.find(l => l.token === token);
+    if (!dropLink) {
+        main.innerHTML = `<div class="page-transition" style="display:flex;align-items:center;justify-content:center;min-height:80vh">
+            <div style="text-align:center;max-width:400px;padding:40px">
+                <div style="width:64px;height:64px;border-radius:16px;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                    <i class="fas fa-link-slash" style="font-size:28px;color:#ef4444"></i>
+                </div>
+                <h2 style="font-size:20px;font-weight:700">Link Tidak Valid</h2>
+                <p style="color:var(--text-secondary);margin-top:8px">Link upload ini sudah tidak tersedia atau telah dihapus.</p>
+                <a href="#/" class="btn btn-primary" style="margin-top:20px"><i class="fas fa-home"></i> Home</a>
+            </div>
+        </div>`;
+        return;
+    }
+    const isId = APP.lang === 'id';
+    const linkName = dropLink.name || (isId ? 'Upload Link' : 'Upload Link');
+    renderHeader();
+    main.innerHTML = `<div class="page-transition" style="display:flex;align-items:center;justify-content:center;min-height:80vh">
+        <div style="text-align:center;max-width:500px;padding:40px;width:100%">
+            <div style="width:64px;height:64px;border-radius:16px;background:rgba(59,130,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                <i class="fas fa-cloud-arrow-up" style="font-size:28px;color:var(--accent)"></i>
+            </div>
+            <h2 style="font-size:20px;font-weight:700">${isId ? 'Upload ke RidgeBox' : 'Upload to RidgeBox'}</h2>
+            <p style="color:var(--text-secondary);margin-bottom:24px">${linkName}</p>
+            <div class="drop-zone" id="drop-portal-zone" style="padding:40px 20px;margin-bottom:16px;cursor:pointer" onclick="document.getElementById('drop-portal-input').click()">
+                <i class="fas fa-cloud-arrow-up" style="font-size:36px;color:var(--accent);margin-bottom:8px"></i>
+                <p>${isId ? 'Seret file atau klik untuk upload' : 'Drop files or click to upload'}</p>
+            </div>
+            <input type="file" id="drop-portal-input" multiple style="display:none" onchange="handleDropPortalUpload(this.files, '${token}')">
+            <div id="drop-portal-progress" style="display:none;margin-top:12px">
+                <div style="height:4px;background:var(--bg-secondary);border-radius:99px;overflow:hidden"><div id="drop-portal-bar" style="height:100%;width:0%;background:var(--accent);border-radius:99px;transition:width .3s ease"></div></div>
+                <p id="drop-portal-status" style="font-size:12px;color:var(--text-secondary);margin-top:6px">${isId ? 'Mengupload...' : 'Uploading...'}</p>
+            </div>
+            <div id="drop-portal-done" style="display:none;margin-top:16px;padding:16px;background:rgba(16,185,129,.1);border-radius:12px">
+                <i class="fas fa-check-circle" style="color:#10b981;font-size:24px"></i>
+                <p style="margin-top:8px;font-weight:600;color:#10b981">${isId ? 'Upload berhasil!' : 'Upload successful!'}</p>
+            </div>
+        </div>
+    </div>`;
+    // Setup drag & drop
+    const zone = document.getElementById('drop-portal-zone');
+    if (zone) {
+        zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('drag-over'); if (e.dataTransfer.files.length) handleDropPortalUpload(e.dataTransfer.files, token); });
+    }
+}
+async function handleDropPortalUpload(fileList, token) {
+    const dropLink = APP.fileDropLinks.find(l => l.token === token);
+    if (!dropLink) return;
+    const progressEl = document.getElementById('drop-portal-progress');
+    const barEl = document.getElementById('drop-portal-bar');
+    const doneEl = document.getElementById('drop-portal-done');
+    const zoneEl = document.getElementById('drop-portal-zone');
+    if (progressEl) progressEl.style.display = 'block';
+    if (zoneEl) zoneEl.style.display = 'none';
+    for (let i = 0; i < fileList.length; i++) {
+        const file = fileList[i];
+        if (barEl) barEl.style.width = `${((i + 0.5) / fileList.length) * 100}%`;
+        await executeUpload(file, null);
+        if (barEl) barEl.style.width = `${((i + 1) / fileList.length) * 100}%`;
+    }
+    // Update upload count
+    dropLink.uploads = (dropLink.uploads || 0) + fileList.length;
+    localStorage.setItem('rb_drop_links', JSON.stringify(APP.fileDropLinks));
+    logActivity('upload', `${fileList.length} file via Drop Link`);
+    if (progressEl) progressEl.style.display = 'none';
+    if (doneEl) doneEl.style.display = 'block';
+    haptic('uploadComplete');
 }
 
 // ===== F133: HIDDEN VAULT =====
@@ -18429,93 +18535,6 @@ function checkSelfDestructFolders() {
     saveFiles();
 }
 
-// ===== F135: FAKE FOLDER =====
-function openFakeFolderSetup(folderId) {
-    const isId = APP.lang === 'id';
-    const ff = APP.fakeFolders[folderId] || {};
-    openModal(`<div style="padding:20px;max-width:400px">
-        <h3 style="font-size:18px;font-weight:600;margin-bottom:16px"><i class="fas fa-user-secret" style="color:#64748b;margin-right:8px"></i>${isId?'Folder Palsu':'Fake Folder'}</h3>
-        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">${isId?'Folder akan terlihat kosong jika dibuka tanpa PIN rahasia':'Folder will appear empty when opened without the secret PIN'}</p>
-        <input id="fake-pin-input" type="password" maxlength="6" class="input" placeholder="${isId?'PIN Rahasia (4-6 digit)':'Secret PIN (4-6 digits)'}" value="${ff.pin||''}">
-        <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="saveFakeFolder('${folderId}')"><i class="fas fa-save"></i> ${isId?'Simpan':'Save'}</button>
-    </div>`);
-}
-function saveFakeFolder(folderId) {
-    const pin = document.getElementById('fake-pin-input').value;
-    const isId = APP.lang === 'id';
-    if (pin.length < 4) { showToast(isId?'PIN minimal 4 digit':'PIN must be at least 4 digits', 'error'); return; }
-    APP.fakeFolders[folderId] = { pin };
-    localStorage.setItem('rb_fake_folders', JSON.stringify(APP.fakeFolders));
-    showToast(isId?'Folder palsu diaktifkan':'Fake folder enabled', 'success');
-    closeModal();
-}
-function isFakeFolderProtected(folderId) {
-    return !!APP.fakeFolders[folderId];
-}
-function unlockFakeFolder(folderId) {
-    const isId = APP.lang === 'id';
-    const pin = prompt(isId ? 'Masukkan PIN folder:' : 'Enter folder PIN:');
-    if (pin === APP.fakeFolders[folderId]?.pin) {
-        APP._fakeFolderUnlocked = APP._fakeFolderUnlocked || new Set();
-        APP._fakeFolderUnlocked.add(folderId);
-        selectFolder(folderId);
-    } else {
-        showToast(isId?'PIN salah!':'Wrong PIN!', 'error');
-    }
-}
-
-// ===== F136: STORAGE ACHIEVEMENT BADGES =====
-const BADGE_DEFINITIONS = [
-    { id: 'first_upload', icon: 'fa-cloud-arrow-up', color: '#3b82f6', nameId: 'Upload Pertama', nameEn: 'First Upload', check: () => APP.files.length >= 1 },
-    { id: 'ten_files', icon: 'fa-folder-open', color: '#10b981', nameId: '10 File', nameEn: '10 Files', check: () => APP.files.filter(f=>!f.trashed).length >= 10 },
-    { id: 'fifty_files', icon: 'fa-box-archive', color: '#8b5cf6', nameId: '50 File', nameEn: '50 Files', check: () => APP.files.filter(f=>!f.trashed).length >= 50 },
-    { id: 'hundred_files', icon: 'fa-trophy', color: '#f59e0b', nameId: '100 File', nameEn: '100 Files', check: () => APP.files.filter(f=>!f.trashed).length >= 100 },
-    { id: 'first_share', icon: 'fa-share-alt', color: '#ec4899', nameId: 'Bagikan Pertama', nameEn: 'First Share', check: () => APP.shares.length >= 1 },
-    { id: 'power_sharer', icon: 'fa-share-nodes', color: '#f97316', nameId: 'Power Sharer', nameEn: 'Power Sharer', check: () => APP.shares.length >= 10 },
-    { id: 'storage_100mb', icon: 'fa-hard-drive', color: '#06b6d4', nameId: '100MB Terpakai', nameEn: '100MB Used', check: () => APP.files.filter(f=>!f.trashed).reduce((s,f)=>s+(f.size||0),0) >= 100*1024*1024 },
-    { id: 'storage_1gb', icon: 'fa-database', color: '#ef4444', nameId: '1GB Terpakai', nameEn: '1GB Used', check: () => APP.files.filter(f=>!f.trashed).reduce((s,f)=>s+(f.size||0),0) >= 1024*1024*1024 },
-    { id: 'first_encrypt', icon: 'fa-lock', color: '#8b5cf6', nameId: 'Enkripsi Pertama', nameEn: 'First Encryption', check: () => APP.files.some(f=>f.encrypted) },
-    { id: 'vault_user', icon: 'fa-vault', color: '#64748b', nameId: 'Pengguna Brankas', nameEn: 'Vault User', check: () => !!APP.vaultPin },
-    { id: 'week_streak', icon: 'fa-fire', color: '#f97316', nameId: 'Streak 7 Hari', nameEn: '7-Day Streak', check: () => { const log = APP.activityLog; if (log.length < 7) return false; const days = new Set(log.slice(0,50).map(a => new Date(a.timestamp).toDateString())); return days.size >= 7; } }
-];
-function checkAndAwardBadges() {
-    const isId = APP.lang === 'id';
-    let newBadge = false;
-    BADGE_DEFINITIONS.forEach(b => {
-        if (!APP.achievementBadges[b.id] && b.check()) {
-            APP.achievementBadges[b.id] = { earnedAt: Date.now() };
-            newBadge = true;
-            logActivity('badge', `${isId?'Badge diraih: ':'Badge earned: '}${isId?b.nameId:b.nameEn}`);
-        }
-    });
-    if (newBadge) {
-        localStorage.setItem('rb_badges', JSON.stringify(APP.achievementBadges));
-    }
-}
-function openBadgeShowcase() {
-    const isId = APP.lang === 'id';
-    const badgesHtml = BADGE_DEFINITIONS.map(b => {
-        const earned = !!APP.achievementBadges[b.id];
-        return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;${earned?'background:var(--bg-card);border:1px solid var(--border)':'background:var(--bg-secondary);opacity:.4'}">
-            <div style="width:40px;height:40px;border-radius:10px;background:${earned?b.color+'15':'var(--border)'};display:flex;align-items:center;justify-content:center"><i class="fas ${b.icon}" style="color:${earned?b.color:'var(--text-secondary)'};font-size:16px"></i></div>
-            <div style="flex:1"><div style="font-size:13px;font-weight:${earned?'600':'400'};color:${earned?'var(--text)':'var(--text-secondary)'}">${isId?b.nameId:b.nameEn}</div><div style="font-size:10px;color:var(--text-secondary)">${earned?formatDate(APP.achievementBadges[b.id].earnedAt):(isId?'Belum diraih':'Not earned')}</div></div>
-            ${earned?'<i class="fas fa-check-circle" style="color:#10b981"></i>':''}
-        </div>`;
-    }).join('');
-    const earnedCount = Object.keys(APP.achievementBadges).length;
-    openModal(`<div style="padding:20px;max-width:480px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-            <h3 style="font-size:18px;font-weight:600"><i class="fas fa-trophy" style="color:#f59e0b;margin-right:8px"></i>${isId?'Pencapaian':'Achievements'}</h3>
-            <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
-        </div>
-        <div style="text-align:center;margin-bottom:16px;padding:16px;background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(139,92,246,.05));border-radius:12px">
-            <div style="font-size:36px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--accent)">${earnedCount}/${BADGE_DEFINITIONS.length}</div>
-            <div style="font-size:12px;color:var(--text-secondary)">${isId?'Pencapaian diraih':'Badges earned'}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto">${badgesHtml}</div>
-    </div>`);
-}
-
 // ===== F137: AUDIO WAVEFORM VISUALIZER =====
 function renderAudioWaveform(audioEl, containerId) {
     const canvas = document.getElementById(containerId);
@@ -18586,9 +18605,6 @@ function initNewFeatures() {
 
     // Init drag select
     initDragSelect();
-
-    // Check badges on init
-    checkAndAwardBadges();
 
     // Check self-destruct folders every 10 minutes
     setInterval(checkSelfDestructFolders, 600000);
