@@ -2079,8 +2079,8 @@ function initSupabaseAuth() {
 }
 
 function isAuthRequired() {
-    // Auth is ALWAYS required — RidgeBox requires login for all protected routes
-    return true;
+    // Auth is required if Supabase is configured; otherwise allow access
+    return !!APP.supabase;
 }
 
 function isLoggedIn() {
@@ -2337,6 +2337,10 @@ async function handleLogin() {
     const password = document.getElementById('auth-password')?.value;
     if (!email || !email.includes('@')) return showAuthError(t('authInvalidEmail'));
     if (!password || password.length < 6) return showAuthError(t('authPasswordTooShort'));
+    if (!APP.supabase) {
+        showAuthError('Authentication service unavailable. Please refresh the page.');
+        return;
+    }
     setAuthLoading(true);
     try {
         const { error } = await APP.supabase.auth.signInWithPassword({ email, password });
@@ -10421,16 +10425,23 @@ async function init() {
                 };
             }
 
-            // Init Supabase Auth (deferred script should be loaded by now)
+            // Init Supabase Auth — ensure library is loaded
+            if (!window.supabase) {
+                // Try loading via LazyLibs first
+                try { await window.LazyLibs.load('supabase'); } catch(e) {
+                    console.warn('LazyLibs supabase load failed, waiting for defer script:', e);
+                }
+            }
             if (window.supabase) {
                 initSupabaseAuth();
             } else {
-                // Wait briefly for deferred Supabase script (max 3s)
+                // Wait briefly for deferred Supabase script (max 5s)
                 await new Promise(resolve => {
-                    const check = setInterval(() => { if (window.supabase) { clearInterval(check); resolve(); } }, 50);
-                    setTimeout(() => { clearInterval(check); resolve(); }, 3000);
+                    const check = setInterval(() => { if (window.supabase) { clearInterval(check); resolve(); } }, 100);
+                    setTimeout(() => { clearInterval(check); resolve(); }, 5000);
                 });
                 if (window.supabase) initSupabaseAuth();
+                else console.warn('Supabase library not available — running in no-auth mode');
             }
         })();
 
