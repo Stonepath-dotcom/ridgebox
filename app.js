@@ -2759,41 +2759,39 @@ function renderHeader() {
     const isDashboard = hash.startsWith('#/dashboard') || hash.startsWith('#/file/');
     const vm = APP.viewMode;
     header.innerHTML = `
-        <header class="header-glass" style="position:sticky;top:0;z-index:60;height:var(--header-h);display:flex;align-items:center;padding:0 16px;gap:8px">
+        <header class="app-header">
             ${isDashboard ? `<button class="header-pill-btn sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)" aria-label="Open menu"><i class="fas fa-bars" aria-hidden="true"></i></button>` : ''}
-            <a href="#/" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-size:16px">
-                <div class="header-logo-icon">
-                    <img src="/logo-icon.png" alt="RidgeBox"/>
-                </div>
+            <a href="#/" class="header-brand">
+                <img src="/logo-icon.png" alt="RidgeBox"/>
                 <span class="hide-mobile-small rb-brand-text">RidgeBox</span>
             </a>
             <div style="flex:1"></div>
             <button class="header-pill-btn ${vm==='mobile'?'active-pill':''}" onclick="toggleViewMode()" title="${vm === 'mobile' ? 'Desktop Mode' : 'Mobile Mode'}" aria-label="Toggle view mode">
                 <i class="fas fa-${vm === 'mobile' ? 'mobile-screen' : 'display'}" aria-hidden="true"></i>
             </button>
-            <div id="conn-status" style="cursor:pointer;padding:0 4px" onclick="updateConnectionStatus()">
+            <div id="conn-status" class="header-pill-btn" onclick="updateConnectionStatus()">
                 <i class="fas fa-wifi" style="color:${APP.connected ? '#10b981' : '#ef4444'}"></i>
             </div>
             ${getSubTierBadge()}
-            ${APP.activeUploads > 0 ? `<span style="font-size:11px;color:var(--accent)"><i class="fas fa-spinner fa-spin"></i></span>` : ''}
-            <button class="header-pill-btn" onclick="openTransferQueueModal()" title="${t('transferQueue')}" aria-label="Transfer Queue" style="position:relative">
+            ${APP.activeUploads > 0 ? `<span class="header-pill-btn"><i class="fas fa-spinner fa-spin" style="color:var(--accent)"></i></span>` : ''}
+            <button class="header-pill-btn" onclick="openTransferQueueModal()" title="${t('transferQueue')}" aria-label="Transfer Queue">
                 <i class="fas fa-list-check" aria-hidden="true"></i>
-                <span id="transfer-queue-badge" style="position:absolute;top:-2px;right:-2px;min-width:14px;height:14px;border-radius:99px;background:#ef4444;color:#fff;font-size:8px;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 3px"></span>
+                <span id="transfer-queue-badge" class="notif-badge"></span>
             </button>
-            <button class="header-pill-btn" onclick="openNotificationCenter()" title="${t('notificationCenter')}" aria-label="Notifications" style="position:relative">
+            <button class="header-pill-btn" onclick="openNotificationCenter()" title="${t('notificationCenter')}" aria-label="Notifications">
                 <i class="fas fa-bell" aria-hidden="true"></i>
-                <span id="notification-badge" style="position:absolute;top:-2px;right:-2px;min-width:14px;height:14px;border-radius:99px;background:#ef4444;color:#fff;font-size:8px;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 3px"></span>
+                <span id="notification-badge" class="notif-badge"></span>
             </button>
             <button class="header-pill-btn" onclick="toggleTheme()" title="${t('theme')}" aria-label="Toggle theme">
                 <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'} ${APP.theme === 'dark' ? 'theme-icon-sun' : 'theme-icon-moon'}" aria-hidden="true"></i>
             </button>
             <button class="header-pill-btn" onclick="cycleLang()" title="${t('language')}" aria-label="Switch language">
-                <span style="font-size:11px;font-weight:600">${APP.lang.toUpperCase()}</span>
+                <span class="lang-label">${APP.lang.toUpperCase()}</span>
             </button>
             ${!isHome ? `<a href="#/" class="header-pill-btn" aria-label="Home"><i class="fas fa-home"></i></a>` : ''}
-            ${isHome ? `<a href="#/dashboard" class="header-pill-btn" style="background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;border:none;box-shadow:0 2px 10px rgba(59,130,246,.3)"><i class="fas fa-rocket"></i> <span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
-            ${!isLoggedIn() && isAuthRequired() ? `<a href="#/login" class="header-pill-btn" style="background:var(--accent);color:#fff;border:none"><i class="fas fa-sign-in-alt"></i> <span class="hide-mobile-small">${APP.lang==='id'?'Masuk':'Login'}</span></a>` : ''}
-            ${isLoggedIn() ? `<button class="header-pill-btn" onclick="handleLogout()" title="${t('authLogout')}" style="gap:4px" aria-label="Sign out"><i class="fas fa-sign-out-alt" aria-hidden="true"></i><span class="hide-mobile-small" style="font-size:11px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${APP.user?.email || ''}</span></button>` : ''}
+            ${isHome ? `<a href="#/dashboard" class="btn btn-primary btn-sm"><i class="fas fa-rocket"></i> <span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
+            ${!isLoggedIn() && isAuthRequired() ? `<a href="#/login" class="btn btn-primary btn-sm"><i class="fas fa-sign-in-alt"></i> <span class="hide-mobile-small">${APP.lang==='id'?'Masuk':'Login'}</span></a>` : ''}
+            ${isLoggedIn() ? `<button class="header-pill-btn" onclick="handleLogout()" title="${t('authLogout')}" aria-label="Sign out"><i class="fas fa-sign-out-alt" aria-hidden="true"></i><span class="hide-mobile-small user-email">${APP.user?.email || ''}</span></button>` : ''}
         </header>`;
 }
 
@@ -3004,7 +3002,7 @@ function closeContextMenu() {
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.context-menu')) closeContextMenu();
 });
-document.addEventListener('contextmenu', (e) => { if (!e.target.closest('.file-grid-item,.file-list-row,.file-card-premium,.file-row-premium')) closeContextMenu(); });
+document.addEventListener('contextmenu', (e) => { if (!e.target.closest('.file-grid-item,.file-list-item,.file-list-row')) closeContextMenu(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeContextMenu(); });
 
 // ===== FILE CARD HOVER PREVIEW =====
@@ -3014,7 +3012,7 @@ function initHoverPreview() {
     const preview = document.getElementById('hover-preview');
     if (!preview) return;
     document.addEventListener('mouseover', (e) => {
-        const card = e.target.closest('.file-card-premium, .file-row-premium');
+        const card = e.target.closest('.file-grid-item, .file-list-item');
         if (!card) return;
         const fileId = card.dataset.fileId || card.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
         if (!fileId) return;
@@ -3022,7 +3020,7 @@ function initHoverPreview() {
         _hoverTimer = setTimeout(() => showHoverPreview(fileId, card), 800);
     });
     document.addEventListener('mouseout', (e) => {
-        const card = e.target.closest('.file-card-premium, .file-row-premium');
+        const card = e.target.closest('.file-grid-item, .file-list-item');
         if (!card) return;
         const related = e.relatedTarget;
         if (related && (card.contains(related) || related.closest('.hover-preview'))) return;
@@ -3511,23 +3509,18 @@ function renderDashboard() {
 
     // Hero stats
     const heroStats = [
-        { icon: 'fa-folder-open', label: isId ? 'Total File' : 'Total Files', value: totalFiles, color: '#3b82f6', gradient: 'linear-gradient(135deg,rgba(59,130,246,.1),rgba(59,130,246,.03))' },
-        { icon: 'fa-download', label: isId ? 'Total Unduhan' : 'Total Downloads', value: totalDownloads, color: '#10b981', gradient: 'linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.03))' },
-        { icon: 'fa-share-nodes', label: isId ? 'Total Dibagikan' : 'Total Shares', value: totalShares, color: '#8b5cf6', gradient: 'linear-gradient(135deg,rgba(139,92,246,.1),rgba(139,92,246,.03))' },
-        { icon: 'fa-hard-drive', label: isId ? 'Penyimpanan' : 'Storage Used', value: usedPercent.toFixed(1) + '%', color: '#f59e0b', gradient: 'linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.03))', sub: formatSize(totalUsed) + ' / ' + formatSize(maxStorage) }
+        { icon: 'fa-folder-open', label: isId ? 'Total File' : 'Total Files', value: totalFiles, color: '#3b82f6' },
+        { icon: 'fa-download', label: isId ? 'Total Unduhan' : 'Total Downloads', value: totalDownloads, color: '#10b981' },
+        { icon: 'fa-share-nodes', label: isId ? 'Total Dibagikan' : 'Total Shares', value: totalShares, color: '#8b5cf6' },
+        { icon: 'fa-hard-drive', label: isId ? 'Penyimpanan' : 'Storage Used', value: usedPercent.toFixed(1) + '%', color: '#f59e0b', sub: formatSize(totalUsed) + ' / ' + formatSize(maxStorage) }
     ];
 
-    const heroStatsHtml = heroStats.map((s, i) => `
-        <div style="background:${s.gradient};border:1px solid ${s.color}20;border-radius:14px;padding:16px;flex:1;min-width:130px;animation:fadeIn .4s ease ${i*0.08}s both;position:relative;overflow:hidden">
-            <div style="position:absolute;top:-8px;right:-8px;width:48px;height:48px;border-radius:50%;background:${s.color}08"></div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <div style="width:32px;height:32px;border-radius:8px;background:${s.color}18;display:flex;align-items:center;justify-content:center">
-                    <i class="fas ${s.icon}" style="color:${s.color};font-size:13px"></i>
-                </div>
-            </div>
-            <div style="font-size:22px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace;line-height:1.1" class="stat-count-up" data-target="${typeof s.value === 'number' ? s.value : ''}">${s.value}</div>
-            <div style="font-size:11px;color:var(--text-secondary);margin-top:3px;font-weight:500">${s.label}</div>
-            ${s.sub ? `<div style="font-size:10px;color:var(--text-secondary);margin-top:2px;opacity:.7">${s.sub}</div>` : ''}
+    const heroStatsHtml = heroStats.map(s => `
+        <div class="dash-stat-card">
+            <div class="stat-icon" style="background:${s.color}18;color:${s.color}"><i class="fas ${s.icon}"></i></div>
+            <div class="stat-value">${s.value}</div>
+            <div class="stat-label">${s.label}</div>
+            ${s.sub ? `<div class="stat-sub">${s.sub}</div>` : ''}
         </div>
     `).join('');
 
@@ -3546,10 +3539,10 @@ function renderDashboard() {
     }
 
     const quickActionsHtml = quickActions.map(a => `
-        <div onclick="${a.action}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s ease;${a.primary ? 'background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.3);' : 'background:var(--bg-card);border:1px solid var(--border);color:var(--text);'}white-space:nowrap" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
-            <i class="fas ${a.icon}" style="font-size:12px"></i>
+        <button class="quick-action-btn ${a.primary ? 'primary' : ''}" onclick="${a.action}">
+            <i class="fas ${a.icon}"></i>
             <span>${a.label}</span>
-        </div>
+        </button>
     `).join('');
 
     // Recent Activity Widget (last 8)
@@ -3565,18 +3558,21 @@ function renderDashboard() {
     };
     const recentActivityHtml = recentActivity.length > 0 ? recentActivity.map(a => {
         const cfg = typeConfig[a.type] || typeConfig.move;
-        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);border-bottom-style:dashed">
-            <div style="width:30px;height:30px;border-radius:8px;background:${cfg.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${cfg.icon}" style="color:${cfg.color};font-size:12px"></i></div>
-            <div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.description}</div><div style="font-size:10px;color:var(--text-secondary)">${timeAgo(a.timestamp)}</div></div>
+        return `<div class="recent-item">
+            <div class="recent-item-icon" style="background:${cfg.color}15;color:${cfg.color}"><i class="fas ${cfg.icon}"></i></div>
+            <div class="recent-item-info">
+                <div class="recent-item-name">${a.description}</div>
+                <div class="recent-item-meta">${timeAgo(a.timestamp)}</div>
+            </div>
         </div>`;
-    }).join('') : `<div style="text-align:center;padding:20px 0;color:var(--text-secondary);font-size:12px">${isId ? 'Belum ada aktivitas' : 'No activity yet'}</div>`;
+    }).join('') : `<div class="sidebar-empty-msg" style="text-align:center;padding:20px 0">${isId ? 'Belum ada aktivitas' : 'No activity yet'}</div>`;
 
     // Widgets trimmed — keeping only hero stats + smart upload zone + recent activity
 
     main.innerHTML = `
     <div class="page-transition" style="display:flex;min-height:calc(100vh - var(--header-h));max-width:100vw;overflow-x:hidden">
-        <!-- Sidebar Desktop (F98) -->
-        <aside id="sidebar-panel" class="sidebar-premium ${APP.viewMode === 'mobile' ? 'sidebar-mobile' : 'sidebar-desktop'}" style="${APP.viewMode === 'mobile' ? 'position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);overflow-y:auto;padding:16px 12px;transform:translateX(-100%);transition:transform .3s ease;box-shadow:var(--shadow-lg)' : 'width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);overflow-y:auto;padding:16px 12px;transition:transform .3s ease;z-index:50'}">
+        <!-- Sidebar Desktop -->
+        <aside id="sidebar-panel" class="${APP.viewMode === 'mobile' ? 'sidebar-mobile' : 'sidebar-desktop'}">
             ${renderSidebarHTML()}
         </aside>
         <!-- Main Content -->
@@ -3584,12 +3580,12 @@ function renderDashboard() {
             <!-- Storage Warning Banner -->
             ${renderStorageWarningBanner()}
             <!-- Toolbar -->
-            <div class="toolbar-premium toolbar-wrap" style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <div class="search-premium ${APP.aiSearchMode ? 'ai-search-active' : ''}" style="flex:1;min-width:200px">
+            <div class="toolbar-wrap" style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <div class="search-wrap ${APP.aiSearchMode ? 'ai-search-active' : ''}" style="flex:1;min-width:200px">
                     <i class="fas ${APP.aiSearchMode ? 'fa-wand-magic-sparkles' : 'fa-search'}"></i>
                     <input type="text" aria-label="Search files" placeholder="${APP.aiSearchMode ? (isId ? 'Cari dengan AI...' : 'AI Search...') : t('search')}" value="${APP.searchQuery}" oninput="APP.searchQuery=this.value;${APP.aiSearchMode ? '' : 'renderFileList()'}" onkeydown="if(event.key==='Enter'&&APP.aiSearchMode)executeAISearch(this.value)">
                     <button class="ai-search-toggle ${APP.aiSearchMode ? 'active' : ''}" onclick="toggleAISearchMode()" title="${APP.aiSearchMode ? (isId ? 'Pencarian Biasa' : 'Regular Search') : (isId ? 'Pencarian AI' : 'AI Search')}" aria-label="Toggle AI search"><i class="fas fa-wand-magic-sparkles"></i></button>
-                    <button class="toolbar-action-btn" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);padding:4px 6px;font-size:11px" onclick="openAdvancedSearch()" title="${t('advSearch')}" aria-label="Advanced search"><i class="fas fa-search-plus"></i></button>
+                    <button class="toolbar-action-btn" onclick="openAdvancedSearch()" title="${t('advSearch')}" aria-label="Advanced search"><i class="fas fa-search-plus"></i></button>
                 </div>
                 <button class="toolbar-upload-btn" onclick="triggerUpload()"><i class="fas fa-plus"></i> ${t('upload')}</button>
                 <div class="toolbar-group">
@@ -3605,21 +3601,21 @@ function renderDashboard() {
                 ${renderSortPresets()}
                 <button class="toolbar-view-btn" onclick="cycleViewMode()" title="${APP.currentView==='list'?t('gridView'):t('listView')}" aria-label="Switch view"><i class="fas fa-${APP.currentView==='list'?'grip':'list'}"></i></button>
             </div>
-            <!-- Breadcrumb (F74) -->
-            <div id="breadcrumb-bar" class="breadcrumb-premium"></div>
-            <!-- Quick Filter (F65) -->
+            <!-- Breadcrumb -->
+            <div id="breadcrumb-bar" class="breadcrumb"></div>
+            <!-- Quick Filter -->
             <div id="quick-filter-bar" style="padding:4px 20px 8px;display:flex;gap:6px;flex-wrap:wrap"></div>
             <div id="provider-filter-bar" class="provider-filter-bar" style="padding:0 20px 8px"></div>
             <!-- Tag Filter Bar -->
             <div id="tag-filter-bar" class="tag-filter-bar" style="padding:0 20px 8px;display:flex;gap:6px;flex-wrap:wrap"></div>
-            <!-- Upload Drop Zone (legacy, hidden) -->
-            <div id="drop-zone" class="drop-zone" style="margin:0 20px 8px;padding:24px;text-align:center;display:none;border-radius:14px">
+            <!-- Upload Drop Zone (hidden) -->
+            <div id="drop-zone" class="drop-zone" style="margin:0 20px 8px;padding:24px;text-align:center;display:none;border-radius:var(--radius-lg)">
                 <i class="fas fa-cloud-arrow-up" style="font-size:28px;color:var(--accent)"></i>
                 <p style="font-size:13px;margin-top:4px;color:var(--text-secondary)">${t('uploadDrop')}</p>
             </div>
             <!-- File Preview Carousel -->
             <div id="carousel-section">${renderCarousel()}</div>
-            <!-- PREMIUM Dashboard Widgets Section -->
+            <!-- Dashboard Widgets Section -->
             <div id="dashboard-widgets" class="dash-widgets-wrap ${hasFiles && localStorage.getItem('rb_widgets_collapsed')==='1' ? 'collapsed' : ''}">
                 <div class="dash-widget-toggle" onclick="toggleDashWidgets()">
                     <i class="fas fa-chevron-down" style="font-size:10px"></i>
@@ -3642,14 +3638,14 @@ function renderDashboard() {
                     <!-- Upload Preview Queue -->
                     <div id="upload-preview-queue" class="upload-preview-queue" style="display:none"></div>
 
-                    <!-- Storage Warning Banner (F16) -->
+                    <!-- Storage Warning Banner -->
                     ${localStorage.getItem('rb_storage_warning_dismissed') !== '1' ? getStorageWarningBanner() : ''}
 
                     <!-- ===== HERO STATS BAR ===== -->
-                    <div style="display:flex;gap:10px;flex-wrap:wrap">${heroStatsHtml}</div>
+                    <div class="dash-stats-bar">${heroStatsHtml}</div>
 
                     <!-- ===== QUICK ACTIONS ROW ===== -->
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${quickActionsHtml}</div>
+                    <div class="quick-actions-premium">${quickActionsHtml}</div>
 
                     <!-- ===== 3-COLUMN WIDGET ROW: Activity only ===== -->
                     <div class="dash-3col-row">
@@ -3664,7 +3660,6 @@ function renderDashboard() {
                 </div>
             </div>
             <!-- File List -->
-            <div id="ptr-indicator" style="text-align:center;padding:0;height:0;overflow:hidden;transition:height .2s ease"><div class="ptr-inner"><div class="ptr-spinner"><i class="fas fa-arrow-down" id="ptr-arrow" style="font-size:12px;color:var(--text-secondary);transition:transform .2s ease"></i></div><span class="ptr-text" id="ptr-text"></span></div></div>
             <div id="file-list-container" style="flex:1;overflow-y:auto;padding:0 20px 80px"></div>
         </div>
     </div>
@@ -3678,26 +3673,11 @@ function renderDashboard() {
     setupDragDrop();
     setupSmartUploadZone();
     preloadActivityLog();
-    setTimeout(animateStorageRing, 200);
     restoreScheduledUploads(); // F80
     initHoverPreview();
     checkStorageWarningToast();
     setupPullToRefresh();
     renderBottomNav();
-    // Animate hero stat count-up numbers
-    setTimeout(() => {
-        document.querySelectorAll('.stat-count-up[data-target]').forEach(el => {
-            const target = parseInt(el.getAttribute('data-target'));
-            if (isNaN(target) || target === 0) return;
-            let current = 0;
-            const step = Math.max(1, Math.ceil(target / 30));
-            const timer = setInterval(() => {
-                current += step;
-                if (current >= target) { current = target; clearInterval(timer); }
-                el.textContent = current;
-            }, 25);
-        });
-    }, 100);
     // Start carousel auto-scroll
     if (APP.files.filter(f => !f.trashed).length > 0) {
         setTimeout(() => startCarouselAutoScroll(), 1000);
@@ -3856,10 +3836,8 @@ function renderSidebarHTML() {
     const maxStorage = getStorageLimitBytes();
     const usedPercent = maxStorage > 0 ? Math.min((totalUsed / maxStorage) * 100, 100) : 0;
 
-    // Mini ring chart for storage
-    const miniR = 22, miniC = 2 * Math.PI * miniR;
-    const miniOffset = miniC - (usedPercent / 100) * miniC;
-    const level = usedPercent > 90 ? '#ef4444' : usedPercent > 75 ? '#f97316' : usedPercent > 50 ? '#f59e0b' : 'var(--accent)';
+    // Storage bar level class
+    const storageLevel = usedPercent > 90 ? 'critical' : usedPercent > 75 ? 'warning' : '';
 
     // MENU nav items (recent counts files with lastAccessed timestamp)
     const recentAccessedCount = APP.files.filter(x => !x.trashed && x.lastAccessed).length;
@@ -3874,11 +3852,10 @@ function renderSidebarHTML() {
 
     const menuItemsHtml = menuItems.map(m => {
         const active = m.id === APP.currentFolder;
-        return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="selectFolder('${m.id === 'all-files' ? 'all' : m.id}')" style="position:relative">
-            <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${active ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
-            <i class="fas ${m.icon}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};position:relative;z-index:1;font-size:14px"></i>
-            <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${m.name}</span>
-            ${m.count > 0 ? `<span style="font-size:11px;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};background:${active ? 'rgba(59,130,246,.1)' : 'var(--bg-secondary)'};padding:2px 8px;border-radius:99px;font-weight:600;position:relative;z-index:1">${m.count}</span>` : ''}
+        return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="selectFolder('${m.id === 'all-files' ? 'all' : m.id}')">
+            <i class="fas ${m.icon}"></i>
+            <span>${m.name}</span>
+            ${m.count > 0 ? `<span class="item-count">${m.count}</span>` : ''}
         </div>`;
     }).join('');
 
@@ -3888,15 +3865,12 @@ function renderSidebarHTML() {
         const active = f.id === APP.currentFolder;
         const count = APP.files.filter(x => !x.trashed && x.folderId === f.id).length;
         const isSD = !!APP.selfDestructFolders[f.id];
-        // fakeFolders removed
-        return `<div class="sidebar-item ${active ? 'active' : ''} sidebar-folder-drop-target" data-folder-id="${f.id}" onclick="selectFolder('${f.id}')" style="position:relative">
-            <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${active ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
-            <i class="fas ${f.icon || 'fa-folder'}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : '#f59e0b'};position:relative;z-index:1;font-size:14px"></i>
-            <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${f.name}</span>
-            ${isSD ? '<i class="fas fa-bomb" style="font-size:9px;color:#ef4444;position:relative;z-index:1" title="Auto-Delete"></i>' : ''}
-
-            ${count > 0 ? `<span style="font-size:11px;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};background:${active ? 'rgba(59,130,246,.1)' : 'var(--bg-secondary)'};padding:2px 8px;border-radius:99px;font-weight:600;position:relative;z-index:1">${count}</span>` : ''}
-            <button class="btn btn-ghost" style="padding:2px 4px;font-size:11px;position:relative;z-index:1" onclick="event.stopPropagation();openFolderOptions('${f.id}')" aria-label="Folder options"><i class="fas fa-ellipsis-vertical"></i></button>
+        return `<div class="sidebar-item ${active ? 'active' : ''} sidebar-folder-drop-target" data-folder-id="${f.id}" onclick="selectFolder('${f.id}')">
+            <i class="fas ${f.icon || 'fa-folder'} folder-icon-custom"></i>
+            <span>${f.name}</span>
+            ${isSD ? '<i class="fas fa-bomb bomb-indicator" title="Auto-Delete"></i>' : ''}
+            ${count > 0 ? `<span class="item-count">${count}</span>` : ''}
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openFolderOptions('${f.id}')" aria-label="Folder options"><i class="fas fa-ellipsis-vertical"></i></button>
         </div>`;
     }).join('');
 
@@ -3905,7 +3879,6 @@ function renderSidebarHTML() {
         { id: 'storage-management', icon: 'fa-server', name: isId ? 'Kelola Penyimpanan' : 'Storage Manager', action: "location.hash='#/storage'" },
         { id: 'storage-analytics', icon: 'fa-chart-pie', name: isId ? 'Analisis Penyimpanan' : 'Storage Analytics', action: 'openStorageAnalytics()' },
         { id: 'analytics', icon: 'fa-chart-line', name: isId ? 'Dashboard Analitik' : 'Analytics Dashboard', action: "location.hash='#/analytics'" },
-
         { id: 'activity', icon: 'fa-clock-rotate-left', name: isId ? 'Riwayat Aktivitas' : 'Activity Feed', action: 'openActivityFeed()' },
         { id: 'duplicates', icon: 'fa-clone', name: isId ? 'Cari Duplikat' : 'Find Duplicates', action: 'openDuplicateFinder()' },
         { id: 'file-drop', icon: 'fa-cloud-arrow-up', name: isId ? 'Link Upload Masuk' : 'File Drop Link', action: 'openFileDropLinkModal()' },
@@ -3916,92 +3889,86 @@ function renderSidebarHTML() {
 
     const toolItemsHtml = toolItems.map(t => {
         const active = t.id === APP.currentFolder;
-        return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="${t.action}" style="position:relative">
-            <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${active ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
-            <i class="fas ${t.icon}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};position:relative;z-index:1;font-size:14px"></i>
-            <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${t.name}</span>
-            ${t.badge ? `<span style="font-size:10px;color:#fff;background:var(--accent);padding:1px 7px;border-radius:99px;font-weight:700;position:relative;z-index:1">${t.badge}</span>` : ''}
+        return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="${t.action}">
+            <i class="fas ${t.icon}"></i>
+            <span>${t.name}</span>
+            ${t.badge ? `<span class="item-badge">${t.badge}</span>` : ''}
         </div>`;
     }).join('');
 
     // TRASH at bottom with separator
     const trashActive = APP.currentFolder === 'trash';
-    const trashHtml = `<div class="sidebar-section-divider" style="margin-top:8px"></div>
-        <div class="sidebar-item ${trashActive ? 'active' : ''} sidebar-folder-drop-target" data-folder-id="trash" onclick="selectFolder('trash')" style="position:relative">
-            <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${trashActive ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
-            <i class="fas fa-trash-alt" style="width:18px;text-align:center;color:${trashActive ? 'var(--accent)' : 'var(--text-secondary)'};position:relative;z-index:1;font-size:14px"></i>
-            <span style="flex:1;position:relative;z-index:1;font-weight:${trashActive ? '600' : '500'}">${isId ? 'Sampah' : 'Trash'}</span>
-            ${trashCount > 0 ? `<span style="font-size:11px;color:${trashActive ? 'var(--accent)' : '#ef4444'};background:${trashActive ? 'rgba(59,130,246,.1)' : 'rgba(239,68,68,.08)'};padding:2px 8px;border-radius:99px;font-weight:600;position:relative;z-index:1">${trashCount}</span>` : ''}
+    const trashHtml = `<div class="sidebar-section-divider"></div>
+        <div class="sidebar-item ${trashActive ? 'active' : ''} sidebar-folder-drop-target" data-folder-id="trash" onclick="selectFolder('trash')">
+            <i class="fas fa-trash-alt"></i>
+            <span>${isId ? 'Sampah' : 'Trash'}</span>
+            ${trashCount > 0 ? `<span class="item-count trash-count">${trashCount}</span>` : ''}
         </div>`;
 
     return `
         <!-- RidgeBox Branding -->
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 8px 18px;border-bottom:1px solid var(--border);margin-bottom:14px">
-            <div style="width:36px;height:36px;border-radius:10px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 12px rgba(37,99,235,.25)">
-                <img src="/logo-icon.png" alt="RidgeBox" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block"/>
-            </div>
+        <div class="sidebar-brand">
+            <img src="/logo-icon.png" alt="RidgeBox" loading="lazy"/>
             <div>
-                <div class="rb-brand-text" style="font-size:16px;line-height:1.2">RidgeBox</div>
-                <div style="font-size:10px;color:var(--text-secondary);font-weight:500">${isId ? 'Cloud Storage' : 'Cloud Storage'}</div>
+                <div class="rb-brand-text">RidgeBox</div>
+                <div class="sidebar-brand-sub">${isId ? 'Cloud Storage' : 'Cloud Storage'}</div>
             </div>
         </div>
 
-        <!-- UPLOAD BUTTON - BIG & PROMINENT -->
-        <button onclick="triggerUpload()" style="width:100%;padding:14px 16px;border-radius:12px;border:none;background:linear-gradient(135deg,#3b82f6,#6366f1,#8b5cf6);color:#fff;font-weight:700;font-size:14px;font-family:'Space Grotesk',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(59,130,246,.35);transition:all .2s ease;margin-bottom:18px" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(59,130,246,.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 6px 20px rgba(59,130,246,.35)'">
-            <i class="fas fa-cloud-arrow-up" style="font-size:18px"></i>
+        <!-- UPLOAD BUTTON -->
+        <button class="btn btn-primary sidebar-upload-btn" onclick="triggerUpload()">
+            <i class="fas fa-cloud-arrow-up"></i>
             <span>${isId ? 'Unggah File' : 'Upload Files'}</span>
         </button>
 
         <!-- MENU Section -->
-        <div class="sidebar-section-label" style="margin-bottom:6px">${isId ? 'MENU' : 'MENU'}</div>
+        <div class="sidebar-section-title">${isId ? 'MENU' : 'MENU'}</div>
         ${menuItemsHtml}
 
         <div class="sidebar-section-divider"></div>
 
         <!-- FOLDERS Section -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="sidebar-section-label" style="margin:0">${isId ? 'FOLDER' : 'FOLDERS'}</div>
-            <button onclick="createFolderDialog()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:12px;padding:2px 6px;border-radius:6px;transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.1)'" onmouseout="this.style.background=''" aria-label="Create folder"><i class="fas fa-plus"></i></button>
+        <div class="sidebar-folders-header">
+            <div class="sidebar-section-title">${isId ? 'FOLDER' : 'FOLDERS'}</div>
+            <button class="sidebar-add-btn" onclick="createFolderDialog()" aria-label="Create folder"><i class="fas fa-plus"></i></button>
         </div>
-        ${folderItemsHtml || `<div style="padding:8px 12px;font-size:12px;color:var(--text-secondary);font-style:italic">${isId ? 'Belum ada folder' : 'No folders yet'}</div>`}
+        ${folderItemsHtml || `<div class="sidebar-empty-msg">${isId ? 'Belum ada folder' : 'No folders yet'}</div>`}
 
         <div class="sidebar-section-divider"></div>
 
         <!-- TOOLS Section -->
-        <div class="sidebar-section-label" style="margin-bottom:6px">${isId ? 'PERALATAN' : 'TOOLS'}</div>
+        <div class="sidebar-section-title">${isId ? 'PERALATAN' : 'TOOLS'}</div>
         ${toolItemsHtml}
 
         <!-- TRASH Section at Bottom -->
         ${trashHtml}
 
         <!-- Storage Widget at Bottom -->
-        <div class="storage-widget" style="margin-top:auto">
-            ${isLoggedIn() ? `<div style="padding:8px 12px;margin-bottom:6px;border-radius:8px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.1);display:flex;align-items:center;gap:8px;font-size:11px"><i class="fas fa-user-circle" style="color:var(--accent)"></i><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-secondary)">${APP.user?.email || ''}</span><button onclick="handleLogout()" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px 4px;font-size:12px" title="${t('authLogout')}" aria-label="Sign out"><i class="fas fa-sign-out-alt"></i></button></div>` : ''}
+        <div class="sidebar-storage">
+            ${isLoggedIn() ? `<div class="sidebar-user-info">
+                <i class="fas fa-user-circle"></i>
+                <span>${APP.user?.email || ''}</span>
+                <button onclick="handleLogout()" title="${t('authLogout')}" aria-label="Sign out"><i class="fas fa-sign-out-alt"></i></button>
+            </div>` : ''}
             <!-- Subscription Quota Bar -->
             ${getQuotaBarHtml()}
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;margin-top:8px">
-                <svg width="52" height="52" viewBox="0 0 52 52" style="flex-shrink:0;transform:rotate(-90deg)">
-                    <circle cx="26" cy="26" r="${miniR}" fill="none" stroke="var(--bg-secondary)" stroke-width="5"/>
-                    <circle cx="26" cy="26" r="${miniR}" fill="none" stroke="${level}" stroke-width="5" stroke-dasharray="${miniC}" stroke-dashoffset="${miniC - (usedPercent / 100) * miniC}" stroke-linecap="round" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)"/>
-                </svg>
-                <div style="flex:1">
-                    <div class="storage-widget-title" style="margin-bottom:4px"><i class="fas fa-hard-drive" style="font-size:10px"></i> ${isId ? 'Penyimpanan' : 'Storage'}</div>
-                    <div class="storage-bar-track" style="margin-bottom:4px">
-                        <div class="storage-bar-fill" style="width:${usedPercent}%"></div>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-secondary)">
-                        <span>${formatSize(totalUsed)}</span>
-                        <span style="font-weight:600">${usedPercent.toFixed(1)}%</span>
-                    </div>
+            <div class="sidebar-storage-info">
+                <div class="sidebar-storage-title"><i class="fas fa-hard-drive"></i> ${isId ? 'Penyimpanan' : 'Storage'}</div>
+                <div class="sidebar-storage-bar">
+                    <div class="sidebar-storage-fill ${storageLevel}" style="width:${usedPercent}%"></div>
+                </div>
+                <div class="sidebar-storage-text">
+                    <span>${formatSize(totalUsed)}</span>
+                    <span>${usedPercent.toFixed(1)}%</span>
                 </div>
             </div>
-            ${APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0 ? `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg-secondary);border-radius:8px;font-size:10px;color:var(--text-secondary)">
-                <i class="fab fa-google" style="color:#4285f4;font-size:10px"></i>
+            ${APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0 ? `<div class="sidebar-gdrive-info">
+                <i class="fab fa-google"></i>
                 <span>${APP.gdriveAccounts.filter(a => a.status === 'connected').length} Google Drive</span>
-                <span style="margin-left:auto;font-weight:600;color:var(--text)">${formatStorageBytes(getGDriveTotalStats().totalAvailable)}</span>
+                <span class="gdrive-space">${formatStorageBytes(getGDriveTotalStats().totalAvailable)}</span>
             </div>` : ''}
         </div>
-        <div id="auto-lock-countdown" style="display:none;align-items:center;gap:4px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--text-secondary);background:var(--bg-secondary);border-radius:8px"></div>`;
+        <div id="auto-lock-countdown" class="auto-lock-countdown"></div>`;
 }
 
 // ===== SIDEBAR VISIBILITY FOR MOBILE =====
@@ -4406,7 +4373,7 @@ function renderFileGridItem(file, index) {
     // Version badge
     const versionBadge = versions.length > 1 ? `<span class="detail-version-badge" style="font-size:9px;padding:1px 6px;margin-left:4px">v${file.version || 1}/${versions.length}</span>` : '';
 
-    return `<div class="file-card-premium file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''} ${file.trashed ? 'trashed-file' : ''}" 
+    return `<div class="file-grid-item ${selected ? 'selected' : ''} ${file.trashed ? 'trashed-file' : ''}" 
         onclick="handleFileClick(event, '${file.id}', ${index})"
         oncontextmenu="showContextMenu(event, '${file.id}')"
         draggable="true"
@@ -4442,16 +4409,16 @@ function renderFileListRow(file, index) {
     // Thumbnail or icon
     let thumbHtml = '';
     if (type === 'image') {
-        thumbHtml = `<div class="list-thumb" data-lazy-thumb="${downloadUrl}" data-file-id="${file.id}" style="background:${icon.color}15">
-            <img src="" alt="File thumbnail" style="width:100%;height:100%;object-fit:cover;border-radius:8px;opacity:0;transition:opacity .3s ease;position:absolute;inset:0" onload="this.style.opacity=1" onerror="this.style.display='none';this.parentElement.querySelector('.thumb-icon').style.display='flex'">
-            <div class="thumb-icon" style="background:${icon.color}15;display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:8px">
-                <i class="fas ${icon.icon}" style="font-size:16px;color:${icon.color}"></i>
+        thumbHtml = `<div class="list-thumb" data-lazy-thumb="${downloadUrl}" data-file-id="${file.id}">
+            <img src="" alt="File thumbnail" class="list-thumb-img" onload="this.style.opacity=1" onerror="this.style.display='none';this.parentElement.querySelector('.thumb-icon').style.display='flex'">
+            <div class="thumb-icon">
+                <i class="fas ${icon.icon}"></i>
             </div>
         </div>`;
     } else {
-        thumbHtml = `<div class="list-thumb" style="background:${icon.color}12">
-            <div class="thumb-icon" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:8px">
-                <i class="fas ${icon.icon}" style="font-size:16px;color:${icon.color}"></i>
+        thumbHtml = `<div class="list-thumb">
+            <div class="thumb-icon">
+                <i class="fas ${icon.icon}"></i>
             </div>
         </div>`;
     }
@@ -4487,7 +4454,7 @@ function renderFileListRow(file, index) {
         trashProgress = `<div class="list-upload-progress" style="background:var(--border)"><div class="bar" style="width:${pct}%;background:${color}"></div></div>`;
     }
 
-    return `<div class="file-row-premium file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''} ${file.trashed ? 'trashed-file' : ''}"
+    return `<div class="file-list-item ${selected ? 'selected' : ''} ${file.trashed ? 'trashed-file' : ''}"
         onclick="handleFileClick(event, '${file.id}', ${index})"
         oncontextmenu="showContextMenu(event, '${file.id}')"
         draggable="true"
@@ -4495,7 +4462,7 @@ function renderFileListRow(file, index) {
         ondragover="handleDragReorder(event, ${index})"
         ondrop="handleDropReorder(event, '${file.id}')"
         data-file-id="${file.id}">
-        ${APP.batchMode ? `<div style="width:20px;height:20px;border-radius:4px;border:2px solid ${selected ? 'var(--accent)' : 'var(--border)'};background:${selected ? 'var(--accent)' : 'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0">${selected ? '<i class="fas fa-check" style="color:#fff;font-size:10px"></i>' : ''}</div>` : ''}
+        ${APP.batchMode ? `<div class="batch-checkbox ${selected ? 'checked' : ''}">${selected ? '<i class="fas fa-check"></i>' : ''}</div>` : ''}
         ${thumbHtml}
         <div class="list-name-col">
             <div class="list-name-row">
@@ -4512,9 +4479,9 @@ function renderFileListRow(file, index) {
         <div class="list-col-size">${formatSize(file.size)}</div>
         <div class="list-col-date">${formatDate(file.uploadedAt)}</div>
         <div class="row-actions action-btns">
-            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openPreview('${file.id}')" title="${t('preview')}" aria-label="Preview"><i class="fas fa-eye"></i></button>
-            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openShareModal('${file.id}')" title="${t('share')}" aria-label="Share"><i class="fas fa-share-alt"></i></button>
-            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();downloadFile('${file.id}')" title="${t('download')}" aria-label="Download"><i class="fas fa-download"></i></button>
+            <button class="file-action-btn" onclick="event.stopPropagation();openPreview('${file.id}')" title="${t('preview')}" aria-label="Preview"><i class="fas fa-eye"></i></button>
+            <button class="file-action-btn" onclick="event.stopPropagation();openShareModal('${file.id}')" title="${t('share')}" aria-label="Share"><i class="fas fa-share-alt"></i></button>
+            <button class="file-action-btn" onclick="event.stopPropagation();downloadFile('${file.id}')" title="${t('download')}" aria-label="Download"><i class="fas fa-download"></i></button>
         </div>
         ${!file.trashed ? `<button class="mobile-delete-btn" onclick="event.stopPropagation();quickDeleteFile('${file.id}')" title="${t('delete')}" aria-label="Delete"><i class="fas fa-trash"></i></button>` : `<div style="display:flex;gap:4px"><button class="mobile-restore-btn" onclick="event.stopPropagation();restoreFile('${file.id}')" title="${t('restore')}" aria-label="Restore"><i class="fas fa-undo"></i></button><button class="mobile-delete-btn" style="background:rgba(239,68,68,.9)" onclick="event.stopPropagation();deletePermanently('${file.id}')" title="${t('deletePermanently')}" aria-label="Delete permanently"><i class="fas fa-times"></i></button></div>`}
     </div>`;
@@ -4525,13 +4492,13 @@ function removeFileElement(fileId) {
     // Remove grid card
     const gridCard = document.querySelector(`[data-file-id="${fileId}"]`);
     if (gridCard) gridCard.remove();
-    // Remove list row — it may not have data-file-id, so also check onclick attribute
-    document.querySelectorAll('.file-row-premium').forEach(row => {
+    // Remove list row
+    document.querySelectorAll('.file-list-item').forEach(row => {
         if (row.getAttribute('onclick')?.includes(fileId)) row.remove();
     });
     // Also try by any element that references this file
     document.querySelectorAll(`[onclick*="${fileId}"]`).forEach(el => {
-        if (el.classList.contains('file-row-premium') || el.classList.contains('file-card-premium')) el.remove();
+        if (el.classList.contains('file-list-item') || el.classList.contains('file-grid-item')) el.remove();
     });
 }
 
@@ -4676,7 +4643,7 @@ function initSwipeGestures() {
     });
 }
 function initLongPressGestures() {
-    const fileCards = document.querySelectorAll('.file-card-premium, .file-row-premium, .bento-card, .timeline-item');
+    const fileCards = document.querySelectorAll('.file-grid-item, .file-list-item, .bento-card, .timeline-item');
     fileCards.forEach(el => {
         if (el._longPressInit) return;
         el._longPressInit = true;
@@ -4762,35 +4729,35 @@ async function restoreAllTrash() {
 
 // ===== EMPTY STATES (F97) =====
 function renderEmptyState() {
-    // Use the simple empty state
     const folder = APP.folders.find(f => f.id === APP.currentFolder);
-    let svg, title, desc;
+    let icon, title, desc;
     if (APP.searchQuery) {
-        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><circle cx="70" cy="55" r="32" fill="none" stroke="url(#grad1)" stroke-width="2.5"/><line x1="93" y1="78" x2="115" y2="100" stroke="url(#grad1)" stroke-width="2.5" stroke-linecap="round"/><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs><text x="70" y="60" text-anchor="middle" fill="var(--text-secondary)" font-size="22" font-family="Space Grotesk">?</text></svg>';
+        icon = 'fa-magnifying-glass';
         title = t('noSearch');
         desc = APP.lang === 'id' ? 'Coba kata kunci lain untuk menemukan file Anda' : 'Try different keywords to find your files';
     } else if (APP.currentFolder === 'trash') {
-        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><path d="M45 50h50v55a12 12 0 01-12 12H57a12 12 0 01-12-12V50z" fill="none" stroke="url(#grad2)" stroke-width="2.5"/><line x1="38" y1="50" x2="102" y2="50" stroke="url(#grad2)" stroke-width="2.5"/><path d="M55 40h30v10" fill="none" stroke="url(#grad2)" stroke-width="2.5"/><defs><linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg>';
+        icon = 'fa-trash-alt';
         title = t('noTrash');
         desc = APP.lang === 'id' ? 'File yang dihapus akan muncul di sini' : 'Deleted files will appear here';
     } else if (APP.currentFolder === 'favorites') {
-        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><path d="M70 30l14 28 30 5-22 21 5 30-27-14-27 14 5-30-22-21 30-5z" fill="none" stroke="url(#grad3)" stroke-width="2.5"/><defs><linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg>';
+        icon = 'fa-star';
         title = t('noFavorites');
         desc = APP.lang === 'id' ? 'Bintangi file untuk menambahkan ke favorit' : 'Star files to add to favorites';
     } else if (APP.currentFolder === 'recent') {
-        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><circle cx="70" cy="70" r="30" fill="none" stroke="url(#grad5)" stroke-width="2.5"/><line x1="70" y1="55" x2="70" y2="70" stroke="url(#grad5)" stroke-width="2.5" stroke-linecap="round"/><line x1="70" y1="70" x2="82" y2="78" stroke="url(#grad5)" stroke-width="2.5" stroke-linecap="round"/><defs><linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg>';
+        icon = 'fa-clock';
         title = t('noRecent');
         desc = t('noRecentDesc');
     } else {
-        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><rect x="35" y="28" width="70" height="80" rx="6" fill="none" stroke="url(#grad4)" stroke-width="2.5"/><path d="M58 28V18h24v10" fill="none" stroke="url(#grad4)" stroke-width="2.5"/><path d="M63 60h24M63 72h24M63 84h14" stroke="url(#grad4)" stroke-width="2" stroke-linecap="round"/><circle cx="52" cy="60" r="3" fill="url(#grad4)"/><circle cx="52" cy="72" r="3" fill="url(#grad4)"/><circle cx="52" cy="84" r="3" fill="url(#grad4)"/><defs><linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg>';
+        icon = 'fa-folder-open';
         title = t('noFiles');
         desc = t('noFilesDesc');
     }
-    return `<div class="empty-premium">
-        <div class="empty-svg-wrap">${svg}</div>
-        <h3>${title}</h3>
-        <p>${desc}</p>
-        ${APP.currentFolder === 'all' ? `<button class="empty-action-btn" onclick="triggerUpload()"><i class="fas fa-cloud-arrow-up"></i> ${t('upload')}</button>` : ''}
+    const cta = APP.currentFolder === 'all' ? `<button class="empty-cta" onclick="triggerUpload()"><i class="fas fa-cloud-arrow-up"></i> ${t('upload')}</button>` : '';
+    return `<div class="empty-state">
+        <i class="fas ${icon} empty-icon"></i>
+        <h3 class="empty-title">${title}</h3>
+        <p class="empty-desc">${desc}</p>
+        ${cta}
     </div>`;
 }
 
@@ -8144,7 +8111,7 @@ document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
     if (e.key === '?' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); openKeyboardShortcuts(); }
     else if (e.ctrlKey && e.key === 'n') { e.preventDefault(); triggerUpload(); }
-    else if (e.ctrlKey && e.key === 'f' && location.hash.startsWith('#/dashboard')) { e.preventDefault(); document.querySelector('.search-premium input')?.focus(); }
+    else if (e.ctrlKey && e.key === 'f' && location.hash.startsWith('#/dashboard')) { e.preventDefault(); document.querySelector('.header-search, .toolbar-search-input')?.focus(); }
     else if (e.ctrlKey && e.key === '.' ) { e.preventDefault(); APP.batchMode = !APP.batchMode; renderFileList(); }
     else if (e.ctrlKey && e.key === '/') { e.preventDefault(); openSettings(); }
     else if (e.key === 'F2' && APP.selectedFiles.size === 1) { e.preventDefault(); const fid = [...APP.selectedFiles][0]; renameFile(fid); }
@@ -11666,7 +11633,7 @@ document.addEventListener('keydown', (e) => {
     // File actions
     if (e.key === 'n' || e.key === 'N') { triggerUpload(); return; }
     if (e.key === 'f' || e.key === 'F') { createFolderDialog(); return; }
-    if (e.key === '/') { e.preventDefault(); const s = document.querySelector('.search-premium input'); if (s) s.focus(); return; }
+    if (e.key === '/') { e.preventDefault(); const s = document.querySelector('.header-search, .toolbar-search-input'); if (s) s.focus(); return; }
     if (e.key === 'g' || e.key === 'G') { APP.gSequence = true; setTimeout(() => { APP.gSequence = false; }, 1000); return; }
     if (e.key === 'v' || e.key === 'V') {
         const views = ['list','grid','categories'];
@@ -12375,7 +12342,7 @@ function getCommandPaletteItems() {
         { id: 'new-folder', icon: 'fa-folder-plus', label: isId ? 'Buat Folder' : 'Create Folder', category: isId ? 'Aksi' : 'Actions', shortcut: cs.newFolder || 'F', action: () => createFolderDialog() },
         { id: 'toggle-view', icon: 'fa-grip', label: isId ? 'Ganti Tampilan' : 'Toggle View', category: isId ? 'Aksi' : 'Actions', shortcut: cs.toggleView || 'V', action: () => { const views = ['list','grid']; const idx = views.indexOf(APP.currentView); APP.currentView = views[(idx + 1) % views.length]; renderFileList(); } },
         { id: 'toggle-theme', icon: 'fa-moon', label: isId ? 'Ganti Tema' : 'Toggle Theme', category: isId ? 'Aksi' : 'Actions', shortcut: cs.toggleTheme || 'D', action: () => toggleTheme() },
-        { id: 'search-files', icon: 'fa-search', label: isId ? 'Cari File' : 'Search Files', category: isId ? 'Aksi' : 'Actions', shortcut: cs.search || '/', action: () => { const s = document.querySelector('.search-premium input'); if (s) s.focus(); } },
+        { id: 'search-files', icon: 'fa-search', label: isId ? 'Cari File' : 'Search Files', category: isId ? 'Aksi' : 'Actions', shortcut: cs.search || '/', action: () => { const s = document.querySelector('.header-search, .toolbar-search-input'); if (s) s.focus(); } },
         { id: 'new-note', icon: 'fa-sticky-note', label: isId ? 'Catatan Baru' : 'New Note', category: isId ? 'Aksi' : 'Actions', shortcut: '', action: () => { createFolderDialog(); } },
         // Navigation
         { id: 'nav-dashboard', icon: 'fa-gauge-high', label: isId ? 'Ke Dashboard' : 'Go to Dashboard', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'G D', action: () => { if (typeof selectFolder === 'function') selectFolder('all'); } },
@@ -12754,7 +12721,7 @@ document.addEventListener('keydown', (e) => {
         else if (action === 'newFolder' || action === 'createFolder') { e.preventDefault(); createFolderDialog(); }
         else if (action === 'toggleView') { e.preventDefault(); const views = ['list','grid','categories']; const idx = views.indexOf(APP.currentView); APP.currentView = views[(idx + 1) % views.length]; renderFileList(); }
         else if (action === 'toggleTheme') { e.preventDefault(); toggleTheme(); }
-        else if (action === 'search') { e.preventDefault(); const s = document.querySelector('.search-premium input'); if (s) s.focus(); }
+        else if (action === 'search') { e.preventDefault(); const s = document.querySelector('.header-search, .toolbar-search-input'); if (s) s.focus(); }
         else if (action === 'commandPalette') { e.preventDefault(); openCommandPalette(); }
         else if (action === 'downloadZip') { e.preventDefault(); if (APP.selectedFiles.size > 0) bulkDownloadZip(); }
         else if (action === 'deleteFile') { if (APP.selectedFiles.size > 0) { const fid = [...APP.selectedFiles][0]; moveToTrash(fid); } }
@@ -12777,7 +12744,7 @@ function initHoverPreview() {
     const preview = document.getElementById('hover-preview');
     if (!preview) return;
     document.addEventListener('mouseover', (e) => {
-        const card = e.target.closest('.file-card-premium, .file-row-premium');
+        const card = e.target.closest('.file-grid-item, .file-list-item');
         if (!card) return;
         const fileId = card.dataset.fileId || card.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
         if (!fileId) return;
@@ -12785,7 +12752,7 @@ function initHoverPreview() {
         _enhancedHoverTimer = setTimeout(() => showEnhancedHoverPreview(fileId, card), 150);
     });
     document.addEventListener('mouseout', (e) => {
-        const card = e.target.closest('.file-card-premium, .file-row-premium');
+        const card = e.target.closest('.file-grid-item, .file-list-item');
         if (!card) return;
         const related = e.relatedTarget;
         if (related && (card.contains(related) || (related.closest && related.closest('.hover-preview')))) return;
@@ -13137,7 +13104,7 @@ updateSetting = async function(key, value) {
 // F24: AI Search - Toggle between regular and AI search
 function toggleAISearchMode() {
     APP.aiSearchMode = !APP.aiSearchMode;
-    const searchWrap = document.querySelector('.search-premium');
+    const searchWrap = document.querySelector('.header-search-wrap');
     if (searchWrap) {
         searchWrap.classList.toggle('ai-search-active', APP.aiSearchMode);
         const icon = searchWrap.querySelector('i:first-child');
@@ -13157,7 +13124,7 @@ function toggleAISearchMode() {
 async function executeAISearch(query) {
     if (!query || !query.trim()) return;
     const isId = APP.lang === 'id';
-    const searchWrap = document.querySelector('.search-premium');
+    const searchWrap = document.querySelector('.header-search-wrap');
 
     // Show loading shimmer in file list
     const container = document.getElementById('file-list-container');
@@ -14321,14 +14288,14 @@ function toggleFAB() {
 function renderFAB() {
     const isId = APP.lang === 'id';
     const fabLabel = isId ? 'Unggah' : 'Upload';
-    return `<div id="quick-fab-wrap" style="position:fixed;bottom:${APP.viewMode==='mobile'?'80px':'24px'};right:24px;z-index:40">
-        <div id="quick-fab-menu" style="display:none;flex-direction:column;gap:8px;margin-bottom:12px;align-items:flex-end">
-            <div class="fab-item" onclick="triggerUpload();toggleFAB()"><span class="fab-label">${isId?'Unggah':'Upload'}</span><div class="fab-icon" style="background:#3b82f6"><i class="fas fa-cloud-arrow-up"></i></div></div>
-            <div class="fab-item" onclick="createFolderDialog();toggleFAB()"><span class="fab-label">${isId?'Folder Baru':'New Folder'}</span><div class="fab-icon" style="background:#10b981"><i class="fas fa-folder-plus"></i></div></div>
-            <div class="fab-item" onclick="openCameraUpload();toggleFAB()"><span class="fab-label">${isId?'Kamera':'Camera'}</span><div class="fab-icon" style="background:#f59e0b"><i class="fas fa-camera"></i></div></div>
-            <div class="fab-item" onclick="openFileDropLinkModal();toggleFAB()"><span class="fab-label">${isId?'Link Upload':'Drop Link'}</span><div class="fab-icon" style="background:#06b6d4"><i class="fas fa-cloud-arrow-up"></i></div></div>
+    return `<div id="quick-fab-wrap" class="fab-wrap">
+        <div id="quick-fab-menu" class="fab-expanded" style="display:none">
+            <div class="fab-option" onclick="triggerUpload();toggleFAB()" title="${isId?'Unggah':'Upload'}"><i class="fas fa-cloud-arrow-up"></i></div>
+            <div class="fab-option" onclick="createFolderDialog();toggleFAB()" title="${isId?'Folder Baru':'New Folder'}"><i class="fas fa-folder-plus"></i></div>
+            <div class="fab-option" onclick="openCameraUpload();toggleFAB()" title="${isId?'Kamera':'Camera'}"><i class="fas fa-camera"></i></div>
+            <div class="fab-option" onclick="openFileDropLinkModal();toggleFAB()" title="${isId?'Link Upload':'Drop Link'}"><i class="fas fa-link"></i></div>
         </div>
-        <button id="quick-fab-btn" class="fab-main fab-main-default" onclick="toggleFAB()" aria-label="${fabLabel}" title="${fabLabel}">
+        <button id="quick-fab-btn" class="fab-main" onclick="toggleFAB()" aria-label="${fabLabel}" title="${fabLabel}">
             <i class="fas fa-plus"></i>
         </button>
     </div>`;
