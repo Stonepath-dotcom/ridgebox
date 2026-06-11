@@ -4216,8 +4216,6 @@ async function renderFileList() {
     updateQuickActions();
     initSwipeGestures();
     initLongPressGestures();
-    initQuickPeekListeners();
-    checkBatchAutoDetect();
     loadThumbnailsForVisibleFiles(files);
 }
 
@@ -4683,40 +4681,31 @@ function initLongPressGestures() {
         if (el._longPressInit) return;
         el._longPressInit = true;
         let timer = null;
-        let pressX = 0, pressY = 0;
         const longPressDuration = 500;
 
         el.addEventListener('touchstart', (e) => {
             if (e.target.closest('.mobile-delete-btn, .mobile-restore-btn, .grid-quick-delete, button, a')) return;
-            pressX = e.touches[0].clientX;
-            pressY = e.touches[0].clientY;
             timer = setTimeout(() => {
                 if (navigator.vibrate) navigator.vibrate(30); haptic('tap');
                 const fileId = el.getAttribute('onclick')?.match(/'([^']+)'/)?.[1]
                     || el.closest('[data-file-id]')?.getAttribute('data-file-id')
                     || el.getAttribute('data-file-id');
                 if (fileId) {
-                    // Quick Peek: show floating preview card instead of context menu on quick hold
-                    showQuickPeek(fileId, pressX, pressY);
-                    // After 1.5s more, switch to context menu
-                    el._peekToContext = setTimeout(() => {
-                        hideQuickPeek();
-                        const rect = el.getBoundingClientRect();
-                        const fakeEvent = {
-                            preventDefault: () => {},
-                            stopPropagation: () => {},
-                            clientX: rect.left + rect.width / 2,
-                            clientY: rect.top + rect.height / 2
-                        };
-                        showContextMenu(fakeEvent, fileId);
-                    }, 1500);
+                    const rect = el.getBoundingClientRect();
+                    const fakeEvent = {
+                        preventDefault: () => {},
+                        stopPropagation: () => {},
+                        clientX: rect.left + rect.width / 2,
+                        clientY: rect.top + rect.height / 2
+                    };
+                    showContextMenu(fakeEvent, fileId);
                 }
             }, longPressDuration);
         }, { passive: true });
 
-        el.addEventListener('touchmove', () => { clearTimeout(timer); clearTimeout(el._peekToContext); hideQuickPeek(); }, { passive: true });
-        el.addEventListener('touchend', () => { clearTimeout(timer); clearTimeout(el._peekToContext); hideQuickPeek(); }, { passive: true });
-        el.addEventListener('touchcancel', () => { clearTimeout(timer); clearTimeout(el._peekToContext); hideQuickPeek(); }, { passive: true });
+        el.addEventListener('touchmove', () => { clearTimeout(timer); }, { passive: true });
+        el.addEventListener('touchend', () => { clearTimeout(timer); }, { passive: true });
+        el.addEventListener('touchcancel', () => { clearTimeout(timer); }, { passive: true });
     });
 }
 
@@ -4773,11 +4762,7 @@ async function restoreAllTrash() {
 
 // ===== EMPTY STATES (F97) =====
 function renderEmptyState() {
-    // Try the new interactive empty state first
-    if (typeof renderInteractiveEmptyState === 'function') {
-        return renderInteractiveEmptyState(APP.currentFolder);
-    }
-    // Fallback to original
+    // Use the simple empty state
     const folder = APP.folders.find(f => f.id === APP.currentFolder);
     let svg, title, desc;
     if (APP.searchQuery) {
@@ -12390,10 +12375,8 @@ function getCommandPaletteItems() {
         { id: 'new-folder', icon: 'fa-folder-plus', label: isId ? 'Buat Folder' : 'Create Folder', category: isId ? 'Aksi' : 'Actions', shortcut: cs.newFolder || 'F', action: () => createFolderDialog() },
         { id: 'toggle-view', icon: 'fa-grip', label: isId ? 'Ganti Tampilan' : 'Toggle View', category: isId ? 'Aksi' : 'Actions', shortcut: cs.toggleView || 'V', action: () => { const views = ['list','grid']; const idx = views.indexOf(APP.currentView); APP.currentView = views[(idx + 1) % views.length]; renderFileList(); } },
         { id: 'toggle-theme', icon: 'fa-moon', label: isId ? 'Ganti Tema' : 'Toggle Theme', category: isId ? 'Aksi' : 'Actions', shortcut: cs.toggleTheme || 'D', action: () => toggleTheme() },
-        { id: 'warm-dark', icon: 'fa-temperature-half', label: isId ? 'Mode Gelap Hangat' : 'Warm Dark Mode', category: isId ? 'Aksi' : 'Actions', shortcut: 'W', action: () => toggleWarmDark(!document.documentElement.classList.contains('warm-dark')) },
         { id: 'search-files', icon: 'fa-search', label: isId ? 'Cari File' : 'Search Files', category: isId ? 'Aksi' : 'Actions', shortcut: cs.search || '/', action: () => { const s = document.querySelector('.search-premium input'); if (s) s.focus(); } },
         { id: 'new-note', icon: 'fa-sticky-note', label: isId ? 'Catatan Baru' : 'New Note', category: isId ? 'Aksi' : 'Actions', shortcut: '', action: () => { createFolderDialog(); } },
-        { id: 'split-view', icon: 'fa-columns', label: isId ? 'Tampilan Split' : 'Split View', category: isId ? 'Aksi' : 'Actions', shortcut: '\\', action: () => initSplitView() },
         // Navigation
         { id: 'nav-dashboard', icon: 'fa-gauge-high', label: isId ? 'Ke Dashboard' : 'Go to Dashboard', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'G D', action: () => { if (typeof selectFolder === 'function') selectFolder('all'); } },
         { id: 'nav-storage', icon: 'fa-hard-drive', label: isId ? 'Ke Penyimpanan' : 'Go to Storage', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'G A', action: () => { if (typeof selectFolder === 'function') selectFolder('all'); } },
@@ -12401,7 +12384,6 @@ function getCommandPaletteItems() {
         { id: 'nav-settings', icon: 'fa-gear', label: isId ? 'Ke Pengaturan' : 'Go to Settings', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'Ctrl+/', action: () => openSettings() },
         { id: 'nav-trash', icon: 'fa-trash-alt', label: isId ? 'Ke Sampah' : 'Go to Trash', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'G T', action: () => { if (typeof selectFolder === 'function') selectFolder('trash'); } },
         { id: 'nav-recent', icon: 'fa-clock', label: isId ? 'Ke Terbaru' : 'Go to Recent', category: isId ? 'Navigasi' : 'Navigation', shortcut: '', action: () => { if (typeof selectFolder === 'function') selectFolder('recent'); } },
-        { id: 'nav-vault', icon: 'fa-vault', label: isId ? 'Ke Brankas' : 'Go to Vault', category: isId ? 'Navigasi' : 'Navigation', shortcut: '', action: () => openVaultModal() },
         { id: 'nav-favorites', icon: 'fa-star', label: isId ? 'Ke Favorit' : 'Go to Favorites', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'G F', action: () => { if (typeof selectFolder === 'function') selectFolder('favorites'); } },
         // Settings
         { id: 'set-language', icon: 'fa-language', label: isId ? 'Ganti Bahasa' : 'Change Language', category: isId ? 'Pengaturan' : 'Settings', shortcut: '', action: () => openSettings() },
@@ -14338,7 +14320,7 @@ function toggleFAB() {
 }
 function renderFAB() {
     const isId = APP.lang === 'id';
-    const ctx = getContextFABConfig();
+    const fabLabel = isId ? 'Unggah' : 'Upload';
     return `<div id="quick-fab-wrap" style="position:fixed;bottom:${APP.viewMode==='mobile'?'80px':'24px'};right:24px;z-index:40">
         <div id="quick-fab-menu" style="display:none;flex-direction:column;gap:8px;margin-bottom:12px;align-items:flex-end">
             <div class="fab-item" onclick="triggerUpload();toggleFAB()"><span class="fab-label">${isId?'Unggah':'Upload'}</span><div class="fab-icon" style="background:#3b82f6"><i class="fas fa-cloud-arrow-up"></i></div></div>
@@ -14346,8 +14328,8 @@ function renderFAB() {
             <div class="fab-item" onclick="openCameraUpload();toggleFAB()"><span class="fab-label">${isId?'Kamera':'Camera'}</span><div class="fab-icon" style="background:#f59e0b"><i class="fas fa-camera"></i></div></div>
             <div class="fab-item" onclick="openFileDropLinkModal();toggleFAB()"><span class="fab-label">${isId?'Link Upload':'Drop Link'}</span><div class="fab-icon" style="background:#06b6d4"><i class="fas fa-cloud-arrow-up"></i></div></div>
         </div>
-        <button id="quick-fab-btn" class="fab-main fab-context-${ctx.context}" onclick="toggleFAB()" aria-label="${ctx.label}" title="${ctx.label}">
-            <i class="fas ${ctx.icon}"></i>
+        <button id="quick-fab-btn" class="fab-main fab-main-default" onclick="toggleFAB()" aria-label="${fabLabel}" title="${fabLabel}">
+            <i class="fas fa-plus"></i>
         </button>
     </div>`;
 }
@@ -14797,715 +14779,13 @@ function initNewFeatures() {
     };
 }
 
-// 11. UPLOAD PROGRESS ORB
-function renderUploadOrb(progress) {
-    progress = Math.max(0, Math.min(100, progress || 0));
-    const radius = 40;
-    const circumference = 2 * Math.PI * radius;
-    const dashOffset = circumference - (progress / 100) * circumference;
-    const isId = APP.lang === 'id';
-    const color = progress >= 100 ? '#10b981' : 'var(--primary, #3b82f6)';
-
-    return '<div class="upload-orb" style="position:relative;width:100px;height:100px;display:flex;align-items:center;justify-content:center">' +
-        '<svg width="100" height="100" viewBox="0 0 100 100" style="transform:rotate(-90deg)">' +
-            '<circle cx="50" cy="50" r="' + radius + '" fill="none" stroke="var(--border,#e5e7eb)" stroke-width="6" opacity="0.3"/>' +
-            '<circle cx="50" cy="50" r="' + radius + '" fill="none" stroke="' + color + '" stroke-width="6" ' +
-                'stroke-dasharray="' + circumference + '" stroke-dashoffset="' + dashOffset + '" ' +
-                'stroke-linecap="round" style="transition:stroke-dashoffset .4s ease"/>' +
-            (progress >= 100 ? '<circle cx="50" cy="50" r="' + radius + '" fill="none" stroke="' + color + '" stroke-width="6" opacity="0.2" stroke-dasharray="' + circumference + '" stroke-dashoffset="0" style="animation:uploadOrbPulse 1s ease infinite"/>' : '') +
-        '</svg>' +
-        '<div style="position:absolute;text-align:center">' +
-            (progress >= 100
-                ? '<i class="fas fa-check" style="font-size:24px;color:#10b981"></i>'
-                : '<span style="font-size:18px;font-weight:700;color:var(--fg,#1e293b)">' + Math.round(progress) + '</span><span style="font-size:10px;color:var(--muted,#94a3b8)">%</span>') +
-        '</div>' +
-    '</div>';
-}
-
-// Inject orb animation style
-(function() {
-    if (!document.getElementById('upload-orb-styles')) {
-        const style = document.createElement('style');
-        style.id = 'upload-orb-styles';
-        style.textContent = '@keyframes uploadOrbPulse { 0%,100%{opacity:.2;transform:scale(1)} 50%{opacity:.4;transform:scale(1.03)} }';
-        document.head.appendChild(style);
-    }
-})();
-
-// 12. PULL-TO-REFRESH with Particles
-function initPullToRefresh() {
-    const container = document.getElementById('file-list-container') || document.querySelector('.file-list, #file-list, .main-content');
-    if (!container || container._ptrInit) return;
-    container._ptrInit = true;
-
-    let startY = 0, pulling = false, currentPull = 0;
-    const THRESHOLD = 80;
-    const isId = APP.lang === 'id';
-
-    // Create pull indicator
-    const ptrIndicator = document.createElement('div');
-    ptrIndicator.className = 'ptr-indicator';
-    ptrIndicator.innerHTML = '<div class="ptr-arrow"><i class="fas fa-arrow-down"></i></div><span class="ptr-text">' + (isId ? 'Tarik untuk refresh' : 'Pull to refresh') + '</span>';
-    Object.assign(ptrIndicator.style, {
-        position: 'absolute', top: '0', left: '50%', transform: 'translateX(-50%) translateY(-100%)',
-        display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px',
-        background: 'var(--primary,#3b82f6)', color: '#fff', borderRadius: '0 0 16px 16px',
-        fontSize: '12px', fontWeight: '600', zIndex: '100', opacity: '0', transition: 'opacity .2s',
-        boxShadow: '0 4px 16px rgba(59,130,246,.3)'
-    });
-    container.style.position = 'relative';
-    container.insertBefore(ptrIndicator, container.firstChild);
-
-    // Particle canvas
-    const particleCanvas = document.createElement('canvas');
-    particleCanvas.className = 'ptr-particle-canvas';
-    Object.assign(particleCanvas.style, {
-        position: 'absolute', top: '0', left: '0', width: '100%', height: '100%',
-        pointerEvents: 'none', zIndex: '99', display: 'none'
-    });
-    container.appendChild(particleCanvas);
-
-    function burstParticles(x, y) {
-        particleCanvas.style.display = 'block';
-        const rect = container.getBoundingClientRect();
-        particleCanvas.width = rect.width;
-        particleCanvas.height = rect.height;
-        const ctx = particleCanvas.getContext('2d');
-        const particles = [];
-        const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
-        for (let i = 0; i < 24; i++) {
-            const angle = (Math.PI * 2 * i) / 24;
-            const speed = 2 + Math.random() * 4;
-            particles.push({
-                x: x - rect.left, y: y - rect.top,
-                vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
-                r: 3 + Math.random() * 3, color: colors[Math.floor(Math.random() * colors.length)],
-                alpha: 1, decay: 0.02 + Math.random() * 0.02
-            });
-        }
-        function animate() {
-            ctx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
-            let alive = false;
-            particles.forEach(p => {
-                if (p.alpha <= 0) return;
-                alive = true;
-                p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.alpha -= p.decay;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, Math.max(0.5, p.r * p.alpha), 0, Math.PI * 2);
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = Math.max(0, p.alpha);
-                ctx.fill();
-            });
-            ctx.globalAlpha = 1;
-            if (alive) requestAnimationFrame(animate);
-            else particleCanvas.style.display = 'none';
-        }
-        animate();
-    }
-
-    container.addEventListener('touchstart', (e) => {
-        if (container.scrollTop <= 0) {
-            startY = e.touches[0].clientY;
-            pulling = true;
-        }
-    }, { passive: true });
-
-    container.addEventListener('touchmove', (e) => {
-        if (!pulling) return;
-        currentPull = Math.max(0, e.touches[0].clientY - startY);
-        const pct = Math.min(currentPull / THRESHOLD, 1);
-        ptrIndicator.style.opacity = pct;
-        ptrIndicator.style.transform = 'translateX(-50%) translateY(' + Math.min(currentPull * 0.5, THRESHOLD * 0.5) + 'px)';
-        const arrow = ptrIndicator.querySelector('.ptr-arrow i');
-        if (arrow) arrow.style.transform = 'rotate(' + (pct * 180) + 'deg)';
-        if (currentPull >= THRESHOLD) {
-            ptrIndicator.querySelector('.ptr-text').textContent = isId ? 'Lepaskan untuk refresh' : 'Release to refresh';
-            ptrIndicator.style.background = '#10b981';
-        } else {
-            ptrIndicator.querySelector('.ptr-text').textContent = isId ? 'Tarik untuk refresh' : 'Pull to refresh';
-            ptrIndicator.style.background = 'var(--primary,#3b82f6)';
-        }
-    }, { passive: true });
-
-    container.addEventListener('touchend', (e) => {
-        if (!pulling) return;
-        pulling = false;
-        if (currentPull >= THRESHOLD) {
-            haptic('ptr');
-            const touch = e.changedTouches[0];
-            burstParticles(touch.clientX, touch.clientY);
-            // Trigger refresh
-            if (typeof renderFileList === 'function') renderFileList();
-            if (typeof showToast === 'function') showToast(isId ? 'Diperbarui' : 'Refreshed', 'success', 1500);
-        }
-        currentPull = 0;
-        ptrIndicator.style.opacity = '0';
-        ptrIndicator.style.transform = 'translateX(-50%) translateY(-100%)';
-        ptrIndicator.style.background = 'var(--primary,#3b82f6)';
-    });
-}
-
-// 13. INTERACTIVE EMPTY STATE
-function renderInteractiveEmptyState(folderType) {
-    const isId = APP.lang === 'id';
-    const configs = {
-        all: {
-            icon: 'fa-folder-open', color: '#3b82f6',
-            title: isId ? 'Belum Ada File' : 'No Files Yet',
-            subtitle: isId ? 'Upload file pertama Anda untuk memulai' : 'Upload your first file to get started',
-            cta: isId ? 'Upload File' : 'Upload File', action: 'upload'
-        },
-        recent: {
-            icon: 'fa-clock', color: '#8b5cf6',
-            title: isId ? 'Belum Ada Aktivitas' : 'No Recent Activity',
-            subtitle: isId ? 'File yang Anda buka akan muncul di sini' : 'Files you open will appear here',
-            cta: isId ? 'Lihat Semua File' : 'Browse Files', action: 'browse'
-        },
-        favorites: {
-            icon: 'fa-star', color: '#f59e0b',
-            title: isId ? 'Belum Ada Favorit' : 'No Favorites Yet',
-            subtitle: isId ? 'Tandai file dengan bintang untuk menambahkan ke favorit' : 'Star files to add them to favorites',
-            cta: isId ? 'Lihat Semua File' : 'Browse Files', action: 'browse'
-        },
-        shared: {
-            icon: 'fa-share-alt', color: '#10b981',
-            title: isId ? 'Belum Ada File Dibagikan' : 'No Shared Files',
-            subtitle: isId ? 'File yang Anda bagikan akan muncul di sini' : 'Files you share will appear here',
-            cta: isId ? 'Bagikan File' : 'Share a File', action: 'share'
-        },
-        encrypted: {
-            icon: 'fa-lock', color: '#ef4444',
-            title: isId ? 'Belum Ada File Terenkripsi' : 'No Encrypted Files',
-            subtitle: isId ? 'Enkripsi file untuk menjaga keamanan data' : 'Encrypt files to keep your data secure',
-            cta: isId ? 'Enkripsi File' : 'Encrypt a File', action: 'encrypt'
-        },
-        trash: {
-            icon: 'fa-trash-alt', color: '#64748b',
-            title: isId ? 'Sampah Kosong' : 'Trash is Empty',
-            subtitle: isId ? 'File yang dihapus akan muncul di sini' : 'Deleted files will appear here',
-            cta: '', action: ''
-        }
-    };
-
-    const cfg = configs[folderType] || configs.all;
-    const ctaBtn = cfg.cta ? '<button class="empty-state-cta" onclick="document.getElementById(\'file-upload-input\')?.click()" style="margin-top:20px;padding:12px 28px;background:' + cfg.color + ';color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px ' + cfg.color + '40;transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform=\'scale(1.05)\';this.style.boxShadow=\'0 6px 24px ' + cfg.color + '50\'" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'0 4px 16px ' + cfg.color + '40\'">' + cfg.cta + '</button>' : '';
-
-    return '<div class="interactive-empty-state" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center">' +
-        '<div class="empty-icon-container" style="position:relative;margin-bottom:24px">' +
-            '<div class="empty-icon-bg" style="width:100px;height:100px;border-radius:50%;background:' + cfg.color + '12;display:flex;align-items:center;justify-content:center;animation:emptyPulse 2.5s ease infinite">' +
-                '<i class="fas ' + cfg.icon + '" style="font-size:36px;color:' + cfg.color + '"></i>' +
-            '</div>' +
-            '<div style="position:absolute;inset:-8px;border-radius:50%;border:2px dashed ' + cfg.color + '30;animation:emptySpin 12s linear infinite"></div>' +
-        '</div>' +
-        '<h3 style="font-size:18px;font-weight:700;color:var(--fg,#1e293b);margin:0">' + cfg.title + '</h3>' +
-        '<p style="font-size:13px;color:var(--muted,#94a3b8);margin:8px 0 0;max-width:280px;line-height:1.5">' + cfg.subtitle + '</p>' +
-        ctaBtn +
-    '</div>';
-}
-
-// Inject empty state animation styles
-(function() {
-    if (!document.getElementById('empty-state-styles')) {
-        const style = document.createElement('style');
-        style.id = 'empty-state-styles';
-        style.textContent = [
-            '@keyframes emptyPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.08);opacity:.85} }',
-            '@keyframes emptySpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }'
-        ].join('\n');
-        document.head.appendChild(style);
-    }
-})();
-
-// 14. SWIPE ACTIONS ENHANCED (half-swipe)
-function initEnhancedSwipeActions() {
-    if (APP.viewMode !== 'mobile') return;
-
-    // Inject enhanced swipe styles
-    if (!document.getElementById('enhanced-swipe-styles')) {
-        const style = document.createElement('style');
-        style.id = 'enhanced-swipe-styles';
-        style.textContent = [
-            '.swipe-action-half { position:absolute; top:0; height:100%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:#fff; width:70px; transition:opacity .15s; opacity:0; }',
-            '.swipe-action-half.swipe-visible { opacity:1; }',
-            '.swipe-half-pin { left:0; background:#3b82f6; border-radius:12px 0 0 12px; }',
-            '.swipe-half-bookmark { right:0; background:#f59e0b; border-radius:0 12px 12px 0; }'
-        ].join('\n');
-        document.head.appendChild(style);
-    }
-
-    document.addEventListener('touchstart', (e) => {
-        const wrapper = e.target.closest('.swipe-row-wrapper');
-        if (!wrapper || wrapper._enhancedSwipeInit) return;
-        wrapper._enhancedSwipeInit = true;
-
-        const content = wrapper.querySelector('.swipe-row-content');
-        if (!content) return;
-        const fileId = wrapper.getAttribute('data-swipe-file-id');
-
-        // Add half-swipe action elements
-        const pinAction = document.createElement('div');
-        pinAction.className = 'swipe-action-half swipe-half-pin';
-        pinAction.innerHTML = '<i class="fas fa-thumbtack"></i>';
-        wrapper.insertBefore(pinAction, content);
-
-        const bookmarkAction = document.createElement('div');
-        bookmarkAction.className = 'swipe-action-half swipe-half-bookmark';
-        bookmarkAction.innerHTML = '<i class="fas fa-bookmark"></i>';
-        wrapper.appendChild(bookmarkAction);
-
-        let startX = 0, currentX = 0, halfSwipeTriggered = false;
-        const HALF_THRESHOLD = 40;
-        const FULL_THRESHOLD = 80;
-
-        content.addEventListener('touchstart', (te) => {
-            startX = te.touches[0].clientX;
-            currentX = 0;
-            halfSwipeTriggered = false;
-            pinAction.classList.remove('swipe-visible');
-            bookmarkAction.classList.remove('swipe-visible');
-        }, { passive: true });
-
-        content.addEventListener('touchmove', (te) => {
-            currentX = te.touches[0].clientX - startX;
-            const absX = Math.abs(currentX);
-
-            if (absX > HALF_THRESHOLD && absX < FULL_THRESHOLD && !halfSwipeTriggered) {
-                halfSwipeTriggered = true;
-                haptic('tap');
-                if (currentX > 0) {
-                    // Right half-swipe = pin
-                    pinAction.classList.add('swipe-visible');
-                    const file = APP.files.find(f => f.id === fileId);
-                    if (file) {
-                        file.pinned = !file.pinned;
-                        if (typeof saveFiles === 'function') saveFiles();
-                        if (typeof showToast === 'function') showToast(file.pinned ? (APP.lang === 'id' ? 'Dipasang' : 'Pinned') : (APP.lang === 'id' ? 'Dilepas' : 'Unpinned'), 'success', 1500);
-                    }
-                } else {
-                    // Left half-swipe = bookmark/star
-                    bookmarkAction.classList.add('swipe-visible');
-                    const file = APP.files.find(f => f.id === fileId);
-                    if (file) {
-                        file.starred = !file.starred;
-                        if (typeof saveFiles === 'function') saveFiles();
-                        if (typeof showToast === 'function') showToast(file.starred ? (APP.lang === 'id' ? 'Ditandai' : 'Starred') : (APP.lang === 'id' ? 'Hapus tanda' : 'Unstarred'), 'success', 1500);
-                    }
-                }
-            }
-        }, { passive: true });
-
-        content.addEventListener('touchend', () => {
-            setTimeout(() => {
-                pinAction.classList.remove('swipe-visible');
-                bookmarkAction.classList.remove('swipe-visible');
-                halfSwipeTriggered = false;
-            }, 600);
-        });
-    }, { passive: true });
-}
-
-// 15. DARK MODE WARM SHIFT — handled in CSS, but add JS toggle
-function toggleWarmDark(enabled) {
-    document.documentElement.classList.toggle('warm-dark', enabled);
-    localStorage.setItem('rb_warm_dark', enabled ? '1' : '0');
-    // Inject warm dark CSS if not present
-    if (enabled && !document.getElementById('warm-dark-styles')) {
-        const style = document.createElement('style');
-        style.id = 'warm-dark-styles';
-        style.textContent = [
-            'html.warm-dark { --bg: #1a1612 !important; --fg: #e8ddd0 !important; --muted: #a89880 !important; --border: #3d3428 !important; --card: #241e18 !important; --hover: rgba(210,180,140,.08) !important; }',
-            'html.warm-dark body { background: #1a1612 !important; color: #e8ddd0 !important; }',
-            'html.warm-dark .sidebar, html.warm-dark .bottom-nav, html.warm-dark .header { background: #241e18 !important; }',
-            'html.warm-dark input, html.warm-dark textarea { background: #2a2218 !important; color: #e8ddd0 !important; border-color: #3d3428 !important; }'
-        ].join('\n');
-        document.head.appendChild(style);
-    }
-}
-
-// 16. BOTTOM NAV ENHANCED — add morphing pill animation
-function enhanceBottomNavAnimation() {
-    if (!document.getElementById('bottom-nav-enhanced-styles')) {
-        const style = document.createElement('style');
-        style.id = 'bottom-nav-enhanced-styles';
-        style.textContent = [
-            '.bottom-nav-item.active .nav-pill { animation: pillMorph .4s cubic-bezier(.4,0,.2,1); }',
-            '@keyframes pillMorph { 0%{transform:scaleX(0.3) scaleY(1.5);opacity:0} 50%{transform:scaleX(1.1) scaleY(0.9)} 100%{transform:scaleX(1) scaleY(1);opacity:1} }',
-            '.bottom-nav-item .nav-pill { width:20px; height:4px; border-radius:4px; background:var(--primary,#3b82f6); position:absolute; bottom:2px; left:50%; transform:translateX(-50%); transition:width .3s ease; }',
-            '.bottom-nav-item.active .nav-pill { width:28px; }',
-            '.bottom-nav-item .nav-icon-wrap { transition:transform .25s cubic-bezier(.4,0,.2,1); }',
-            '.bottom-nav-item.active .nav-icon-wrap { transform:translateY(-3px) scale(1.1); }'
-        ].join('\n');
-        document.head.appendChild(style);
-    }
-
-    // Add pill elements to nav items if missing
-    const navItems = document.querySelectorAll('.bottom-nav-item');
-    navItems.forEach(item => {
-        if (!item.querySelector('.nav-pill')) {
-            const pill = document.createElement('div');
-            pill.className = 'nav-pill';
-            item.appendChild(pill);
-        }
-        // Wrap icon for animation
-        const icon = item.querySelector('i');
-        if (icon && !icon.closest('.nav-icon-wrap')) {
-            const wrap = document.createElement('div');
-            wrap.className = 'nav-icon-wrap';
-            icon.parentNode.insertBefore(wrap, icon);
-            wrap.appendChild(icon);
-        }
-    });
-}
-
-// 17. SPLIT VIEW
-function initSplitView() {
-    if (APP.viewMode !== 'desktop') return;
-    const mainContent = document.querySelector('.main-content') || document.getElementById('main-content');
-    if (!mainContent || mainContent._splitViewInit) return;
-    mainContent._splitViewInit = true;
-
-    // Inject split view styles
-    if (!document.getElementById('split-view-styles')) {
-        const style = document.createElement('style');
-        style.id = 'split-view-styles';
-        style.textContent = [
-            '.split-view { display:flex; height:100%; position:relative; }',
-            '.split-view-master { flex:0 0 45%; min-width:280px; overflow-y:auto; border-right:1px solid var(--border,#e5e7eb); position:relative; }',
-            '.split-view-detail { flex:1; overflow-y:auto; background:var(--card,#fff); position:relative; }',
-            '.split-view-divider { width:6px; cursor:col-resize; background:transparent; position:relative; z-index:10; flex-shrink:0; transition:background .2s; }',
-            '.split-view-divider:hover, .split-view-divider.active { background:var(--primary,#3b82f6); }',
-            '.split-view-divider::after { content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:2px; height:32px; background:var(--border,#e5e7eb); border-radius:2px; }',
-            '.split-view-divider:hover::after { background:var(--primary,#3b82f6); }',
-            '.split-view-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--muted,#94a3b8); gap:12px; }',
-            '.split-view-empty i { font-size:48px; opacity:0.3; }',
-            '.split-view-empty span { font-size:13px; }'
-        ].join('\n');
-        document.head.appendChild(style);
-    }
-
-    // Restructure into split layout
-    const fileList = document.getElementById('file-list-container') || document.querySelector('.file-list');
-    if (!fileList) return;
-
-    const splitContainer = document.createElement('div');
-    splitContainer.className = 'split-view';
-
-    const master = document.createElement('div');
-    master.className = 'split-view-master';
-    master.id = 'split-master';
-
-    const divider = document.createElement('div');
-    divider.className = 'split-view-divider';
-
-    const detail = document.createElement('div');
-    detail.className = 'split-view-detail';
-    detail.id = 'split-detail';
-    detail.innerHTML = '<div class="split-view-empty"><i class="fas fa-file-circle-plus"></i><span>' + (APP.lang === 'id' ? 'Pilih file untuk melihat detail' : 'Select a file to see details') + '</span></div>';
-
-    // Move file list into master panel
-    const parent = fileList.parentNode;
-    parent.insertBefore(splitContainer, fileList);
-    master.appendChild(fileList);
-    splitContainer.appendChild(master);
-    splitContainer.appendChild(divider);
-    splitContainer.appendChild(detail);
-
-    // Resizable divider
-    let isResizing = false;
-    divider.addEventListener('mousedown', (e) => {
-        isResizing = true;
-        divider.classList.add('active');
-        document.body.style.cursor = 'col-resize';
-        document.body.style.userSelect = 'none';
-        e.preventDefault();
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (!isResizing) return;
-        const rect = splitContainer.getBoundingClientRect();
-        const newWidth = e.clientX - rect.left;
-        const minW = 280, maxW = rect.width - 280;
-        master.style.flex = '0 0 ' + Math.max(minW, Math.min(maxW, newWidth)) + 'px';
-    });
-
-    document.addEventListener('mouseup', () => {
-        if (isResizing) {
-            isResizing = false;
-            divider.classList.remove('active');
-            document.body.style.cursor = '';
-            document.body.style.userSelect = '';
-        }
-    });
-}
-
-// 17b. Show file detail in split view panel
-function showSplitDetail(fileId) {
-    const detail = document.getElementById('split-detail');
-    if (!detail) return;
-    const file = APP.files.find(f => f.id === fileId);
-    if (!file) {
-        detail.innerHTML = '<div class="split-view-empty"><i class="fas fa-file-circle-plus"></i><span>' + (APP.lang === 'id' ? 'Pilih file untuk melihat detail' : 'Select a file to see details') + '</span></div>';
-        return;
-    }
-    const type = getFileType(file.name, file.mime);
-    const icon = getFileIcon(type);
-    const isId = APP.lang === 'id';
-    const ext = (file.name || '').split('.').pop().toUpperCase();
-    const downloadUrl = '/api/download?path=' + encodeURIComponent(file.filePath) + '&bot_index=' + file.botIndex;
-
-    let preview = '';
-    if (type === 'image' && (file.thumbUrl || file.filePath)) {
-        const src = file.thumbUrl || downloadUrl;
-        preview = '<div style="width:100%;max-height:300px;overflow:hidden;background:' + icon.color + '08;display:flex;align-items:center;justify-content:center;border-radius:12px;margin-bottom:16px"><img src="' + src + '" style="max-width:100%;max-height:300px;object-fit:contain" onerror="this.style.display=\'none\'"></div>';
-    } else if (type === 'video') {
-        preview = '<div style="width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;margin-bottom:16px"><video src="' + downloadUrl + '" controls style="width:100%;height:100%"></video></div>';
-    } else if (type === 'audio') {
-        preview = '<div style="width:100%;padding:24px;background:' + icon.color + '08;border-radius:12px;margin-bottom:16px;text-align:center"><i class="fas fa-music" style="font-size:40px;color:' + icon.color + ';margin-bottom:12px"></i><audio src="' + downloadUrl + '" controls style="width:100%"></audio></div>';
-    } else {
-        preview = '<div style="width:100%;padding:40px;background:' + icon.color + '08;border-radius:12px;margin-bottom:16px;text-align:center"><i class="fas ' + icon.icon + '" style="font-size:56px;color:' + icon.color + '"></i></div>';
-    }
-
-    detail.innerHTML = '<div style="padding:20px;overflow-y:auto;height:100%">' +
-        preview +
-        '<h3 style="font-size:16px;font-weight:700;color:var(--fg,#1e293b);margin:0 0 8px;word-break:break-all">' + file.name + '</h3>' +
-        '<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">' +
-            '<span style="background:' + icon.color + '18;color:' + icon.color + ';padding:4px 10px;border-radius:8px;font-size:11px;font-weight:600">' + ext + '</span>' +
-            (file.starred ? '<span style="background:#f59e0b18;color:#f59e0b;padding:4px 10px;border-radius:8px;font-size:11px"><i class="fas fa-star"></i></span>' : '') +
-            (file.pinned ? '<span style="background:#3b82f618;color:#3b82f6;padding:4px 10px;border-radius:8px;font-size:11px"><i class="fas fa-thumbtack"></i></span>' : '') +
-            (file.encrypted ? '<span style="background:#ef444418;color:#ef4444;padding:4px 10px;border-radius:8px;font-size:11px"><i class="fas fa-lock"></i></span>' : '') +
-        '</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">' +
-            '<div style="padding:12px;background:var(--hover,rgba(0,0,0,.03));border-radius:10px"><div style="font-size:10px;color:var(--muted,#94a3b8);text-transform:uppercase">' + (isId ? 'Ukuran' : 'Size') + '</div><div style="font-size:14px;font-weight:600;color:var(--fg,#1e293b);margin-top:2px">' + formatSize(file.size) + '</div></div>' +
-            '<div style="padding:12px;background:var(--hover,rgba(0,0,0,.03));border-radius:10px"><div style="font-size:10px;color:var(--muted,#94a3b8);text-transform:uppercase">' + (isId ? 'Tanggal' : 'Date') + '</div><div style="font-size:14px;font-weight:600;color:var(--fg,#1e293b);margin-top:2px">' + formatDate(file.uploadedAt) + '</div></div>' +
-        '</div>' +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-            '<button onclick="window.open(\'' + downloadUrl + '\')" style="padding:10px 20px;background:var(--primary,#3b82f6);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="fas fa-download"></i> ' + (isId ? 'Unduh' : 'Download') + '</button>' +
-            '<button onclick="if(typeof shareFile===\'function\')shareFile(\'' + file.id + '\')" style="padding:10px 20px;background:var(--hover,rgba(0,0,0,.05));color:var(--fg,#1e293b);border:1px solid var(--border,#e5e7eb);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="fas fa-share-alt"></i> ' + (isId ? 'Bagikan' : 'Share') + '</button>' +
-        '</div>' +
-    '</div>';
-}
-
-// 18. COMMAND PALETTE ENHANCED
-function getEnhancedCommands(query) {
-    const isId = APP.lang === 'id';
-    const q = (query || '').toLowerCase();
-
-    const commands = [
-        // Files
-        { id: 'upload', label: isId ? 'Upload File' : 'Upload File', icon: 'fa-upload', category: 'Files', action: () => document.getElementById('file-upload-input')?.click() },
-        { id: 'new-folder', label: isId ? 'Folder Baru' : 'New Folder', icon: 'fa-folder-plus', category: 'Files', action: () => { if (typeof createFolder === 'function') createFolder(); } },
-        { id: 'search-files', label: isId ? 'Cari File' : 'Search Files', icon: 'fa-search', category: 'Files', action: () => { const s = document.getElementById('search-input'); if (s) s.focus(); } },
-        { id: 'sort-name', label: isId ? 'Urutkan: Nama' : 'Sort by Name', icon: 'fa-sort-alpha-down', category: 'Files', action: () => { APP.sortBy = 'name'; if (typeof renderFileList === 'function') renderFileList(); } },
-        { id: 'sort-date', label: isId ? 'Urutkan: Tanggal' : 'Sort by Date', icon: 'fa-sort-amount-down', category: 'Files', action: () => { APP.sortBy = 'date'; if (typeof renderFileList === 'function') renderFileList(); } },
-        { id: 'sort-size', label: isId ? 'Urutkan: Ukuran' : 'Sort by Size', icon: 'fa-sort-amount-down', category: 'Files', action: () => { APP.sortBy = 'size'; if (typeof renderFileList === 'function') renderFileList(); } },
-        // Navigation
-        { id: 'nav-all', label: isId ? 'Semua File' : 'All Files', icon: 'fa-folder', category: 'Navigation', action: () => { if (typeof selectFolder === 'function') selectFolder('all'); } },
-        { id: 'nav-recent', label: isId ? 'Terakhir Dibuka' : 'Recent', icon: 'fa-clock', category: 'Navigation', action: () => { if (typeof selectFolder === 'function') selectFolder('recent'); } },
-        { id: 'nav-favorites', label: isId ? 'Favorit' : 'Favorites', icon: 'fa-star', category: 'Navigation', action: () => { if (typeof selectFolder === 'function') selectFolder('favorites'); } },
-        { id: 'nav-shared', label: isId ? 'Dibagikan' : 'Shared', icon: 'fa-share-alt', category: 'Navigation', action: () => { if (typeof selectFolder === 'function') selectFolder('shared'); } },
-        { id: 'nav-trash', label: isId ? 'Sampah' : 'Trash', icon: 'fa-trash-alt', category: 'Navigation', action: () => { if (typeof selectFolder === 'function') selectFolder('trash'); } },
-        // Actions
-        { id: 'batch-select', label: isId ? 'Mode Pilih' : 'Batch Select', icon: 'fa-check-double', category: 'Actions', action: () => { APP.batchMode = !APP.batchMode; if (typeof renderFileList === 'function') renderFileList(); } },
-        { id: 'toggle-view', label: isId ? 'Ganti Tampilan' : 'Toggle View', icon: 'fa-th-large', category: 'Actions', action: () => { APP.currentView = APP.currentView === 'grid' ? 'list' : 'grid'; if (typeof renderFileList === 'function') renderFileList(); } },
-        { id: 'toggle-bento', label: isId ? 'Tampilan Bento' : 'Bento View', icon: 'fa-grip-vertical', category: 'Actions', action: () => { APP.currentView = 'bento'; if (typeof renderFileList === 'function') renderFileList(); } },
-        { id: 'toggle-timeline', label: isId ? 'Tampilan Timeline' : 'Timeline View', icon: 'fa-stream', category: 'Actions', action: () => { APP.currentView = 'timeline'; if (typeof renderFileList === 'function') renderFileList(); } },
-        { id: 'encrypt', label: isId ? 'Enkripsi File' : 'Encrypt File', icon: 'fa-lock', category: 'Actions', action: () => { if (typeof selectFolder === 'function') selectFolder('encrypted'); } },
-        { id: 'scan', label: isId ? 'Scan File' : 'Scan File', icon: 'fa-shield-halved', category: 'Actions', action: () => { if (typeof verifyAllIntegrity === 'function') verifyAllIntegrity(); } },
-        // Settings
-        { id: 'settings', label: isId ? 'Pengaturan' : 'Settings', icon: 'fa-cog', category: 'Settings', action: () => { if (typeof openSettings === 'function') openSettings(); } },
-        { id: 'theme-toggle', label: isId ? 'Ganti Tema' : 'Toggle Theme', icon: 'fa-moon', category: 'Settings', action: () => { if (typeof toggleTheme === 'function') toggleTheme(); } },
-        { id: 'warm-dark', label: isId ? 'Mode Gelap Hangat' : 'Warm Dark Mode', icon: 'fa-sun', category: 'Settings', action: () => { toggleWarmDark(!document.documentElement.classList.contains('warm-dark')); } },
-        { id: 'haptic-toggle', label: isId ? 'Feedback Haptic' : 'Haptic Feedback', icon: 'fa-hand-pointer', category: 'Settings', action: () => { APP.settings.hapticFeedback = !APP.settings.hapticFeedback; localStorage.setItem('rb_haptic', APP.settings.hapticFeedback ? '1' : '0'); showToast(APP.settings.hapticFeedback ? (isId ? 'Haptic aktif' : 'Haptic on') : (isId ? 'Haptic nonaktif' : 'Haptic off'), 'info', 1500); } }
-    ];
-
-    if (!q) return commands;
-    return commands.filter(c => c.label.toLowerCase().includes(q) || c.category.toLowerCase().includes(q) || c.id.includes(q));
-}
-
-// 19. BREADCRUMB CLICKABLE & DRAGGABLE
-function initBreadcrumbDrag() {
-    // Inject breadcrumb drag styles
-    if (!document.getElementById('breadcrumb-drag-styles')) {
-        const style = document.createElement('style');
-        style.id = 'breadcrumb-drag-styles';
-        style.textContent = [
-            '.breadcrumb-item.drag-over { background:var(--primary,#3b82f6) !important; color:#fff !important; border-radius:8px; outline:2px dashed var(--primary,#3b82f6); outline-offset:2px; transform:scale(1.08); transition:all .2s ease; }',
-            '.breadcrumb-item { transition:background .15s, transform .15s; border-radius:6px; padding:4px 10px; }',
-            '.breadcrumb-item:hover { background:var(--hover,rgba(59,130,246,.08)); }'
-        ].join('\n');
-        document.head.appendChild(style);
-    }
-
-    // Set up event delegation for breadcrumb items
-    document.addEventListener('dragover', (e) => {
-        const crumb = e.target.closest('.breadcrumb-item');
-        if (!crumb) return;
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        crumb.classList.add('drag-over');
-    });
-
-    document.addEventListener('dragleave', (e) => {
-        const crumb = e.target.closest('.breadcrumb-item');
-        if (crumb) crumb.classList.remove('drag-over');
-    });
-
-    document.addEventListener('drop', (e) => {
-        const crumb = e.target.closest('.breadcrumb-item');
-        if (!crumb) return;
-        crumb.classList.remove('drag-over');
-        const fileId = e.dataTransfer?.getData('text/file-id');
-        if (!fileId) return;
-        const folderId = crumb.dataset.folderId || crumb.getAttribute('data-folder-id');
-        if (!folderId) return;
-        // Move file to the breadcrumb's folder
-        const file = APP.files.find(f => f.id === fileId);
-        if (file && file.folderId !== folderId) {
-            file.folderId = folderId;
-            if (typeof saveFiles === 'function') saveFiles();
-            if (typeof renderFileList === 'function') renderFileList();
-            haptic('copy');
-            if (typeof showToast === 'function') showToast(APP.lang === 'id' ? 'File dipindahkan' : 'File moved', 'success', 2000);
-        }
-    });
-
-    // Also add dragstart data to existing file cards
-    document.addEventListener('dragstart', (e) => {
-        const card = e.target.closest('[data-file-id]');
-        if (card) {
-            e.dataTransfer.setData('text/file-id', card.dataset.fileId);
-            e.dataTransfer.effectAllowed = 'move';
-        }
-    });
-}
-
-// 20. STORAGE RING WIDGET
-function initStorageRingWidget() {
-    // Prevent duplicate init
-    if (document.getElementById('storage-ring-widget')) return;
-
-    const isId = APP.lang === 'id';
-    const widget = document.createElement('div');
-    widget.id = 'storage-ring-widget';
-    Object.assign(widget.style, {
-        position: 'fixed', bottom: '80px', left: '16px', zIndex: '800',
-        width: '56px', height: '56px', cursor: 'pointer',
-        transition: 'transform .2s ease, box-shadow .2s ease',
-        filter: 'drop-shadow(0 4px 12px rgba(0,0,0,.15))'
-    });
-    widget.addEventListener('mouseenter', () => { widget.style.transform = 'scale(1.1)'; widget.style.filter = 'drop-shadow(0 6px 20px rgba(0,0,0,.2))'; });
-    widget.addEventListener('mouseleave', () => { widget.style.transform = 'scale(1)'; widget.style.filter = 'drop-shadow(0 4px 12px rgba(0,0,0,.15))'; });
-
-    // Calculate storage usage
-    function calcUsage() {
-        const totalUsed = APP.files.filter(f => !f.trashed).reduce((sum, f) => sum + (f.size || 0), 0);
-        const maxStorage = (APP.settings.maxUploadSize || 50) * 1024 * 1024 * 1024; // approximate
-        const pct = Math.min(100, maxStorage > 0 ? (totalUsed / maxStorage) * 100 : 0);
-        return { totalUsed, maxStorage, pct };
-    }
-
-    function renderRing() {
-        const { totalUsed, maxStorage, pct } = calcUsage();
-        const radius = 22;
-        const circumference = 2 * Math.PI * radius;
-        const dashOffset = circumference - (pct / 100) * circumference;
-        const color = pct > 90 ? '#ef4444' : pct > 70 ? '#f59e0b' : '#10b981';
-
-        widget.innerHTML = '<svg width="56" height="56" viewBox="0 0 56 56" style="transform:rotate(-90deg)">' +
-            '<circle cx="28" cy="28" r="' + radius + '" fill="var(--bg,#fff)" stroke="var(--border,#e5e7eb)" stroke-width="4" opacity="0.3"/>' +
-            '<circle cx="28" cy="28" r="' + radius + '" fill="none" stroke="' + color + '" stroke-width="4" ' +
-                'stroke-dasharray="' + circumference + '" stroke-dashoffset="' + dashOffset + '" stroke-linecap="round" style="transition:stroke-dashoffset .6s ease"/>' +
-        '</svg>' +
-        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:' + color + '">' + Math.round(pct) + '%</div>';
-    }
-
-    renderRing();
-    document.body.appendChild(widget);
-
-    // Click to show details
-    widget.addEventListener('click', () => {
-        const { totalUsed, maxStorage, pct } = calcUsage();
-        const color = pct > 90 ? '#ef4444' : pct > 70 ? '#f59e0b' : '#10b981';
-
-        // Create or update detail popup
-        let popup = document.getElementById('storage-ring-detail');
-        if (popup) popup.remove();
-
-        popup = document.createElement('div');
-        popup.id = 'storage-ring-detail';
-        Object.assign(popup.style, {
-            position: 'fixed', bottom: '144px', left: '16px', zIndex: '9000',
-            background: 'var(--bg,#fff)', borderRadius: '16px', padding: '20px',
-            boxShadow: '0 12px 40px rgba(0,0,0,.15)', border: '1px solid var(--border,#e5e7eb)',
-            width: '220px', opacity: '0', transform: 'translateY(10px)', transition: 'opacity .2s, transform .2s'
-        });
-
-        const types = ['image','video','audio','pdf','document','code','archive','other'];
-        const typeBreakdown = types.map(type => {
-            const files = APP.files.filter(f => !f.trashed && getFileType(f.name, f.mime) === type);
-            const size = files.reduce((s, f) => s + (f.size || 0), 0);
-            return { type, count: files.length, size, icon: getFileIcon(type) };
-        }).filter(t => t.count > 0).sort((a, b) => b.size - a.size);
-
-        let breakdownHtml = typeBreakdown.slice(0, 5).map(t =>
-            '<div style="display:flex;align-items:center;gap:8px;padding:4px 0">' +
-                '<div style="width:24px;height:24px;border-radius:6px;background:' + t.icon.color + '15;color:' + t.icon.color + ';display:flex;align-items:center;justify-content:center;font-size:10px"><i class="fas ' + t.icon.icon + '"></i></div>' +
-                '<span style="font-size:12px;color:var(--fg,#1e293b);flex:1">' + t.type + '</span>' +
-                '<span style="font-size:11px;color:var(--muted,#94a3b8)">' + formatSize(t.size) + '</span>' +
-            '</div>'
-        ).join('');
-
-        popup.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
-                '<span style="font-size:13px;font-weight:700;color:var(--fg,#1e293b)">' + (isId ? 'Penyimpanan' : 'Storage') + '</span>' +
-                '<button onclick="document.getElementById(\'storage-ring-detail\').remove()" style="background:none;border:none;color:var(--muted,#94a3b8);cursor:pointer;font-size:14px"><i class="fas fa-times"></i></button>' +
-            '</div>' +
-            '<div style="width:100%;height:8px;background:var(--border,#e5e7eb);border-radius:4px;overflow:hidden;margin-bottom:8px">' +
-                '<div style="height:100%;width:' + pct + '%;background:' + color + ';border-radius:4px;transition:width .4s ease"></div>' +
-            '</div>' +
-            '<div style="font-size:11px;color:var(--muted,#94a3b8);margin-bottom:12px">' + formatSize(totalUsed) + ' ' + (isId ? 'digunakan' : 'used') + '</div>' +
-            breakdownHtml;
-
-        document.body.appendChild(popup);
-        requestAnimationFrame(() => { popup.style.opacity = '1'; popup.style.transform = 'translateY(0)'; });
-
-        // Auto dismiss
-        setTimeout(() => {
-            if (popup.parentNode) {
-                popup.style.opacity = '0';
-                popup.style.transform = 'translateY(10px)';
-                setTimeout(() => popup.remove(), 200);
-            }
-        }, 5000);
-    });
-
-    // Update ring when files change
-    const origRender = typeof renderFileList === 'function' ? renderFileList : null;
-    if (origRender) {
-        const _origRenderFileList = renderFileList;
-        // We just re-render the ring periodically
-        setInterval(renderRing, 10000);
-    }
-}
+// [Removed gimmick UI/UX features]: Upload Progress Orb, Upload Orb Styles IIFE,
+// Pull-to-Refresh with Particles, Interactive Empty State, Empty State Animation Styles IIFE,
+// Enhanced Swipe Actions, Warm Dark Mode, Bottom Nav Enhanced Animation,
+// Split View, Split Detail, Enhanced Commands, Breadcrumb Drag, Storage Ring Widget
 
 // ===== INIT UI/UX FEATURES =====
 function initUIUXFeatures() {
-    try { initSmartSearch(); } catch(e) {}
-    try { initDragSortEnhanced(); } catch(e) {}
-    try { initSplitView(); } catch(e) {}
-    try { initBreadcrumbDrag(); } catch(e) {}
-    try { initStorageRingWidget(); } catch(e) {}
-    try { enhanceBottomNavAnimation(); } catch(e) {}
-    try { initQuickPeekListeners(); } catch(e) {}
-
-    // Check warm dark preference
-    if (localStorage.getItem('rb_warm_dark') === '1' && APP.theme === 'dark') {
-        document.documentElement.classList.add('warm-dark');
-    }
-
-    // Init batch auto-detect
-    try { checkBatchAutoDetect(); } catch(e) {}
-    setInterval(() => { try { checkBatchAutoDetect(); } catch(e) {} }, 1000);
-
     console.log('[RidgeBox] UI/UX features initialized');
 }
 

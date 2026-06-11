@@ -20,33 +20,23 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
-<!-- Heavy libs: lazy-loaded on demand via LazyLibs -->
 <style>
-/* Critical CSS — inlined for first paint performance */
-:root{--accent:#3b82f6;--accent-hover:#2563eb;--bg:#ffffff;--bg-secondary:#f8fafc;--bg-card:#ffffff;--text:#0f172a;--text-secondary:#475569;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--shadow-lg:0 10px 40px rgba(0,0,0,.15);--radius:12px;--sidebar-w:260px;--header-h:60px;--transition:all .2s ease}
-.dark{--bg:#0f172a;--bg-secondary:#1e293b;--bg-card:#1e293b;--text:#f1f5f9;--text-secondary:#94a3b8;--border:#334155;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 10px 40px rgba(0,0,0,.4)}
+/* Critical CSS — inlined for first paint */
+:root{--accent:#3b82f6;--accent-hover:#2563eb;--bg:#ffffff;--bg-secondary:#f8fafc;--bg-card:#ffffff;--text:#0f172a;--text-secondary:#64748b;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--radius:8px;--sidebar-w:240px;--header-h:56px;--transition:.15s ease}
+.dark{--bg:#0f172a;--bg-secondary:#1e293b;--bg-card:#1e293b;--text:#f1f5f9;--text-secondary:#94a3b8;--border:#334155;--shadow:0 1px 3px rgba(0,0,0,.3)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh;-webkit-overflow-scrolling:touch;max-width:100vw}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh;max-width:100vw}
 #app-main{max-width:100vw;overflow-x:hidden}
-.skip-nav{position:absolute;top:-100%;left:16px;z-index:9999;padding:12px 24px;background:var(--accent);color:#fff;border-radius:0 0 8px 8px;font-weight:600;font-size:14px;text-decoration:none;transition:top .2s ease}
-.skip-nav:focus{top:0;outline:3px solid #fbbf24;outline-offset:2px}
+.skip-nav{position:absolute;top:-100%;left:16px;z-index:9999;padding:8px 16px;background:var(--accent);color:#fff;border-radius:0 0 6px 6px;font-weight:600;font-size:13px;text-decoration:none;transition:top .2s}
+.skip-nav:focus{top:0;outline:2px solid #fbbf24;outline-offset:2px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
-*:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
-.btn:focus-visible,.input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
-@media(prefers-contrast:high){:root{--border:#000;--text-secondary:#333}.dark{--border:#fff;--text-secondary:#ccc}}
-@keyframes skShimmer{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-.skeleton{background:linear-gradient(90deg,var(--bg-secondary) 25%,var(--border) 50%,var(--bg-secondary) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
-.page-transition{max-width:100vw;overflow-x:hidden}
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--text-secondary);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--accent)}
-.font-mono{font-family:'JetBrains Mono',monospace}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;border-radius:8px;font-weight:500;font-size:14px;cursor:pointer;border:none;transition:var(--transition);font-family:inherit}
-.input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;transition:var(--transition)}
+.skeleton{background:linear-gradient(90deg,var(--bg-secondary) 25%,var(--border) 50%,var(--bg-secondary) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 14px;border-radius:8px;font-weight:500;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--text);transition:var(--transition);font-family:inherit}
+.input{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);color:var(--text);font-family:inherit;transition:border-color var(--transition)}
 </style>
 <link rel="preload" href="/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="/styles.css"></noscript>
@@ -59,10 +49,10 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 <header id="app-header" role="banner" style="max-width:100vw;overflow-x:hidden"></header>
 <div id="sidebar-mobile-overlay" class="sidebar-mobile-overlay" onclick="toggleMobileSidebar(false)" role="presentation"></div>
 <main id="app-main" role="main">
-<div id="app-skeleton" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0a0a1a 0%,#1a1145 50%,#0a0a1a 100%);flex-direction:column;gap:24px;padding:20px">
-<div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,#2563eb,#7c3aed);animation:pulse 2s ease infinite;display:flex;align-items:center;justify-content:center"><svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 4L6 12v16l14 8 14-8V12L20 4z" fill="rgba(255,255,255,.9)"/></svg></div>
-<div style="width:180px;height:12px;border-radius:6px;background:rgba(255,255,255,.15);animation:shimmer 1.5s infinite"></div>
-<div style="width:120px;height:8px;border-radius:4px;background:rgba(255,255,255,.08);animation:shimmer 1.5s .3s infinite"></div>
+<div id="app-skeleton" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);flex-direction:column;gap:16px;padding:20px">
+<div style="width:56px;height:56px;border-radius:12px;background:var(--accent);animation:pulse 2s ease infinite;display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 40 40" fill="none"><path d="M20 4L6 12v16l14 8 14-8V12L20 4z" fill="rgba(255,255,255,.9)"/></svg></div>
+<div style="width:140px;height:10px;border-radius:5px;background:var(--border);animation:shimmer 1.5s infinite"></div>
+<div style="width:90px;height:6px;border-radius:3px;background:var(--border);animation:shimmer 1.5s .3s infinite"></div>
 </div>
 </main>
 <aside id="detail-panel" class="detail-panel" role="complementary" aria-label="File details"></aside>
@@ -76,21 +66,16 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
             <i class="fas fa-search" aria-hidden="true"></i>
             <label for="cmd-palette-input" class="sr-only">Search commands</label>
             <input id="cmd-palette-input" class="cmd-palette-input" type="text" autocomplete="off" aria-label="Search commands" role="combobox" aria-expanded="true" aria-controls="cmd-palette-list">
-            <kbd style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text-secondary)">Esc</kbd>
+            <kbd style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--text-secondary)">Esc</kbd>
         </div>
         <div id="cmd-palette-list" class="cmd-palette-list"></div>
     </div>
 </div>
 <div id="toast-container" class="toast-container" role="status" aria-live="polite" aria-label="Notifications"></div>
 <div id="parallax-orbs" class="parallax-orbs" aria-hidden="true"></div>
-<div id="quick-peek-card" class="quick-peek-card" style="display:none" role="tooltip" aria-hidden="true"></div>
-<div id="batch-action-bar" class="batch-action-bar" style="display:none" role="toolbar" aria-label="Batch actions"></div>
-<div id="storage-ring-widget" class="storage-ring-widget" style="display:none" aria-label="Storage usage"></div>
-<div id="ptr-indicator" class="ptr-indicator" style="display:none" aria-hidden="true"></div>
-
-<div id="quick-actions-bar" class="quick-actions-bar" role="toolbar" aria-label="Quick actions"></div><div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:110" role="dialog" aria-modal="true" aria-label="Onboarding"></div>
-<div id="pin-lock-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(30,41,59,.97));backdrop-filter:blur(20px);align-items:center;justify-content:center" role="dialog" aria-modal="true" aria-label="PIN lock"></div>
-
+<div id="quick-actions-bar" class="quick-actions-bar" role="toolbar" aria-label="Quick actions"></div>
+<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:110" role="dialog" aria-modal="true" aria-label="Onboarding"></div>
+<div id="pin-lock-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:var(--bg);align-items:center;justify-content:center" role="dialog" aria-modal="true" aria-label="PIN lock"></div>
 <script>
 /* Performance: Defer app.js execution to reduce Total Blocking Time */
 (function(){
@@ -104,7 +89,7 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
   else window.addEventListener('load',function(){ric(bootApp,{timeout:1500})});
 })();
 </script>
-<script>/* Lazy Library Loader — loads heavy libs on demand */
+<script>/* Lazy Library Loader */
 window.LazyLibs={_p:{},load:function(n){if(this._p[n])return this._p[n];var u={supabase:'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',xlsx:'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',mammoth:'https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js',jszip:'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',qrious:'https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js',stripe:'https://js.stripe.com/v3/'};if(!u[n])return Promise.reject('Unknown lib: '+n);this._p[n]=new Promise(function(res,rej){var s=document.createElement('script');s.src=u[n];s.onload=res;s.onerror=function(){delete LazyLibs._p[n];rej(n+' load failed');};document.head.appendChild(s);});return this._p[n];}};
 </script>
 </body>
