@@ -3409,7 +3409,7 @@ function renderHomepage() {
         <nav class="landing-nav">
             <a href="#/" class="landing-logo">
                 <img src="/logo-icon.png" alt="RidgeBox" />
-                RidgeBox
+                <span>RidgeBox</span>
             </a>
             <div class="landing-nav-btns">
                 <button onclick="toggleTheme()" class="btn btn-ghost btn-sm" title="Ganti tema" aria-label="Toggle theme"><i class="fas fa-${isDark ? 'sun' : 'moon'}"></i></button>
@@ -3419,74 +3419,105 @@ function renderHomepage() {
         </nav>
 
         <section class="landing-hero">
-            <img src="/logo-icon.png" alt="RidgeBox" width="56" height="56" style="border-radius:12px;margin-bottom:20px" />
-            <h1>Penyimpanan Cloud Gratis & Aman</h1>
-            <p>Simpan file tanpa server. Unlimited storage, end-to-end encryption. Gratis.</p>
-            <div class="landing-hero-btns">
-                <button onclick="location.hash='#/register'" class="btn btn-primary" style="padding:12px 32px;font-size:16px;border-radius:10px">Mulai Sekarang</button>
-                <button onclick="location.hash='#/login'" class="btn" style="padding:12px 32px;font-size:16px;border-radius:10px">Masuk</button>
+            <div class="landing-hero-bg"></div>
+            <div class="landing-hero-content">
+                <div class="landing-hero-badge">${isDark ? '&#9889;' : '&#9889;'} No-Server Cloud Storage</div>
+                <img src="/logo-icon.png" alt="RidgeBox" width="72" height="72" class="landing-hero-logo" />
+                <h1>Penyimpanan Cloud<br><span class="landing-hero-gradient">Gratis & Aman</span></h1>
+                <p>Simpan file tanpa server. Unlimited storage, end-to-end encryption. Akses dari mana saja, kapan saja.</p>
+                <div class="landing-hero-btns">
+                    <button onclick="location.hash='#/register'" class="btn btn-primary landing-hero-cta">Mulai Sekarang <i class="fas fa-arrow-right" style="margin-left:6px"></i></button>
+                    <button onclick="location.hash='#/login'" class="btn landing-hero-secondary">Masuk</button>
+                </div>
+                <div class="landing-hero-stats">
+                    <div class="landing-hero-stat">
+                        <div class="landing-hero-stat-value">10K+</div>
+                        <div class="landing-hero-stat-label">Pengguna</div>
+                    </div>
+                    <div class="landing-hero-stat-divider"></div>
+                    <div class="landing-hero-stat">
+                        <div class="landing-hero-stat-value">99.9%</div>
+                        <div class="landing-hero-stat-label">Uptime</div>
+                    </div>
+                    <div class="landing-hero-stat-divider"></div>
+                    <div class="landing-hero-stat">
+                        <div class="landing-hero-stat-value">E2E</div>
+                        <div class="landing-hero-stat-label">Enkripsi</div>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <section class="landing-section">
+        <section class="landing-section landing-features-section">
+            <div class="landing-section-label">FITUR</div>
             <h2>Fitur Unggulan</h2>
             <p>Semua yang Anda butuhkan untuk penyimpanan cloud yang aman dan gratis.</p>
             <div class="landing-features">
                 <div class="landing-feature">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <div class="landing-feature-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
                     <h3>Upload Gratis</h3>
-                    <p>Upload file tanpa batas langsung ke Telegram. Gratis, tanpa server.</p>
+                    <p>Upload file tanpa batas langsung ke Telegram. Gratis, tanpa server, tanpa batasan.</p>
                 </div>
                 <div class="landing-feature">
-                    <i class="fa-solid fa-shield-halved"></i>
+                    <div class="landing-feature-icon icon-shield"><i class="fa-solid fa-shield-halved"></i></div>
                     <h3>Enkripsi E2E</h3>
-                    <p>File dilindungi end-to-end encryption. Hanya Anda yang bisa akses.</p>
+                    <p>File dilindungi end-to-end encryption. Hanya Anda yang bisa akses file sendiri.</p>
                 </div>
                 <div class="landing-feature">
-                    <i class="fa-solid fa-mobile-screen"></i>
+                    <div class="landing-feature-icon icon-mobile"><i class="fa-solid fa-mobile-screen"></i></div>
                     <h3>Multi-Platform</h3>
-                    <p>Akses dari HP, tablet, dan laptop. Responsive di semua perangkat.</p>
+                    <p>Akses dari HP, tablet, dan laptop. Responsive di semua perangkat Anda.</p>
                 </div>
                 <div class="landing-feature">
-                    <i class="fa-solid fa-rotate"></i>
+                    <div class="landing-feature-icon icon-backup"><i class="fa-solid fa-rotate"></i></div>
                     <h3>Auto Backup</h3>
                     <p>Backup otomatis ke Google Drive, OneDrive, Dropbox, dan S3.</p>
                 </div>
                 <div class="landing-feature">
-                    <i class="fa-solid fa-folder-tree"></i>
+                    <div class="landing-feature-icon icon-folder"><i class="fa-solid fa-folder-tree"></i></div>
                     <h3>File Manager</h3>
-                    <p>Organisir file dengan folder, tag, dan pencarian cerdas.</p>
+                    <p>Organisir file dengan folder, tag, dan pencarian cerdas berbasis AI.</p>
                 </div>
                 <div class="landing-feature">
-                    <i class="fa-solid fa-clock"></i>
+                    <div class="landing-feature-icon icon-clock"><i class="fa-solid fa-clock"></i></div>
                     <h3>Self-Destruct</h3>
-                    <p>File auto-hapus setelah waktu tertentu. Privasi terjaga.</p>
+                    <p>File auto-hapus setelah waktu tertentu. Privasi Anda terjaga selalu.</p>
                 </div>
             </div>
         </section>
 
-        <section class="landing-section">
-            <h2>Cara Kerja</h2>
-            <p>Tiga langkah mudah untuk mulai menyimpan file di cloud.</p>
+        <section class="landing-section landing-how-section">
+            <div class="landing-section-label">CARA KERJA</div>
+            <h2>Tiga Langkah Mudah</h2>
+            <p>Mulai menyimpan file di cloud dalam hitungan detik.</p>
             <div class="landing-steps">
                 <div class="landing-step">
+                    <div class="landing-step-number">1</div>
+                    <div class="landing-step-icon"><i class="fas fa-user-plus"></i></div>
                     <h3>Daftar Gratis</h3>
-                    <p>Buat akun dalam 30 detik.</p>
+                    <p>Buat akun dalam 30 detik. Tanpa kartu kredit.</p>
                 </div>
+                <div class="landing-step-connector"><i class="fas fa-chevron-right"></i></div>
                 <div class="landing-step">
+                    <div class="landing-step-number">2</div>
+                    <div class="landing-step-icon"><i class="fas fa-cloud-arrow-up"></i></div>
                     <h3>Upload File</h3>
-                    <p>Drag & drop atau pilih file dari device.</p>
+                    <p>Drag & drop atau pilih file dari device Anda.</p>
                 </div>
+                <div class="landing-step-connector"><i class="fas fa-chevron-right"></i></div>
                 <div class="landing-step">
+                    <div class="landing-step-number">3</div>
+                    <div class="landing-step-icon"><i class="fas fa-globe"></i></div>
                     <h3>Akses di Mana Saja</h3>
-                    <p>Buka file dari perangkat apa saja.</p>
+                    <p>Buka file dari perangkat apa saja, kapan saja.</p>
                 </div>
             </div>
         </section>
 
-        <section class="landing-section">
-            <h2>Harga</h2>
-            <p>Pilih paket yang sesuai kebutuhan Anda.</p>
+        <section class="landing-section landing-pricing-section">
+            <div class="landing-section-label">HARGA</div>
+            <h2>Pilih Paket Anda</h2>
+            <p>Pilih paket yang sesuai kebutuhan Anda. Upgrade kapan saja.</p>
             <div class="landing-pricing">
                 <div class="landing-price">
                     <h3>Free</h3>
@@ -3500,7 +3531,7 @@ function renderHomepage() {
                     <button onclick="location.hash='#/register'" class="btn" style="width:100%">Mulai Gratis</button>
                 </div>
                 <div class="landing-price featured">
-                    <span style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:3px 14px;border-radius:99px;white-space:nowrap">Populer</span>
+                    <span class="landing-price-badge">Populer</span>
                     <h3>Pro</h3>
                     <div class="price">Rp49K</div>
                     <div class="price-period">/bulan</div>
@@ -3528,18 +3559,19 @@ function renderHomepage() {
         </section>
 
         <section class="landing-cta">
-            <h2>Mulai Simpan File Sekarang — Gratis</h2>
+            <div class="landing-cta-glow"></div>
+            <h2>Mulai Simpan File Sekarang</h2>
             <p>Tidak perlu kartu kredit. Daftar dan langsung pakai.</p>
-            <button onclick="location.hash='#/register'" class="btn btn-primary" style="padding:14px 40px;font-size:16px;border-radius:10px">Daftar Gratis</button>
+            <button onclick="location.hash='#/register'" class="btn btn-primary landing-cta-btn">Daftar Gratis <i class="fas fa-arrow-right" style="margin-left:6px"></i></button>
         </section>
 
         <footer class="landing-footer">
-            <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px">
-                <img src="/logo-icon.png" alt="RidgeBox" width="20" height="20" style="border-radius:4px" />
-                <span style="font-weight:600;font-size:14px;color:var(--text)">RidgeBox</span>
+            <div class="landing-footer-brand">
+                <img src="/logo-icon.png" alt="RidgeBox" width="24" height="24" />
+                <span>RidgeBox</span>
             </div>
             <p>&copy; 2025 RidgeBox. Cloud storage gratis &amp; aman.</p>
-            <div style="margin-top:8px">
+            <div class="landing-footer-links">
                 <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" rel="noopener">GitHub</a>
                 <a href="#/">Privasi</a>
                 <a href="#/">Ketentuan</a>
