@@ -107,7 +107,21 @@ const APP = {
     notificationCenterUnread: 0,
     lockedFiles: new Set(JSON.parse(localStorage.getItem('rb_locked_files') || '[]')),
     bookmarkedFolders: JSON.parse(localStorage.getItem('rb_bookmarked_folders') || '[]'),
-    scheduledUploadTasks: JSON.parse(localStorage.getItem('rb_scheduled_uploads') || '[]')
+    scheduledUploadTasks: JSON.parse(localStorage.getItem('rb_scheduled_uploads') || '[]'),
+    // F126-F137: New Feature Flags & State
+    previewCarouselIndex: -1,
+    fabExpanded: false,
+    activityLog: JSON.parse(localStorage.getItem('rb_activity_log') || '[]'),
+    // achievementBadges removed (F136)
+    vaultPin: localStorage.getItem('rb_vault_pin') || '',
+    vaultFiles: JSON.parse(localStorage.getItem('rb_vault_files') || '[]'),
+    vaultUnlocked: false,
+    selfDestructFolders: JSON.parse(localStorage.getItem('rb_sd_folders') || '{}'),
+    // fakeFolders removed (F135)
+    dragSelectActive: false,
+    dragSelectStart: null,
+    fileDropLinks: JSON.parse(localStorage.getItem('rb_drop_links') || '[]'),
+    waveformCache: {}
 };
 
 // ===== i18n (F105) =====
@@ -873,16 +887,7 @@ function t(key) { return (T[APP.lang] && T[APP.lang][key]) || (T.en[key]) || key
 function applyLangDir() { document.body.dir = APP.lang === 'ar' ? 'rtl' : 'ltr'; document.documentElement.lang = APP.lang; }
 function setLang(lang) { APP.lang = lang; localStorage.setItem('rb_lang', lang); applyLangDir(); renderHeader(); checkUrlRouting(); }
 
-const ACCENT_PRESETS = [
-  {name:'Ocean Blue',color:'#3b82f6',hover:'#2563eb'},
-  {name:'Royal Purple',color:'#8b5cf6',hover:'#7c3aed'},
-  {name:'Emerald Green',color:'#10b981',hover:'#059669'},
-  {name:'Sunset Orange',color:'#f97316',hover:'#ea580c'},
-  {name:'Rose Pink',color:'#ec4899',hover:'#db2777'},
-  {name:'Crimson Red',color:'#ef4444',hover:'#dc2626'},
-  {name:'Golden Yellow',color:'#eab308',hover:'#ca8a04'},
-  {name:'Slate Gray',color:'#64748b',hover:'#475569'}
-];
+
 
 function setAccentColor(color, hover) {
   document.documentElement.style.setProperty('--accent', color);
@@ -2044,10 +2049,7 @@ function initSupabaseAuth() {
                 if (header) header.style.display = '';
                 // Clear quote interval
                 if (window._authQuoteInterval) { clearInterval(window._authQuoteInterval); window._authQuoteInterval = null; }
-                // F10: Register current session on sign-in
-                registerCurrentSession();
-                // F9: Load recovery codes on sign-in
-                loadRecoveryCodes();
+                // Session registration removed
                 // Route to appropriate page after sign-in
                 const hash = location.hash || '#/';
                 if (hash === '#/' || hash === '' || hash === '#/login' || hash === '#/register') {
@@ -2077,8 +2079,8 @@ function initSupabaseAuth() {
 }
 
 function isAuthRequired() {
-    // Auth is ALWAYS required — RidgeBox requires login for all protected routes
-    return true;
+    // Auth is required if Supabase is configured; otherwise allow access
+    return !!APP.supabase;
 }
 
 function isLoggedIn() {
@@ -2097,168 +2099,102 @@ function renderAuthPage() {
     // Hide header on auth page
     const header = document.getElementById('app-header');
     if (header) header.style.display = 'none';
-    
-    // Quotes for brand section
-    const authQuotes = isId ? [
-        `"File Anda, aturan Anda." — <span>RidgeBox</span>`,
-        `"3.200+ pengguna percaya pada RidgeBox"`,
-        `"Keamanan militer, harga nol rupiah." — <span>RidgeBox</span>`,
-        `"Upload 100MB dalam ~3 detik" — <span>RidgeBox</span>`,
-        `"105 fitur gratis, tanpa hidden cost." — <span>RidgeBox</span>`,
-        `"Cloud storage yang menghormati privasi Anda." — <span>RidgeBox</span>`,
-    ] : [
-        `"Your files, your rules." — <span>RidgeBox</span>`,
-        `"3,200+ users trust RidgeBox"`,
-        `"Military-grade security, zero cost." — <span>RidgeBox</span>`,
-        `"Upload 100MB in ~3 seconds" — <span>RidgeBox</span>`,
-        `"105 features free, no hidden costs." — <span>RidgeBox</span>`,
-        `"Cloud storage that respects your privacy." — <span>RidgeBox</span>`,
-    ];
-    const randomQuote = authQuotes[Math.floor(Math.random() * authQuotes.length)];
-    
-    // Generate floating particles for left side
-    const particleIcons = ['fa-cloud','fa-file','fa-shield-halved','fa-lock','fa-upload','fa-folder','fa-globe','fa-bolt'];
-    let particlesHTML = '';
-    for (let i = 0; i < 14; i++) {
-        const icon = particleIcons[i % particleIcons.length];
-        const left = Math.random() * 100;
-        const size = 14 + Math.random() * 18;
-        const dur = 12 + Math.random() * 20;
-        const delay = Math.random() * dur;
-        particlesHTML += `<i class="fas ${icon} auth-form-particle" style="left:${left}%;font-size:${size}px;animation-duration:${dur}s;animation-delay:-${delay}s"></i>`;
-    }
-
-    // Brand features for left panel
-    const brandFeatures = [
-        { icon: 'fa-infinity', color: '#3b82f6', bg: 'rgba(59,130,246,.15)', title: isId ? 'Storage Unlimited' : 'Unlimited Storage', desc: isId ? 'Simpan sebanyak apapun tanpa batas kuota' : 'Store as much as you want without limits' },
-        { icon: 'fa-shield-halved', color: '#10b981', bg: 'rgba(16,185,129,.15)', title: isId ? 'Enkripsi End-to-End' : 'End-to-End Encryption', desc: isId ? 'AES-256-GCM melindungi semua file Anda' : 'AES-256-GCM protects all your files' },
-        { icon: 'fa-bolt', color: '#f59e0b', bg: 'rgba(245,158,11,.15)', title: isId ? 'Upload Super Cepat' : 'Lightning Fast Upload', desc: isId ? '100MB dalam ~3 detik dengan progress real-time' : '100MB in ~3 seconds with real-time progress' },
-        { icon: 'fa-share-nodes', color: '#8b5cf6', bg: 'rgba(139,92,246,.15)', title: isId ? 'Bagikan dengan Aman' : 'Share Securely', desc: isId ? 'Link dengan password, expiry, dan self-destruct' : 'Links with password, expiry, and self-destruct' },
-    ];
 
     const main = document.getElementById('app-main');
     if (!main) return;
     
     main.innerHTML = `
-    <div class="auth-fullpage fade-in">
-        <!-- LEFT: Brand Panel (dark aurora) -->
-        <div class="auth-fullpage-left">
-            <div class="auth-form-particles">${particlesHTML}</div>
-            <div class="auth-brand-section">
-                <div class="auth-brand-logo"><img src="/logo-icon.png" alt="RidgeBox"/></div>
-                <div class="auth-brand-title">Ridge<span>Box</span></div>
-                <div class="auth-brand-subtitle">${isId ? 'Cloud storage gratis, unlimited, dan terenkripsi. Simpan file Anda tanpa batas.' : 'Free, unlimited, encrypted cloud storage. Store your files without limits.'}</div>
-                <div class="auth-brand-features">
-                    ${brandFeatures.map(f => `
-                    <div class="auth-brand-feature">
-                        <div class="auth-brand-feature-icon" style="background:${f.bg};color:${f.color}"><i class="fas ${f.icon}"></i></div>
-                        <div class="auth-brand-feature-text"><strong>${f.title}</strong>${f.desc}</div>
-                    </div>`).join('')}
-                </div>
-                <div class="auth-brand-quote" id="auth-quote">${randomQuote}</div>
-            </div>
-        </div>
-        
-        <!-- RIGHT: Form Panel -->
-        <div class="auth-fullpage-right">
+    <div class="auth-fullpage fade-in" style="background:var(--bg)">
+        <div class="auth-form-section" style="position:relative">
             <button class="auth-form-theme-toggle" onclick="toggleAuthTheme()" title="${isId ? 'Ganti tema' : 'Toggle theme'}" aria-label="Toggle theme"><i class="fas fa-${isDark ? 'sun' : 'moon'}" aria-hidden="true"></i></button>
-            <div class="auth-form-section">
-                <button class="auth-form-back" onclick="closeAuthOverlay()" aria-label="Go back"><i class="fas fa-arrow-left" aria-hidden="true"></i> ${isId ? 'Kembali' : 'Back'}</button>
-                
-                <div class="auth-form-header">
-                    <div class="auth-form-logo"><img src="/logo-icon.png" alt="RidgeBox"/></div>
-                    <div class="auth-form-title">${isForgot ? (isId ? 'Reset Kata Sandi' : 'Reset Password') : (isLogin ? t('authWelcomeBack') : t('authCreateAccount'))}</div>
-                    <div class="auth-form-subtitle">${isForgot ? (isId ? 'Masukkan email untuk reset kata sandi' : 'Enter your email to reset password') : (isLogin ? t('authLoginDesc') : t('authRegisterDesc'))}</div>
+            <button class="auth-form-back" onclick="closeAuthOverlay()" aria-label="Go back"><i class="fas fa-arrow-left" aria-hidden="true"></i> ${isId ? 'Kembali' : 'Back'}</button>
+            
+            <div class="auth-form-header">
+                <div class="auth-form-logo"><img src="/logo-icon.png" alt="RidgeBox"/></div>
+                <div class="auth-form-title">${isForgot ? (isId ? 'Reset Kata Sandi' : 'Reset Password') : (isLogin ? t('authWelcomeBack') : t('authCreateAccount'))}</div>
+                <div class="auth-form-subtitle">${isForgot ? (isId ? 'Masukkan email untuk reset kata sandi' : 'Enter your email to reset password') : (isLogin ? t('authLoginDesc') : t('authRegisterDesc'))}</div>
+            </div>
+
+            <div id="auth-error" class="auth-form-error"><i class="fas fa-exclamation-circle"></i><span id="auth-error-text"></span></div>
+            <div id="auth-success" class="auth-form-success"><i class="fas fa-check-circle"></i><span id="auth-success-text"></span></div>
+
+            ${isForgot ? `
+                <div class="auth-form-input-group">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <label for="auth-email" class="sr-only">Email</label>
+                    <input type="email" id="auth-email" class="auth-form-input" placeholder="${t('authEmail')}" autocomplete="email">
                 </div>
-
-                <div id="auth-error" class="auth-form-error"><i class="fas fa-exclamation-circle"></i><span id="auth-error-text"></span></div>
-                <div id="auth-success" class="auth-form-success"><i class="fas fa-check-circle"></i><span id="auth-success-text"></span></div>
-
-                ${isForgot ? `
+                <button id="auth-submit" class="auth-form-btn auth-form-btn-primary" onclick="handleForgotPassword()">
+                    ${t('authSendReset')}
+                </button>
+                <div class="auth-form-switch" style="margin-top:16px">
+                    <button onclick="_authMode='login';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authBackToLogin')}</button>
+                </div>
+            ` : `
+                ${isLogin ? '' : `
                     <div class="auth-form-input-group">
-                        <i class="fas fa-envelope input-icon"></i>
-                        <label for="auth-email" class="sr-only">Email</label>
-                        <input type="email" id="auth-email" class="auth-form-input" placeholder="${t('authEmail')}" autocomplete="email">
+                        <i class="fas fa-user input-icon"></i>
+                        <label for="auth-name" class="sr-only">Full Name</label>
+                        <input type="text" id="auth-name" class="auth-form-input" placeholder="${isId ? 'Nama Lengkap' : 'Full Name'}" autocomplete="name">
                     </div>
-                    <button id="auth-submit" class="auth-form-btn auth-form-btn-primary" onclick="handleForgotPassword()">
-                        <i class="fas fa-paper-plane"></i> ${t('authSendReset')}
-                    </button>
-                    <div class="auth-form-switch" style="margin-top:16px">
-                        <button onclick="_authMode='login';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authBackToLogin')}</button>
-                    </div>
-                ` : `
-                    ${isLogin ? '' : `
-                        <div class="auth-form-input-group">
-                            <i class="fas fa-user input-icon"></i>
-                            <label for="auth-name" class="sr-only">Full Name</label>
-                            <input type="text" id="auth-name" class="auth-form-input" placeholder="${isId ? 'Nama Lengkap' : 'Full Name'}" autocomplete="name">
-                        </div>
-                    `}
-                    <div class="auth-form-input-group">
-                        <i class="fas fa-envelope input-icon"></i>
-                        <label for="auth-email" class="sr-only">Email</label>
-                        <input type="email" id="auth-email" class="auth-form-input" placeholder="${t('authEmail')}" autocomplete="email">
+                `}
+                <div class="auth-form-input-group">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <label for="auth-email" class="sr-only">Email</label>
+                    <input type="email" id="auth-email" class="auth-form-input" placeholder="${t('authEmail')}" autocomplete="email">
+                </div>
+                <div class="auth-form-input-group">
+                    <i class="fas fa-lock input-icon"></i>
+                    <label for="auth-password" class="sr-only">Password</label>
+                    <input type="password" id="auth-password" class="auth-form-input" placeholder="${t('authPassword')}" autocomplete="${isLogin ? 'current-password' : 'new-password'}" oninput="onPasswordInput(this)">
+                    <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-password',this)" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                </div>
+                ${!isLogin ? `
+                    <div class="auth-form-strength" id="auth-strength">
+                        <div class="auth-form-strength-bar"><div class="auth-form-strength-fill" id="auth-strength-fill"></div></div>
+                        <div class="auth-form-strength-label"><span id="auth-strength-text"></span></div>
                     </div>
                     <div class="auth-form-input-group">
                         <i class="fas fa-lock input-icon"></i>
-                        <label for="auth-password" class="sr-only">Password</label>
-                        <input type="password" id="auth-password" class="auth-form-input" placeholder="${t('authPassword')}" autocomplete="${isLogin ? 'current-password' : 'new-password'}" oninput="onPasswordInput(this)">
-                        <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-password',this)" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                        <label for="auth-confirm-password" class="sr-only">Confirm Password</label>
+                        <input type="password" id="auth-confirm-password" class="auth-form-input" placeholder="${t('authConfirmPassword')}" autocomplete="new-password">
+                        <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-confirm-password',this)" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
                     </div>
-                    ${!isLogin ? `
-                        <div class="auth-form-strength" id="auth-strength">
-                            <div class="auth-form-strength-bar"><div class="auth-form-strength-fill" id="auth-strength-fill"></div></div>
-                            <div class="auth-form-strength-label"><span id="auth-strength-text"></span></div>
-                        </div>
-                        <div class="auth-form-input-group">
-                            <i class="fas fa-lock input-icon"></i>
-                            <label for="auth-confirm-password" class="sr-only">Confirm Password</label>
-                            <input type="password" id="auth-confirm-password" class="auth-form-input" placeholder="${t('authConfirmPassword')}" autocomplete="new-password">
-                            <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('auth-confirm-password',this)" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
-                        </div>
-                    ` : ''}
-                    
-                    ${isLogin ? `
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                            <div class="auth-form-remember">
-                                <input type="checkbox" id="auth-remember" checked>
-                                <label for="auth-remember">${isId ? 'Ingat saya' : 'Remember me'}</label>
-                            </div>
-                            <div class="auth-form-forgot" style="margin-bottom:0"><button onclick="_authMode='forgot';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authForgotPassword')}</button></div>
-                        </div>
-                    ` : ''}
-                    
-                    <button id="auth-submit" class="auth-form-btn auth-form-btn-primary" onclick="${isLogin ? 'handleLogin()' : 'handleRegister()'}">
-                        <i class="fas fa-${isLogin ? 'sign-in-alt' : 'user-plus'}"></i>
-                        ${isLogin ? t('authLogin') : t('authRegister')}
-                    </button>
-
-                    <div class="auth-form-trust">
-                        <div class="auth-form-trust-badge"><i class="fas fa-shield-halved" style="color:#10b981"></i> AES-256</div>
-                        <div class="auth-form-trust-badge"><i class="fas fa-lock" style="color:#3b82f6"></i> ${isId ? 'Enkripsi E2E' : 'E2E Encrypted'}</div>
-                        <div class="auth-form-trust-badge"><i class="fas fa-bolt" style="color:#f59e0b"></i> 105+ ${isId ? 'Fitur' : 'Features'}</div>
-                    </div>
-
-                    <div class="auth-form-divider">${t('authOr')}</div>
-
-                    <button class="auth-form-btn auth-form-btn-google" onclick="handleGoogleLogin()" aria-label="Sign in with Google">
-                        <i class="fab fa-google"></i> ${t('authGoogle')}
-                    </button>
-
-                    <div class="auth-form-switch">
-                        ${isLogin ? `${t('authNoAccount')} <button onclick="_authMode='register';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authRegister')}</button>` : `${t('authHasAccount')} <button onclick="_authMode='login';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authLogin')}</button>`}
-                    </div>
-                `}
+                ` : ''}
                 
-                <div class="auth-form-terms">${t('authTerms')}</div>
-            </div>
+                ${isLogin ? `
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                        <div class="auth-form-remember">
+                            <input type="checkbox" id="auth-remember" checked>
+                            <label for="auth-remember">${isId ? 'Ingat saya' : 'Remember me'}</label>
+                        </div>
+                        <div class="auth-form-forgot" style="margin-bottom:0"><button onclick="_authMode='forgot';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authForgotPassword')}</button></div>
+                    </div>
+                ` : ''}
+                
+                <button id="auth-submit" class="auth-form-btn auth-form-btn-primary" onclick="${isLogin ? 'handleLogin()' : 'handleRegister()'}">
+                    ${isLogin ? t('authLogin') : t('authRegister')}
+                </button>
+
+                <div class="auth-form-divider">${t('authOr')}</div>
+
+                <button class="auth-form-btn auth-form-btn-google" onclick="handleGoogleLogin()" aria-label="Sign in with Google">
+                    <i class="fab fa-google"></i> ${t('authGoogle')}
+                </button>
+
+                <div class="auth-form-switch">
+                    ${isLogin ? `${t('authNoAccount')} <button onclick="_authMode='register';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authRegister')}</button>` : `${t('authHasAccount')} <button onclick="_authMode='login';renderAuthPage()" class="btn btn-ghost btn-sm" style="color:var(--accent)">${t('authLogin')}</button>`}
+                </div>
+            `}
+            
+            <div class="auth-form-terms">${t('authTerms')}</div>
         </div>
     </div>`;
     
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'instant' });
     
-    // Add enter key support + password strength + quote rotation
+    // Add enter key support + auto-focus
     setTimeout(() => {
         const inputs = main.querySelectorAll('.auth-form-input');
         inputs.forEach(inp => {
@@ -2269,36 +2205,17 @@ function renderAuthPage() {
                 }
             });
         });
-        // Auto-focus first input
         const firstInput = main.querySelector('.auth-form-input');
         if (firstInput) firstInput.focus();
-        // Rotate quote every 5s
-        if (!window._authQuoteInterval) {
-            window._authQuoteInterval = setInterval(() => {
-                const quoteEl = document.getElementById('auth-quote');
-                if (!quoteEl || document.hidden) return;
-                quoteEl.style.opacity = '0';
-                setTimeout(() => {
-                    quoteEl.innerHTML = authQuotes[Math.floor(Math.random() * authQuotes.length)];
-                    quoteEl.style.opacity = '1';
-                }, 300);
-            }, 5000);
-        }
     }, 300);
 }
 
 let _authRedirectTo = '';
 
 function closeAuthOverlay() {
-    // Restore header
     const header = document.getElementById('app-header');
     if (header) header.style.display = '';
-    _authMode = 'login';
-    _authRedirectTo = '';
-    // Go back to homepage if not logged in
-    if (!isLoggedIn()) {
-        location.hash = '#/';
-    }
+    location.hash = '#/';
     if (window._authQuoteInterval) {
         clearInterval(window._authQuoteInterval);
         window._authQuoteInterval = null;
@@ -2405,7 +2322,12 @@ function setAuthLoading(loading) {
     const btn = document.getElementById('auth-submit');
     if (btn) {
         btn.disabled = loading;
-        if (loading) btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('authLoggingIn')}`;
+        if (loading) {
+            btn.dataset.origText = btn.textContent;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('authLoggingIn')}`;
+        } else {
+            btn.innerHTML = btn.dataset.origText || t('authLogin');
+        }
     }
 }
 
@@ -2414,6 +2336,10 @@ async function handleLogin() {
     const password = document.getElementById('auth-password')?.value;
     if (!email || !email.includes('@')) return showAuthError(t('authInvalidEmail'));
     if (!password || password.length < 6) return showAuthError(t('authPasswordTooShort'));
+    if (!APP.supabase) {
+        showAuthError('Authentication service unavailable. Please refresh the page.');
+        return;
+    }
     setAuthLoading(true);
     try {
         const { error } = await APP.supabase.auth.signInWithPassword({ email, password });
@@ -2422,10 +2348,7 @@ async function handleLogin() {
         localStorage.setItem('rb_user', JSON.stringify({ id: APP.user.id, email: APP.user.email }));
         showToast(t('authLoginSuccess'), 'success');
         showLoginActivity();
-        // F10: Register session on login
-        registerCurrentSession();
-        // F9: Load recovery codes on login
-        loadRecoveryCodes();
+        // Session registration removed
         // F11: Ensure Supabase tables
         ensureSupabaseTables();
         // Restore header and clear intervals
@@ -2519,7 +2442,7 @@ function checkUrlRouting() {
 
     // Restore header when navigating away from auth pages
     const header = document.getElementById('app-header');
-    if (header && !['#/login', '#/register', '#/admin-login'].includes(hash)) header.style.display = '';
+    if (header && !['#/login', '#/register'].includes(hash)) header.style.display = '';
 
     // Auth guard for protected routes — show dedicated login page
     const protectedRoutes = ['#/dashboard', '#/storage', '#/file/', '#/analytics'];
@@ -2541,19 +2464,7 @@ function checkUrlRouting() {
         _authMode = 'register';
         _authRedirectTo = '#/dashboard';
         renderAuthPage();
-    } else if (hash === '#/admin-login') {
-        // Admin login page — separate from user auth
-        renderAdminLoginPage();
-    } else if (hash === '#/admin') {
-        // Admin panel — requires admin login (separate from Supabase auth)
-        if (!isAdminLoggedIn()) {
-            location.hash = '#/admin-login';
-            return;
-        }
-        renderAdminPanel();
     } else if (hash === '#/dashboard') {
-        // Handle Stripe checkout return
-        if (hash.includes('checkout=')) handleCheckoutReturn();
         checkPinThenRender(() => renderDashboard());
     } else if (hash === '#/storage') {
         checkPinThenRender(() => renderStorageManagement());
@@ -2563,15 +2474,15 @@ function checkUrlRouting() {
     } else if (hash.startsWith('#/upload/')) {
         const token = hash.replace('#/upload/', '');
         renderUploadPortal(token);
+    } else if (hash.startsWith('#/drop/')) {
+        const token = hash.replace('#/drop/', '');
+        renderDropPortal(token);
     } else if (hash.startsWith('#/s/')) {
         const alias = hash.replace('#/s/', '');
         renderSharePortal(alias);
     } else if (hash.startsWith('#/gallery/')) {
         const galleryId = hash.replace('#/gallery/', '');
         renderGallery(galleryId);
-    } else if (hash.startsWith('#/request/')) {
-        const token = hash.replace('#/request/', '');
-        renderFileRequestPortal(token);
     } else if (hash === '#/analytics') {
         checkPinThenRender(() => renderAnalytics());
     } else {
@@ -2772,41 +2683,30 @@ function renderHeader() {
     const isDashboard = hash.startsWith('#/dashboard') || hash.startsWith('#/file/');
     const vm = APP.viewMode;
     header.innerHTML = `
-        <header class="header-glass" style="position:sticky;top:0;z-index:60;height:var(--header-h);display:flex;align-items:center;padding:0 16px;gap:8px">
-            ${isDashboard ? `<button class="header-pill-btn sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)" aria-label="Open menu"><i class="fas fa-bars" aria-hidden="true"></i></button>` : ''}
-            <a href="#/" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-size:16px">
-                <div class="header-logo-icon">
-                    <img src="/logo-icon.png" alt="RidgeBox"/>
-                </div>
+        <header class="app-header">
+            ${isDashboard ? `<button class="header-icon-btn sidebar-mobile-toggle" onclick="toggleMobileSidebar(true)" aria-label="Open menu"><i class="fas fa-bars" aria-hidden="true"></i></button>` : ''}
+            <a href="#/" class="header-brand">
+                <img src="/logo-icon.png" alt="RidgeBox"/>
                 <span class="hide-mobile-small rb-brand-text">RidgeBox</span>
             </a>
-            <div style="flex:1"></div>
-            <button class="header-pill-btn ${vm==='mobile'?'active-pill':''}" onclick="toggleViewMode()" title="${vm === 'mobile' ? 'Desktop Mode' : 'Mobile Mode'}" aria-label="Toggle view mode">
-                <i class="fas fa-${vm === 'mobile' ? 'mobile-screen' : 'display'}" aria-hidden="true"></i>
-            </button>
-            <div id="conn-status" style="cursor:pointer;padding:0 4px" onclick="updateConnectionStatus()">
-                <i class="fas fa-wifi" style="color:${APP.connected ? '#10b981' : '#ef4444'}"></i>
+            <div class="header-spacer"></div>
+            <div class="header-actions">
+                ${isHome ? `<a href="#/dashboard" class="btn btn-primary btn-sm"><span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
+                ${!isLoggedIn() && isAuthRequired() ? `<a href="#/login" class="btn btn-primary btn-sm"><span class="hide-mobile-small">${APP.lang==='id'?'Masuk':'Login'}</span></a>` : ''}
+                ${APP.activeUploads > 0 ? `<span class="header-icon-btn" style="cursor:default"><i class="fas fa-spinner fa-spin" style="color:var(--accent)"></i></span>` : ''}
+                <button class="header-icon-btn" onclick="openTransferQueueModal()" title="${t('transferQueue')}" aria-label="Transfer Queue">
+                    <i class="fas fa-list-check" aria-hidden="true"></i>
+                    <span id="transfer-queue-badge" class="notif-badge"></span>
+                </button>
+                <button class="header-icon-btn" onclick="openNotificationCenter()" title="${t('notificationCenter')}" aria-label="Notifications">
+                    <i class="fas fa-bell" aria-hidden="true"></i>
+                    <span id="notification-badge" class="notif-badge"></span>
+                </button>
+                <button class="header-icon-btn" onclick="toggleTheme()" title="${t('theme')}" aria-label="Toggle theme">
+                    <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'}" aria-hidden="true"></i>
+                </button>
+                ${isLoggedIn() ? `<button class="header-icon-btn" onclick="handleLogout()" title="${t('authLogout')}" aria-label="Sign out"><i class="fas fa-sign-out-alt" aria-hidden="true"></i></button>` : ''}
             </div>
-            ${getSubTierBadge()}
-            ${APP.activeUploads > 0 ? `<span style="font-size:11px;color:var(--accent)"><i class="fas fa-spinner fa-spin"></i></span>` : ''}
-            <button class="header-pill-btn" onclick="openTransferQueueModal()" title="${t('transferQueue')}" aria-label="Transfer Queue" style="position:relative">
-                <i class="fas fa-list-check" aria-hidden="true"></i>
-                <span id="transfer-queue-badge" style="position:absolute;top:-2px;right:-2px;min-width:14px;height:14px;border-radius:99px;background:#ef4444;color:#fff;font-size:8px;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 3px"></span>
-            </button>
-            <button class="header-pill-btn" onclick="openNotificationCenter()" title="${t('notificationCenter')}" aria-label="Notifications" style="position:relative">
-                <i class="fas fa-bell" aria-hidden="true"></i>
-                <span id="notification-badge" style="position:absolute;top:-2px;right:-2px;min-width:14px;height:14px;border-radius:99px;background:#ef4444;color:#fff;font-size:8px;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 3px"></span>
-            </button>
-            <button class="header-pill-btn" onclick="toggleTheme()" title="${t('theme')}" aria-label="Toggle theme">
-                <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'} ${APP.theme === 'dark' ? 'theme-icon-sun' : 'theme-icon-moon'}" aria-hidden="true"></i>
-            </button>
-            <button class="header-pill-btn" onclick="cycleLang()" title="${t('language')}" aria-label="Switch language">
-                <span style="font-size:11px;font-weight:600">${APP.lang.toUpperCase()}</span>
-            </button>
-            ${!isHome ? `<a href="#/" class="header-pill-btn" aria-label="Home"><i class="fas fa-home"></i></a>` : ''}
-            ${isHome ? `<a href="#/dashboard" class="header-pill-btn" style="background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;border:none;box-shadow:0 2px 10px rgba(59,130,246,.3)"><i class="fas fa-rocket"></i> <span class="hide-mobile-small">${t('openDashboard')}</span></a>` : ''}
-            ${!isLoggedIn() && isAuthRequired() ? `<a href="#/login" class="header-pill-btn" style="background:var(--accent);color:#fff;border:none"><i class="fas fa-sign-in-alt"></i> <span class="hide-mobile-small">${APP.lang==='id'?'Masuk':'Login'}</span></a>` : ''}
-            ${isLoggedIn() ? `<button class="header-pill-btn" onclick="handleLogout()" title="${t('authLogout')}" style="gap:4px" aria-label="Sign out"><i class="fas fa-sign-out-alt" aria-hidden="true"></i><span class="hide-mobile-small" style="font-size:11px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${APP.user?.email || ''}</span></button>` : ''}
         </header>`;
 }
 
@@ -2849,11 +2749,11 @@ function applyViewMode() {
         if (APP.viewMode === 'desktop') {
             sidebar.classList.remove('sidebar-mobile');
             sidebar.classList.add('sidebar-desktop');
-            sidebar.style.cssText = 'width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);overflow-y:auto;padding:16px 12px;transition:transform .3s ease;z-index:50';
+            sidebar.style.cssText = 'width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:var(--bg);overflow-y:auto;padding:16px 12px;transition:transform .3s ease;z-index:50';
         } else {
             sidebar.classList.remove('sidebar-desktop');
             sidebar.classList.add('sidebar-mobile');
-            sidebar.style.cssText = 'position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);overflow-y:auto;padding:16px 12px;transform:translateX(-100%);transition:transform .3s ease;box-shadow:var(--shadow-lg)';
+            sidebar.style.cssText = 'position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;background:var(--bg);overflow-y:auto;padding:16px 12px;transform:translateX(-100%);transition:transform .3s ease;box-shadow:var(--shadow-lg)';
         }
     }
 }
@@ -2965,6 +2865,7 @@ function showContextMenu(e, fileId) {
         <div class="context-menu-separator"></div>
         <div class="context-menu-item" onclick="closeContextMenu();${isFileLocked(fileId) ? `unlockFile('${fileId}')` : `lockFile('${fileId}')`}"><i class="fas fa-${isFileLocked(fileId) ? 'lock-open' : 'lock'}"></i> ${isFileLocked(fileId) ? t('unlockFile') : t('lockFile')}</div>
         <div class="context-menu-item" onclick="closeContextMenu();openFileExpiryModal('${fileId}')"><i class="fas fa-hourglass-half"></i> ${t('fileExpiry')}</div>
+        <div class="context-menu-item" onclick="closeContextMenu();moveToVault('${fileId}')"><i class="fas fa-vault"></i> ${isFileInVault(fileId) ? (APP.lang==='id'?'Di Brankas':'In Vault') : (APP.lang==='id'?'Pindah ke Brankas':'Move to Vault')}</div>
         <div class="context-menu-item" onclick="closeContextMenu();${isFolderBookmarked(APP.currentFolder) ? `unbookmarkFolder('${APP.currentFolder}')` : `bookmarkFolder('${APP.currentFolder}')`}"><i class="fas fa-bookmark"></i> ${isFolderBookmarked(APP.currentFolder) ? t('unbookmarkFolder') : t('bookmarkFolder')}</div>
         <div class="context-menu-separator"></div>
         <div class="context-menu-item danger" onclick="closeContextMenu();moveToTrash('${fileId}')"><i class="fas fa-trash"></i> ${t('delete')}</div>
@@ -3016,7 +2917,7 @@ function closeContextMenu() {
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.context-menu')) closeContextMenu();
 });
-document.addEventListener('contextmenu', (e) => { if (!e.target.closest('.file-grid-item,.file-list-row,.file-card-premium,.file-row-premium')) closeContextMenu(); });
+document.addEventListener('contextmenu', (e) => { if (!e.target.closest('.file-grid-item,.file-list-item,.file-list-row')) closeContextMenu(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeContextMenu(); });
 
 // ===== FILE CARD HOVER PREVIEW =====
@@ -3026,7 +2927,7 @@ function initHoverPreview() {
     const preview = document.getElementById('hover-preview');
     if (!preview) return;
     document.addEventListener('mouseover', (e) => {
-        const card = e.target.closest('.file-card-premium, .file-row-premium');
+        const card = e.target.closest('.file-grid-item, .file-list-item');
         if (!card) return;
         const fileId = card.dataset.fileId || card.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
         if (!fileId) return;
@@ -3034,7 +2935,7 @@ function initHoverPreview() {
         _hoverTimer = setTimeout(() => showHoverPreview(fileId, card), 800);
     });
     document.addEventListener('mouseout', (e) => {
-        const card = e.target.closest('.file-card-premium, .file-row-premium');
+        const card = e.target.closest('.file-grid-item, .file-list-item');
         if (!card) return;
         const related = e.relatedTarget;
         if (related && (card.contains(related) || related.closest('.hover-preview'))) return;
@@ -3295,7 +3196,7 @@ function openDetailPanel(fileId) {
             <video src="${downloadUrl}" controls preload="metadata" style="width:100%;height:100%;object-fit:contain" onclick="event.stopPropagation()"></video>
         </div>`;
     } else if (type === 'audio') {
-        previewHtml = `<div class="detail-preview-area" style="background:linear-gradient(135deg,${icon.color}18,${icon.color}08);min-height:160px">
+        previewHtml = `<div class="detail-preview-area" style="background:var(--bg-secondary);min-height:160px">
             <div class="preview-placeholder">
                 <div class="big-icon" style="background:${icon.color}12"><i class="fas ${icon.icon}" style="color:${icon.color}"></i></div>
                 <audio controls preload="metadata" style="width:90%;max-width:320px" onclick="event.stopPropagation()">
@@ -3488,1806 +3389,199 @@ function clearSelection() {
 }
 
 
-// ===== HOMEPAGE (F1, F66, F67, F69, F70, F71) — ULTRA LUXURY =====
+
+// ===== STUBS for removed features =====
+const PRICING_TIERS = { free: { name: 'Free', price: '$0', storage: '5 GB', storageBytes: 5 * 1024 * 1024 * 1024 } };
+function getSubTierBadge() { return `<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:rgba(100,116,139,.1);color:#64748b">Free</span>`; }
+function openPricingModal() { showToast('Pricing is not available', 'info'); }
+function manageSubscription() { showToast('Subscription management is not available', 'info'); }
+function saveStripeConfig() { showToast('Stripe config is not available', 'info'); }
+
+// ===== HOMEPAGE — redirect to dashboard =====
 function renderHomepage() {
+    const header = document.getElementById('app-header');
+    if (header) header.style.display = 'none';
+    const isDark = document.documentElement.classList.contains('dark');
+
     const main = document.getElementById('app-main');
-    if (!main) return;
-    renderHeader();
-    const isId = APP.lang === 'id';
-
-    // Testimonial data for marquee
-    const testiData = [
-        { name: 'Ahmad R.', role: isId?'Developer':'Developer', text: isId?'Ridgebox mengubah cara saya backup file. Gratis dan unlimited!':'Ridgebox changed how I backup files. Free and unlimited!', avatar: '#3b82f6', grad: 'linear-gradient(135deg,#3b82f6,#06b6d4)', stars: 5 },
-        { name: 'Siti N.', role: isId?'Designer':'Designer', text: isId?'Enkripsi end-to-end bikin tenang soal privasi file.':'End-to-end encryption gives me peace of mind about file privacy.', avatar: '#8b5cf6', grad: 'linear-gradient(135deg,#8b5cf6,#ec4899)', stars: 5 },
-        { name: 'Budi S.', role: isId?'Student':'Student', text: isId?'Gak perlu bayar cloud storage lagi. Gratis dan unlimited!':'No need to pay for cloud storage anymore. Free and unlimited!', avatar: '#10b981', grad: 'linear-gradient(135deg,#10b981,#3b82f6)', stars: 5 },
-        { name: 'Dewi L.', role: isId?'Freelancer':'Freelancer', text: isId?'Self-destruct link jadi fitur favorit saya. Bikin share file sensitif aman.':'Self-destruct link is my favorite feature. Makes sharing sensitive files safe.', avatar: '#f59e0b', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', stars: 4 },
-        { name: 'Raka M.', role: isId?'Startup Founder':'Startup Founder', text: isId?'105 fitur gratis? Ini gila. Gak ada yang bisa saingin Ridgebox.':'105 features for free? This is insane. Nothing can compete with Ridgebox.', avatar: '#ec4899', grad: 'linear-gradient(135deg,#ec4899,#8b5cf6)', stars: 5 },
-        { name: 'Putri A.', role: isId?'Photographer':'Photographer', text: isId?'Upload foto RAW langsung dari kamera, langsung tersimpan aman.':'Upload RAW photos directly from camera, stored securely.', avatar: '#06b6d4', grad: 'linear-gradient(135deg,#06b6d4,#3b82f6)', stars: 5 },
-        { name: 'Yoga P.', role: isId?'Musician':'Musician', text: isId?'Simpan file audio besar tanpa batas. Sangat membantu untuk produksi musik.':'Store large audio files without limits. Very helpful for music production.', avatar: '#f97316', grad: 'linear-gradient(135deg,#f97316,#f59e0b)', stars: 4 },
-        { name: 'Maya K.', role: isId?'Teacher':'Teacher', text: isId?'Bagikan materi ke siswa dengan link yang otomatis terhapus. Praktis!':'Share materials to students with auto-destruct links. Practical!', avatar: '#14b8a6', grad: 'linear-gradient(135deg,#14b8a6,#06b6d4)', stars: 5 }
-    ];
-
-    // Feature carousel data
-    const carouselFeatures = [
-        { icon: 'fa-infinity', color: '#3b82f6', grad: 'linear-gradient(135deg,#3b82f6,#06b6d4)', title: isId?'Unlimited Storage':'Unlimited Storage', desc: isId?'Simpan sebanyak apapun tanpa kuota. Tidak ada batas penyimpanan.':'Store as much as you want without quota. No storage limits.' },
-        { icon: 'fa-lock', color: '#10b981', grad: 'linear-gradient(135deg,#10b981,#3b82f6)', title: isId?'Enkripsi End-to-End':'End-to-End Encryption', desc: isId?'AES-256-GCM melindungi file Anda sepenuhnya.':'AES-256-GCM fully protects your files.' },
-        { icon: 'fa-bolt', color: '#f59e0b', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', title: isId?'Upload Kilat':'Lightning Upload', desc: isId?'Upload cepat dengan progress real-time dan multi-file support.':'Fast uploads with real-time progress and multi-file support.' },
-        { icon: 'fa-share-nodes', color: '#8b5cf6', grad: 'linear-gradient(135deg,#8b5cf6,#ec4899)', title: isId?'Bagikan ke Siapapun':'Share Anywhere', desc: isId?'Bagikan link dengan password, expiry, dan self-destruct.':'Share links with password, expiry, and self-destruct.' },
-        { icon: 'fa-mobile-screen', color: '#06b6d4', grad: 'linear-gradient(135deg,#06b6d4,#3b82f6)', title: isId?'Mobile First':'Mobile First', desc: isId?'Responsif sempurna di semua ukuran layar.':'Perfectly responsive on all screen sizes.' },
-        { icon: 'fa-wand-magic-sparkles', color: '#ec4899', grad: 'linear-gradient(135deg,#ec4899,#8b5cf6)', title: isId?'Smart Organize':'Smart Organize', desc: isId?'Folder, tag warna, dan pencarian instan untuk file Anda.':'Folders, color tags, and instant search for your files.' }
-    ];
-
-    // Build testimonial card HTML
-    function buildTestiCard(t) {
-        return `<div class="testi-card">
-            <div class="testi-stars">${Array(t.stars).fill('<i class="fas fa-star"></i>').join('')}${t.stars<5?Array(5-t.stars).fill('<i class="far fa-star"></i>').join(''):''}</div>
-            <p class="testi-text">"${t.text}"</p>
-            <div class="testi-author">
-                <div class="testi-avatar" style="background:${t.grad}">${t.name.charAt(0)}</div>
-                <div><div class="testi-name">${t.name}</div><div class="testi-role">${t.role}</div></div>
-            </div>
-        </div>`;
-    }
-
     main.innerHTML = `
-    <div class="page-transition" style="position:relative;z-index:1;max-width:100vw;overflow-x:hidden">
-        <!-- ===== HERO — Ultra Luxury Aurora with Typing Effect ===== -->
-        <section class="aurora-bg" id="hero-section" style="padding:80px 20px 60px;text-align:center;min-height:auto;display:flex;align-items:center;justify-content:center;perspective:1200px">
-            <div class="hero-spotlight"><div class="hero-spotlight-glow" id="hero-glow"></div></div>
-            <div class="morph-blob morph-blob-1" style="top:-10%;right:-5%"></div>
-            <div class="morph-blob morph-blob-2" style="bottom:5%;left:-8%"></div>
-            <div class="morph-blob morph-blob-3" style="top:40%;right:10%"></div>
-            <canvas id="hero-particles"></canvas>
-            <div style="position:relative;z-index:2;max-width:840px;margin:0 auto">
-                <div class="parallax-layer" data-depth="0.03" style="position:absolute;inset:0;pointer-events:none">
-                    <i class="fas fa-cloud hero-float hero-float-1" style="top:6%;left:2%;opacity:.06"></i>
-                    <i class="fas fa-file hero-float hero-float-2" style="top:16%;right:4%;opacity:.05"></i>
-                    <i class="fas fa-lock hero-float hero-float-3" style="bottom:20%;left:6%;opacity:.06"></i>
-                    <i class="fas fa-folder hero-float hero-float-4" style="top:10%;left:28%;opacity:.04"></i>
-                    <i class="fas fa-image hero-float hero-float-2" style="bottom:10%;right:10%;opacity:.05"></i>
-                    <i class="fas fa-film hero-float hero-float-3" style="bottom:6%;left:33%;opacity:.04"></i>
-                </div>
-                <div class="parallax-layer" data-depth="0.06" style="position:absolute;inset:0;pointer-events:none">
-                    <i class="fas fa-file-code hero-float hero-float-2" style="top:42%;right:2%;opacity:.05"></i>
-                    <i class="fas fa-share-nodes hero-float hero-float-1" style="bottom:4%;right:4%;opacity:.04"></i>
-                    <i class="fas fa-database hero-float hero-float-4" style="top:32%;left:3%;opacity:.04"></i>
-                    <i class="fas fa-bolt hero-float hero-float-3" style="top:62%;right:8%;opacity:.05"></i>
-                </div>
-                <div class="hero-badge shimmer-sweep sr" style="margin:0 auto 28px">
-                    <span class="pulse-dot"></span>
-                    ${isId?'Cloud Storage Gratis & Terenkripsi — 2025':'Free & Encrypted Cloud Storage — 2025'}
-                </div>
-                <div class="sr sr-delay-1 hero-logo-container" style="position:relative;width:200px;height:200px;margin:0 auto 36px;display:flex;align-items:center;justify-content:center">
-                    <!-- Centered logo - no absolute positioning needed -->
-                    <div class="logo-animated" style="width:120px;height:120px;border-radius:30px;box-shadow:0 8px 60px rgba(37,99,235,.35),0 0 80px rgba(124,58,237,.2);position:relative;z-index:2;overflow:hidden">
-                        <img src="/logo-icon.png" alt="RidgeBox" fetchpriority="high" style="width:100%;height:100%;object-fit:cover;display:block"/>
-                    </div>
-                    <!-- Orbit rings: absolute with inset:0 + margin:auto for centering (compatible with transform) -->
-                    <div class="orbit-ring" style="width:160px;height:160px;position:absolute;inset:0;margin:auto"><div class="orbit-dot"></div></div>
-                    <div class="orbit-ring" style="width:200px;height:200px;position:absolute;inset:0;margin:auto;animation-duration:30s;animation-direction:reverse;border-color:rgba(139,92,246,.08)"><div class="orbit-dot" style="background:#8b5cf6;box-shadow:0 0 8px #8b5cf6"></div></div>
-                    <!-- Glow rings: same centering technique -->
-                    <div class="glow-ring" style="width:120px;height:120px;position:absolute;inset:0;margin:auto"></div>
-                    <div class="glow-ring glow-ring-2" style="width:120px;height:120px;position:absolute;inset:0;margin:auto"></div>
-                    <div class="glow-ring glow-ring-3" style="width:120px;height:120px;position:absolute;inset:0;margin:auto"></div>
-                </div>
-                <h1 class="sr sr-delay-2" id="hero-title" style="font-size:clamp(40px,8vw,76px);font-weight:800;color:#fff;line-height:1.02;margin-bottom:24px;letter-spacing:-2px">
-                    <span class="word-reveal" style="animation-delay:.3s">${t('hero')}</span><br>
-                    <span class="typing-wrap" style="font-weight:300;font-size:.6em;min-height:1.4em;display:inline-block">
-                        <span class="typing-text" id="typing-text"></span><span class="typing-cursor-blink"></span>
-                    </span>
-                </h1>
-                <p class="sr sr-delay-3" style="font-size:19px;color:rgba(255,255,255,.65);margin-bottom:44px;line-height:1.7;max-width:620px;margin-left:auto;margin-right:auto">${t('heroDesc')}</p>
-                <div class="sr sr-delay-4" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
-                    <a href="#/dashboard" class="hero-cta-primary magnetic-btn cta-breathe" id="hero-cta-main">${t('getStarted')} <i class="fas fa-arrow-right"></i></a>
-                    ${!isLoggedIn() && isAuthRequired() ? `<a href="#/login" class="hero-cta-secondary magnetic-btn" style="background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.4)"><i class="fas fa-sign-in-alt" style="font-size:12px"></i> ${isId?'Masuk':'Sign In'}</a>` : ''}
-                    <a href="#features" class="hero-cta-secondary magnetic-btn" id="hero-cta-sec"><i class="fas fa-play" style="font-size:12px"></i> ${t('learnMore')}</a>
-                </div>
-                <div class="trust-bar sr sr-delay-5">
-                    <div class="trust-item" style="animation:fadeIn .5s ease .8s both"><i class="fas fa-shield-halved" style="color:#10b981"></i> ${isId?'Enkripsi E2E':'E2E Encrypted'}</div>
-                    <div class="trust-sep"></div>
-                    <div class="trust-item" style="animation:fadeIn .5s ease .95s both"><i class="fas fa-infinity" style="color:#8b5cf6"></i> ${isId?'Unlimited Storage':'Unlimited Storage'}</div>
-                    <div class="trust-sep"></div>
-                    <div class="trust-item" style="animation:fadeIn .5s ease 1.1s both"><i class="fas fa-bolt" style="color:#f59e0b"></i> ${isId?'Gratis Selamanya':'Free Forever'}</div>
-                    <div class="trust-sep"></div>
-                    <div class="trust-item" style="animation:fadeIn .5s ease 1.25s both"><i class="fas fa-globe" style="color:#06b6d4"></i> ${isId?'Akses Dimana Saja':'Access Anywhere'}</div>
-                </div>
+    <div class="landing fade-in">
+        <nav class="landing-nav">
+            <a href="#/" class="landing-logo">
+                <img src="/logo-icon.png" alt="RidgeBox" />
+                <span>RidgeBox</span>
+            </a>
+            <div class="landing-nav-btns">
+                <button onclick="toggleTheme()" class="btn btn-ghost btn-sm" title="Ganti tema" aria-label="Toggle theme"><i class="fas fa-${isDark ? 'sun' : 'moon'}"></i></button>
+                <button onclick="location.hash='#/login'" class="btn btn-ghost btn-sm">Masuk</button>
+                <button onclick="location.hash='#/register'" class="btn btn-primary btn-sm">Daftar</button>
             </div>
-        </section>
-        <div class="lux-grad-divider"></div>
+        </nav>
 
-        <!-- ===== ANIMATED HERO COUNTERS ===== -->
-        <section class="scroll-reveal" style="padding:48px 20px;background:var(--bg-secondary);position:relative">
-            <div class="decor-orb decor-orb-1" style="top:-200px;right:-100px"></div>
-            <div class="morph-blob morph-blob-2" style="bottom:-20%;left:-10%"></div>
-            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
-                <div class="hero-counter-wrap" id="hero-counters">
-                    <div class="hero-counter-item scroll-reveal reveal-delay-1">
-                        <div class="hero-counter-num" data-count="12847" data-suffix="">0</div>
-                        <div class="hero-counter-label">${isId?'File Tersimpan':'Files Stored'}</div>
-                        <div class="hero-counter-desc">${isId?'Dan terus bertambah setiap hari':'And growing every day'}</div>
+        <section class="landing-hero">
+            <div class="landing-hero-bg"></div>
+            <div class="landing-hero-content">
+                <div class="landing-hero-badge">${isDark ? '&#9889;' : '&#9889;'} No-Server Cloud Storage</div>
+                <img src="/logo-icon.png" alt="RidgeBox" width="72" height="72" class="landing-hero-logo" />
+                <h1>Penyimpanan Cloud<br><span class="landing-hero-gradient">Gratis & Aman</span></h1>
+                <p>Simpan file tanpa server. Unlimited storage, end-to-end encryption. Akses dari mana saja, kapan saja.</p>
+                <div class="landing-hero-btns">
+                    <button onclick="location.hash='#/register'" class="btn btn-primary landing-hero-cta">Mulai Sekarang <i class="fas fa-arrow-right" style="margin-left:6px"></i></button>
+                    <button onclick="location.hash='#/login'" class="btn landing-hero-secondary">Masuk</button>
+                </div>
+                <div class="landing-hero-stats">
+                    <div class="landing-hero-stat">
+                        <div class="landing-hero-stat-value">10K+</div>
+                        <div class="landing-hero-stat-label">Pengguna</div>
                     </div>
-                    <div class="hero-counter-item scroll-reveal reveal-delay-2">
-                        <div class="hero-counter-num" data-count="520" data-suffix=" GB">0</div>
-                        <div class="hero-counter-label">${isId?'Penyimpanan':'Storage'}</div>
-                        <div class="hero-counter-desc">${isId?'Kapasitas tanpa batas tersedia':'Unlimited capacity available'}</div>
+                    <div class="landing-hero-stat-divider"></div>
+                    <div class="landing-hero-stat">
+                        <div class="landing-hero-stat-value">99.9%</div>
+                        <div class="landing-hero-stat-label">Uptime</div>
                     </div>
-                    <div class="hero-counter-item scroll-reveal reveal-delay-3">
-                        <div class="hero-counter-num" data-count="3240" data-suffix="">0</div>
-                        <div class="hero-counter-label">${isId?'Pengguna Aktif':'Active Users'}</div>
-                        <div class="hero-counter-desc">${isId?'Komunitas yang terus berkembang':'Growing community'}</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <div class="lux-grad-divider"></div>
-
-        <!-- ===== HOW IT WORKS — Numbered Steps with Connecting Lines ===== -->
-        <section class="scroll-reveal" style="padding:64px 20px;position:relative">
-            <div class="decor-orb decor-orb-2" style="top:-100px;left:-150px"></div>
-            <div class="morph-blob morph-blob-1" style="top:-5%;right:-8%"></div>
-            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:56px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-route"></i> ${isId?'Langkah Mudah':'Simple Steps'}</div>
-                    <h2 class="section-title">${isId?'Cara Kerjanya':'How It Works'}</h2>
-                    <p class="section-desc">${isId?'Tiga langkah mudah untuk mulai menyimpan file dengan aman':'Three simple steps to start storing files securely'}</p>
-                </div>
-                <div class="hiw-steps">
-                    ${[
-                        { num: '1', icon: 'fa-cloud-arrow-up', color: '#3b82f6', gradient: 'linear-gradient(135deg,#3b82f6,#06b6d4)', title: isId?'Upload':'Upload', desc: isId?'Drag & drop atau pilih file dari device kamu':'Drag & drop or select files from your device' },
-                        { num: '2', icon: 'fa-server', color: '#8b5cf6', gradient: 'linear-gradient(135deg,#8b5cf6,#ec4899)', title: isId?'Simpan':'Store', desc: isId?'File tersimpan aman di cloud Telegram':'Files stored securely in Telegram cloud' },
-                        { num: '3', icon: 'fa-share-alt', color: '#10b981', gradient: 'linear-gradient(135deg,#10b981,#3b82f6)', title: isId?'Bagikan':'Share', desc: isId?'Bagikan link ke siapapun, kapanpun':'Share links to anyone, anytime' }
-                    ].map((s, i) => `
-                        <div class="hiw-step scroll-reveal reveal-delay-${i+1}">
-                            <div class="hiw-step-num" style="background:${s.gradient};box-shadow:0 8px 28px ${s.color}35">
-                                <i class="fas ${s.icon}" style="font-size:24px;color:#fff"></i>
-                            </div>
-                            ${i < 2 ? '<div class="hiw-connector"></div>' : ''}
-                            <h3 style="font-size:20px;font-weight:700;margin-bottom:10px">${s.title}</h3>
-                            <p style="font-size:14px;color:var(--text-secondary);line-height:1.7">${s.desc}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        </section>
-        <div class="lux-grad-divider"></div>
-
-        <!-- ===== FEATURE SHOWCASE CAROUSEL ===== -->
-        <section id="features" class="scroll-reveal" style="padding:64px 20px;position:relative">
-            <div class="decor-orb decor-orb-3" style="bottom:-200px;right:-100px"></div>
-            <div class="morph-blob morph-blob-3" style="bottom:-10%;left:-5%"></div>
-            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-sparkles"></i> ${isId?'Fitur Lengkap':'Full Features'}</div>
-                    <h2 class="section-title">${isId?'Semua yang Anda Butuhkan':'Everything You Need'}</h2>
-                    <p class="section-desc">${isId?'Peralatan lengkap untuk penyimpanan file yang aman dan efisien':'Complete toolkit for secure and efficient file storage'}</p>
-                </div>
-                <div class="feature-carousel" id="feature-carousel" onmouseenter="pauseCarousel()" onmouseleave="resumeCarousel()">
-                    <div class="feature-carousel-track" id="carousel-track">
-                        ${carouselFeatures.map(f => `
-                            <div class="feature-carousel-card">
-                                <div class="feature-carousel-icon" style="background:${f.grad};box-shadow:0 8px 24px ${f.color}30"><i class="fas ${f.icon}" style="color:#fff"></i></div>
-                                <h3>${f.title}</h3>
-                                <p>${f.desc}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                <div class="carousel-dots" id="carousel-dots">
-                    ${carouselFeatures.map((_, i) => `<button class="carousel-dot${i===0?' active':''}" onclick="goToCarouselSlide(${i})" aria-label="Go to slide"></button>`).join('')}
-                </div>
-            </div>
-        </section>
-        <div class="wave-divider"><svg viewBox="0 0 1200 80" preserveAspectRatio="none" style="height:80px"><path d="M0,20 C200,80 400,0 600,40 C800,80 1000,10 1200,30 L1200,80 L0,80Z" fill="var(--bg-secondary)"/></svg></div>
-
-        <!-- ===== SECURITY BADGES ===== -->
-        <section class="scroll-reveal" style="padding:48px 20px 64px;background:var(--bg-secondary);position:relative">
-            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-shield-halved"></i> ${isId?'Keamanan':'Security'}</div>
-                    <h2 class="section-title">${isId?'Dilindungi Sepenuhnya':'Fully Protected'}</h2>
-                    <p class="section-desc">${isId?'Keamanan tingkat tertinggi untuk data Anda':'Highest level security for your data'}</p>
-                </div>
-                <div class="security-badges">
-                    ${[
-                        { icon: 'fa-shield-halved', color: '#10b981', grad: 'linear-gradient(135deg,#10b981,#3b82f6)', label: isId?'Enkripsi End-to-End':'End-to-End Encryption' },
-                        { icon: 'fa-robot', color: '#3b82f6', grad: 'linear-gradient(135deg,#3b82f6,#06b6d4)', label: isId?'Powered by Telegram':'Telegram Powered' },
-                        { icon: 'fa-eye-slash', color: '#8b5cf6', grad: 'linear-gradient(135deg,#8b5cf6,#ec4899)', label: isId?'Zero Knowledge':'Zero Knowledge' },
-                        { icon: 'fa-rotate', color: '#f59e0b', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', label: isId?'Auto Backup':'Auto Backup' }
-                    ].map((b, i) => `
-                        <div class="security-badge glow-pulse scroll-reveal reveal-delay-${i+1}">
-                            <div class="security-badge-icon" style="background:${b.grad}"><i class="fas ${b.icon}" style="color:#fff"></i></div>
-                            <span class="security-badge-label">${b.label}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        </section>
-
-        <!-- ===== TECH STACK / PARTNER LOGO BAR ===== -->
-        <section class="scroll-reveal" style="padding:60px 20px;background:var(--bg-secondary);position:relative">
-            <div style="max-width:960px;margin:0 auto;text-align:center;position:relative;z-index:1">
-                <div class="scroll-reveal" style="margin-bottom:32px">
-                    <div class="section-eyebrow"><i class="fas fa-microchip"></i> ${isId?'Dibangun Dengan':'Built With'}</div>
-                    <h2 class="section-title">${isId?'Teknologi Terdepan':'Cutting-Edge Tech'}</h2>
-                    <p class="section-desc">${isId?'Infrastruktur modern untuk kecepatan dan keamanan maksimal':'Modern infrastructure for maximum speed and security'}</p>
-                </div>
-                <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:24px;margin-top:12px">
-                    ${[
-                        { name: 'Telegram API', icon: 'fab fa-telegram', color: '#0088cc', desc: isId?'Cloud Storage Engine':'Storage Engine' },
-                        { name: 'Supabase', icon: 'fas fa-database', color: '#3ecf8e', desc: isId?'Autentikasi & DB':'Auth & Database' },
-                        { name: 'Vercel', icon: 'fas fa-bolt', color: 'var(--text)', desc: isId?'Serverless Edge':'Edge Computing' },
-                        { name: 'Web Crypto', icon: 'fas fa-shield-halved', color: '#f59e0b', desc: isId?'AES-256-GCM':'Encryption' },
-                        { name: 'IndexedDB', icon: 'fas fa-hard-drive', color: '#3b82f6', desc: isId?'Local Cache':'Client Storage' },
-                        { name: 'Service Worker', icon: 'fas fa-gear', color: '#8b5cf6', desc: isId?'Offline Support':'PWA Ready' }
-                    ].map(t => `
-                        <div class="glass-card scroll-reveal" style="padding:20px 28px;display:flex;align-items:center;gap:14px;cursor:default;min-width:180px;justify-content:center">
-                            <i class="${t.icon}" style="font-size:28px;color:${t.color};flex-shrink:0"></i>
-                            <div style="text-align:left">
-                                <div style="font-weight:700;font-size:14px;color:var(--text)">${t.name}</div>
-                                <div style="font-size:11px;color:var(--text-secondary)">${t.desc}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        </section>
-
-        <!-- ===== ARCHITECTURE DIAGRAM ===== -->
-        <section class="arch-section scroll-reveal" id="arch-section">
-            <div class="decor-orb decor-orb-1" style="top:-80px;right:-150px"></div>
-            <div class="decor-orb decor-orb-2" style="bottom:-60px;left:-120px"></div>
-            <div style="max-width:1100px;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:56px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-diagram-project"></i> ${isId?'Cara Kerja Di Balik Layar':'How It Works Behind The Scenes'}</div>
-                    <h2 class="section-title arch-title-color">${isId?'Arsitektur Sistem':'System Architecture'}</h2>
-                    <p class="section-desc arch-desc-color">${isId?'Aliran data end-to-end dari perangkat Anda ke penyimpanan terdistribusi':'End-to-end data flow from your device to distributed storage'}</p>
-                </div>
-
-                <div class="arch-canvas-wrap" id="arch-canvas">
-                    <!-- SVG connection lines layer -->
-                    <svg class="arch-svg-lines" id="arch-svg" viewBox="0 0 1100 520" preserveAspectRatio="xMidYMid meet">
-                        <defs>
-                            <linearGradient id="archGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1"/>
-                                <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1"/>
-                                <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1"/>
-                            </linearGradient>
-                            <linearGradient id="archGradVert" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1"/>
-                                <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1"/>
-                                <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1"/>
-                            </linearGradient>
-                            <filter id="archGlow">
-                                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                            </filter>
-                            <radialGradient id="archParticleGrad">
-                                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1"/>
-                                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:.8"/>
-                            </radialGradient>
-                        </defs>
-                        <!-- User → Encryption -->
-                        <path class="arch-flow-line" id="arch-line-user-enc" d="M 170 290 Q 260 290 310 290"/>
-                        <!-- Encryption → App -->
-                        <path class="arch-flow-line" id="arch-line-enc-app" d="M 420 290 Q 470 290 520 290"/>
-                        <!-- App → Auth (up) -->
-                        <path class="arch-flow-line" id="arch-line-app-auth" d="M 600 230 Q 600 160 600 120"/>
-                        <!-- App → Storage providers (right) -->
-                        <path class="arch-flow-line" id="arch-line-app-tg" d="M 680 260 Q 780 160 880 120"/>
-                        <path class="arch-flow-line" id="arch-line-app-gd" d="M 680 270 Q 780 230 880 200"/>
-                        <path class="arch-flow-line" id="arch-line-app-od" d="M 680 290 Q 780 290 880 280"/>
-                        <path class="arch-flow-line" id="arch-line-app-db" d="M 680 310 Q 780 350 880 360"/>
-                        <path class="arch-flow-line" id="arch-line-app-s3" d="M 680 320 Q 780 400 880 440"/>
-                        <!-- App → AI (down) -->
-                        <path class="arch-flow-line" id="arch-line-app-ai" d="M 600 350 Q 600 400 600 440"/>
-                        <!-- Flowing particles -->
-                        <circle r="3" class="arch-particle" id="arch-dot-user-enc">
-                            <animateMotion dur="2.5s" repeatCount="indefinite"><mpath href="#arch-line-user-enc"/></animateMotion>
-                        </circle>
-                        <circle r="3" class="arch-particle" id="arch-dot-enc-app">
-                            <animateMotion dur="2.5s" repeatCount="indefinite" begin="0.6s"><mpath href="#arch-line-enc-app"/></animateMotion>
-                        </circle>
-                        <circle r="3" class="arch-particle" id="arch-dot-app-auth">
-                            <animateMotion dur="2.5s" repeatCount="indefinite" begin="0.3s"><mpath href="#arch-line-app-auth"/></animateMotion>
-                        </circle>
-                        <circle r="3" class="arch-particle" id="arch-dot-app-tg">
-                            <animateMotion dur="3s" repeatCount="indefinite" begin="0s"><mpath href="#arch-line-app-tg"/></animateMotion>
-                        </circle>
-                        <circle r="3" class="arch-particle" id="arch-dot-app-gd">
-                            <animateMotion dur="3s" repeatCount="indefinite" begin="0.5s"><mpath href="#arch-line-app-gd"/></animateMotion>
-                        </circle>
-                        <circle r="3" class="arch-particle" id="arch-dot-app-od">
-                            <animateMotion dur="3s" repeatCount="indefinite" begin="1s"><mpath href="#arch-line-app-od"/></animateMotion>
-                        </circle>
-                        <circle r="3" class="arch-particle" id="arch-dot-app-db">
-                            <animateMotion dur="3s" repeatCount="indefinite" begin="1.5s"><mpath href="#arch-line-app-db"/></animateMotion>
-                        </circle>
-                        <circle r="3" class="arch-particle" id="arch-dot-app-s3">
-                            <animateMotion dur="3s" repeatCount="indefinite" begin="2s"><mpath href="#arch-line-app-s3"/></animateMotion>
-                        </circle>
-                        <circle r="3" class="arch-particle" id="arch-dot-app-ai">
-                            <animateMotion dur="2.5s" repeatCount="indefinite" begin="0.8s"><mpath href="#arch-line-app-ai"/></animateMotion>
-                        </circle>
-                        <!-- Extra staggered particles for density -->
-                        <circle r="2.5" class="arch-particle" opacity=".6">
-                            <animateMotion dur="2.5s" repeatCount="indefinite" begin="1.25s"><mpath href="#arch-line-user-enc"/></animateMotion>
-                        </circle>
-                        <circle r="2.5" class="arch-particle" opacity=".6">
-                            <animateMotion dur="2.5s" repeatCount="indefinite" begin="1.85s"><mpath href="#arch-line-enc-app"/></animateMotion>
-                        </circle>
-                        <circle r="2.5" class="arch-particle" opacity=".6">
-                            <animateMotion dur="3s" repeatCount="indefinite" begin="1.5s"><mpath href="#arch-line-app-tg"/></animateMotion>
-                        </circle>
-                        <circle r="2.5" class="arch-particle" opacity=".6">
-                            <animateMotion dur="3s" repeatCount="indefinite" begin="2s"><mpath href="#arch-line-app-gd"/></animateMotion>
-                        </circle>
-                        <circle r="2.5" class="arch-particle" opacity=".6">
-                            <animateMotion dur="3s" repeatCount="indefinite" begin="2.5s"><mpath href="#arch-line-app-od"/></animateMotion>
-                        </circle>
-                    </svg>
-
-                    <!-- Main layout row -->
-                    <div class="arch-main-row" style="position:relative;z-index:2">
-                        <!-- LEFT: User/Browser -->
-                        <div style="display:flex;flex-direction:column;align-items:center;gap:40px">
-                            <div class="arch-node" data-arch-delay="0">
-                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(59,130,246,.3);border-radius:20px"></div>
-                                <div class="arch-node-pulse"></div>
-                                <div class="arch-tooltip">${isId?'Perangkat Anda — mengakses RidgeBox melalui browser dengan enkripsi end-to-end':'Your device — accesses RidgeBox via browser with end-to-end encryption'}</div>
-                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#3b82f6,#06b6d4)">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/><circle cx="12" cy="10" r="3"/></svg>
-                                </div>
-                                <div class="arch-node-label">${isId?'Pengguna':'User'}</div>
-                                <div class="arch-node-sublabel">Browser / PWA</div>
-                            </div>
-                        </div>
-
-                        <!-- LEFT-CENTER: Encryption Layer -->
-                        <div style="display:flex;flex-direction:column;align-items:center;gap:40px">
-                            <div class="arch-node" data-arch-delay="1">
-                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(16,185,129,.3);border-radius:20px"></div>
-                                <div class="arch-node-pulse" style="border-color:rgba(16,185,129,.3)"></div>
-                                <div class="arch-tooltip">${isId?'Enkripsi AES-256-GCM dilakukan di sisi klien sebelum data dikirim':'AES-256-GCM encryption happens client-side before data is sent'}</div>
-                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#10b981,#3b82f6)">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1.5"/><line x1="12" y1="17.5" x2="12" y2="19"/></svg>
-                                </div>
-                                <div class="arch-node-label">${isId?'Enkripsi':'Encryption'}</div>
-                                <div class="arch-node-sublabel">AES-256-GCM</div>
-                            </div>
-                        </div>
-
-                        <!-- CENTER: RidgeBox App -->
-                        <div class="arch-node-center">
-                            <!-- Auth Layer (top) -->
-                            <div class="arch-node" data-arch-delay="2">
-                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(62,207,142,.3);border-radius:20px"></div>
-                                <div class="arch-node-pulse" style="border-color:rgba(62,207,142,.3)"></div>
-                                <div class="arch-tooltip">${isId?'Autentikasi aman via Supabase — OAuth, email, dan magic link':'Secure auth via Supabase — OAuth, email, and magic link'}</div>
-                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#3ecf8e,#06b6d4)">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                                </div>
-                                <div class="arch-node-label">${isId?'Autentikasi':'Authentication'}</div>
-                                <div class="arch-node-sublabel">Supabase Auth</div>
-                            </div>
-
-                            <!-- RidgeBox App Core -->
-                            <div class="arch-node" data-arch-delay="3" style="padding:28px 24px;border-color:rgba(59,130,246,.3);box-shadow:0 0 40px rgba(59,130,246,.15)">
-                                <div class="arch-node-glow" style="box-shadow:0 0 60px rgba(59,130,246,.35),0 0 80px rgba(139,92,246,.2);border-radius:20px"></div>
-                                <div class="arch-node-pulse" style="border-color:rgba(139,92,246,.4)"></div>
-                                <div class="arch-tooltip">${isId?'Inti aplikasi RidgeBox — orkestrasi penyimpanan, caching, dan routing file':'RidgeBox core — orchestrates storage, caching, and file routing'}</div>
-                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);width:68px;height:68px;border-radius:18px">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:34px;height:34px"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/><path d="M6 4.5L12 7l6-2.5"/><path d="M12 7v5"/></svg>
-                                </div>
-                                <div class="arch-node-label" style="font-size:15px">${isId?'Aplikasi RidgeBox':'RidgeBox App'}</div>
-                                <div class="arch-node-sublabel">${isId?'Orkestrator Utama':'Core Orchestrator'}</div>
-                            </div>
-
-                            <!-- AI Engine (bottom) -->
-                            <div class="arch-node" data-arch-delay="4">
-                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(236,72,153,.3);border-radius:20px"></div>
-                                <div class="arch-node-pulse" style="border-color:rgba(236,72,153,.3)"></div>
-                                <div class="arch-tooltip">${isId?'Mesin AI untuk OCR, ringkasan file, dan pengenalan konten cerdas':'AI engine for OCR, file summarization, and smart content recognition'}</div>
-                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#ec4899,#8b5cf6)">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4c0 1.5-.8 2.8-2 3.5V11h3a3 3 0 0 1 3 3v1.5a2.5 2.5 0 0 1-2.5 2.5H17v2a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v-2H6.5A2.5 2.5 0 0 1 4 15.5V14a3 3 0 0 1 3-3h3V9.5A4 4 0 0 1 8 6a4 4 0 0 1 4-4z"/><circle cx="9" cy="15" r="1" fill="#fff"/><circle cx="15" cy="15" r="1" fill="#fff"/></svg>
-                                </div>
-                                <div class="arch-node-label">${isId?'Mesin AI':'AI Engine'}</div>
-                                <div class="arch-node-sublabel">z-ai-web-dev-sdk</div>
-                            </div>
-                        </div>
-
-                        <!-- RIGHT: Storage Providers -->
-                        <div class="arch-storage-col">
-                            <div class="arch-node" data-arch-delay="5">
-                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(0,136,204,.3);border-radius:20px"></div>
-                                <div class="arch-node-pulse" style="border-color:rgba(0,136,204,.3)"></div>
-                                <div class="arch-tooltip">${isId?'Bot Telegram sebagai mesin penyimpanan utama — unlimited & gratis':'Telegram Bot as primary storage engine — unlimited & free'}</div>
-                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#0088cc,#00b4d8)">
-                                    <svg viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.2-.04-.28-.02-.12.03-2.01 1.28-5.67 3.74-.54.37-1.02.55-1.46.54-.48-.01-1.4-.27-2.09-.5-.84-.27-1.51-.42-1.45-.89.03-.25.37-.5 1.02-.77 3.98-1.73 6.63-2.87 7.97-3.44 3.8-1.58 4.59-1.86 5.1-1.87.11 0 .37.03.54.17.14.12.18.28.2.45-.01.06.01.24 0 .38z"/></svg>
-                                </div>
-                                <div class="arch-node-label">Telegram</div>
-                                <div class="arch-node-sublabel">Bot API</div>
-                            </div>
-                            <div class="arch-node" data-arch-delay="6">
-                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(66,133,244,.3);border-radius:20px"></div>
-                                <div class="arch-node-pulse" style="border-color:rgba(66,133,244,.3)"></div>
-                                <div class="arch-tooltip">${isId?'Google Drive — penyimpanan cloud alternatif dengan integrasi API':'Google Drive — alternative cloud storage with API integration'}</div>
-                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#4285f4,#34a853)">
-                                    <svg viewBox="0 0 24 24" fill="none"><polygon points="7,3 1,14 5,14 11,3" fill="#4285f4"/><polygon points="13,3 7,14 11,14 17,3" fill="#fbbc05" opacity=".9"/><polygon points="17,7 11,18 15,18 21,7" fill="#ea4335" opacity=".9"/><polygon points="5,14 8,21 16,21 13,14" fill="#34a853"/></svg>
-                                </div>
-                                <div class="arch-node-label">Google Drive</div>
-                                <div class="arch-node-sublabel">Cloud API</div>
-                            </div>
-                            <div class="arch-node" data-arch-delay="7">
-                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(0,120,212,.3);border-radius:20px"></div>
-                                <div class="arch-node-pulse" style="border-color:rgba(0,120,212,.3)"></div>
-                                <div class="arch-tooltip">${isId?'OneDrive — penyimpanan Microsoft dengan integrasi langsung':'OneDrive — Microsoft storage with direct integration'}</div>
-                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#0078d4,#0364b8)">
-                                    <svg viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M10.5 18.5h8.3c1.7 0 3.2-1.2 3.2-2.9 0-1.6-1.2-2.8-2.8-3 .1-.3.1-.6.1-.9 0-2.2-1.8-4-4-4-1.8 0-3.3 1.2-3.8 2.8-.4-.2-.8-.3-1.3-.3-1.9 0-3.5 1.5-3.5 3.4 0 1.9 1.5 3.4 3.5 3.4h.3c.1.5.3 1 .5 1.4-.3.1-.5.1-.8.1-2.8 0-5-2.2-5-4.9 0-2.5 1.9-4.6 4.4-4.9C7 7.2 9.2 5.5 12 5.5c3 0 5.5 2.2 5.9 5.1 2 .4 3.5 2.2 3.5 4.3 0 2.4-2 4.4-4.4 4.4h-6.5c-.1 0-.1 0 0 0z"/></svg>
-                                </div>
-                                <div class="arch-node-label">OneDrive</div>
-                                <div class="arch-node-sublabel">Microsoft</div>
-                            </div>
-                            <div class="arch-node" data-arch-delay="8">
-                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(0,97,255,.3);border-radius:20px"></div>
-                                <div class="arch-node-pulse" style="border-color:rgba(0,97,255,.3)"></div>
-                                <div class="arch-tooltip">${isId?'Dropbox — sinkronisasi file dengan API Dropbox yang andal':'Dropbox — file sync via reliable Dropbox API'}</div>
-                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#0061ff,#0095ff)">
-                                    <svg viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M7 2l-5 3.5 5 3.5 5-3.5L7 2zm5 3.5l5 3.5-5 3.5-5-3.5 5-3.5zM2 9.5l5 3.5 5-3.5-5-3.5-5 3.5zm15 0l-5 3.5 5 3.5 5-3.5-5-3.5zM7 14.5l5 3.5 5-3.5-5-3.5-5 3.5z"/></svg>
-                                </div>
-                                <div class="arch-node-label">Dropbox</div>
-                                <div class="arch-node-sublabel">File Sync</div>
-                            </div>
-                            <div class="arch-node" data-arch-delay="9">
-                                <div class="arch-node-glow" style="box-shadow:0 0 40px rgba(255,153,0,.3);border-radius:20px"></div>
-                                <div class="arch-node-pulse" style="border-color:rgba(255,153,0,.3)"></div>
-                                <div class="arch-tooltip">${isId?'AWS S3 — penyimpanan objek terdistribusi untuk skala enterprise':'AWS S3 — distributed object storage for enterprise scale'}</div>
-                                <div class="arch-node-icon" style="background:linear-gradient(135deg,#ff9900,#232f3e)">
-                                    <svg viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M2 12c0 2.8 1.2 5.3 3.1 7.1l2.4-2.4C6 15.4 5 13.8 5 12c0-1.8 1-3.4 2.5-4.7L5.1 4.9C3.2 6.7 2 9.2 2 12z"/><path d="M22 12c0-2.8-1.2-5.3-3.1-7.1l-2.4 2.4C18 8.6 19 10.2 19 12c0 1.8-1 3.4-2.5 4.7l2.4 2.4C20.8 17.3 22 14.8 22 12z"/><path d="M12 2c-1.6 0-3.1.4-4.4 1l1.3 2.8C9.8 5.3 10.9 5 12 5s2.2.3 3.1.8L16.4 3C15.1 2.4 13.6 2 12 2z"/><path d="M12 22c1.6 0 3.1-.4 4.4-1l-1.3-2.8c-.9.5-2 .8-3.1.8s-2.2-.3-3.1-.8L7.6 21c1.3.6 2.8 1 4.4 1z"/></svg>
-                                </div>
-                                <div class="arch-node-label">S3</div>
-                                <div class="arch-node-sublabel">AWS Bucket</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Legend / flow description -->
-                <div style="display:flex;justify-content:center;gap:32px;margin-top:40px;flex-wrap:wrap" class="scroll-reveal">
-                    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8">
-                        <span style="display:inline-block;width:24px;height:2px;background:linear-gradient(90deg,#3b82f6,#8b5cf6);border-radius:1px"></span>
-                        ${isId?'Aliran Data Terenkripsi':'Encrypted Data Flow'}
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8">
-                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3b82f6;box-shadow:0 0 8px #3b82f6"></span>
-                        ${isId?'Partikel Data':'Data Particles'}
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8">
-                        <span style="display:inline-block;width:12px;height:12px;border-radius:4px;border:1.5px solid rgba(59,130,246,.4);background:rgba(59,130,246,.1)"></span>
-                        ${isId?'Komponen Sistem':'System Component'}
+                    <div class="landing-hero-stat-divider"></div>
+                    <div class="landing-hero-stat">
+                        <div class="landing-hero-stat-value">E2E</div>
+                        <div class="landing-hero-stat-label">Enkripsi</div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ===== COMPARISON ===== -->
-        <section class="scroll-reveal" style="padding:48px 20px 64px;position:relative">
-            <div class="decor-orb decor-orb-1" style="top:-100px;left:-200px"></div>
-            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-chart-bar"></i> ${isId?'Perbandingan':'Comparison'}</div>
-                    <h2 class="section-title">${isId?'Bandingkan dengan Lainnya':'Compare with Others'}</h2>
-                    <p class="section-desc">${isId?'Mengapa Ridgebox pilihan terbaik untuk penyimpanan file Anda':'Why Ridgebox is the best choice for your file storage'}</p>
+        <section class="landing-section landing-features-section">
+            <div class="landing-section-label">FITUR</div>
+            <h2>Fitur Unggulan</h2>
+            <p>Semua yang Anda butuhkan untuk penyimpanan cloud yang aman dan gratis.</p>
+            <div class="landing-features">
+                <div class="landing-feature">
+                    <div class="landing-feature-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                    <h3>Upload Gratis</h3>
+                    <p>Upload file tanpa batas langsung ke Telegram. Gratis, tanpa server, tanpa batasan.</p>
                 </div>
-                <div class="premium-card animated-border scroll-reveal" style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0">
-                    <table class="cmp-table" style="width:100%;border-collapse:collapse;font-size:14px">
-                        <thead>
-                            <tr style="background:var(--bg)">
-                                <th style="padding:16px 20px;text-align:left;font-weight:700;border-bottom:2px solid var(--border)">${isId?'Fitur':'Feature'}</th>
-                                <th style="padding:16px 20px;text-align:center;font-weight:700;border-bottom:2px solid var(--border);color:var(--accent)">Ridgebox</th>
-                                <th style="padding:16px 20px;text-align:center;font-weight:700;border-bottom:2px solid var(--border);color:var(--text-secondary)">Google Drive</th>
-                                <th style="padding:16px 20px;text-align:center;font-weight:700;border-bottom:2px solid var(--border);color:var(--text-secondary)">Dropbox</th>
-                                <th style="padding:16px 20px;text-align:center;font-weight:700;border-bottom:2px solid var(--border);color:var(--text-secondary)">iCloud</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${[
-                                { feat: isId?'Harga':'Price', ridge: 'Rp 0', gdrive: 'Rp 26K/bln', dropbox: 'Rp 137K/bln', icloud: 'Rp 14K/bln', rClass: 'cmp-yes', gClass: 'cmp-no', dClass: 'cmp-no', iClass: 'cmp-no' },
-                                { feat: isId?'Penyimpanan':'Storage', ridge: isId?'Unlimited':'Unlimited', gdrive: '15 GB', dropbox: '2 GB', icloud: '5 GB', rClass: 'cmp-yes', gClass: 'cmp-partial', dClass: 'cmp-no', iClass: 'cmp-partial' },
-                                { feat: 'E2E Encryption', ridge: '<i class="fas fa-check cmp-yes"></i>', gdrive: '<i class="fas fa-times cmp-no"></i>', dropbox: '<i class="fas fa-times cmp-no"></i>', icloud: '<i class="fas fa-check cmp-yes"></i>', rClass: '', gClass: '', dClass: '', iClass: '' },
-                                { feat: 'PIN Lock', ridge: '<i class="fas fa-check cmp-yes"></i>', gdrive: '<i class="fas fa-times cmp-no"></i>', dropbox: '<i class="fas fa-times cmp-no"></i>', icloud: '<i class="fas fa-times cmp-no"></i>', rClass: '', gClass: '', dClass: '', iClass: '' },
-                                { feat: isId?'Self-Destruct':'Self-Destruct', ridge: '<i class="fas fa-check cmp-yes"></i>', gdrive: '<i class="fas fa-times cmp-no"></i>', dropbox: '<i class="fas fa-times cmp-no"></i>', icloud: '<i class="fas fa-times cmp-no"></i>', rClass: '', gClass: '', dClass: '', iClass: '' },
-                                { feat: isId?'Max Upload':'Max Upload', ridge: '2 GB', gdrive: '5 TB', dropbox: '2 GB', icloud: '50 GB', rClass: 'cmp-partial', gClass: 'cmp-yes', dClass: 'cmp-no', iClass: 'cmp-yes' },
-                                { feat: isId?'Proxy Mode':'Proxy Mode', ridge: '<i class="fas fa-check cmp-yes"></i>', gdrive: '<i class="fas fa-times cmp-no"></i>', dropbox: '<i class="fas fa-times cmp-no"></i>', icloud: '<i class="fas fa-times cmp-no"></i>', rClass: '', gClass: '', dClass: '', iClass: '' },
-                                { feat: isId?'Dark Mode':'Dark Mode', ridge: '<i class="fas fa-check cmp-yes"></i>', gdrive: '<i class="fas fa-check cmp-yes"></i>', dropbox: '<i class="fas fa-check cmp-yes"></i>', icloud: '<i class="fas fa-check cmp-yes"></i>', rClass: '', gClass: '', dClass: '', iClass: '' }
-                            ].map((r, i) => `
-                                <tr style="background:${i % 2 === 0 ? 'var(--bg-card)' : 'transparent'};transition:all .2s ease" onmouseenter="this.style.background='rgba(59,130,246,.04)'" onmouseleave="this.style.background='${i % 2 === 0 ? 'var(--bg-card)' : 'transparent'}'">
-                                    <td style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600">${r.feat}</td>
-                                    <td style="padding:14px 20px;border-bottom:1px solid var(--border);text-align:center;background:rgba(59,130,246,.03)" class="${r.rClass}">${r.ridge}</td>
-                                    <td style="padding:14px 20px;border-bottom:1px solid var(--border);text-align:center;color:var(--text-secondary)" class="${r.gClass}">${r.gdrive}</td>
-                                    <td style="padding:14px 20px;border-bottom:1px solid var(--border);text-align:center;color:var(--text-secondary)" class="${r.dClass}">${r.dropbox}</td>
-                                    <td style="padding:14px 20px;border-bottom:1px solid var(--border);text-align:center;color:var(--text-secondary)" class="${r.iClass}">${r.icloud}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                <div class="landing-feature">
+                    <div class="landing-feature-icon icon-shield"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h3>Enkripsi E2E</h3>
+                    <p>File dilindungi end-to-end encryption. Hanya Anda yang bisa akses file sendiri.</p>
                 </div>
-                <p style="text-align:center;font-size:12px;color:var(--text-secondary);margin-top:16px;opacity:.7">${isId?'* Harga berdasarkan paket berbayar masing-masing layanan (2025)':'* Prices based on paid plans of each service (2025)'}</p>
-            </div>
-        </section>
-
-        <!-- ===== FILE TYPE MARQUEE ===== -->
-        <section class="scroll-reveal" style="padding:48px 20px;position:relative">
-            <div style="max-width:960px;margin:0 auto;text-align:center;position:relative;z-index:1">
-                <div class="scroll-reveal" style="margin-bottom:32px">
-                    <div class="section-eyebrow"><i class="fas fa-file-circle-check"></i> ${isId?'Kompatibilitas':'Compatibility'}</div>
-                    <h2 class="section-title">${isId?'Format yang Didukung':'Supported Formats'}</h2>
+                <div class="landing-feature">
+                    <div class="landing-feature-icon icon-mobile"><i class="fa-solid fa-mobile-screen"></i></div>
+                    <h3>Multi-Platform</h3>
+                    <p>Akses dari HP, tablet, dan laptop. Responsive di semua perangkat Anda.</p>
                 </div>
-                <div class="marquee-wrap" style="margin-bottom:16px">
-                    <div class="marquee-track">
-                        ${[
-                            { ext: 'JPG', icon: 'fa-image', color: '#10b981' },{ ext: 'PNG', icon: 'fa-image', color: '#10b981' },{ ext: 'GIF', icon: 'fa-image', color: '#10b981' },{ ext: 'WEBP', icon: 'fa-image', color: '#10b981' },{ ext: 'SVG', icon: 'fa-image', color: '#10b981' },{ ext: 'MP4', icon: 'fa-film', color: '#8b5cf6' },{ ext: 'AVI', icon: 'fa-film', color: '#8b5cf6' },{ ext: 'MKV', icon: 'fa-film', color: '#8b5cf6' },{ ext: 'MP3', icon: 'fa-music', color: '#f59e0b' },{ ext: 'WAV', icon: 'fa-music', color: '#f59e0b' },{ ext: 'FLAC', icon: 'fa-music', color: '#f59e0b' },{ ext: 'PDF', icon: 'fa-file-pdf', color: '#ef4444' },{ ext: 'DOCX', icon: 'fa-file-word', color: '#3b82f6' },{ ext: 'XLSX', icon: 'fa-file-excel', color: '#10b981' }
-                        ].map(f => `<div class="file-type-badge"><i class="fas ${f.icon}" style="color:${f.color}"></i><span style="font-weight:600">.${f.ext}</span></div>`).join('')}
-                        ${[
-                            { ext: 'JPG', icon: 'fa-image', color: '#10b981' },{ ext: 'PNG', icon: 'fa-image', color: '#10b981' },{ ext: 'GIF', icon: 'fa-image', color: '#10b981' },{ ext: 'WEBP', icon: 'fa-image', color: '#10b981' },{ ext: 'SVG', icon: 'fa-image', color: '#10b981' },{ ext: 'MP4', icon: 'fa-film', color: '#8b5cf6' },{ ext: 'AVI', icon: 'fa-film', color: '#8b5cf6' },{ ext: 'MKV', icon: 'fa-film', color: '#8b5cf6' },{ ext: 'MP3', icon: 'fa-music', color: '#f59e0b' },{ ext: 'WAV', icon: 'fa-music', color: '#f59e0b' },{ ext: 'FLAC', icon: 'fa-music', color: '#f59e0b' },{ ext: 'PDF', icon: 'fa-file-pdf', color: '#ef4444' },{ ext: 'DOCX', icon: 'fa-file-word', color: '#3b82f6' },{ ext: 'XLSX', icon: 'fa-file-excel', color: '#10b981' }
-                        ].map(f => `<div class="file-type-badge"><i class="fas ${f.icon}" style="color:${f.color}"></i><span style="font-weight:600">.${f.ext}</span></div>`).join('')}
-                    </div>
+                <div class="landing-feature">
+                    <div class="landing-feature-icon icon-backup"><i class="fa-solid fa-rotate"></i></div>
+                    <h3>Auto Backup</h3>
+                    <p>Backup otomatis ke Google Drive, OneDrive, Dropbox, dan S3.</p>
                 </div>
-                <div class="marquee-wrap" style="direction:rtl">
-                    <div class="marquee-track" style="animation-direction:reverse">
-                        ${[
-                            { ext: 'PPTX', icon: 'fa-file-powerpoint', color: '#f97316' },{ ext: 'ZIP', icon: 'fa-file-zipper', color: '#64748b' },{ ext: 'RAR', icon: 'fa-file-zipper', color: '#64748b' },{ ext: '7Z', icon: 'fa-file-zipper', color: '#64748b' },{ ext: 'JS', icon: 'fa-file-code', color: '#06b6d4' },{ ext: 'PY', icon: 'fa-file-code', color: '#06b6d4' },{ ext: 'HTML', icon: 'fa-file-code', color: '#06b6d4' },{ ext: 'CSS', icon: 'fa-file-code', color: '#06b6d4' },{ ext: 'JSON', icon: 'fa-file-code', color: '#06b6d4' },{ ext: 'TXT', icon: 'fa-file-lines', color: '#64748b' },{ ext: 'APK', icon: 'fa-android', color: '#10b981' },{ ext: 'EXE', icon: 'fa-windows', color: '#3b82f6' },{ ext: 'DMG', icon: 'fa-apple', color: '#94a3b8' },{ ext: 'DLL', icon: 'fa-gear', color: '#64748b' }
-                        ].map(f => `<div class="file-type-badge"><i class="fas ${f.icon}" style="color:${f.color}"></i><span style="font-weight:600">.${f.ext}</span></div>`).join('')}
-                        ${[
-                            { ext: 'PPTX', icon: 'fa-file-powerpoint', color: '#f97316' },{ ext: 'ZIP', icon: 'fa-file-zipper', color: '#64748b' },{ ext: 'RAR', icon: 'fa-file-zipper', color: '#64748b' },{ ext: '7Z', icon: 'fa-file-zipper', color: '#64748b' },{ ext: 'JS', icon: 'fa-file-code', color: '#06b6d4' },{ ext: 'PY', icon: 'fa-file-code', color: '#06b6d4' },{ ext: 'HTML', icon: 'fa-file-code', color: '#06b6d4' },{ ext: 'CSS', icon: 'fa-file-code', color: '#06b6d4' },{ ext: 'JSON', icon: 'fa-file-code', color: '#06b6d4' },{ ext: 'TXT', icon: 'fa-file-lines', color: '#64748b' },{ ext: 'APK', icon: 'fa-android', color: '#10b981' },{ ext: 'EXE', icon: 'fa-windows', color: '#3b82f6' },{ ext: 'DMG', icon: 'fa-apple', color: '#94a3b8' },{ ext: 'DLL', icon: 'fa-gear', color: '#64748b' }
-                        ].map(f => `<div class="file-type-badge"><i class="fas ${f.icon}" style="color:${f.color}"></i><span style="font-weight:600">.${f.ext}</span></div>`).join('')}
-                    </div>
+                <div class="landing-feature">
+                    <div class="landing-feature-icon icon-folder"><i class="fa-solid fa-folder-tree"></i></div>
+                    <h3>File Manager</h3>
+                    <p>Organisir file dengan folder, tag, dan pencarian cerdas berbasis AI.</p>
                 </div>
-                <p style="font-size:14px;color:var(--text-secondary);margin-top:20px"><i class="fas fa-infinity animated-gradient-text" style="margin-right:6px"></i> ${isId?'...dan semua format file lainnya. Tidak ada batasan!':'...and all other file formats. No restrictions!'}</p>
-            </div>
-        </section>
-
-        <!-- ===== USE CASES / TARGET AUDIENCE ===== -->
-        <section class="scroll-reveal" style="padding:80px 20px;position:relative">
-            <div class="decor-orb decor-orb-1" style="top:-100px;right:-100px"></div>
-            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-users"></i> ${isId?'Siapa Saja':'Who Is It For'}</div>
-                    <h2 class="section-title">${isId?'Dibuat untuk Semua Orang':'Built for Everyone'}</h2>
-                    <p class="section-desc">${isId?'Apapun peran Anda, Ridgebox punya solusi penyimpanan yang tepat':'Whatever your role, Ridgebox has the right storage solution'}</p>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px">
-                    ${[
-                        { icon: 'fa-code', color: '#3b82f6', grad: 'linear-gradient(135deg,#3b82f6,#06b6d4)', title: isId?'Developer':'Developers', desc: isId?'Host assets, source code, dan build artifacts. Akses via API, proxy mode, dan integrasi CI/CD.':'Host assets, source code, and build artifacts. Access via API, proxy mode, and CI/CD integration.' },
-                        { icon: 'fa-graduation-cap', color: '#10b981', grad: 'linear-gradient(135deg,#10b981,#3b82f6)', title: isId?'Pelajar & Mahasiswa':'Students', desc: isId?'Simpan tugas, presentasi, dan catatan kuliah. Gratis unlimited, bisa akses dari mana saja.':'Store assignments, presentations, and lecture notes. Free unlimited, accessible anywhere.' },
-                        { icon: 'fa-briefcase', color: '#8b5cf6', grad: 'linear-gradient(135deg,#8b5cf6,#ec4899)', title: isId?'Profesional & Bisnis':'Business', desc: isId?'Share file dengan tim secara aman. Enkripsi E2E dan PIN lock untuk data sensitif perusahaan.':'Share files securely with your team. E2E encryption and PIN lock for sensitive company data.' },
-                        { icon: 'fa-camera', color: '#f59e0b', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', title: isId?'Kreator & Desainer':'Creators', desc: isId?'Backup foto, video, dan project file besar. Upload hingga 2GB per file tanpa kompresi.':'Backup photos, videos, and large project files. Upload up to 2GB per file without compression.' }
-                    ].map((u, i) => `
-                        <div class="bento-card scroll-reveal reveal-delay-${i+1}" style="text-align:center;padding:36px 24px">
-                            <div style="width:64px;height:64px;border-radius:18px;background:${u.grad};display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px ${u.color}30">
-                                <i class="fas ${u.icon}" style="font-size:26px;color:#fff"></i>
-                            </div>
-                            <h3 style="font-size:18px;font-weight:700;margin-bottom:10px">${u.title}</h3>
-                            <p style="font-size:13px;color:var(--text-secondary);line-height:1.7">${u.desc}</p>
-                        </div>
-                    `).join('')}
+                <div class="landing-feature">
+                    <div class="landing-feature-icon icon-clock"><i class="fa-solid fa-clock"></i></div>
+                    <h3>Self-Destruct</h3>
+                    <p>File auto-hapus setelah waktu tertentu. Privasi Anda terjaga selalu.</p>
                 </div>
             </div>
         </section>
 
-        <!-- ===== LIVE DEMO SECTION ===== -->
-        <section class="scroll-reveal" style="padding:64px 20px;background:var(--bg-secondary);position:relative">
-            <div class="decor-orb decor-orb-2" style="top:-150px;right:-150px"></div>
-            <div style="max-width:840px;margin:0 auto;text-align:center;position:relative;z-index:1">
-                <div class="scroll-reveal" style="margin-bottom:40px">
-                    <div class="section-eyebrow"><i class="fas fa-play-circle"></i> ${isId?'Coba Sekarang':'Try It Now'}</div>
-                    <h2 class="section-title">${isId?'Langsung Coba Demo':'Try the Demo'}</h2>
-                    <p class="section-desc">${isId?'Lihat bagaimana Ridgebox bekerja langsung di browser Anda':'See how Ridgebox works right in your browser'}</p>
+        <section class="landing-section landing-how-section">
+            <div class="landing-section-label">CARA KERJA</div>
+            <h2>Tiga Langkah Mudah</h2>
+            <p>Mulai menyimpan file di cloud dalam hitungan detik.</p>
+            <div class="landing-steps">
+                <div class="landing-step">
+                    <div class="landing-step-number">1</div>
+                    <div class="landing-step-icon"><i class="fas fa-user-plus"></i></div>
+                    <h3>Daftar Gratis</h3>
+                    <p>Buat akun dalam 30 detik. Tanpa kartu kredit.</p>
                 </div>
-                <div class="live-demo-mockup scroll-reveal">
-                    <div class="demo-float demo-float-1" style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#06b6d4);display:flex;align-items:center;justify-content:center"><i class="fas fa-cloud-arrow-up" style="color:#fff;font-size:18px"></i></div>
-                    <div class="demo-float demo-float-2" style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#10b981,#3b82f6);display:flex;align-items:center;justify-content:center"><i class="fas fa-shield-halved" style="color:#fff;font-size:16px"></i></div>
-                    <div class="demo-float demo-float-3" style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#ec4899);display:flex;align-items:center;justify-content:center"><i class="fas fa-share-nodes" style="color:#fff;font-size:15px"></i></div>
-                    <div class="demo-float demo-float-4" style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center"><i class="fas fa-bolt" style="color:#fff;font-size:14px"></i></div>
-                    <div class="demo-mockup-inner">
-                        <div style="height:40px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:8px">
-                            <div style="width:12px;height:12px;border-radius:50%;background:#ef4444"></div>
-                            <div style="width:12px;height:12px;border-radius:50%;background:#f59e0b"></div>
-                            <div style="width:12px;height:12px;border-radius:50%;background:#10b981"></div>
-                            <span style="font-size:12px;color:var(--text-secondary);margin-left:10px;font-family:'JetBrains Mono',monospace">ridgebox.app/dashboard</span>
-                        </div>
-                        <div style="display:flex;min-height:260px">
-                            <div style="flex:1;padding:16px">
-                                <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
-                                    <div style="flex:1;height:34px;background:var(--bg-secondary);border-radius:8px;display:flex;align-items:center;padding:0 12px;font-size:12px;color:var(--text-secondary)"><i class="fas fa-search" style="margin-right:8px"></i>${isId?'Cari file...':'Search files...'}</div>
-                                    <div style="padding:8px 14px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;border-radius:8px;font-size:12px;font-weight:600"><i class="fas fa-plus"></i> Upload</div>
-                                </div>
-                                ${[
-                                    { name: 'presentation.pdf', size: '4.2 MB', icon: 'fa-file-pdf', color: '#ef4444' },
-                                    { name: 'photo-vacation.jpg', size: '2.8 MB', icon: 'fa-image', color: '#10b981' },
-                                    { name: 'project-source.zip', size: '12.1 MB', icon: 'fa-file-zipper', color: '#64748b' },
-                                    { name: 'meeting-recording.mp4', size: '48.5 MB', icon: 'fa-film', color: '#8b5cf6' }
-                                ].map(f => `
-                                    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-                                        <div style="width:28px;height:28px;border-radius:8px;background:${f.color}12;display:flex;align-items:center;justify-content:center"><i class="fas ${f.icon}" style="font-size:12px;color:${f.color}"></i></div>
-                                        <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</div><div style="font-size:10px;color:var(--text-secondary)">${f.size}</div></div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
+                <div class="landing-step-connector"><i class="fas fa-chevron-right"></i></div>
+                <div class="landing-step">
+                    <div class="landing-step-number">2</div>
+                    <div class="landing-step-icon"><i class="fas fa-cloud-arrow-up"></i></div>
+                    <h3>Upload File</h3>
+                    <p>Drag & drop atau pilih file dari device Anda.</p>
                 </div>
-                <a href="#/dashboard" class="demo-launch-btn scroll-reveal reveal-delay-2" style="margin-top:32px"><i class="fas fa-rocket"></i> ${isId?'Buka Demo':'Launch Demo'}</a>
-            </div>
-        </section>
-
-        <!-- ===== TESTIMONIAL MARQUEE ===== -->
-        <section class="scroll-reveal" style="padding:64px 20px;position:relative">
-            <div class="decor-orb decor-orb-3" style="bottom:-150px;left:-150px"></div>
-            <div class="morph-blob morph-blob-1" style="top:-10%;right:-5%"></div>
-            <div style="max-width:100%;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-quote-left"></i> ${isId?'Testimoni':'Testimonials'}</div>
-                    <h2 class="section-title">${isId?'Apa Kata Mereka':'What They Say'}</h2>
-                    <p class="section-desc">${isId?'Pengalaman nyata dari pengguna Ridgebox':'Real experiences from Ridgebox users'}</p>
-                </div>
-                <div class="testimonial-marquee-wrap">
-                    <div class="testimonial-marquee-track">
-                        ${testiData.map(t => buildTestiCard(t)).join('')}
-                        ${testiData.map(t => buildTestiCard(t)).join('')}
-                    </div>
-                </div>
-            </div>
-        </section>
-        <div class="lux-grad-divider"></div>
-
-        <!-- ===== LIVE ACTIVITY FEED (Social Proof) ===== -->
-        <section class="scroll-reveal" style="padding:80px 20px;position:relative">
-            <div style="max-width:720px;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-signal"></i> ${isId?'Aktivitas Terkini':'Live Activity'}</div>
-                    <h2 class="section-title">${isId?'Digunakan Setiap Saat':'Always Active'}</h2>
-                    <p class="section-desc">${isId?'Ribuan file diupload dan dibagikan setiap hari':'Thousands of files uploaded and shared every day'}</p>
-                </div>
-                <div id="live-activity-feed" style="display:flex;flex-direction:column;gap:10px;max-height:320px;overflow:hidden;position:relative">
-                    <!-- Filled by JS -->
-                </div>
-                <div style="text-align:center;margin-top:20px;font-size:12px;color:var(--text-secondary);opacity:.6"><i class="fas fa-circle" style="color:#10b981;font-size:6px;vertical-align:middle;margin-right:4px;animation:pulse 1.5s ease infinite"></i> ${isId?'Diperbarui secara real-time':'Updated in real-time'}</div>
-            </div>
-        </section>
-
-        <!-- ===== KEYBOARD SHORTCUTS ===== -->
-        <section class="scroll-reveal" style="padding:60px 20px;background:var(--bg-secondary);position:relative">
-            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-keyboard"></i> ${isId?'Pintasan':'Shortcuts'}</div>
-                    <h2 class="section-title">${isId?'Power User Shortcuts':'Power User Shortcuts'}</h2>
-                    <p class="section-desc">${isId?'Kontrol penuh dengan keyboard, lebih cepat dari klik':'Full keyboard control, faster than clicking'}</p>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
-                    ${[
-                        { keys: 'Ctrl + U', action: isId?'Upload File':'Upload File', icon: 'fa-cloud-arrow-up' },
-                        { keys: 'Ctrl + F', action: isId?'Cari File':'Search Files', icon: 'fa-search' },
-                        { keys: 'Ctrl + N', action: isId?'Folder Baru':'New Folder', icon: 'fa-folder-plus' },
-                        { keys: 'Ctrl + A', action: isId?'Pilih Semua':'Select All', icon: 'fa-check-double' },
-                        { keys: 'Delete', action: isId?'Hapus File':'Delete File', icon: 'fa-trash' },
-                        { keys: 'Ctrl + . ', action: isId?'Toggle Dark Mode':'Toggle Dark Mode', icon: 'fa-moon' },
-                        { keys: 'Esc', action: isId?'Tutup Modal':'Close Modal', icon: 'fa-xmark' },
-                        { keys: '?', action: isId?'Bantuan':'Help', icon: 'fa-circle-question' }
-                    ].map(s => `
-                        <div class="premium-card scroll-reveal" style="padding:16px 20px;display:flex;align-items:center;gap:14px">
-                            <div style="min-width:40px;height:40px;border-radius:10px;background:rgba(59,130,246,.08);display:flex;align-items:center;justify-content:center"><i class="fas ${s.icon}" style="color:var(--accent);font-size:16px"></i></div>
-                            <div style="flex:1;min-width:0">
-                                <div style="font-size:13px;font-weight:600">${s.action}</div>
-                            </div>
-                            <kbd style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 8px;border-radius:6px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);white-space:nowrap">${s.keys}</kbd>
-                        </div>
-                    `).join('')}
+                <div class="landing-step-connector"><i class="fas fa-chevron-right"></i></div>
+                <div class="landing-step">
+                    <div class="landing-step-number">3</div>
+                    <div class="landing-step-icon"><i class="fas fa-globe"></i></div>
+                    <h3>Akses di Mana Saja</h3>
+                    <p>Buka file dari perangkat apa saja, kapan saja.</p>
                 </div>
             </div>
         </section>
 
-        <!-- ===== MULTI-PLATFORM ===== -->
-        <section class="scroll-reveal" style="padding:60px 20px;position:relative">
-            <div style="max-width:720px;margin:0 auto;text-align:center;position:relative;z-index:1">
-                <div class="scroll-reveal" style="margin-bottom:40px">
-                    <div class="section-eyebrow"><i class="fas fa-display"></i> ${isId?'Multi-Platform':'Multi-Platform'}</div>
-                    <h2 class="section-title">${isId?'Akses dari Mana Saja':'Access Anywhere'}</h2>
-                    <p class="section-desc">${isId?'Ridgebox berjalan di semua perangkat dan browser tanpa instalasi':'Ridgebox runs on all devices and browsers without installation'}</p>
+        <section class="landing-section landing-pricing-section">
+            <div class="landing-section-label">HARGA</div>
+            <h2>Pilih Paket Anda</h2>
+            <p>Pilih paket yang sesuai kebutuhan Anda. Upgrade kapan saja.</p>
+            <div class="landing-pricing">
+                <div class="landing-price">
+                    <h3>Free</h3>
+                    <div class="price">Rp0</div>
+                    <div class="price-period">/bulan</div>
+                    <ul>
+                        <li>5GB Storage</li>
+                        <li>Upload dasar</li>
+                        <li>Enkripsi E2E</li>
+                    </ul>
+                    <button onclick="location.hash='#/register'" class="btn" style="width:100%">Mulai Gratis</button>
                 </div>
-                <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:20px">
-                    ${[
-                        { icon: 'fa-globe', label: 'Web App', color: '#3b82f6', size: '28px' },
-                        { icon: 'fab fa-chrome', label: 'Chrome', color: '#4285f4', size: '28px' },
-                        { icon: 'fab fa-firefox-browser', label: 'Firefox', color: '#ff7139', size: '28px' },
-                        { icon: 'fab fa-safari', label: 'Safari', color: '#006cff', size: '28px' },
-                        { icon: 'fab fa-android', label: 'Android', color: '#3ddc84', size: '28px' },
-                        { icon: 'fab fa-apple', label: 'iOS', color: '#999', size: '28px' },
-                        { icon: 'fab fa-windows', label: 'Windows', color: '#0078d4', size: '28px' },
-                        { icon: 'fab fa-linux', label: 'Linux', color: '#f9c74f', size: '28px' }
-                    ].map(p => `
-                        <div class="glass-card scroll-reveal" style="padding:18px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:90px;cursor:default">
-                            <i class="${p.icon}" style="font-size:${p.size};color:${p.color}"></i>
-                            <span style="font-size:12px;font-weight:600;color:var(--text)">${p.label}</span>
-                        </div>
-                    `).join('')}
+                <div class="landing-price featured">
+                    <span class="landing-price-badge">Populer</span>
+                    <h3>Pro</h3>
+                    <div class="price">Rp49K</div>
+                    <div class="price-period">/bulan</div>
+                    <ul>
+                        <li>100GB Storage</li>
+                        <li>Auto backup</li>
+                        <li>AI search</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <button onclick="location.hash='#/register'" class="btn btn-primary" style="width:100%">Pilih Pro</button>
                 </div>
-                <div style="margin-top:28px;display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2)">
-                    <i class="fas fa-check-circle" style="color:#10b981"></i>
-                    <span style="font-size:13px;font-weight:600;color:#10b981">${isId?'PWA Ready — Install langsung dari browser':'PWA Ready — Install directly from browser'}</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- ===== SPEED COMPARISON ===== -->
-        <section class="scroll-reveal" style="padding:60px 20px;background:var(--bg-secondary);position:relative">
-            <div style="max-width:720px;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-gauge-high"></i> ${isId?'Performa':'Performance'}</div>
-                    <h2 class="section-title">${isId?'Kecepatan Upload':'Upload Speed'}</h2>
-                    <p class="section-desc">${isId?'Perbandingan kecepatan upload file antar layanan cloud storage':'Upload speed comparison across cloud storage services'}</p>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:20px">
-                    ${[
-                        { name: 'Ridgebox', speed: 95, color: '#3b82f6', time: isId?'~3 detik (100MB)':'~3 sec (100MB)', badge: isId?'Tercepat':'Fastest' },
-                        { name: 'Google Drive', speed: 78, color: '#4285f4', time: isId?'~5 detik (100MB)':'~5 sec (100MB)', badge: '' },
-                        { name: 'Dropbox', speed: 62, color: '#0061ff', time: isId?'~8 detik (100MB)':'~8 sec (100MB)', badge: '' },
-                        { name: 'iCloud', speed: 45, color: '#999', time: isId?'~12 detik (100MB)':'~12 sec (100MB)', badge: '' }
-                    ].map((s, i) => `
-                        <div class="premium-card scroll-reveal reveal-delay-${i+1}" style="padding:18px 24px">
-                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-                                <div style="display:flex;align-items:center;gap:10px">
-                                    <span style="font-size:14px;font-weight:700;color:${s.color}">${s.name}</span>
-                                    ${s.badge ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(59,130,246,.1);color:var(--accent)">${s.badge}</span>` : ''}
-                                </div>
-                                <span style="font-size:12px;color:var(--text-secondary);font-family:'JetBrains Mono',monospace">${s.time}</span>
-                            </div>
-                            <div style="height:10px;border-radius:5px;background:var(--bg);overflow:hidden">
-                                <div class="analytics-bar" style="height:100%;border-radius:5px;background:linear-gradient(90deg,${s.color},${s.color}aa);--bar-w:${s.speed}%;width:${s.speed}%"></div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-                <p style="text-align:center;font-size:11px;color:var(--text-secondary);margin-top:16px;opacity:.7">${isId?'* Hasil benchmark menggunakan koneksi 100Mbps, lokasi Asia Tenggara':'* Benchmark results using 100Mbps connection, Southeast Asia region'}</p>
-            </div>
-        </section>
-
-        <!-- ===== OPEN SOURCE + COMMUNITY ===== -->
-        <section class="scroll-reveal" style="padding:80px 20px;position:relative">
-            <div style="max-width:720px;margin:0 auto;text-align:center;position:relative;z-index:1">
-                <div class="scroll-reveal" style="margin-bottom:40px">
-                    <div class="section-eyebrow"><i class="fas fa-code-branch"></i> ${isId?'Open Source':'Open Source'}</div>
-                    <h2 class="section-title">${isId?'Transparan & Terbuka':'Transparent & Open'}</h2>
-                    <p class="section-desc">${isId?'Kode sumber terbuka untuk audit keamanan. Bergabung dengan komunitas kami.':'Open source code for security audits. Join our community.'}</p>
-                </div>
-                <div style="display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:32px">
-                    <div class="premium-card scroll-reveal" style="padding:28px 36px;text-align:center;min-width:160px">
-                        <div style="font-size:36px;font-weight:800;color:var(--accent);font-family:'JetBrains Mono',monospace">3.2K+</div>
-                        <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">${isId?'Pengguna Aktif':'Active Users'}</div>
-                    </div>
-                    <div class="premium-card scroll-reveal reveal-delay-1" style="padding:28px 36px;text-align:center;min-width:160px">
-                        <div style="font-size:36px;font-weight:800;color:#8b5cf6;font-family:'JetBrains Mono',monospace">105</div>
-                        <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">${isId?'Fitur':'Features'}</div>
-                    </div>
-                    <div class="premium-card scroll-reveal reveal-delay-2" style="padding:28px 36px;text-align:center;min-width:160px">
-                        <div style="font-size:36px;font-weight:800;color:#10b981;font-family:'JetBrains Mono',monospace">100%</div>
-                        <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">${isId?'Gratis':'Free'}</div>
-                    </div>
-                </div>
-                <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
-                    <a href="https://github.com" target="_blank" class="btn btn-secondary scroll-reveal" style="padding:14px 28px;border-radius:12px;font-size:15px;font-weight:600"><i class="fab fa-github"></i> ${isId?'Lihat di GitHub':'View on GitHub'}</a>
-                    <a href="https://t.me/" target="_blank" class="btn btn-secondary scroll-reveal reveal-delay-1" style="padding:14px 28px;border-radius:12px;font-size:15px;font-weight:600"><i class="fab fa-telegram"></i> ${isId?'Gabung Telegram':'Join Telegram'}</a>
+                <div class="landing-price">
+                    <h3>Business</h3>
+                    <div class="price">Rp99K</div>
+                    <div class="price-period">/bulan</div>
+                    <ul>
+                        <li>1TB Storage</li>
+                        <li>Admin panel</li>
+                        <li>Custom branding</li>
+                        <li>API access</li>
+                    </ul>
+                    <button onclick="location.hash='#/register'" class="btn" style="width:100%">Pilih Business</button>
                 </div>
             </div>
         </section>
 
-        <!-- ===== BLOG / UPDATE TERKINI ===== -->
-        <section id="blog-section" class="scroll-reveal" style="padding:80px 20px;background:var(--bg-secondary);position:relative">
-            <div class="decor-orb decor-orb-2" style="top:-120px;right:-100px"></div>
-            <div class="morph-blob morph-blob-1" style="bottom:-8%;left:-6%"></div>
-            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-newspaper"></i> ${isId?'Blog & Update':'Blog & Updates'}</div>
-                    <h2 class="section-title">${isId?'Berita Terbaru':'Latest News'}</h2>
-                    <p class="section-desc">${isId?'Tips, update fitur, dan berita dunia cloud storage langsung di homepage Anda':'Tips, feature updates, and cloud storage news right on your homepage'}</p>
-                </div>
-
-                <!-- Featured Post Banner -->
-                <div id="blog-featured" class="glass-card scroll-reveal" style="padding:0;margin-bottom:28px;overflow:hidden;cursor:pointer;border-radius:20px;position:relative">
-                    <img id="blog-featured-bg" src="/blog-img/feat-01-rocket.png" alt="Featured blog post background" role="presentation" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0">
-                    <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(15,23,42,.88) 0%,rgba(30,58,95,.75) 50%,rgba(59,130,246,.35) 100%);z-index:1"></div>
-                    <div style="display:flex;flex-wrap:wrap;align-items:stretch;position:relative;z-index:2">
-                        <div style="flex:1;min-width:280px;padding:36px 32px;position:relative;z-index:3">
-                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-                                <span id="blog-featured-tag" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(59,130,246,.2);color:var(--accent);text-transform:uppercase;letter-spacing:.5px;backdrop-filter:blur(8px)">Feature</span>
-                                <span style="font-size:10px;color:rgba(255,255,255,.6)" id="blog-featured-date">7 Jun 2026</span>
-                                <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;color:#10b981;margin-left:4px"><i class="fas fa-circle" style="font-size:5px;animation:pulse 1.5s ease infinite"></i> ${isId?'Baru':'New'}</span>
-                            </div>
-                            <h3 id="blog-featured-title" style="font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.3;color:#fff">${isId?'RidgeBox v3.2: Upload Chunked & Gallery Publik':'RidgeBox v3.2: Chunked Upload & Public Gallery'}</h3>
-                            <p id="blog-featured-desc" style="font-size:14px;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:16px">${isId?'Update besar! Upload file besar hingga 2GB dengan chunked upload, plus fitur gallery publik untuk showcase karya Anda.':'Major update! Upload large files up to 2GB with chunked upload, plus public gallery feature to showcase your work.'}</p>
-                            <div style="display:flex;align-items:center;gap:8px">
-                                <div style="width:28px;height:28px;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(37,99,235,.3)"><img src="/logo-icon.png" alt="RidgeBox" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block"/></div>
-                                <span style="font-size:12px;font-weight:600;color:#fff">RidgeBox Team</span>
-                                <span style="font-size:11px;color:rgba(255,255,255,.5)">· ${isId?'3 min baca':'3 min read'}</span>
-                            </div>
-                        </div>
-                        <div id="blog-featured-img" style="flex:0 0 280px;min-height:200px;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;overflow:hidden">
-                            <i class="fas fa-rocket" style="font-size:64px;color:rgba(255,255,255,.1);position:relative;z-index:2"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Blog Cards Grid -->
-                <div id="blog-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:28px">
-                </div>
-
-                <!-- Live Ticker -->
-                <div class="glass-card scroll-reveal" style="padding:16px 24px;display:flex;align-items:center;gap:12px;border-radius:14px">
-                    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:pulse 1.5s ease infinite;flex-shrink:0"></div>
-                    <div style="flex:1;min-width:0;overflow:hidden">
-                        <div id="blog-ticker" style="font-size:13px;font-weight:500;white-space:nowrap;animation:tickerScroll 20s linear infinite">${isId?'<i class="fas fa-bell" style="margin-right:6px"></i>Update otomatis setiap hari — Tips baru, fitur terbaru, dan berita cloud storage':'<i class="fas fa-bell" style="margin-right:6px"></i>Auto-updated daily — New tips, latest features, and cloud storage news'}</div>
-                    </div>
-                    <span style="font-size:10px;padding:3px 8px;border-radius:6px;background:rgba(16,185,129,.1);color:#10b981;font-weight:600;white-space:nowrap">${isId?'LIVE':'LIVE'}</span>
-                </div>
-            </div>
-        </section>
-        <div class="lux-grad-divider"></div>
-
-        <!-- ===== PRICING COMPARISON TABLE ===== -->
-        <section class="scroll-reveal" style="padding:64px 20px;position:relative">
-            <div class="decor-orb decor-orb-1" style="top:-100px;left:-200px"></div>
-            <div class="morph-blob morph-blob-2" style="bottom:-10%;right:-5%"></div>
-            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-tags"></i> ${isId?'Harga':'Pricing'}</div>
-                    <h2 class="section-title">${isId?'Pilih Paket Anda':'Choose Your Plan'}</h2>
-                    <p class="section-desc">${isId?'Mulai gratis, upgrade kapan saja':'Start free, upgrade anytime'}</p>
-                </div>
-                <div class="pricing-grid">
-                    <!-- Free Tier -->
-                    <div class="pricing-card scroll-reveal reveal-delay-1">
-                        <div class="pricing-tier">${isId?'Gratis':'Free'}</div>
-                        <div class="pricing-price">Rp 0</div>
-                        <div class="pricing-period">${isId?'Selamanya gratis':'Free forever'}</div>
-                        <ul class="pricing-features">
-                            <li><i class="fas fa-check feat-yes"></i> 50MB ${isId?'max upload':'max upload'}</li>
-                            <li><i class="fas fa-check feat-yes"></i> 5GB ${isId?'penyimpanan':'storage'}</li>
-                            <li><i class="fas fa-check feat-yes"></i> ${isId?'Berbagi dasar':'Basic sharing'}</li>
-                            <li><i class="fas fa-check feat-yes"></i> 1 bot</li>
-                            <li><i class="fas fa-times feat-no"></i> ${isId?'Enkripsi':'Encryption'}</li>
-                            <li><i class="fas fa-times feat-no"></i> ${isId?'Dukungan prioritas':'Priority support'}</li>
-                        </ul>
-                        <a href="#/dashboard" class="pricing-cta pricing-cta-secondary" onclick="event.preventDefault();openPricingModal('free')">${isId?'Mulai Gratis':'Start Free'}</a>
-                    </div>
-                    <!-- Pro Tier -->
-                    <div class="pricing-card popular scroll-reveal reveal-delay-2">
-                        <div class="pricing-popular-badge">${isId?'Paling Populer':'Most Popular'}</div>
-                        <div class="pricing-tier" style="color:var(--accent)">Pro</div>
-                        <div class="pricing-price" style="color:var(--accent)">$4.99<span>/${isId?'bln':'mo'}</span></div>
-                        <div class="pricing-period">${isId?'Untuk pengguna serius':'For power users'}</div>
-                        <ul class="pricing-features">
-                            <li><i class="fas fa-check feat-yes"></i> 200MB ${isId?'max upload':'max upload'}</li>
-                            <li><i class="fas fa-check feat-yes"></i> 100GB ${isId?'penyimpanan':'storage'}</li>
-                            <li><i class="fas fa-check feat-yes"></i> ${isId?'Berbagi lanjutan':'Advanced sharing'}</li>
-                            <li><i class="fas fa-check feat-yes"></i> 3 bots</li>
-                            <li><i class="fas fa-check feat-yes"></i> ${isId?'Enkripsi E2E':'E2E Encryption'}</li>
-                            <li><i class="fas fa-check feat-yes"></i> ${isId?'Dukungan prioritas':'Priority support'}</li>
-                        </ul>
-                        <a href="#/dashboard" class="pricing-cta pricing-cta-primary" onclick="event.preventDefault();openPricingModal('pro')">${isId?'Coba Pro':'Try Pro'}</a>
-                    </div>
-                    <!-- Premium Tier -->
-                    <div class="pricing-card scroll-reveal reveal-delay-3">
-                        <div class="pricing-tier">${isId?'Bisnis':'Business'}</div>
-                        <div class="pricing-price">$9.99<span>/${isId?'bln':'mo'}</span></div>
-                        <div class="pricing-period">${isId?'Untuk tim & bisnis':'For teams & business'}</div>
-                        <ul class="pricing-features">
-                            <li><i class="fas fa-check feat-yes"></i> 2GB ${isId?'max upload':'max upload'}</li>
-                            <li><i class="fas fa-check feat-yes"></i> 1TB ${isId?'penyimpanan':'storage'}</li>
-                            <li><i class="fas fa-check feat-yes"></i> ${isId?'Semua fitur':'All features'}</li>
-                            <li><i class="fas fa-check feat-yes"></i> 10 bots</li>
-                            <li><i class="fas fa-check feat-yes"></i> ${isId?'Dukungan prioritas':'Priority support'}</li>
-                            <li><i class="fas fa-check feat-yes"></i> API access</li>
-                            <li><i class="fas fa-check feat-yes"></i> ${isId?'Fitur admin':'Admin features'}</li>
-                        </ul>
-                        <a href="#/dashboard" class="pricing-cta pricing-cta-secondary" onclick="event.preventDefault();openPricingModal('business')">${isId?'Pilih Bisnis':'Choose Business'}</a>
-                    </div>
-                </div>
-            </div>
+        <section class="landing-cta">
+            <div class="landing-cta-glow"></div>
+            <h2>Mulai Simpan File Sekarang</h2>
+            <p>Tidak perlu kartu kredit. Daftar dan langsung pakai.</p>
+            <button onclick="location.hash='#/register'" class="btn btn-primary landing-cta-btn">Daftar Gratis <i class="fas fa-arrow-right" style="margin-left:6px"></i></button>
         </section>
 
-        <!-- ===== FAQ + SECURITY ===== -->
-        <section class="scroll-reveal" style="padding:48px 20px 64px;position:relative">
-            <div style="max-width:960px;margin:0 auto;position:relative;z-index:1">
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px">
-                    <div>
-                        <div class="scroll-reveal" style="margin-bottom:24px">
-                            <div class="section-eyebrow"><i class="fas fa-circle-question"></i> FAQ</div>
-                            <h2 class="section-title">${isId?'Pertanyaan Umum':'Frequently Asked'}</h2>
-                        </div>
-                        ${[
-                            { q: isId?'Apakah Ridgebox benar-benar gratis?':'Is Ridgebox really free?', a: isId?'Ya! Ridgebox menggunakan infrastruktur cloud serverless, jadi tidak ada biaya server. Sepenuhnya gratis untuk digunakan selamanya.':'Yes! Ridgebox uses serverless cloud infrastructure, so there are no server costs. Completely free to use forever.' },
-                            { q: isId?'Apakah file saya aman?':'Are my files safe?', a: isId?'File dilindungi dengan enkripsi AES-256-GCM opsional, PIN lock SHA-256, dan mode proxy yang menyembunyikan kredensial server.':'Files are protected with optional AES-256-GCM encryption, SHA-256 PIN lock, and proxy mode that hides server credentials.' },
-                            { q: isId?'Berapa batas penyimpanan?':'What is the storage limit?', a: isId?'Tidak ada batas! Cloud serverless memungkinkan penyimpanan tanpa batas.':'No limits! Serverless cloud enables unlimited storage.' },
-                            { q: isId?'Bisa upload file besar?':'Can I upload large files?', a: isId?'Ya, hingga 50MB per file via proxy, atau hingga 2GB untuk upload langsung.':'Yes, up to 50MB via proxy, or up to 2GB for direct uploads.' }
-                        ].map((f, i) => `
-                            <div class="premium-card scroll-reveal reveal-delay-${(i%4)+1}" style="margin-bottom:12px;padding:0;overflow:hidden">
-                                <div style="padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:14px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block';this.querySelector('i').classList.toggle('fa-chevron-down');this.querySelector('i').classList.toggle('fa-chevron-up')">
-                                    ${f.q} <i class="fas fa-chevron-down" style="color:var(--accent);font-size:11px;transition:transform .3s ease"></i>
-                                </div>
-                                <div style="padding:0 20px 16px;display:none;font-size:13px;color:var(--text-secondary);line-height:1.7">${f.a}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div>
-                        <div class="scroll-reveal" style="margin-bottom:24px">
-                            <div class="section-eyebrow"><i class="fas fa-lock"></i> ${isId?'Keamanan':'Security'}</div>
-                            <h2 class="section-title">${isId?'Keamanan Prioritas':'Security Priority'}</h2>
-                        </div>
-                        ${[
-                            { icon: 'fa-shield-halved', color: '#10b981', grad: 'linear-gradient(135deg,#10b981,#3b82f6)', title: 'AES-256-GCM', desc: isId?'Enkripsi militer untuk file Anda':'Military-grade encryption for your files' },
-                            { icon: 'fa-key', color: '#3b82f6', grad: 'linear-gradient(135deg,#3b82f6,#06b6d4)', title: 'PIN SHA-256', desc: isId?'PIN di-hash sebelum disimpan':'PIN is hashed before storing' },
-                            { icon: 'fa-user-secret', color: '#8b5cf6', grad: 'linear-gradient(135deg,#8b5cf6,#ec4899)', title: 'Proxy Mode', desc: isId?'Kredensial server tersembunyi dari client':'Server credentials hidden from client' },
-                            { icon: 'fa-clock', color: '#f59e0b', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', title: 'Self-Destruct', desc: isId?'Link otomatis terhapus setelah dipakai':'Links auto-delete after use' }
-                        ].map((s, i) => `
-                            <div class="lux-feature scroll-reveal reveal-delay-${i+1}" style="display:flex;align-items:flex-start;gap:16px;padding:20px 24px;margin-bottom:12px">
-                                <div class="lux-icon" style="background:${s.grad};min-width:48px;height:48px;box-shadow:0 4px 16px ${s.color}30"><i class="fas ${s.icon}" style="font-size:20px;color:#fff"></i></div>
-                                <div><h3 style="font-size:15px;font-weight:700;margin-bottom:4px">${s.title}</h3><p style="font-size:13px;color:var(--text-secondary);line-height:1.5">${s.desc}</p></div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
+        <footer class="landing-footer">
+            <div class="landing-footer-brand">
+                <img src="/logo-icon.png" alt="RidgeBox" width="24" height="24" />
+                <span>RidgeBox</span>
             </div>
-        </section>
-
-        <!-- ===== CHANGELOG ===== -->
-        <section class="scroll-reveal" style="padding:48px 20px;position:relative">
-            <div style="max-width:720px;margin:0 auto;position:relative;z-index:1">
-                <div style="text-align:center;margin-bottom:48px" class="scroll-reveal">
-                    <div class="section-eyebrow"><i class="fas fa-code-branch"></i> ${isId?'Riwayat':'History'}</div>
-                    <h2 class="section-title">${isId?'Log Perubahan':'Changelog'}</h2>
-                </div>
-                ${[
-                    { ver: 'v3.0', date: '2025', changes: isId?'105 fitur lengkap, enkripsi AES-256, PIN lock, onboarding, i18n':'105 complete features, AES-256 encryption, PIN lock, onboarding, i18n', color: '#3b82f6' },
-                    { ver: 'v2.0', date: '2024', changes: isId?'Folder, tag, share link, dark mode, batch mode':'Folders, tags, share links, dark mode, batch mode', color: '#8b5cf6' },
-                    { ver: 'v1.0', date: '2023', changes: isId?'Upload dasar, IndexedDB storage, serverless cloud':'Basic upload, IndexedDB storage, serverless cloud', color: '#10b981' }
-                ].map((c, i) => `
-                    <div class="scroll-reveal reveal-delay-${i+1}" style="display:flex;gap:20px;margin-bottom:24px">
-                        <div style="min-width:64px;text-align:right"><span class="badge" style="background:${c.color};color:#fff;font-size:11px;padding:4px 10px">${c.ver}</span></div>
-                        <div style="flex:1;padding-bottom:24px;border-left:2px solid ${c.color}30;padding-left:20px;position:relative">
-                            <div style="position:absolute;left:-5px;top:2px;width:8px;height:8px;border-radius:50%;background:${c.color};box-shadow:0 0 8px ${c.color}80"></div>
-                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;font-weight:500">${c.date}</div>
-                            <div style="font-size:14px;line-height:1.6">${c.changes}</div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </section>
-        <div class="lux-grad-divider"></div>
-
-        <!-- ===== NEWSLETTER ===== -->
-        <section class="scroll-reveal" style="padding:48px 20px;position:relative">
-            <div style="max-width:560px;margin:0 auto;text-align:center">
-                <div class="premium-newsletter" style="padding:48px 36px">
-                    <div style="width:60px;height:60px;border-radius:16px;background:rgba(59,130,246,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 20px"><i class="fas fa-envelope" style="font-size:26px;color:var(--accent)"></i></div>
-                    <h2 style="font-size:26px;font-weight:800;margin-bottom:8px">${isId?'Dapatkan Update Terbaru':'Get Latest Updates'}</h2>
-                    <p style="color:var(--text-secondary);margin-bottom:28px;font-size:14px;line-height:1.7">${isId?'Daftar email untuk info fitur baru dan tips & trik Ridgebox':'Sign up for new feature alerts and Ridgebox tips & tricks'}</p>
-                    <div style="display:flex;max-width:440px;margin:0 auto;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.06);flex-wrap:wrap" id="newsletter-form">
-                        <input type="email" class="newsletter-input" aria-label="Email address" autocomplete="email" style="border-radius:14px 0 0 14px;border:2px solid var(--border);border-right:none" placeholder="${isId?'Masukkan email Anda':'Enter your email'}" id="newsletter-email">
-                        <button class="newsletter-btn" style="border-radius:0 14px 14px 0" onclick="subscribeNewsletter()">${isId?'Berlangganan':'Subscribe'}</button>
-                    </div>
-                    <p style="font-size:11px;color:var(--text-secondary);margin-top:14px;opacity:.7">${isId?'Kami tidak akan mengirim spam. Berhenti kapan saja.':'No spam. Unsubscribe anytime.'}</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- ===== CTA — Animated Border ===== -->
-        <section style="padding:16px 20px 64px">
-            <div style="max-width:900px;margin:0 auto">
-                <div class="animated-border" style="text-align:center;position:relative;z-index:1">
-                    <div class="premium-cta" style="border-radius:28px">
-                        <div style="position:relative;z-index:2">
-                            <h2 style="font-size:clamp(28px,5vw,44px);font-weight:800;color:#fff;margin-bottom:16px;letter-spacing:-.5px">${isId?'Mulai Sekarang — Gratis!':'Start Now — Free!'}</h2>
-                            <p style="color:rgba(255,255,255,.8);margin-bottom:36px;font-size:17px;line-height:1.6">${isId?'Tidak perlu kartu kredit. Tidak ada batas waktu. Langsung pakai.':'No credit card needed. No time limit. Start right away.'}</p>
-                            <a href="#/dashboard" class="hero-cta-primary cta-breathe" style="font-size:17px;padding:18px 48px">${t('openDashboard')} <i class="fas fa-arrow-right"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ===== FOOTER ===== -->
-        <footer class="lux-footer" role="contentinfo">
-            <div class="lux-footer-grid">
-                <div>
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-                        <div style="width:36px;height:36px;border-radius:10px;overflow:hidden;box-shadow:0 4px 12px rgba(37,99,235,.3)"><img src="/logo-icon.png" alt="RidgeBox" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block"/></div>
-                        <span class="rb-brand-text" style="font-size:18px">RidgeBox</span>
-                    </div>
-                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;max-width:280px">${isId?'Cloud storage gratis & terenkripsi. Simpan file tanpa batas, aman dengan enkripsi militer.':'Free & encrypted cloud storage. Store files unlimited, secured with military-grade encryption.'}</p>
-                    <div style="display:flex;gap:12px;margin-top:16px">
-                        <div style="width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s ease" onmouseover="this.style.background='rgba(59,130,246,.15)'" onmouseout="this.style.background='rgba(59,130,246,.08)'"><i class="fab fa-github" style="font-size:14px;color:var(--text-secondary)"></i></div>
-                        <div style="width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s ease" onmouseover="this.style.background='rgba(59,130,246,.15)'" onmouseout="this.style.background='rgba(59,130,246,.08)'"><i class="fab fa-telegram" style="font-size:14px;color:var(--text-secondary)"></i></div>
-                    </div>
-                </div>
-                <div>
-                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;color:var(--text-secondary)">${isId?'Produk':'Product'}</h3>
-                    <div style="display:flex;flex-direction:column;gap:10px">
-                        <a href="#features" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Fitur':'Features'}</a>
-                        <a href="#/dashboard" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">Dashboard</a>
-                        <a href="#/login" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Masuk':'Sign In'}</a>
-                        <a href="#/register" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Daftar':'Register'}</a>
-                        <a href="#/admin-login" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Admin':'Admin'}</a>
-                        <a href="#" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Harga':'Pricing'}</a>
-                        <a href="#blog-section" style="color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">${isId?'Blog & Update':'Blog & Updates'}</a>
-                    </div>
-                </div>
-                <div>
-                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;color:var(--text-secondary)">${isId?'Keamanan':'Security'}</h3>
-                    <div style="display:flex;flex-direction:column;gap:10px">
-                        <span style="font-size:14px;color:var(--text-secondary);display:flex;align-items:center;gap:6px"><i class="fas fa-shield-halved" style="color:#10b981;font-size:12px"></i> E2E ${isId?'Enkripsi':'Encryption'}</span>
-                        <span style="font-size:14px;color:var(--text-secondary);display:flex;align-items:center;gap:6px"><i class="fas fa-key" style="color:#3b82f6;font-size:12px"></i> PIN Lock</span>
-                        <span style="font-size:14px;color:var(--text-secondary);display:flex;align-items:center;gap:6px"><i class="fas fa-user-secret" style="color:#8b5cf6;font-size:12px"></i> Proxy Mode</span>
-                    </div>
-                </div>
-                <div>
-                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;color:var(--text-secondary)">${isId?'Status':'Status'}</h3>
-                    <div style="display:flex;flex-direction:column;gap:10px">
-                        <span style="font-size:14px;color:var(--text-secondary);display:flex;align-items:center;gap:6px"><i class="fas fa-circle" style="color:#10b981;font-size:8px"></i> ${isId?'Online':'Online'}</span>
-                        <span style="font-size:14px;color:var(--text-secondary);display:flex;align-items:center;gap:6px"><i class="fas fa-infinity" style="color:#8b5cf6;font-size:12px"></i> ${isId?'Unlimited':'Unlimited'}</span>
-                        <span style="font-size:14px;color:var(--text-secondary);display:flex;align-items:center;gap:6px"><i class="fas fa-bolt" style="color:#f59e0b;font-size:12px"></i> ${isId?'Gratis':'Free'}</span>
-                    </div>
-                </div>
-            </div>
-            <div style="max-width:960px;margin:32px auto 0;padding-top:20px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px">
-                <p style="font-size:12px;color:var(--text-secondary)">${isId?'Ridgebox — Cloud Storage Gratis & Aman':'Ridgebox — Free & Secure Cloud Storage'}</p>
-                <p style="font-size:12px;color:var(--text-secondary)">© 2025 Ridgebox. ${isId?'Hak cipta dilindungi.':'All rights reserved.'}</p>
+            <p>&copy; 2025 RidgeBox. Cloud storage gratis &amp; aman.</p>
+            <div class="landing-footer-links">
+                <a href="https://github.com/Stonepath-dotcom/ridgebox" target="_blank" rel="noopener">GitHub</a>
+                <a href="#/">Privasi</a>
+                <a href="#/">Ketentuan</a>
             </div>
         </footer>
     </div>`;
 
-    // Initialize all luxury animations
-    initHeroParticles();
-    initHeroSpotlight();
-    initMagneticButtons();
-    initWordReveal();
-    initParallaxLayers();
-    initSectionOrchestrator();
-    setTimeout(() => {
-        const ms = document.getElementById('mockup-sidebar');
-        if (ms && window.innerWidth > 600) ms.style.display = 'block';
-    }, 100);
-    initScrollReveal();
-    animateCounters();
-    // New enhancement inits
-    initTypingEffect();
-    initHeroCounterAnimation();
-    initFeatureCarousel();
-    initParallaxOrbs();
-    initScrollRevealEnhanced();
-    initLiveActivityFeed();
-    initArchDiagram();
-    initBlog();
+    window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-// ===== LUXURY ANIMATION INIT FUNCTIONS =====
-function initHeroSpotlight() {
-    const section = document.getElementById('hero-section');
-    const glow = document.getElementById('hero-glow');
-    if (!section || !glow) return;
-    // Skip on mobile/touch — too expensive
-    if (window.innerWidth < 768 || 'ontouchstart' in window) {
-        glow.style.display = 'none';
-        return;
-    }
-    let _spotTick = false;
-    const handler = (e) => {
-        if (_spotTick) return;
-        _spotTick = true;
-        requestAnimationFrame(() => {
-            const rect = section.getBoundingClientRect();
-            glow.style.left = (e.clientX - rect.left) + 'px';
-            glow.style.top = (e.clientY - rect.top) + 'px';
-            glow.classList.add('active');
-            _spotTick = false;
-        });
-    };
-    section.addEventListener('mousemove', handler, { passive: true });
-    section.addEventListener('mouseleave', () => glow.classList.remove('active'));
-    if (window._spotlightCleanup) window._spotlightCleanup();
-    window._spotlightCleanup = () => {
-        section.removeEventListener('mousemove', handler);
-    };
-}
-
-function initMagneticButtons() {
-    // Skip on mobile/touch — causes jank
-    if (window.innerWidth < 768 || 'ontouchstart' in window) return;
-    document.querySelectorAll('.magnetic-btn').forEach(btn => {
-        const handler = (e) => {
-            const rect = btn.getBoundingClientRect();
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
-            btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
-        };
-        const reset = () => { btn.style.transform = ''; };
-        btn.addEventListener('mousemove', handler);
-        btn.addEventListener('mouseleave', reset);
-        btn.addEventListener('click', (e) => {
-            const ripple = document.createElement('span');
-            ripple.className = 'btn-ripple';
-            const rect = btn.getBoundingClientRect();
-            ripple.style.left = (e.clientX - rect.left) + 'px';
-            ripple.style.top = (e.clientY - rect.top) + 'px';
-            btn.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 600);
-        });
-    });
-}
-
-function initWordReveal() {
-    setTimeout(() => {
-        document.querySelectorAll('.word-reveal').forEach((el, i) => {
-            setTimeout(() => el.classList.add('revealed'), i * 200 + 300);
-        });
-    }, 200);
-}
-
-function initParallaxLayers() {
-    const section = document.getElementById('hero-section');
-    if (!section) return;
-    // Skip on mobile/touch — expensive transform recalculations
-    if (window.innerWidth < 768 || 'ontouchstart' in window) return;
-    const layers = section.querySelectorAll('.parallax-layer');
-    const handler = (e) => {
-        const rect = section.getBoundingClientRect();
-        const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
-        const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
-        layers.forEach(layer => {
-            const depth = parseFloat(layer.dataset.depth || 0.02);
-            const moveX = x * depth * 100;
-            const moveY = y * depth * 100;
-            layer.style.transform = `translate(${moveX}px, ${moveY}px)`;
-        });
-    };
-    section.addEventListener('mousemove', handler);
-    if (window._parallaxCleanup) window._parallaxCleanup();
-    window._parallaxCleanup = () => section.removeEventListener('mousemove', handler);
-}
-
-function initMockup3D() {
-    const mockup = document.getElementById('mockup-3d');
-    if (!mockup) return;
-    // Skip on mobile/touch — 3D transforms are expensive
-    if (window.innerWidth < 768 || 'ontouchstart' in window) return;
-    const parent = mockup.parentElement;
-    const handler = (e) => {
-        const rect = parent.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width - 0.5;
-        const y = (e.clientY - rect.top) / rect.height - 0.5;
-        mockup.style.transform = `perspective(1200px) rotateX(${-y * 6}deg) rotateY(${x * 6}deg)`;
-    };
-    const reset = () => { mockup.style.transform = 'perspective(1200px) rotateX(2deg)'; };
-    parent.addEventListener('mousemove', handler);
-    parent.addEventListener('mouseleave', reset);
-    if (window._mockup3DCleanup) window._mockup3DCleanup();
-    window._mockup3DCleanup = () => {
-        parent.removeEventListener('mousemove', handler);
-        parent.removeEventListener('mouseleave', reset);
-    };
-}
-
-function initSectionOrchestrator() {
-    const sections = document.querySelectorAll('.section-orchestrated');
-    if (!sections.length || !('IntersectionObserver' in window)) {
-        sections.forEach(s => s.classList.add('in-view'));
-        return;
-    }
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('in-view');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
-    sections.forEach(s => observer.observe(s));
-    // Also init scale-entrance
-    document.querySelectorAll('.scale-entrance').forEach(el => {
-        const obs = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) { entry.target.classList.add('in-view'); obs.unobserve(entry.target); }
-            });
-        }, { threshold: 0.1 });
-        obs.observe(el);
-    });
-}
-
-// ===== HERO PARTICLE CANVAS =====
-function initHeroParticles() {
-    const canvas = document.getElementById('hero-particles');
-    if (!canvas) return;
-    // Skip canvas particles on mobile for performance
-    if (window.innerWidth < 768) { canvas.style.display = 'none'; return; }
-    const ctx = canvas.getContext('2d');
-    let w, h, particles = [], animId;
-    function resize() {
-        const parent = canvas.parentElement;
-        if (!parent) return;
-        w = canvas.width = parent.offsetWidth;
-        h = canvas.height = parent.offsetHeight;
-    }
-    resize();
-    window.addEventListener('resize', resize);
-    // Reduced particles for performance
-    const count = Math.min(25, Math.floor(w * h / 40000));
-    for (let i = 0; i < count; i++) {
-        particles.push({
-            x: Math.random() * w,
-            y: Math.random() * h,
-            r: Math.random() * 1.5 + 0.5,
-            dx: (Math.random() - 0.5) * 0.3,
-            dy: (Math.random() - 0.5) * 0.3,
-            opacity: Math.random() * 0.25 + 0.05
-        });
-    }
-    function draw() {
-        ctx.clearRect(0, 0, w, h);
-        particles.forEach(p => {
-            p.x += p.dx;
-            p.y += p.dy;
-            if (p.x < 0) p.x = w;
-            if (p.x > w) p.x = 0;
-            if (p.y < 0) p.y = h;
-            if (p.y > h) p.y = 0;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255,255,255,${p.opacity})`;
-            ctx.fill();
-        });
-        // Draw connections (reduced distance check)
-        const maxDist = 80;
-        for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-                const dx = particles[i].x - particles[j].x;
-                const dy = particles[i].y - particles[j].y;
-                const distSq = dx * dx + dy * dy;
-                if (distSq < maxDist * maxDist) {
-                    const dist = Math.sqrt(distSq);
-                    ctx.beginPath();
-                    ctx.moveTo(particles[i].x, particles[i].y);
-                    ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.strokeStyle = `rgba(255,255,255,${0.04 * (1 - dist / maxDist)})`;
-                    ctx.lineWidth = 0.5;
-                    ctx.stroke();
-                }
-            }
-        }
-        animId = requestAnimationFrame(draw);
-    }
-    draw();
-    // Cleanup on page change
-    const origRoute = window._routeHandler;
-    const cleanup = () => {
-        cancelAnimationFrame(animId);
-        window.removeEventListener('resize', resize);
-    };
-    // Store cleanup for next route
-    if (window._particleCleanup) window._particleCleanup();
-    window._particleCleanup = cleanup;
-}
-
-function animateCounters() { // F69
-    const counters = document.querySelectorAll('[data-count]');
-    counters.forEach(el => {
-        const target = el.dataset.count;
-        if (target === 'unlimited') return;
-        const targetNum = parseInt(target);
-        const duration = 1000;
-        const start = performance.now();
-        function update(now) {
-            const elapsed = now - start;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            el.textContent = Math.round(targetNum * eased).toLocaleString();
-            if (progress < 1) requestAnimationFrame(update);
-        }
-        requestAnimationFrame(update);
-    });
-}
-
-// ===== TYPING EFFECT =====
-function initTypingEffect() {
-    const el = document.getElementById('typing-text');
-    if (!el) return;
-    const phrases = [
-        'Cloud Storage. Tanpa Batas.',
-        'Powered by Telegram.',
-        'Gratis. Aman. Cepat.'
-    ];
-    let phraseIdx = 0, charIdx = 0, deleting = false;
-    let typeSpeed = 80, deleteSpeed = 40, pauseEnd = 2000, pauseStart = 500;
-
-    function type() {
-        const currentPhrase = phrases[phraseIdx];
-        if (!deleting) {
-            el.textContent = currentPhrase.substring(0, charIdx + 1);
-            charIdx++;
-            if (charIdx === currentPhrase.length) {
-                deleting = true;
-                setTimeout(type, pauseEnd);
-                return;
-            }
-            setTimeout(type, typeSpeed);
-        } else {
-            el.textContent = currentPhrase.substring(0, charIdx - 1);
-            charIdx--;
-            if (charIdx === 0) {
-                deleting = false;
-                phraseIdx = (phraseIdx + 1) % phrases.length;
-                setTimeout(type, pauseStart);
-                return;
-            }
-            setTimeout(type, deleteSpeed);
-        }
-    }
-    setTimeout(type, 1000);
-}
-
-// ===== ANIMATED HERO COUNTER (IntersectionObserver) =====
-function initHeroCounterAnimation() {
-    const counters = document.querySelectorAll('.hero-counter-num[data-count]');
-    if (!counters.length) return;
-    if (!('IntersectionObserver' in window)) {
-        counters.forEach(el => {
-            const target = parseInt(el.dataset.count);
-            const suffix = el.dataset.suffix || '';
-            el.textContent = target.toLocaleString() + suffix;
-        });
-        return;
-    }
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const el = entry.target;
-                const target = parseInt(el.dataset.count);
-                const suffix = el.dataset.suffix || '';
-                const duration = 1500;
-                const start = performance.now();
-                function update(now) {
-                    const elapsed = now - start;
-                    const progress = Math.min(elapsed / duration, 1);
-                    const eased = 1 - Math.pow(1 - progress, 3);
-                    el.textContent = Math.round(target * eased).toLocaleString() + suffix;
-                    if (progress < 1) requestAnimationFrame(update);
-                }
-                requestAnimationFrame(update);
-                observer.unobserve(el);
-            }
-        });
-    }, { threshold: 0.1 });
-    counters.forEach(el => observer.observe(el));
-}
-
-// ===== FEATURE CAROUSEL =====
-let _carouselInterval = null;
-let _carouselSlide = 0;
-function initFeatureCarousel() {
-    const carousel = document.getElementById('feature-carousel');
-    const dots = document.querySelectorAll('#carousel-dots .carousel-dot');
-    if (!carousel || !dots.length) return;
-    _carouselSlide = 0;
-    updateCarouselPosition();
-    _carouselInterval = setInterval(() => {
-        _carouselSlide = (_carouselSlide + 1) % dots.length;
-        updateCarouselPosition();
-    }, 4000);
-    // Sync dots with scroll position on touch swipe
-    let scrollTimeout;
-    carousel.addEventListener('scroll', () => {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-            const cardWidth = carousel.querySelector('.feature-carousel-card')?.offsetWidth + 12 || 200;
-            _carouselSlide = Math.round(carousel.scrollLeft / cardWidth);
-            dots.forEach((d, i) => d.classList.toggle('active', i === _carouselSlide));
-        }, 100);
-    });
-}
-function updateCarouselPosition() {
-    const carousel = document.getElementById('feature-carousel');
-    const dots = document.querySelectorAll('#carousel-dots .carousel-dot');
-    if (!carousel || !dots.length) return;
-    const cards = carousel.querySelectorAll('.feature-carousel-card');
-    if (!cards.length) return;
-    const cardWidth = cards[0].offsetWidth + 12; // card width + gap
-    carousel.scrollTo({ left: _carouselSlide * cardWidth, behavior: 'smooth' });
-    dots.forEach((d, i) => d.classList.toggle('active', i === _carouselSlide));
-}
-function goToCarouselSlide(idx) {
-    _carouselSlide = idx;
-    updateCarouselPosition();
-    if (_carouselInterval) clearInterval(_carouselInterval);
-    _carouselInterval = setInterval(() => {
-        _carouselSlide = (_carouselSlide + 1) % document.querySelectorAll('#carousel-dots .carousel-dot').length;
-        updateCarouselPosition();
-    }, 4000);
-}
-function pauseCarousel() { if (_carouselInterval) clearInterval(_carouselInterval); }
-function resumeCarousel() {
-    if (_carouselInterval) clearInterval(_carouselInterval);
-    _carouselInterval = setInterval(() => {
-        const dots = document.querySelectorAll('#carousel-dots .carousel-dot');
-        _carouselSlide = (_carouselSlide + 1) % dots.length;
-        updateCarouselPosition();
-    }, 4000);
-}
-
-// ===== PARALLAX BACKGROUND ORBS =====
-function initParallaxOrbs() {
-    const container = document.getElementById('parallax-orbs');
-    if (!container) return;
-    // Create orbs
-    const orbData = [
-        { w: 400, h: 400, bg: '#3b82f6', top: '10%', left: '5%', speed: 0.02 },
-        { w: 350, h: 350, bg: '#8b5cf6', top: '50%', left: '70%', speed: 0.03 },
-        { w: 300, h: 300, bg: '#ec4899', top: '70%', left: '20%', speed: 0.015 },
-        { w: 250, h: 250, bg: '#06b6d4', top: '20%', left: '60%', speed: 0.025 }
-    ];
-    container.innerHTML = '';
-    orbData.forEach(o => {
-        const orb = document.createElement('div');
-        orb.className = 'parallax-orb';
-        orb.style.width = o.w + 'px';
-        orb.style.height = o.h + 'px';
-        orb.style.background = o.bg;
-        orb.style.top = o.top;
-        orb.style.left = o.left;
-        orb.dataset.speed = o.speed;
-        container.appendChild(orb);
-    });
-
-    // Throttled scroll handler
-    let ticking = false;
-    const handler = () => {
-        if (ticking) return;
-        ticking = true;
-        requestAnimationFrame(() => {
-            const scrollY = window.scrollY;
-            container.querySelectorAll('.parallax-orb').forEach(orb => {
-                const speed = parseFloat(orb.dataset.speed || 0.02);
-                orb.style.transform = `translateY(${scrollY * speed}px)`;
-            });
-            ticking = false;
-        });
-    };
-    window.addEventListener('scroll', handler, { passive: true });
-}
-
-// ===== DARK MODE TOGGLE — consolidated into toggleTheme() =====
-
-// ===== SCROLL REVEAL ENHANCED (for .scroll-reveal) =====
-function initScrollRevealEnhanced() {
-    const elements = document.querySelectorAll('.scroll-reveal');
-    if (!elements.length) return;
-    if (!('IntersectionObserver' in window)) {
-        elements.forEach(el => el.classList.add('visible'));
-        return;
-    }
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-    elements.forEach(el => observer.observe(el));
-}
-
-// ===== ARCHITECTURE DIAGRAM ANIMATION =====
-function initArchDiagram() {
-    const section = document.getElementById('arch-section');
-    if (!section) return;
-
-    const nodes = section.querySelectorAll('.arch-node');
-    const flowLines = section.querySelectorAll('.arch-flow-line');
-    const particles = section.querySelectorAll('.arch-particle');
-
-    // Staggered fade-in for nodes when section enters viewport
-    if ('IntersectionObserver' in window) {
-        const archObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    // Stagger node reveals
-                    nodes.forEach(node => {
-                        const delay = parseInt(node.getAttribute('data-arch-delay') || '0', 10);
-                        setTimeout(() => {
-                            node.classList.add('visible');
-                        }, delay * 150 + 200);
-                    });
-
-                    // Activate flow lines with stagger
-                    flowLines.forEach((line, i) => {
-                        setTimeout(() => {
-                            line.classList.add('active');
-                        }, i * 100 + 800);
-                    });
-
-                    // Activate particles
-                    setTimeout(() => {
-                        particles.forEach(p => p.classList.add('active'));
-                    }, 1200);
-
-                    archObserver.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
-        archObserver.observe(section);
-    } else {
-        // Fallback: show everything immediately
-        nodes.forEach(n => n.classList.add('visible'));
-        flowLines.forEach(l => l.classList.add('active'));
-        particles.forEach(p => p.classList.add('active'));
-    }
-}
-
-// ===== LIVE ACTIVITY FEED =====
-function initLiveActivityFeed() {
-    const feed = document.getElementById('live-activity-feed');
-    if (!feed) return;
-    const isId = APP.lang === 'id';
-    const names = isId
-        ? ['Andi','Budi','Sari','Dewi','Raka','Nadia','Fajar','Luna','Dimas','Ayu','Rio','Putri','Hadi','Maya','Yoga','Citra','Agus','Lina','Bayu','Rini']
-        : ['Alex','Sarah','Mike','Emma','James','Lily','Tom','Anna','David','Sophie','Chris','Olivia','Nick','Mia','Jack','Ella','Leo','Zoe','Ryan','Nora'];
-    const fileTypes = [
-        { ext: '.pdf', icon: 'fa-file-pdf', color: '#ef4444' },
-        { ext: '.jpg', icon: 'fa-image', color: '#10b981' },
-        { ext: '.png', icon: 'fa-image', color: '#10b981' },
-        { ext: '.mp4', icon: 'fa-film', color: '#8b5cf6' },
-        { ext: '.mp3', icon: 'fa-music', color: '#f59e0b' },
-        { ext: '.zip', icon: 'fa-file-zipper', color: '#64748b' },
-        { ext: '.docx', icon: 'fa-file-word', color: '#3b82f6' },
-        { ext: '.xlsx', icon: 'fa-file-excel', color: '#10b981' },
-        { ext: '.pptx', icon: 'fa-file-powerpoint', color: '#f97316' },
-        { ext: '.py', icon: 'fa-file-code', color: '#06b6d4' }
-    ];
-    const actions = isId
-        ? ['mengupload','membackup','menyimpan','membagikan']
-        : ['uploaded','backed up','saved','shared'];
-    const prefixes = isId
-        ? ['Laporan','Foto','Video','Dokumen','Project','Backup','Arsip','Catatan','Presentasi','Music']
-        : ['Report','Photo','Video','Document','Project','Backup','Archive','Notes','Presentation','Track'];
-    const sizes = ['1.2 MB','3.4 MB','856 KB','12.5 MB','2.1 MB','45 MB','678 KB','5.7 MB','23 MB','1.8 MB'];
-    const times = isId
-        ? ['baru saja','1 menit lalu','2 menit lalu','3 menit lalu','5 menit lalu','7 menit lalu','10 menit lalu','15 menit lalu']
-        : ['just now','1 min ago','2 min ago','3 min ago','5 min ago','7 min ago','10 min ago','15 min ago'];
-
-    function generateItem() {
-        const name = names[Math.floor(Math.random() * names.length)];
-        const ft = fileTypes[Math.floor(Math.random() * fileTypes.length)];
-        const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-        const action = actions[Math.floor(Math.random() * actions.length)];
-        const size = sizes[Math.floor(Math.random() * sizes.length)];
-        const time = times[Math.floor(Math.random() * times.length)];
-        return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);animation:fadeIn .4s ease">
-            <div style="width:36px;height:36px;border-radius:10px;background:${ft.color}12;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${ft.icon}" style="font-size:14px;color:${ft.color}"></i></div>
-            <div style="flex:1;min-width:0">
-                <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>${name}</strong> ${action} <span style="color:var(--accent)">${prefix}${ft.ext}</span></div>
-                <div style="font-size:11px;color:var(--text-secondary)">${size} · ${time}</div>
-            </div>
-        </div>`;
-    }
-
-    // Fill initial items
-    let items = [];
-    for (let i = 0; i < 6; i++) items.push(generateItem());
-    feed.innerHTML = items.join('');
-
-    // Add new items periodically
-    setInterval(() => {
-        if (document.hidden) return;
-        const newItem = generateItem();
-        feed.insertAdjacentHTML('afterbegin', newItem);
-        // Remove last if too many
-        while (feed.children.length > 6) {
-            feed.removeChild(feed.lastChild);
-        }
-    }, 3000);
-}
-
-// ===== BLOG SECTION — Auto-Updating =====
-function initBlog() {
-    const grid = document.getElementById('blog-grid');
-    if (!grid) return;
-    const isId = APP.lang === 'id';
-
-    // Blog post database — rich content that rotates
-    const blogPosts = isId ? [
-        { tag:'Tips', tagColor:'#10b981', tagBg:'rgba(16,185,129,.12)', title:'5 Cara Optimasi Penyimpanan Cloud Gratis', excerpt:'Pelajari trik mengelola file di cloud tanpa bayar sepeser pun. Dari kompresi otomatis sampai deduplikasi file.', icon:'fa-lightbulb', grad:'linear-gradient(135deg,#10b981,#06b6d4)', img:'/blog-img/01-cloud-optimize.png', time:'5 min', date:'6 Jun 2026' },
-        { tag:'Update', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'Enkripsi AES-256: Kenapa Ini Penting?', excerpt:'Penjelasan lengkap bagaimana AES-256-GCM melindungi file Anda dari akses tidak sah. Keamanan yang dipakai militer.', icon:'fa-shield-halved', grad:'linear-gradient(135deg,#3b82f6,#6366f1)', img:'/blog-img/02-encryption.png', time:'4 min', date:'5 Jun 2026' },
-        { tag:'Tutorial', tagColor:'#8b5cf6', tagBg:'rgba(139,92,246,.12)', title:'Cara Setup Bot Telegram untuk Cloud Storage', excerpt:'Step-by-step guide konfigurasi Telegram bot sebagai file storage pribadi Anda. Gratis dan tanpa batas.', icon:'fa-robot', grad:'linear-gradient(135deg,#8b5cf6,#ec4899)', img:'/blog-img/03-telegram-bot.png', time:'7 min', date:'4 Jun 2026' },
-        { tag:'Komparasi', tagColor:'#f59e0b', tagBg:'rgba(245,158,11,.12)', title:'RidgeBox vs Google Drive: Mana yang Lebih Hemat?', excerpt:'Analisis mendalam biaya dan fitur antara RidgeBox dan Google Drive. Hasilnya bisa mengejutkan Anda.', icon:'fa-chart-bar', grad:'linear-gradient(135deg,#f59e0b,#ef4444)', img:'/blog-img/04-comparison.png', time:'6 min', date:'3 Jun 2026' },
-        { tag:'Security', tagColor:'#ef4444', tagBg:'rgba(239,68,68,.12)', title:'Self-Destruct Link: Berbagi File Tanpa Jejak', excerpt:'Fitur link yang hilang sendiri setelah dibuka. Sempurna untuk file sensitif yang tidak boleh tersebar.', icon:'fa-bomb', grad:'linear-gradient(135deg,#ef4444,#ec4899)', img:'/blog-img/05-self-destruct.png', time:'3 min', date:'2 Jun 2026' },
-        { tag:'Tips', tagColor:'#10b981', tagBg:'rgba(16,185,129,.12)', title:'Backup Otomatis: Lindungi Data dari Kehilangan', excerpt:'Setup auto-backup supaya file penting Anda selalu aman. Tidak perlu ingat manual lagi.', icon:'fa-clock-rotate-left', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)', img:'/blog-img/06-autobackup.png', time:'4 min', date:'1 Jun 2026' },
-        { tag:'Feature', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'Upload dari Kamera: Langsung Simpan ke Cloud', excerpt:'Foto dan video dari kamera HP langsung tersimpan di cloud tanpa pindah manual. Praktis banget!', icon:'fa-camera', grad:'linear-gradient(135deg,#3b82f6,#8b5cf6)', img:'/blog-img/07-camera-upload.png', time:'3 min', date:'31 Mei 2026' },
-        { tag:'Update', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'PIN Lock: Keamanan Tambahan untuk Dashboard', excerpt:'Tambahkan PIN 4 digit untuk mengunci dashboard. File Anda tetap aman meski HP dipinjam orang.', icon:'fa-lock', grad:'linear-gradient(135deg,#6366f1,#3b82f6)', img:'/blog-img/08-pin-lock.png', time:'2 min', date:'30 Mei 2026' },
-        { tag:'Tutorial', tagColor:'#8b5cf6', tagBg:'rgba(139,92,246,.12)', title:'Gallery Publik: Showcase Karya Anda ke Dunia', excerpt:'Buat gallery publik untuk memamerkan foto, desain, atau portfolio. Bisa dibagikan via link.', icon:'fa-images', grad:'linear-gradient(135deg,#ec4899,#8b5cf6)', img:'/blog-img/09-gallery.png', time:'5 min', date:'29 Mei 2026' },
-        { tag:'Komparasi', tagColor:'#f59e0b', tagBg:'rgba(245,158,11,.12)', title:'Dropbox vs iCloud vs RidgeBox: Siapa Pemenangnya?', excerpt:'Perbandingan jujur tiga layanan cloud storage dari segi harga, fitur, dan kemudahan penggunaan.', icon:'fa-trophy', grad:'linear-gradient(135deg,#f59e0b,#10b981)', img:'/blog-img/10-three-comparison.png', time:'6 min', date:'28 Mei 2026' },
-        { tag:'Tips', tagColor:'#10b981', tagBg:'rgba(16,185,129,.12)', title:'Organisasi File dengan Tag Warna', excerpt:'Gunakan tag warna untuk mengkategorikan file secara visual. Lebih cepat daripada folder biasa.', icon:'fa-tags', grad:'linear-gradient(135deg,#10b981,#3b82f6)', img:'/blog-img/11-color-tags.png', time:'3 min', date:'27 Mei 2026' },
-        { tag:'Feature', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'Proxy Mode: Akses File dari Jaringan Terbatas', excerpt:'Bypass firewall dan jaringan terbatas dengan proxy mode. File Anda tetap bisa diakses dari mana saja.', icon:'fa-globe', grad:'linear-gradient(135deg,#3b82f6,#06b6d4)', img:'/blog-img/12-proxy-mode.png', time:'4 min', date:'26 Mei 2026' },
-    ] : [
-        { tag:'Tips', tagColor:'#10b981', tagBg:'rgba(16,185,129,.12)', title:'5 Ways to Optimize Free Cloud Storage', excerpt:'Learn tricks to manage files in the cloud without paying a dime. From auto-compression to file deduplication.', icon:'fa-lightbulb', grad:'linear-gradient(135deg,#10b981,#06b6d4)', img:'/blog-img/01-cloud-optimize.png', time:'5 min', date:'Jun 6, 2026' },
-        { tag:'Update', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'AES-256 Encryption: Why It Matters', excerpt:'Full explanation of how AES-256-GCM protects your files from unauthorized access. Military-grade security.', icon:'fa-shield-halved', grad:'linear-gradient(135deg,#3b82f6,#6366f1)', img:'/blog-img/02-encryption.png', time:'4 min', date:'Jun 5, 2026' },
-        { tag:'Tutorial', tagColor:'#8b5cf6', tagBg:'rgba(139,92,246,.12)', title:'How to Set Up a Telegram Bot for Cloud Storage', excerpt:'Step-by-step guide to configure a Telegram bot as your personal file storage. Free and unlimited.', icon:'fa-robot', grad:'linear-gradient(135deg,#8b5cf6,#ec4899)', img:'/blog-img/03-telegram-bot.png', time:'7 min', date:'Jun 4, 2026' },
-        { tag:'Comparison', tagColor:'#f59e0b', tagBg:'rgba(245,158,11,.12)', title:'RidgeBox vs Google Drive: Which Saves More?', excerpt:'Deep analysis of cost and features between RidgeBox and Google Drive. The results may surprise you.', icon:'fa-chart-bar', grad:'linear-gradient(135deg,#f59e0b,#ef4444)', img:'/blog-img/04-comparison.png', time:'6 min', date:'Jun 3, 2026' },
-        { tag:'Security', tagColor:'#ef4444', tagBg:'rgba(239,68,68,.12)', title:'Self-Destruct Links: Share Files Without a Trace', excerpt:'Links that disappear after being opened. Perfect for sensitive files that should not spread.', icon:'fa-bomb', grad:'linear-gradient(135deg,#ef4444,#ec4899)', img:'/blog-img/05-self-destruct.png', time:'3 min', date:'Jun 2, 2026' },
-        { tag:'Tips', tagColor:'#10b981', tagBg:'rgba(16,185,129,.12)', title:'Auto-Backup: Protect Data from Loss', excerpt:'Set up auto-backup so your important files are always safe. No need to remember manually.', icon:'fa-clock-rotate-left', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)', img:'/blog-img/06-autobackup.png', time:'4 min', date:'Jun 1, 2026' },
-        { tag:'Feature', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'Camera Upload: Save Directly to Cloud', excerpt:'Photos and videos from your phone camera saved directly to the cloud. Super convenient!', icon:'fa-camera', grad:'linear-gradient(135deg,#3b82f6,#8b5cf6)', img:'/blog-img/07-camera-upload.png', time:'3 min', date:'May 31, 2026' },
-        { tag:'Update', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'PIN Lock: Extra Security for Your Dashboard', excerpt:'Add a 4-digit PIN to lock your dashboard. Your files stay safe even if someone borrows your phone.', icon:'fa-lock', grad:'linear-gradient(135deg,#6366f1,#3b82f6)', img:'/blog-img/08-pin-lock.png', time:'2 min', date:'May 30, 2026' },
-        { tag:'Tutorial', tagColor:'#8b5cf6', tagBg:'rgba(139,92,246,.12)', title:'Public Gallery: Showcase Your Work to the World', excerpt:'Create a public gallery to display photos, designs, or portfolios. Shareable via link.', icon:'fa-images', grad:'linear-gradient(135deg,#ec4899,#8b5cf6)', img:'/blog-img/09-gallery.png', time:'5 min', date:'May 29, 2026' },
-        { tag:'Comparison', tagColor:'#f59e0b', tagBg:'rgba(245,158,11,.12)', title:'Dropbox vs iCloud vs RidgeBox: Who Wins?', excerpt:'Honest comparison of three cloud storage services on price, features, and ease of use.', icon:'fa-trophy', grad:'linear-gradient(135deg,#f59e0b,#10b981)', img:'/blog-img/10-three-comparison.png', time:'6 min', date:'May 28, 2026' },
-        { tag:'Tips', tagColor:'#10b981', tagBg:'rgba(16,185,129,.12)', title:'File Organization with Color Tags', excerpt:'Use color tags to categorize files visually. Faster than regular folders.', icon:'fa-tags', grad:'linear-gradient(135deg,#10b981,#3b82f6)', img:'/blog-img/11-color-tags.png', time:'3 min', date:'May 27, 2026' },
-        { tag:'Feature', tagColor:'#3b82f6', tagBg:'rgba(59,130,246,.12)', title:'Proxy Mode: Access Files from Restricted Networks', excerpt:'Bypass firewalls and restricted networks with proxy mode. Access your files from anywhere.', icon:'fa-globe', grad:'linear-gradient(135deg,#3b82f6,#06b6d4)', img:'/blog-img/12-proxy-mode.png', time:'4 min', date:'May 26, 2026' },
-    ];
-
-    // Featured post rotation data
-    const featuredPosts = isId ? [
-        { tag:'Feature', title:'RidgeBox v3.2: Upload Chunked & Gallery Publik', desc:'Update besar! Upload file besar hingga 2GB dengan chunked upload, plus fitur gallery publik untuk showcase karya Anda.', icon:'fa-rocket', grad:'linear-gradient(135deg,#1e3a5f,#3b82f6,#8b5cf6)', img:'/blog-img/feat-01-rocket.png' },
-        { tag:'Update', title:'105 Fitur Gratis — Dan Terus Bertambah!', desc:'RidgeBox kini punya 105 fitur lengkap tanpa bayar. Dari enkripsi AES-256 sampai upload dari kamera, semua gratis.', icon:'fa-infinity', grad:'linear-gradient(135deg,#0f172a,#10b981,#06b6d4)', img:'/blog-img/feat-02-infinity.png' },
-        { tag:'Tips', title:'Hemat Kuota dengan Proxy Mode RidgeBox', desc:'Akses file dari jaringan terbatas tanpa VPN. Proxy mode bantu bypass firewall dengan aman dan cepat.', icon:'fa-globe', grad:'linear-gradient(135deg,#1e1b4b,#3b82f6,#ec4899)', img:'/blog-img/feat-03-proxy.png' },
-        { tag:'Security', title:'Mengapa Self-Destruct Link Jadi Fitur Favorit', desc:'Link yang hilang sendiri setelah dibuka — sempurna untuk file sensitif. Ini cara kerjanya di balik layar.', icon:'fa-shield-halved', grad:'linear-gradient(135deg,#1e1b4b,#ef4444,#f59e0b)', img:'/blog-img/feat-04-security.png' },
-    ] : [
-        { tag:'Feature', title:'RidgeBox v3.2: Chunked Upload & Public Gallery', desc:'Major update! Upload large files up to 2GB with chunked upload, plus public gallery feature to showcase your work.', icon:'fa-rocket', grad:'linear-gradient(135deg,#1e3a5f,#3b82f6,#8b5cf6)', img:'/blog-img/feat-01-rocket.png' },
-        { tag:'Update', title:'105 Free Features — And Still Growing!', desc:'RidgeBox now has 105 complete features at no cost. From AES-256 encryption to camera upload, everything is free.', icon:'fa-infinity', grad:'linear-gradient(135deg,#0f172a,#10b981,#06b6d4)', img:'/blog-img/feat-02-infinity.png' },
-        { tag:'Tips', title:'Save Bandwidth with RidgeBox Proxy Mode', desc:'Access files from restricted networks without VPN. Proxy mode helps bypass firewalls safely and quickly.', icon:'fa-globe', grad:'linear-gradient(135deg,#1e1b4b,#3b82f6,#ec4899)', img:'/blog-img/feat-03-proxy.png' },
-        { tag:'Security', title:'Why Self-Destruct Links Are a Fan Favorite', desc:'Links that vanish after being opened — perfect for sensitive files. Here is how it works behind the scenes.', icon:'fa-shield-halved', grad:'linear-gradient(135deg,#1e1b4b,#ef4444,#f59e0b)', img:'/blog-img/feat-04-security.png' },
-    ];
-
-    // Ticker messages that rotate
-    const tickerMessages = isId ? [
-        '<i class="fas fa-bullhorn" style="margin-right:4px"></i> RidgeBox v3.2 sudah live! Upload chunked + gallery publik sekarang tersedia',
-        '<i class="fas fa-lightbulb" style="margin-right:4px"></i> Tips: Gunakan Ctrl+U untuk upload cepat langsung dari keyboard',
-        '<i class="fas fa-shield-halved" style="margin-right:4px"></i> Enkripsi AES-256 melindungi setiap file Anda — tanpa biaya tambahan',
-        '<i class="fas fa-rocket" style="margin-right:4px"></i> 3.200+ pengguna aktif sudah menyimpan 12.000+ file di RidgeBox',
-        '<i class="fas fa-mobile-screen" style="margin-right:4px"></i> PWA Ready — Install RidgeBox langsung dari browser, tanpa Play Store',
-        '<i class="fas fa-gift" style="margin-right:4px"></i> 105 fitur gratis, tanpa hidden cost, tanpa iklan. Selamanya.',
-        '<i class="fas fa-link" style="margin-right:4px"></i> Self-destruct link: bagikan file sensitif tanpa khawatir tersebar',
-        '<i class="fas fa-bolt" style="margin-right:4px"></i> Upload 100MB dalam ~3 detik — tercepat di kelasnya!',
-    ] : [
-        '<i class="fas fa-bullhorn" style="margin-right:4px"></i> RidgeBox v3.2 is live! Chunked upload + public gallery now available',
-        '<i class="fas fa-lightbulb" style="margin-right:4px"></i> Tip: Use Ctrl+U for quick upload directly from your keyboard',
-        '<i class="fas fa-shield-halved" style="margin-right:4px"></i> AES-256 encryption protects every file — at no extra cost',
-        '<i class="fas fa-rocket" style="margin-right:4px"></i> 3,200+ active users have stored 12,000+ files on RidgeBox',
-        '<i class="fas fa-mobile-screen" style="margin-right:4px"></i> PWA Ready — Install RidgeBox directly from the browser, no Play Store',
-        '<i class="fas fa-gift" style="margin-right:4px"></i> 105 features free, no hidden costs, no ads. Forever.',
-        '<i class="fas fa-link" style="margin-right:4px"></i> Self-destruct links: share sensitive files without worrying about leaks',
-        '<i class="fas fa-bolt" style="margin-right:4px"></i> Upload 100MB in ~3 seconds — fastest in its class!',
-    ];
-
-    // Render blog cards
-    function renderCard(post, isNew) {
-        const imgHtml = post.img
-            ? `<img src="${post.img}" alt="${post.title}" loading="lazy"><div class="img-overlay"></div><i class="fas ${post.icon} img-icon"></i>`
-            : `<i class="fas ${post.icon}"></i>`;
-        return `<div class="blog-card${isNew ? ' is-new' : ''}">
-            <div class="blog-card-img" style="background:${post.grad}">${imgHtml}</div>
-            <div class="blog-card-body">
-                <span class="blog-card-tag" style="background:${post.tagBg};color:${post.tagColor}">${post.tag}</span>
-                <div class="blog-card-title">${post.title}</div>
-                <div class="blog-card-excerpt">${post.excerpt}</div>
-                <div class="blog-card-meta">
-                    <i class="fas fa-cloud" style="color:var(--accent);font-size:10px"></i>
-                    <span>RidgeBox Team</span>
-                    <span>·</span>
-                    <span>${post.time} ${isId?'baca':'read'}</span>
-                    <span>·</span>
-                    <span>${post.date}</span>
-                </div>
-            </div>
-        </div>`;
-    }
-
-    // Show initial 4 blog cards
-    const initial = blogPosts.slice(0, 4);
-    grid.innerHTML = initial.map(p => renderCard(p, false)).join('');
-
-    // Auto-rotate featured post every 8 seconds
-    let featuredIdx = 0;
-    const featuredEl = document.getElementById('blog-featured');
-    const featuredBg = document.getElementById('blog-featured-bg');
-    const featuredTitle = document.getElementById('blog-featured-title');
-    const featuredDesc = document.getElementById('blog-featured-desc');
-    const featuredTag = document.getElementById('blog-featured-tag');
-    const featuredDate = document.getElementById('blog-featured-date');
-    const featuredImg = document.getElementById('blog-featured-img');
-
-    setInterval(() => {
-        if (document.hidden) return;
-        featuredIdx = (featuredIdx + 1) % featuredPosts.length;
-        const fp = featuredPosts[featuredIdx];
-        if (featuredTitle) featuredTitle.textContent = fp.title;
-        if (featuredDesc) featuredDesc.textContent = fp.desc;
-        if (featuredTag) featuredTag.textContent = fp.tag;
-        if (featuredBg && fp.img) featuredBg.src = fp.img;
-        if (featuredImg) {
-            featuredImg.innerHTML = `<i class="fas ${fp.icon}" style="font-size:64px;color:rgba(255,255,255,.1);position:relative;z-index:2"></i>`;
-        }
-        // Animate transition
-        if (featuredEl) {
-            featuredEl.style.opacity = '0';
-            featuredEl.style.transform = 'translateY(8px)';
-            setTimeout(() => {
-                featuredEl.style.transition = 'all .4s ease';
-                featuredEl.style.opacity = '1';
-                featuredEl.style.transform = 'translateY(0)';
-            }, 50);
-        }
-    }, 8000);
-
-    // Auto-add new blog card every 15 seconds (cycle through remaining posts)
-    let blogIdx = 4;
-    setInterval(() => {
-        if (document.hidden) return;
-        const post = blogPosts[blogIdx % blogPosts.length];
-        const newCard = renderCard(post, true);
-        grid.insertAdjacentHTML('afterbegin', newCard);
-        // Remove oldest if more than 4
-        while (grid.children.length > 4) {
-            grid.removeChild(grid.lastChild);
-        }
-        blogIdx++;
-    }, 15000);
-
-    // Rotate ticker messages
-    let tickerIdx = 0;
-    const tickerEl = document.getElementById('blog-ticker');
-    setInterval(() => {
-        if (document.hidden || !tickerEl) return;
-        tickerIdx = (tickerIdx + 1) % tickerMessages.length;
-        tickerEl.style.opacity = '0';
-        setTimeout(() => {
-            tickerEl.textContent = tickerMessages[tickerIdx];
-            tickerEl.style.opacity = '1';
-        }, 300);
-    }, 6000);
-    if (tickerEl) {
-        tickerEl.style.transition = 'opacity .3s ease';
-        tickerEl.style.animation = 'none'; // Disable CSS scroll animation, use JS instead
-    }
-}
-
-// ===== SCROLL REVEAL (IntersectionObserver) =====
-function initScrollReveal() {
-    const elements = document.querySelectorAll('.sr, .sr-left, .sr-right, .sr-scale');
-    if (!elements.length) return;
-    if (!('IntersectionObserver' in window)) { elements.forEach(el => el.classList.add('revealed')); return; }
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('revealed');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-    elements.forEach(el => observer.observe(el));
-}
-
-// ===== NEWSLETTER SUBSCRIBE =====
-function subscribeNewsletter() {
-    const email = document.getElementById('newsletter-email');
-    if (!email || !email.value || !email.value.includes('@')) {
-        showToast(APP.lang === 'id' ? 'Masukkan email yang valid' : 'Enter a valid email', 'warning');
-        return;
-    }
-    // Save to localStorage as simple subscription
-    const subs = JSON.parse(localStorage.getItem('rb_newsletter') || '[]');
-    if (subs.includes(email.value)) {
-        showToast(APP.lang === 'id' ? 'Email sudah terdaftar' : 'Email already subscribed', 'info');
-        return;
-    }
-    subs.push(email.value);
-    localStorage.setItem('rb_newsletter', JSON.stringify(subs));
-    email.value = '';
-    showToast(APP.lang === 'id' ? 'Berhasil berlangganan! Terima kasih.' : 'Subscribed successfully! Thank you.', 'success');
-}
 
 
 // ===== DASHBOARD =====
@@ -5295,279 +3589,66 @@ function renderDashboard() {
     const main = document.getElementById('app-main');
     if (!main) return;
     renderHeader();
-    const hasFiles = APP.files.filter(f => !f.trashed).length > 0;
     const isId = APP.lang === 'id';
-
-    // === PREMIUM DASHBOARD: Compute analytics data ===
     const activeFiles = APP.files.filter(f => !f.trashed);
-    const totalFiles = activeFiles.length;
-    const totalDownloads = APP.shares.reduce((sum, s) => sum + (s.downloadCount || 0), 0);
-    const totalShares = APP.shares.length;
     const totalUsed = activeFiles.reduce((sum, f) => sum + (f.size || 0), 0);
     const maxStorage = getStorageLimitBytes();
-    const usedPercent = maxStorage > 0 ? Math.min((totalUsed / maxStorage) * 100, 100) : 0;
-
-    // Hero stats
-    const heroStats = [
-        { icon: 'fa-folder-open', label: isId ? 'Total File' : 'Total Files', value: totalFiles, color: '#3b82f6', gradient: 'linear-gradient(135deg,rgba(59,130,246,.1),rgba(59,130,246,.03))' },
-        { icon: 'fa-download', label: isId ? 'Total Unduhan' : 'Total Downloads', value: totalDownloads, color: '#10b981', gradient: 'linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.03))' },
-        { icon: 'fa-share-nodes', label: isId ? 'Total Dibagikan' : 'Total Shares', value: totalShares, color: '#8b5cf6', gradient: 'linear-gradient(135deg,rgba(139,92,246,.1),rgba(139,92,246,.03))' },
-        { icon: 'fa-hard-drive', label: isId ? 'Penyimpanan' : 'Storage Used', value: usedPercent.toFixed(1) + '%', color: '#f59e0b', gradient: 'linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.03))', sub: formatSize(totalUsed) + ' / ' + formatSize(maxStorage) }
-    ];
-
-    const heroStatsHtml = heroStats.map((s, i) => `
-        <div style="background:${s.gradient};border:1px solid ${s.color}20;border-radius:14px;padding:16px;flex:1;min-width:130px;animation:fadeIn .4s ease ${i*0.08}s both;position:relative;overflow:hidden">
-            <div style="position:absolute;top:-8px;right:-8px;width:48px;height:48px;border-radius:50%;background:${s.color}08"></div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <div style="width:32px;height:32px;border-radius:8px;background:${s.color}18;display:flex;align-items:center;justify-content:center">
-                    <i class="fas ${s.icon}" style="color:${s.color};font-size:13px"></i>
-                </div>
-            </div>
-            <div style="font-size:22px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace;line-height:1.1" class="stat-count-up" data-target="${typeof s.value === 'number' ? s.value : ''}">${s.value}</div>
-            <div style="font-size:11px;color:var(--text-secondary);margin-top:3px;font-weight:500">${s.label}</div>
-            ${s.sub ? `<div style="font-size:10px;color:var(--text-secondary);margin-top:2px;opacity:.7">${s.sub}</div>` : ''}
-        </div>
-    `).join('');
-
-    // Quick Actions
-    const quickActions = [
-        { icon: 'fa-cloud-arrow-up', label: isId ? 'Unggah File' : 'Upload Files', action: 'triggerUpload()', primary: true },
-        { icon: 'fa-folder-plus', label: isId ? 'Folder Baru' : 'New Folder', action: 'createFolderDialog()', primary: false },
-        { icon: 'fa-camera', label: isId ? 'Kamera' : 'Camera Upload', action: 'openCameraUpload()', primary: false },
-        { icon: 'fa-share-from-square', label: isId ? 'Bagikan' : 'Share File', action: 'APP.batchMode=false;renderFileList()', primary: false },
-        { icon: 'fa-link', label: isId ? 'Unggah URL' : 'URL Upload', action: 'openUrlUpload()', primary: false },
-        { icon: 'fa-list-check', label: isId ? 'Antrian' : 'Queue', action: 'openTransferQueueModal()', primary: false },
-        { icon: 'fa-robot', label: isId ? 'Otomatis' : 'Automate', action: 'openAutomationRulesModal()', primary: false },
-        { icon: 'fa-file-import', label: isId ? 'Minta File' : 'Request', action: 'openFileRequestModal()', primary: false },
-        { icon: 'fa-chart-pie', label: isId ? 'Insight' : 'Insights', action: 'openStorageInsightsModal()', primary: false },
-        { icon: 'fa-calendar-alt', label: isId ? 'Jadwal' : 'Schedule', action: 'openUploadScheduleModal()', primary: false }
-    ];
-    // Add "Pilih Drive" option when GDrive accounts are connected
-    if (APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0) {
-        quickActions.push({ icon: 'fa-hard-drive', label: isId ? 'Pilih Drive' : 'Select Drive', action: 'triggerUploadWithDriveSelect()', primary: false });
-    }
-
-    const quickActionsHtml = quickActions.map(a => `
-        <div onclick="${a.action}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s ease;${a.primary ? 'background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.3);' : 'background:var(--bg-card);border:1px solid var(--border);color:var(--text);'}white-space:nowrap" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
-            <i class="fas ${a.icon}" style="font-size:12px"></i>
-            <span>${a.label}</span>
-        </div>
-    `).join('');
-
-    // Recent Activity Widget (last 8)
-    const activityLog = APP._activityCache || [];
-    const recentActivity = activityLog.slice(0, 8);
-    const typeConfig = {
-        upload: { icon: 'fa-cloud-arrow-up', color: '#10b981' },
-        download: { icon: 'fa-download', color: '#3b82f6' },
-        share: { icon: 'fa-share-alt', color: '#8b5cf6' },
-        delete: { icon: 'fa-trash', color: '#ef4444' },
-        rename: { icon: 'fa-pen', color: '#f59e0b' },
-        move: { icon: 'fa-arrows-alt', color: '#06b6d4' }
-    };
-    const recentActivityHtml = recentActivity.length > 0 ? recentActivity.map(a => {
-        const cfg = typeConfig[a.type] || typeConfig.move;
-        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);border-bottom-style:dashed">
-            <div style="width:30px;height:30px;border-radius:8px;background:${cfg.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${cfg.icon}" style="color:${cfg.color};font-size:12px"></i></div>
-            <div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.description}</div><div style="font-size:10px;color:var(--text-secondary)">${timeAgo(a.timestamp)}</div></div>
-        </div>`;
-    }).join('') : `<div style="text-align:center;padding:20px 0;color:var(--text-secondary);font-size:12px">${isId ? 'Belum ada aktivitas' : 'No activity yet'}</div>`;
-
-    // Recent Shared Links Widget (last 5 active)
-    const recentShares = (APP.shares || []).slice(0, 5);
-    const recentSharesHtml = recentShares.length > 0 ? recentShares.map(s => {
-        const file = APP.files.find(f => f.id === s.fileId);
-        const fname = file ? file.name : (isId ? 'File tidak ditemukan' : 'File not found');
-        const expired = s.expiresAt && s.expiresAt < Date.now();
-        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);border-bottom-style:dashed">
-            <div style="width:30px;height:30px;border-radius:8px;background:#8b5cf615;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas fa-link" style="color:#8b5cf6;font-size:12px"></i></div>
-            <div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fname}</div><div style="font-size:10px;color:var(--text-secondary);display:flex;gap:8px;align-items:center"><span>${s.downloadCount || 0} ${isId ? 'klik' : 'clicks'}</span>${expired ? '<span style="color:#ef4444;font-weight:600">' + (isId ? 'Kedaluwarsa' : 'Expired') + '</span>' : ''}</div></div>
-        </div>`;
-    }).join('') : `<div style="text-align:center;padding:20px 0;color:var(--text-secondary);font-size:12px">${isId ? 'Belum ada tautan' : 'No shared links yet'}</div>`;
-
-    // Recent Downloads Widget
-    const recentDownloads = activityLog.filter(a => a.type === 'download').slice(0, 5);
-    const recentDownloadsHtml = recentDownloads.length > 0 ? recentDownloads.map(a => {
-        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);border-bottom-style:dashed">
-            <div style="width:30px;height:30px;border-radius:8px;background:#3b82f615;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas fa-download" style="color:#3b82f6;font-size:12px"></i></div>
-            <div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.description}</div><div style="font-size:10px;color:var(--text-secondary)">${timeAgo(a.timestamp)}</div></div>
-        </div>`;
-    }).join('') : `<div style="text-align:center;padding:20px 0;color:var(--text-secondary);font-size:12px">${isId ? 'Belum ada unduhan' : 'No downloads yet'}</div>`;
-
-    // Most Downloaded Files Widget (top 5)
-    const filesWithShares = activeFiles.map(f => {
-        const shares = APP.shares.filter(s => s.fileId === f.id);
-        const dlCount = shares.reduce((sum, s) => sum + (s.downloadCount || 0), 0);
-        return { ...f, totalDownloads: dlCount };
-    }).sort((a, b) => b.totalDownloads - a.totalDownloads).slice(0, 5);
-    const mostDownloadedHtml = filesWithShares.filter(f => f.totalDownloads > 0).length > 0 ? filesWithShares.filter(f => f.totalDownloads > 0).map(f => {
-        const fType = getFileType(f.name, f.mime);
-        const fIcon = getFileIcon(fType);
-        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);border-bottom-style:dashed;cursor:pointer" onclick="openDetailPanel('${f.id}')">
-            <div style="width:30px;height:30px;border-radius:8px;background:${fIcon.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${fIcon.icon}" style="color:${fIcon.color};font-size:12px"></i></div>
-            <div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</div><div style="font-size:10px;color:var(--text-secondary)">${formatSize(f.size || 0)}</div></div>
-            <div style="font-size:13px;font-weight:700;color:#3b82f6;font-family:'JetBrains Mono',monospace">${f.totalDownloads}</div>
-        </div>`;
-    }).join('') : `<div style="text-align:center;padding:20px 0;color:var(--text-secondary);font-size:12px">${isId ? 'Belum ada unduhan' : 'No downloads yet'}</div>`;
-
-    // Enhanced Storage Analytics Card
-    const storageAnalyticsEnhanced = renderDashboardAnalytics();
 
     main.innerHTML = `
-    <div class="page-transition" style="display:flex;min-height:calc(100vh - var(--header-h));max-width:100vw;overflow-x:hidden">
-        <!-- Sidebar Desktop (F98) -->
-        <aside id="sidebar-panel" class="sidebar-premium ${APP.viewMode === 'mobile' ? 'sidebar-mobile' : 'sidebar-desktop'}" style="${APP.viewMode === 'mobile' ? 'position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);overflow-y:auto;padding:16px 12px;transform:translateX(-100%);transition:transform .3s ease;box-shadow:var(--shadow-lg)' : 'width:var(--sidebar-w);min-width:var(--sidebar-w);border-right:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,var(--bg-secondary) 100%);overflow-y:auto;padding:16px 12px;transition:transform .3s ease;z-index:50'}">
+    <div class="dashboard-layout">
+        <aside id="sidebar-panel" class="dashboard-sidebar">
             ${renderSidebarHTML()}
         </aside>
-        <!-- Main Content -->
-        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
-            <!-- Storage Warning Banner -->
-            ${renderStorageWarningBanner()}
-            <!-- Toolbar -->
-            <div class="toolbar-premium toolbar-wrap" style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <div class="search-premium ${APP.aiSearchMode ? 'ai-search-active' : ''}" style="flex:1;min-width:200px">
-                    <i class="fas ${APP.aiSearchMode ? 'fa-wand-magic-sparkles' : 'fa-search'}"></i>
-                    <input type="text" aria-label="Search files" placeholder="${APP.aiSearchMode ? (isId ? 'Cari dengan AI...' : 'AI Search...') : t('search')}" value="${APP.searchQuery}" oninput="APP.searchQuery=this.value;${APP.aiSearchMode ? '' : 'renderFileList()'}" onkeydown="if(event.key==='Enter'&&APP.aiSearchMode)executeAISearch(this.value)">
-                    <button class="ai-search-toggle ${APP.aiSearchMode ? 'active' : ''}" onclick="toggleAISearchMode()" title="${APP.aiSearchMode ? (isId ? 'Pencarian Biasa' : 'Regular Search') : (isId ? 'Pencarian AI' : 'AI Search')}" aria-label="Toggle AI search"><i class="fas fa-wand-magic-sparkles"></i></button>
-                    <button class="toolbar-action-btn" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);padding:4px 6px;font-size:11px" onclick="openAdvancedSearch()" title="${t('advSearch')}" aria-label="Advanced search"><i class="fas fa-search-plus"></i></button>
+        <div class="dashboard-main">
+            <div class="dash-stats">
+                <div class="dash-stat-card"><div class="stat-label">${isId ? 'Total File' : 'Total Files'}</div><div class="stat-value">${activeFiles.length}</div></div>
+                <div class="dash-stat-card"><div class="stat-label">${isId ? 'Total Unduhan' : 'Total Downloads'}</div><div class="stat-value">${APP.shares.reduce((s, sh) => s + (sh.downloadCount || 0), 0)}</div></div>
+                <div class="dash-stat-card"><div class="stat-label">${isId ? 'Total Dibagikan' : 'Total Shares'}</div><div class="stat-value">${APP.shares.length}</div></div>
+                <div class="dash-stat-card"><div class="stat-label">${isId ? 'Penyimpanan' : 'Storage'}</div><div class="stat-value">${formatSize(totalUsed)}</div><div class="stat-sub">${formatSize(totalUsed)} / ${formatSize(maxStorage)}</div></div>
+            </div>
+            <div class="dash-quick-actions">
+                <button class="dash-quick-action primary" onclick="triggerUpload()"><i class="fas fa-cloud-arrow-up"></i> ${isId ? 'Unggah' : 'Upload'}</button>
+                <button class="dash-quick-action" onclick="createFolderDialog()"><i class="fas fa-folder-plus"></i> ${isId ? 'Folder Baru' : 'New Folder'}</button>
+                <button class="dash-quick-action" onclick="openCameraUpload()"><i class="fas fa-camera"></i> ${isId ? 'Kamera' : 'Camera'}</button>
+            </div>
+            <div class="file-toolbar">
+                <div class="file-toolbar-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" aria-label="Search files" placeholder="${t('search')}" value="${APP.searchQuery}" oninput="APP.searchQuery=this.value;renderFileList()">
                 </div>
-                <button class="toolbar-upload-btn" onclick="triggerUpload()"><i class="fas fa-plus"></i> ${t('upload')}</button>
-                <div class="toolbar-group">
-                    <button class="toolbar-action-btn" onclick="openUrlUpload()" title="URL Upload" aria-label="URL upload"><i class="fas fa-link"></i></button>
-                    <button class="toolbar-action-btn" onclick="openCameraUpload()" title="Camera" aria-label="Camera upload"><i class="fas fa-camera"></i></button>
-                    <button class="toolbar-action-btn ${APP.batchMode?'active-action':''}" onclick="APP.batchMode=!APP.batchMode;renderFileList()" title="${t('batchMode')}" aria-label="Batch mode"><i class="fas fa-check-double"></i></button>
-                </div>
-                <select class="toolbar-sort" aria-label="Sort by" onchange="APP.sortBy=this.value;APP.activeSortPreset='';localStorage.setItem('rb_sort_preset','');renderFileList();updateSortPresetButtons()">
+                <select class="input" style="width:auto;min-width:100px;padding:7px 28px 7px 10px;font-size:12px" aria-label="Sort by" onchange="APP.sortBy=this.value;APP.activeSortPreset='';localStorage.setItem('rb_sort_preset','');renderFileList();updateSortPresetButtons()">
                     <option value="date" ${APP.sortBy==='date'?'selected':''}>${t('sortByDate')}</option>
                     <option value="name" ${APP.sortBy==='name'?'selected':''}>${t('sortByName')}</option>
                     <option value="size" ${APP.sortBy==='size'?'selected':''}>${t('sortBySize')}</option>
                 </select>
-                ${renderSortPresets()}
-                <button class="toolbar-view-btn" onclick="cycleViewMode()" title="${APP.currentView==='list'?t('gridView'):APP.currentView==='grid'?(APP.lang==='id'?'Kategori':'Categories'):t('listView')}" aria-label="Switch view"><i class="fas fa-${APP.currentView==='list'?'grip':APP.currentView==='grid'?'th-large':'list'}"></i></button>
-            </div>
-            <!-- Breadcrumb (F74) -->
-            <div id="breadcrumb-bar" class="breadcrumb-premium"></div>
-            <!-- Quick Filter (F65) -->
-            <div id="quick-filter-bar" style="padding:4px 20px 8px;display:flex;gap:6px;flex-wrap:wrap"></div>
-            <div id="provider-filter-bar" class="provider-filter-bar" style="padding:0 20px 8px"></div>
-            <!-- Tag Filter Bar -->
-            <div id="tag-filter-bar" class="tag-filter-bar" style="padding:0 20px 8px;display:flex;gap:6px;flex-wrap:wrap"></div>
-            <!-- Upload Drop Zone (legacy, hidden) -->
-            <div id="drop-zone" class="drop-zone" style="margin:0 20px 8px;padding:24px;text-align:center;display:none;border-radius:14px">
-                <i class="fas fa-cloud-arrow-up" style="font-size:28px;color:var(--accent)"></i>
-                <p style="font-size:13px;margin-top:4px;color:var(--text-secondary)">${t('uploadDrop')}</p>
-            </div>
-            <!-- File Preview Carousel -->
-            <div id="carousel-section">${renderCarousel()}</div>
-            <!-- PREMIUM Dashboard Widgets Section -->
-            <div id="dashboard-widgets" class="dash-widgets-wrap ${hasFiles && localStorage.getItem('rb_widgets_collapsed')==='1' ? 'collapsed' : ''}">
-                <div class="dash-widget-toggle" onclick="toggleDashWidgets()">
-                    <i class="fas fa-chevron-down" style="font-size:10px"></i>
-                    <span>${isId ? 'Widget Dashboard' : 'Dashboard Widgets'}</span>
+                <div class="view-toggle">
+                    <button class="${APP.currentView==='list'?'active':''}" onclick="APP.currentView='list';renderFileList()" aria-label="List view"><i class="fas fa-list"></i></button>
+                    <button class="${APP.currentView==='grid'?'active':''}" onclick="APP.currentView='grid';renderFileList()" aria-label="Grid view"><i class="fas fa-grip"></i></button>
                 </div>
-                <div class="dash-widget-body" style="display:flex;flex-direction:column;gap:12px">
-                    <!-- Smart Upload Zone -->
-                    <div id="smart-upload-zone" class="smart-upload-zone ${hasFiles ? 'minimized' : ''}" onclick="handleSmartUploadClick(event)">
-                        <i class="fas fa-cloud-arrow-up upload-icon"></i>
-                        <div>
-                            <div class="upload-title">${isId ? 'Seret & Lepas File' : 'Drag & Drop Files'}</div>
-                            <div class="upload-sub">${isId ? 'atau ' : 'or '}<span>${isId ? 'klik untuk mencari' : 'click to browse'}</span></div>
-                        </div>
-                        <div class="upload-methods">
-                            <div class="upload-method" onclick="event.stopPropagation();triggerUpload()"><i class="fas fa-folder-open"></i> ${isId ? 'Pilih File' : 'Browse'}</div>
-                            <div class="upload-method" onclick="event.stopPropagation();handleClipboardPaste()"><i class="fas fa-paste"></i> ${isId ? 'Tempel' : 'Paste'}</div>
-                            <div class="upload-method" onclick="event.stopPropagation();openCameraUpload()"><i class="fas fa-camera"></i> ${isId ? 'Kamera' : 'Camera'}</div>
-                        </div>
-                    </div>
-                    <!-- Upload Preview Queue -->
-                    <div id="upload-preview-queue" class="upload-preview-queue" style="display:none"></div>
-
-                    <!-- Storage Warning Banner (F16) -->
-                    ${localStorage.getItem('rb_storage_warning_dismissed') !== '1' ? getStorageWarningBanner() : ''}
-
-                    <!-- ===== HERO STATS BAR ===== -->
-                    <div style="display:flex;gap:10px;flex-wrap:wrap">${heroStatsHtml}</div>
-
-                    <!-- ===== QUICK ACTIONS ROW ===== -->
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${quickActionsHtml}</div>
-
-                    <!-- ===== 3-COLUMN WIDGET ROW: Activity + Shares + Downloads ===== -->
-                    <div class="dash-3col-row">
-                        <div class="dash-card">
-                            <div class="dash-card-title"><i class="fas fa-clock-rotate-left" style="color:#10b981"></i> ${isId ? 'Aktivitas Terbaru' : 'Recent Activity'}</div>
-                            <div style="max-height:240px;overflow-y:auto">${recentActivityHtml}</div>
-                            <div style="margin-top:10px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('recent')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
-                        </div>
-                        <div class="dash-card">
-                            <div class="dash-card-title"><i class="fas fa-share-nodes" style="color:#8b5cf6"></i> ${isId ? 'Tautan Dibagikan' : 'Shared Links'}</div>
-                            <div style="max-height:240px;overflow-y:auto">${recentSharesHtml}</div>
-                            <div style="margin-top:10px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('all')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
-                        </div>
-                        <div class="dash-card">
-                            <div class="dash-card-title"><i class="fas fa-download" style="color:#3b82f6"></i> ${isId ? 'Unduhan Terbaru' : 'Recent Downloads'}</div>
-                            <div style="max-height:240px;overflow-y:auto">${recentDownloadsHtml}</div>
-                            <div style="margin-top:10px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500" onclick="selectFolder('all')">${isId ? 'Lihat Semua' : 'View All'} <i class="fas fa-arrow-right" style="font-size:9px"></i></div>
-                        </div>
-                    </div>
-
-                    <!-- ===== 2-COLUMN ROW: Storage Analytics + Most Downloaded ===== -->
-                    <div class="dash-cards-row">
-                        <div class="dash-card" id="storage-analytics-card">${storageAnalyticsEnhanced}</div>
-                        <div class="dash-card">
-                            <div class="dash-card-title"><i class="fas fa-ranking-star" style="color:#f59e0b"></i> ${isId ? 'Paling Banyak Diunduh' : 'Most Downloaded'}</div>
-                            <div style="max-height:260px;overflow-y:auto">${mostDownloadedHtml}</div>
-                        </div>
-                    </div>
-
-                    <!-- ===== 2-COLUMN ROW: Top Files + Weekly ===== -->
-                    <div class="dash-cards-row" id="dash-cards-row">
-                        <div class="dash-card" id="top-files-card">${renderTopFilesCard()}</div>
-                        <div class="dash-card weekly-card" id="weekly-summary-card">${renderWeeklySummaryCard()}</div>
-                    </div>
-                    <div class="dash-cards-row">
-                        <div class="dash-card" id="usage-trend-card">${renderUsageTrendCard()}</div>
-                        <div class="dash-card" id="storage-breakdown-card">${renderStorageBreakdownCard()}</div>
-                    </div>
-                </div>
+                <button class="btn btn-sm ${APP.batchMode?'btn-primary':''}" onclick="APP.batchMode=!APP.batchMode;renderFileList()" title="${t('batchMode')}"><i class="fas fa-check-double"></i></button>
+                <button class="btn btn-sm" onclick="openAdvancedSearch()" title="${t('advSearch')}"><i class="fas fa-sliders"></i></button>
             </div>
-            <!-- File List -->
-            <div id="ptr-indicator" style="text-align:center;padding:0;height:0;overflow:hidden;transition:height .2s ease"><div class="ptr-inner"><div class="ptr-spinner"><i class="fas fa-arrow-down" id="ptr-arrow" style="font-size:12px;color:var(--text-secondary);transition:transform .2s ease"></i></div><span class="ptr-text" id="ptr-text"></span></div></div>
-            <div id="file-list-container" style="flex:1;overflow-y:auto;padding:0 20px 80px"></div>
+            <div id="breadcrumb-bar" class="breadcrumb-bar"></div>
+            <div id="quick-filter-bar" class="quick-filter-bar"></div>
+            <div id="provider-filter-bar" class="provider-filter-bar"></div>
+            <div id="tag-filter-bar" class="tag-filter-bar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
+            <div id="drop-zone" class="drop-zone"><i class="fas fa-cloud-arrow-up" style="font-size:28px;color:var(--accent)"></i><p style="font-size:13px;margin-top:4px;color:var(--text-secondary)">${t('uploadDrop')}</p></div>
+            <div id="file-list-container" style="min-height:200px"></div>
         </div>
     </div>
-    <input type="file" id="file-upload-input" multiple style="display:none" onchange="handleFileSelect(this.files)">`;
+    <input type="file" id="file-upload-input" multiple style="display:none" onchange="handleFileSelect(this.files)">
+    ${renderFAB()}`;
 
     renderBreadcrumb();
     renderQuickFilter();
     renderTagFilterBar();
     renderFileList();
     setupDragDrop();
-    setupSmartUploadZone();
     preloadActivityLog();
-    setTimeout(animateStorageRing, 200);
-    restoreScheduledUploads(); // F80
+    restoreScheduledUploads();
     initHoverPreview();
     checkStorageWarningToast();
-    setupPullToRefresh();
     renderBottomNav();
-    // Animate hero stat count-up numbers
-    setTimeout(() => {
-        document.querySelectorAll('.stat-count-up[data-target]').forEach(el => {
-            const target = parseInt(el.getAttribute('data-target'));
-            if (isNaN(target) || target === 0) return;
-            let current = 0;
-            const step = Math.max(1, Math.ceil(target / 30));
-            const timer = setInterval(() => {
-                current += step;
-                if (current >= target) { current = target; clearInterval(timer); }
-                el.textContent = current;
-            }, 25);
-        });
-    }, 100);
-    // Start carousel auto-scroll
-    if (APP.files.filter(f => !f.trashed).length > 0) {
-        setTimeout(() => startCarouselAutoScroll(), 1000);
-    }
 }
 
 // ===== DASHBOARD STATS BAR =====
@@ -5722,10 +3803,8 @@ function renderSidebarHTML() {
     const maxStorage = getStorageLimitBytes();
     const usedPercent = maxStorage > 0 ? Math.min((totalUsed / maxStorage) * 100, 100) : 0;
 
-    // Mini ring chart for storage
-    const miniR = 22, miniC = 2 * Math.PI * miniR;
-    const miniOffset = miniC - (usedPercent / 100) * miniC;
-    const level = usedPercent > 90 ? '#ef4444' : usedPercent > 75 ? '#f97316' : usedPercent > 50 ? '#f59e0b' : 'var(--accent)';
+    // Storage bar level class
+    const storageLevel = usedPercent > 90 ? 'critical' : usedPercent > 75 ? 'warning' : '';
 
     // MENU nav items (recent counts files with lastAccessed timestamp)
     const recentAccessedCount = APP.files.filter(x => !x.trashed && x.lastAccessed).length;
@@ -5740,11 +3819,10 @@ function renderSidebarHTML() {
 
     const menuItemsHtml = menuItems.map(m => {
         const active = m.id === APP.currentFolder;
-        return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="selectFolder('${m.id === 'all-files' ? 'all' : m.id}')" style="position:relative">
-            <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${active ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
-            <i class="fas ${m.icon}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};position:relative;z-index:1;font-size:14px"></i>
-            <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${m.name}</span>
-            ${m.count > 0 ? `<span style="font-size:11px;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};background:${active ? 'rgba(59,130,246,.1)' : 'var(--bg-secondary)'};padding:2px 8px;border-radius:99px;font-weight:600;position:relative;z-index:1">${m.count}</span>` : ''}
+        return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="selectFolder('${m.id === 'all-files' ? 'all' : m.id}')">
+            <i class="fas ${m.icon}"></i>
+            <span>${m.name}</span>
+            ${m.count > 0 ? `<span class="item-count">${m.count}</span>` : ''}
         </div>`;
     }).join('');
 
@@ -5753,12 +3831,13 @@ function renderSidebarHTML() {
     const folderItemsHtml = customFolders.map(f => {
         const active = f.id === APP.currentFolder;
         const count = APP.files.filter(x => !x.trashed && x.folderId === f.id).length;
-        return `<div class="sidebar-item ${active ? 'active' : ''} sidebar-folder-drop-target" data-folder-id="${f.id}" onclick="selectFolder('${f.id}')" style="position:relative">
-            <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${active ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
-            <i class="fas ${f.icon || 'fa-folder'}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : '#f59e0b'};position:relative;z-index:1;font-size:14px"></i>
-            <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${f.name}</span>
-            ${count > 0 ? `<span style="font-size:11px;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};background:${active ? 'rgba(59,130,246,.1)' : 'var(--bg-secondary)'};padding:2px 8px;border-radius:99px;font-weight:600;position:relative;z-index:1">${count}</span>` : ''}
-            <button class="btn btn-ghost" style="padding:2px 4px;font-size:11px;position:relative;z-index:1" onclick="event.stopPropagation();deleteCustomFolder('${f.id}')" aria-label="Delete folder"><i class="fas fa-times"></i></button>
+        const isSD = !!APP.selfDestructFolders[f.id];
+        return `<div class="sidebar-item ${active ? 'active' : ''} sidebar-folder-drop-target" data-folder-id="${f.id}" onclick="selectFolder('${f.id}')">
+            <i class="fas ${f.icon || 'fa-folder'} folder-icon-custom"></i>
+            <span>${f.name}</span>
+            ${isSD ? '<i class="fas fa-bomb bomb-indicator" title="Auto-Delete"></i>' : ''}
+            ${count > 0 ? `<span class="item-count">${count}</span>` : ''}
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openFolderOptions('${f.id}')" aria-label="Folder options"><i class="fas fa-ellipsis-vertical"></i></button>
         </div>`;
     }).join('');
 
@@ -5767,97 +3846,96 @@ function renderSidebarHTML() {
         { id: 'storage-management', icon: 'fa-server', name: isId ? 'Kelola Penyimpanan' : 'Storage Manager', action: "location.hash='#/storage'" },
         { id: 'storage-analytics', icon: 'fa-chart-pie', name: isId ? 'Analisis Penyimpanan' : 'Storage Analytics', action: 'openStorageAnalytics()' },
         { id: 'analytics', icon: 'fa-chart-line', name: isId ? 'Dashboard Analitik' : 'Analytics Dashboard', action: "location.hash='#/analytics'" },
+        { id: 'activity', icon: 'fa-clock-rotate-left', name: isId ? 'Riwayat Aktivitas' : 'Activity Feed', action: 'openActivityFeed()' },
+        { id: 'duplicates', icon: 'fa-clone', name: isId ? 'Cari Duplikat' : 'Find Duplicates', action: 'openDuplicateFinder()' },
+        { id: 'file-drop', icon: 'fa-cloud-arrow-up', name: isId ? 'Link Upload Masuk' : 'File Drop Link', action: 'openFileDropLinkModal()' },
+        { id: 'vault', icon: 'fa-vault', name: isId ? 'Brankas' : 'Vault', action: 'openVaultModal()', badge: APP.vaultPin ? APP.vaultFiles.length : null },
         { id: 'shortcuts', icon: 'fa-keyboard', name: isId ? 'Pintasan Keyboard' : 'Shortcuts', action: 'openKeyboardShortcuts()' },
         { id: 'settings', icon: 'fa-gear', name: isId ? 'Pengaturan' : 'Settings', action: 'openSettings()' }
     ];
 
     const toolItemsHtml = toolItems.map(t => {
         const active = t.id === APP.currentFolder;
-        return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="${t.action}" style="position:relative">
-            <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${active ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
-            <i class="fas ${t.icon}" style="width:18px;text-align:center;color:${active ? 'var(--accent)' : 'var(--text-secondary)'};position:relative;z-index:1;font-size:14px"></i>
-            <span style="flex:1;position:relative;z-index:1;font-weight:${active ? '600' : '500'}">${t.name}</span>
+        return `<div class="sidebar-item ${active ? 'active' : ''}" onclick="${t.action}">
+            <i class="fas ${t.icon}"></i>
+            <span>${t.name}</span>
+            ${t.badge ? `<span class="item-badge">${t.badge}</span>` : ''}
         </div>`;
     }).join('');
 
     // TRASH at bottom with separator
     const trashActive = APP.currentFolder === 'trash';
-    const trashHtml = `<div class="sidebar-section-divider" style="margin-top:8px"></div>
-        <div class="sidebar-item ${trashActive ? 'active' : ''} sidebar-folder-drop-target" data-folder-id="trash" onclick="selectFolder('trash')" style="position:relative">
-            <div style="position:absolute;inset:0;border-radius:10px;transition:background .2s ease;${trashActive ? 'background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.06))' : ''}"></div>
-            <i class="fas fa-trash-alt" style="width:18px;text-align:center;color:${trashActive ? 'var(--accent)' : 'var(--text-secondary)'};position:relative;z-index:1;font-size:14px"></i>
-            <span style="flex:1;position:relative;z-index:1;font-weight:${trashActive ? '600' : '500'}">${isId ? 'Sampah' : 'Trash'}</span>
-            ${trashCount > 0 ? `<span style="font-size:11px;color:${trashActive ? 'var(--accent)' : '#ef4444'};background:${trashActive ? 'rgba(59,130,246,.1)' : 'rgba(239,68,68,.08)'};padding:2px 8px;border-radius:99px;font-weight:600;position:relative;z-index:1">${trashCount}</span>` : ''}
+    const trashHtml = `<div class="sidebar-section-divider"></div>
+        <div class="sidebar-item ${trashActive ? 'active' : ''} sidebar-folder-drop-target" data-folder-id="trash" onclick="selectFolder('trash')">
+            <i class="fas fa-trash-alt"></i>
+            <span>${isId ? 'Sampah' : 'Trash'}</span>
+            ${trashCount > 0 ? `<span class="item-count trash-count">${trashCount}</span>` : ''}
         </div>`;
 
     return `
         <!-- RidgeBox Branding -->
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 8px 18px;border-bottom:1px solid var(--border);margin-bottom:14px">
-            <div style="width:36px;height:36px;border-radius:10px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 12px rgba(37,99,235,.25)">
-                <img src="/logo-icon.png" alt="RidgeBox" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block"/>
-            </div>
+        <div class="sidebar-brand">
+            <img src="/logo-icon.png" alt="RidgeBox" loading="lazy"/>
             <div>
-                <div class="rb-brand-text" style="font-size:16px;line-height:1.2">RidgeBox</div>
-                <div style="font-size:10px;color:var(--text-secondary);font-weight:500">${isId ? 'Cloud Storage' : 'Cloud Storage'}</div>
+                <div class="rb-brand-text">RidgeBox</div>
+                <div class="sidebar-brand-sub">${isId ? 'Cloud Storage' : 'Cloud Storage'}</div>
             </div>
         </div>
 
-        <!-- UPLOAD BUTTON - BIG & PROMINENT -->
-        <button onclick="triggerUpload()" style="width:100%;padding:14px 16px;border-radius:12px;border:none;background:linear-gradient(135deg,#3b82f6,#6366f1,#8b5cf6);color:#fff;font-weight:700;font-size:14px;font-family:'Space Grotesk',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(59,130,246,.35);transition:all .2s ease;margin-bottom:18px" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(59,130,246,.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 6px 20px rgba(59,130,246,.35)'">
-            <i class="fas fa-cloud-arrow-up" style="font-size:18px"></i>
+        <!-- UPLOAD BUTTON -->
+        <button class="btn btn-primary sidebar-upload-btn" onclick="triggerUpload()">
+            <i class="fas fa-cloud-arrow-up"></i>
             <span>${isId ? 'Unggah File' : 'Upload Files'}</span>
         </button>
 
         <!-- MENU Section -->
-        <div class="sidebar-section-label" style="margin-bottom:6px">${isId ? 'MENU' : 'MENU'}</div>
+        <div class="sidebar-section-title">${isId ? 'MENU' : 'MENU'}</div>
         ${menuItemsHtml}
 
         <div class="sidebar-section-divider"></div>
 
         <!-- FOLDERS Section -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="sidebar-section-label" style="margin:0">${isId ? 'FOLDER' : 'FOLDERS'}</div>
-            <button onclick="createFolderDialog()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:12px;padding:2px 6px;border-radius:6px;transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.1)'" onmouseout="this.style.background=''" aria-label="Create folder"><i class="fas fa-plus"></i></button>
+        <div class="sidebar-folders-header">
+            <div class="sidebar-section-title">${isId ? 'FOLDER' : 'FOLDERS'}</div>
+            <button class="sidebar-add-btn" onclick="createFolderDialog()" aria-label="Create folder"><i class="fas fa-plus"></i></button>
         </div>
-        ${folderItemsHtml || `<div style="padding:8px 12px;font-size:12px;color:var(--text-secondary);font-style:italic">${isId ? 'Belum ada folder' : 'No folders yet'}</div>`}
+        ${folderItemsHtml || `<div class="sidebar-empty-msg">${isId ? 'Belum ada folder' : 'No folders yet'}</div>`}
 
         <div class="sidebar-section-divider"></div>
 
         <!-- TOOLS Section -->
-        <div class="sidebar-section-label" style="margin-bottom:6px">${isId ? 'PERALATAN' : 'TOOLS'}</div>
+        <div class="sidebar-section-title">${isId ? 'PERALATAN' : 'TOOLS'}</div>
         ${toolItemsHtml}
 
         <!-- TRASH Section at Bottom -->
         ${trashHtml}
 
         <!-- Storage Widget at Bottom -->
-        <div class="storage-widget" style="margin-top:auto">
-            ${isLoggedIn() ? `<div style="padding:8px 12px;margin-bottom:6px;border-radius:8px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.1);display:flex;align-items:center;gap:8px;font-size:11px"><i class="fas fa-user-circle" style="color:var(--accent)"></i><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-secondary)">${APP.user?.email || ''}</span><button onclick="handleLogout()" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px 4px;font-size:12px" title="${t('authLogout')}" aria-label="Sign out"><i class="fas fa-sign-out-alt"></i></button></div>` : ''}
+        <div class="sidebar-storage">
+            ${isLoggedIn() ? `<div class="sidebar-user-info">
+                <i class="fas fa-user-circle"></i>
+                <span>${APP.user?.email || ''}</span>
+                <button onclick="handleLogout()" title="${t('authLogout')}" aria-label="Sign out"><i class="fas fa-sign-out-alt"></i></button>
+            </div>` : ''}
             <!-- Subscription Quota Bar -->
             ${getQuotaBarHtml()}
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;margin-top:8px">
-                <svg width="52" height="52" viewBox="0 0 52 52" style="flex-shrink:0;transform:rotate(-90deg)">
-                    <circle cx="26" cy="26" r="${miniR}" fill="none" stroke="var(--bg-secondary)" stroke-width="5"/>
-                    <circle cx="26" cy="26" r="${miniR}" fill="none" stroke="${level}" stroke-width="5" stroke-dasharray="${miniC}" stroke-dashoffset="${miniC - (usedPercent / 100) * miniC}" stroke-linecap="round" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)"/>
-                </svg>
-                <div style="flex:1">
-                    <div class="storage-widget-title" style="margin-bottom:4px"><i class="fas fa-hard-drive" style="font-size:10px"></i> ${isId ? 'Penyimpanan' : 'Storage'}</div>
-                    <div class="storage-bar-track" style="margin-bottom:4px">
-                        <div class="storage-bar-fill" style="width:${usedPercent}%"></div>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-secondary)">
-                        <span>${formatSize(totalUsed)}</span>
-                        <span style="font-weight:600">${usedPercent.toFixed(1)}%</span>
-                    </div>
+            <div class="sidebar-storage-info">
+                <div class="sidebar-storage-title"><i class="fas fa-hard-drive"></i> ${isId ? 'Penyimpanan' : 'Storage'}</div>
+                <div class="sidebar-storage-bar">
+                    <div class="sidebar-storage-fill ${storageLevel}" style="width:${usedPercent}%"></div>
+                </div>
+                <div class="sidebar-storage-text">
+                    <span>${formatSize(totalUsed)}</span>
+                    <span>${usedPercent.toFixed(1)}%</span>
                 </div>
             </div>
-            ${APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0 ? `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg-secondary);border-radius:8px;font-size:10px;color:var(--text-secondary)">
-                <i class="fab fa-google" style="color:#4285f4;font-size:10px"></i>
+            ${APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0 ? `<div class="sidebar-gdrive-info">
+                <i class="fab fa-google"></i>
                 <span>${APP.gdriveAccounts.filter(a => a.status === 'connected').length} Google Drive</span>
-                <span style="margin-left:auto;font-weight:600;color:var(--text)">${formatStorageBytes(getGDriveTotalStats().totalAvailable)}</span>
+                <span class="gdrive-space">${formatStorageBytes(getGDriveTotalStats().totalAvailable)}</span>
             </div>` : ''}
         </div>
-        <div id="auto-lock-countdown" style="display:none;align-items:center;gap:4px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--text-secondary);background:var(--bg-secondary);border-radius:8px"></div>`;
+        <div id="auto-lock-countdown" class="auto-lock-countdown"></div>`;
 }
 
 // ===== SIDEBAR VISIBILITY FOR MOBILE =====
@@ -5868,6 +3946,7 @@ function renderSidebarHTML() {
 
 // ===== SELECT FOLDER (integrated) =====
 function selectFolder(folderId) {
+    // Fake folder removed (F135)
     APP.currentFolder = folderId;
     APP.quickFilter = null;
     APP.tagFilter = null;
@@ -5910,7 +3989,7 @@ function renderBreadcrumb() {
     const bar = document.getElementById('breadcrumb-bar');
     if (!bar) return;
     const isId = APP.lang === 'id';
-    let crumbs = [`<a href="#/dashboard" class="crumb-home" aria-label="Home" style="text-decoration:none;display:flex;align-items:center;gap:4px"><i class="fas fa-home" style="font-size:12px"></i></a>`];
+    let crumbs = [`<a href="#/dashboard" class="crumb-home" aria-label="Home" style="text-decoration:none;display:flex;align-items:center;gap:4px;color:var(--text-secondary)"><i class="fas fa-home" style="font-size:12px"></i></a>`];
     const folder = APP.folders.find(f => f.id === APP.currentFolder);
     if (folder) {
         crumbs.push(`<span class="crumb-sep">/</span> <span class="crumb-active">${folder.name}</span>`);
@@ -6047,7 +4126,7 @@ async function renderFileList() {
                     const d = Math.max(0, purgeDays - Math.floor((now - (f.trashedAt || 0)) / 86400000));
                     return d < min ? d : min;
                 }, Infinity);
-                actionBtns = `<div style="padding:10px 14px;background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(249,115,22,.08));border:1px solid rgba(239,68,68,.2);border-radius:10px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+                actionBtns = `<div style="padding:10px 14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
                     <i class="fas fa-exclamation-triangle" style="color:#ef4444"></i>
                     <span style="font-size:13px;color:#ef4444;font-weight:500">${urgentFiles.length} ${isId?'file akan dihapus permanen dalam':'file(s) will be permanently deleted in'} ${minDays} ${isId?'hari':'day(s)'}</span>
                 </div>` + actionBtns;
@@ -6059,14 +4138,12 @@ async function renderFileList() {
         </div>`;
     }
 
-    if (APP.currentView === 'categories') {
-        container.innerHTML = `${actionBtns}${renderCategoriesView()}`;
-    } else if (APP.currentView === 'grid') {
-        container.innerHTML = `${actionBtns}<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px">
+    if (APP.currentView === 'grid') {
+        container.innerHTML = `${actionBtns}<div class="file-grid">
             ${files.map((f, i) => renderFileGridItem(f, i)).join('')}
         </div>`;
     } else {
-        container.innerHTML = `${actionBtns}<div style="border:1px solid var(--border);border-radius:14px;overflow:hidden">
+        container.innerHTML = `${actionBtns}<div class="file-list-table">
             ${files.map((f, i) => renderSwipeRow(f, i)).join('')}
         </div>`;
     }
@@ -6099,6 +4176,12 @@ function getFilteredFiles() {
         files = files.filter(f => f.encrypted);
     } else if (APP.currentFolder !== 'all' && APP.currentFolder !== 'trash') {
         files = files.filter(f => f.folderId === APP.currentFolder);
+    }
+
+    // F133: Hide vault files from regular views (unless in vault modal)
+    if (APP.vaultPin && APP.vaultFiles.length > 0) {
+        const vaultIds = new Set(APP.vaultFiles.map(v => v.fileId));
+        files = files.filter(f => !vaultIds.has(f.id));
     }
 
     // Quick filter (F65)
@@ -6164,100 +4247,50 @@ function renderFileGridItem(file, index) {
     const icon = getFileIcon(type);
     const selected = APP.selectedFiles.has(file.id);
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
-    const trashDays = file.trashed && APP.settings.trashPurgeDays > 0 ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : -1;
     const ext = (file.name || '').split('.').pop().toUpperCase();
     const downloadUrl = `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`;
     const isId = APP.lang === 'id';
 
-    // Build status icons row
     let statusIcons = '';
     if (file.starred) statusIcons += '<span class="si starred"><i class="fas fa-star"></i></span>';
     if (file.pinned) statusIcons += '<span class="si pinned"><i class="fas fa-thumbtack"></i></span>';
     if (file.encrypted) statusIcons += '<span class="si encrypted"><i class="fas fa-lock"></i></span>';
-    if (file.notes) statusIcons += '<span class="si has-notes"><i class="fas fa-sticky-note"></i></span>';
-    if (file._integrityVerified) statusIcons += '<span class="si verified" style="color:#10b981"><i class="fas fa-shield-halved"></i></span>';
 
-    // Build preview area based on file type
     let previewArea = '';
     if (type === 'image') {
-        // Use thumbUrl if available, otherwise use download URL for lazy loading
         const thumbSrc = file.thumbUrl || '';
         previewArea = `<div class="grid-card-preview" data-lazy-thumb="${thumbSrc || downloadUrl}" data-file-id="${file.id}">
-            <img src="" alt="${file.name}" class="file-thumb-placeholder-img" style="width:100%;height:100%;object-fit:cover;border-radius:13px 13px 0 0;opacity:0;transition:opacity .3s ease" onload="this.style.opacity=1" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-            <div class="preview-icon-area" style="display:none;position:absolute;inset:0">
-                <div class="icon-glow" style="background:${icon.color}"></div>
-                <i class="fas ${icon.icon}" style="font-size:32px;color:${icon.color}"></i>
-            </div>
-            <div class="gradient-overlay"></div>
+            <img src="" alt="${file.name}" class="file-thumb-placeholder-img" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s ease" onload="this.style.opacity=1" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="preview-icon-area" style="display:none"><i class="fas ${icon.icon}" style="font-size:28px;color:${icon.color}"></i></div>
             <span class="grid-type-badge">${ext}</span>
             ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
         </div>`;
     } else if (type === 'video') {
-        // Video thumbnail with play button overlay
         const thumbSrc = file.thumbnailUrl || file.thumbUrl || '';
-        const videoThumbUrl = thumbSrc || `/api/thumb?file_id=${file.telegramFileId || file.id}&bot_index=${file.botIndex || 0}`;
-        previewArea = `<div class="grid-card-preview" ${thumbSrc ? '' : `data-lazy-thumb="${videoThumbUrl}" data-file-id="${file.id}"`} style="background:linear-gradient(135deg,${icon.color}18,${icon.color}08)">
-            ${thumbSrc ? `<img src="${thumbSrc}" alt="${file.name}" style="width:100%;height:100%;object-fit:cover;border-radius:13px 13px 0 0;opacity:.8">` : `<img src="" alt="${file.name}" class="file-thumb-placeholder-img" style="width:100%;height:100%;object-fit:cover;border-radius:13px 13px 0 0;opacity:0;transition:opacity .3s ease" onload="this.style.opacity=0.8" onerror="this.style.display='none'">`}
-            <div class="grid-play-overlay">
-                <div class="play-btn"><i class="fas fa-play" style="margin-left:2px"></i></div>
-            </div>
-            <span class="grid-type-badge">${ext}</span>
-            ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
-        </div>`;
-    } else if (type === 'pdf') {
-        // PDF thumbnail with page count overlay
-        previewArea = `<div class="grid-card-preview" data-lazy-thumb="${downloadUrl}" data-file-id="${file.id}" style="background:linear-gradient(135deg,${icon.color}12,${icon.color}05)">
-            <div class="preview-icon-area">
-                <div class="icon-glow" style="background:${icon.color}"></div>
-                <i class="fas fa-file-pdf" style="font-size:36px;color:${icon.color}"></i>
-            </div>
-            <span class="grid-type-badge">PDF</span>
-            <span class="grid-pdf-badge"><i class="fas fa-file-pdf" style="margin-right:3px"></i>PDF</span>
-            ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
-        </div>`;
-    } else if (type === 'audio') {
-        const barColors = [icon.color, icon.color + 'cc', icon.color + '99', icon.color + 'b3', icon.color + '80', icon.color + 'cc', icon.color];
-        const bars = barColors.map((c, i) => `<span style="background:${c};animation-delay:${i * 0.15}s"></span>`).join('');
-        previewArea = `<div class="grid-card-preview" style="background:linear-gradient(135deg,${icon.color}15,${icon.color}08)">
-            <div class="preview-icon-area" style="flex-direction:column;gap:12px">
-                <div class="icon-glow" style="background:${icon.color}"></div>
-                <i class="fas fa-music" style="font-size:28px;color:${icon.color}"></i>
-                <div class="grid-audio-wave">${bars}</div>
-            </div>
+        previewArea = `<div class="grid-card-preview" ${thumbSrc ? '' : `data-lazy-thumb="${thumbSrc}" data-file-id="${file.id}"`} style="background:var(--bg-secondary)">
+            ${thumbSrc ? `<img src="${thumbSrc}" alt="${file.name}" style="width:100%;height:100%;object-fit:cover;opacity:.8">` : `<div class="preview-icon-area"><i class="fas fa-video" style="font-size:28px;color:${icon.color}"></i></div>`}
+            <div class="grid-play-overlay"><div class="play-btn"><i class="fas fa-play" style="margin-left:2px"></i></div></div>
             <span class="grid-type-badge">${ext}</span>
             ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
         </div>`;
     } else {
-        previewArea = `<div class="grid-card-preview" style="background:linear-gradient(135deg,${icon.color}12,${icon.color}05)">
-            <div class="preview-icon-area">
-                <div class="icon-glow" style="background:${icon.color}"></div>
-                <i class="fas ${icon.icon}" style="font-size:32px;color:${icon.color}"></i>
-            </div>
+        previewArea = `<div class="grid-card-preview" style="background:var(--bg-secondary)">
+            <div class="preview-icon-area"><i class="fas ${icon.icon}" style="font-size:28px;color:${icon.color}"></i></div>
             <span class="grid-type-badge">${ext}</span>
             ${statusIcons ? '<div class="grid-status-icons">' + statusIcons + '</div>' : ''}
         </div>`;
     }
 
-    // Tag strip
     const tagStrip = file.tag ? `<div class="grid-tag-strip" style="background:${file.tag}"></div>` : '';
-
-    // Trash progress
+    const trashDays = file.trashed && APP.settings.trashPurgeDays > 0 ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : -1;
     let trashInfo = '';
     if (file.trashed && trashDays >= 0) {
-        const urgent = trashDays < 1;
-        const warn = trashDays < 3;
-        const color = urgent ? '#ef4444' : warn ? '#f97316' : '#f59e0b';
-        const pct = APP.settings.trashPurgeDays > 0 ? Math.max(0, Math.min(100, ((APP.settings.trashPurgeDays - trashDays) / APP.settings.trashPurgeDays) * 100)) : 0;
-        trashInfo = `<div style="margin-top:4px;width:100%">
-            <div style="font-size:10px;color:${color};font-weight:${urgent?'700':'400'}"><i class="fas fa-clock"></i> ${isId?'Dihapus dalam':'Deleted in'} ${trashDays} ${isId?'hari':'day(s)'}</div>
-            <div style="height:3px;background:var(--border);border-radius:2px;margin-top:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:2px;transition:width .3s ease"></div></div>
-        </div>`;
+        const color = trashDays < 1 ? '#ef4444' : trashDays < 3 ? '#f97316' : '#f59e0b';
+        trashInfo = `<div style="margin-top:4px;width:100%"><div style="font-size:10px;color:${color}"><i class="fas fa-clock"></i> ${trashDays}d</div></div>`;
     }
+    const versionBadge = versions.length > 1 ? `<span class="detail-version-badge">v${file.version || 1}/${versions.length}</span>` : '';
 
-    // Version badge
-    const versionBadge = versions.length > 1 ? `<span class="detail-version-badge" style="font-size:9px;padding:1px 6px;margin-left:4px">v${file.version || 1}/${versions.length}</span>` : '';
-
-    return `<div class="file-card-premium file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''} ${file.trashed ? 'trashed-file' : ''}" 
+    return `<div class="file-grid-item ${selected ? 'selected' : ''} ${file.trashed ? 'trashed-file' : ''}" 
         onclick="handleFileClick(event, '${file.id}', ${index})"
         oncontextmenu="showContextMenu(event, '${file.id}')"
         draggable="true"
@@ -6273,7 +4306,6 @@ function renderFileGridItem(file, index) {
             <div class="grid-name" title="${file.name}">${file.name}${versionBadge}</div>
             <div class="grid-meta">
                 ${file.tag ? `<span class="tag-dot-inline" style="background:${file.tag}" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
-                ${file.storageProvider === 'gdrive' ? '<span class="provider-badge gdrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'gdrive\';renderFileList()" title="Google Drive"><i class="fab fa-google"></i></span>' : ''}${file.storageProvider === 'onedrive' ? '<span class="provider-badge onedrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'onedrive\';renderFileList()" title="OneDrive"><i class="fab fa-microsoft"></i></span>' : ''}${file.storageProvider === 'dropbox' ? '<span class="provider-badge dropbox" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'dropbox\';renderFileList()" title="Dropbox"><i class="fab fa-dropbox"></i></span>' : ''}${file.storageProvider === 's3' ? '<span class="provider-badge s3" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'s3\';renderFileList()" title="S3 / Cloud Storage"><i class="fas fa-database"></i></span>' : ''}
                 <span>${formatSize(file.size)} · ${formatDate(file.uploadedAt)}</span>
             </div>
             ${trashInfo}
@@ -6286,51 +4318,33 @@ function renderFileListRow(file, index) {
     const icon = getFileIcon(type);
     const selected = APP.selectedFiles.has(file.id);
     const versions = APP.files.filter(f => f.name === file.name && f.folderId === file.folderId && !f.trashed);
-    const trashDays = file.trashed && APP.settings.trashPurgeDays > 0 ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : -1;
     const downloadUrl = `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`;
     const isId = APP.lang === 'id';
 
-    // Thumbnail or icon
     let thumbHtml = '';
     if (type === 'image') {
-        thumbHtml = `<div class="list-thumb" data-lazy-thumb="${downloadUrl}" data-file-id="${file.id}" style="background:${icon.color}15">
-            <img src="" alt="File thumbnail" style="width:100%;height:100%;object-fit:cover;border-radius:8px;opacity:0;transition:opacity .3s ease;position:absolute;inset:0" onload="this.style.opacity=1" onerror="this.style.display='none';this.parentElement.querySelector('.thumb-icon').style.display='flex'">
-            <div class="thumb-icon" style="background:${icon.color}15;display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:8px">
-                <i class="fas ${icon.icon}" style="font-size:16px;color:${icon.color}"></i>
-            </div>
+        thumbHtml = `<div class="list-thumb" data-lazy-thumb="${downloadUrl}" data-file-id="${file.id}">
+            <img src="" alt="" class="list-thumb-img" onload="this.style.opacity=1" onerror="this.style.display='none';this.parentElement.querySelector('.thumb-icon').style.display='flex'">
+            <div class="thumb-icon"><i class="fas ${icon.icon}" style="color:${icon.color}"></i></div>
         </div>`;
     } else {
-        thumbHtml = `<div class="list-thumb" style="background:${icon.color}12">
-            <div class="thumb-icon" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:8px">
-                <i class="fas ${icon.icon}" style="font-size:16px;color:${icon.color}"></i>
-            </div>
-        </div>`;
+        thumbHtml = `<div class="list-thumb"><div class="thumb-icon"><i class="fas ${icon.icon}" style="color:${icon.color}"></i></div></div>`;
     }
 
-    // Inline status icons
     let inlineStatus = '';
     if (file.pinned) inlineStatus += '<i class="fas fa-thumbtack inline-status pinned"></i>';
     if (file.starred) inlineStatus += '<i class="fas fa-star inline-status starred"></i>';
     if (file.encrypted) inlineStatus += '<i class="fas fa-lock inline-status encrypted"></i>';
-    if (file._integrityVerified) inlineStatus += '<i class="fas fa-shield-halved inline-status" style="color:#10b981"></i>';
 
-    // Version badge inline
-    const versionBadge = versions.length > 1 ? `<span class="detail-version-badge" style="font-size:9px;padding:1px 5px">v${file.version || 1}</span>` : '';
+    const versionBadge = versions.length > 1 ? `<span class="detail-version-badge">v${file.version || 1}</span>` : '';
 
-    // Trash countdown
+    const trashDays = file.trashed && APP.settings.trashPurgeDays > 0 ? Math.max(0, APP.settings.trashPurgeDays - Math.floor((Date.now() - (file.trashedAt || 0)) / 86400000)) : -1;
     let trashBadge = '';
     if (file.trashed && trashDays >= 0) {
-        const urgent = trashDays < 1;
-        const warn = trashDays < 3;
-        const color = urgent ? '#ef4444' : warn ? '#f97316' : '#f59e0b';
-        trashBadge = `<span style="font-size:10px;color:${color};font-weight:${urgent?'700':'400'}"><i class="fas fa-clock"></i> ${trashDays}d</span>`;
+        const color = trashDays < 1 ? '#ef4444' : trashDays < 3 ? '#f97316' : '#f59e0b';
+        trashBadge = `<span style="font-size:10px;color:${color}"><i class="fas fa-clock"></i> ${trashDays}d</span>`;
     }
 
-    // Sub-meta line
-    let subMeta = `${formatSize(file.size)}`;
-    if (file.caption) subMeta += ` · ${file.caption.substring(0, 30)}`;
-
-    // Trash progress bar
     let trashProgress = '';
     if (file.trashed && trashDays >= 0) {
         const pct = APP.settings.trashPurgeDays > 0 ? Math.max(0, Math.min(100, ((APP.settings.trashPurgeDays - trashDays) / APP.settings.trashPurgeDays) * 100)) : 0;
@@ -6338,7 +4352,7 @@ function renderFileListRow(file, index) {
         trashProgress = `<div class="list-upload-progress" style="background:var(--border)"><div class="bar" style="width:${pct}%;background:${color}"></div></div>`;
     }
 
-    return `<div class="file-row-premium file-stagger-${Math.min(index + 1, 10)} ${selected ? 'selected' : ''} ${file.trashed ? 'trashed-file' : ''}"
+    return `<div class="file-list-item ${selected ? 'selected' : ''} ${file.trashed ? 'trashed-file' : ''}"
         onclick="handleFileClick(event, '${file.id}', ${index})"
         oncontextmenu="showContextMenu(event, '${file.id}')"
         draggable="true"
@@ -6346,28 +4360,25 @@ function renderFileListRow(file, index) {
         ondragover="handleDragReorder(event, ${index})"
         ondrop="handleDropReorder(event, '${file.id}')"
         data-file-id="${file.id}">
-        ${APP.batchMode ? `<div style="width:20px;height:20px;border-radius:4px;border:2px solid ${selected ? 'var(--accent)' : 'var(--border)'};background:${selected ? 'var(--accent)' : 'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0">${selected ? '<i class="fas fa-check" style="color:#fff;font-size:10px"></i>' : ''}</div>` : ''}
+        ${APP.batchMode ? `<div class="batch-checkbox ${selected ? 'checked' : ''}">${selected ? '<i class="fas fa-check"></i>' : ''}</div>` : ''}
         ${thumbHtml}
         <div class="list-name-col">
             <div class="list-name-row">
                 <span class="fname">${file.name}</span>
                 ${inlineStatus}
-                ${file.storageProvider === 'gdrive' ? '<span class="provider-badge gdrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'gdrive\';renderFileList()" title="Google Drive"><i class="fab fa-google"></i></span>' : ''}${file.storageProvider === 'onedrive' ? '<span class="provider-badge onedrive" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'onedrive\';renderFileList()" title="OneDrive"><i class="fab fa-microsoft"></i></span>' : ''}${file.storageProvider === 'dropbox' ? '<span class="provider-badge dropbox" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'dropbox\';renderFileList()" title="Dropbox"><i class="fab fa-dropbox"></i></span>' : ''}${file.storageProvider === 's3' ? '<span class="provider-badge s3" onclick="event.stopPropagation();selectFolder(\'all\');APP.providerFilter=\'s3\';renderFileList()" title="S3 / Cloud Storage"><i class="fas fa-database"></i></span>' : ''}
                 ${file.tag ? `<span class="tag-dot-inline" style="background:${file.tag}" onclick="event.stopPropagation();toggleTagFilter('${file.tag}')"></span>` : ''}
                 ${versionBadge}
                 ${trashBadge}
             </div>
-            <div class="list-sub-meta">${subMeta}${file.storageProvider === 'gdrive' ? ' · <i class="fab fa-google" style="font-size:9px;color:#4285f4"></i> Drive' : ''}${file.storageProvider === 'onedrive' ? ' · <i class="fab fa-microsoft" style="font-size:9px;color:#0078d4"></i> OneDrive' : ''}${file.storageProvider === 'dropbox' ? ' · <i class="fab fa-dropbox" style="font-size:9px;color:#0061ff"></i> Dropbox' : ''}${file.storageProvider === 's3' ? ' · <i class="fas fa-database" style="font-size:9px;color:#f48120"></i> Cloud' : ''}</div>
+            <div class="list-sub-meta">${formatSize(file.size)}</div>
             ${trashProgress}
         </div>
-        <div class="list-col-size">${formatSize(file.size)}</div>
         <div class="list-col-date">${formatDate(file.uploadedAt)}</div>
         <div class="row-actions action-btns">
-            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openPreview('${file.id}')" title="${t('preview')}" aria-label="Preview"><i class="fas fa-eye"></i></button>
-            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openShareModal('${file.id}')" title="${t('share')}" aria-label="Share"><i class="fas fa-share-alt"></i></button>
-            <button class="toolbar-action-btn" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();downloadFile('${file.id}')" title="${t('download')}" aria-label="Download"><i class="fas fa-download"></i></button>
+            <button class="file-action-btn" onclick="event.stopPropagation();openPreview('${file.id}')" title="${t('preview')}" aria-label="Preview"><i class="fas fa-eye"></i></button>
+            <button class="file-action-btn" onclick="event.stopPropagation();openShareModal('${file.id}')" title="${t('share')}" aria-label="Share"><i class="fas fa-share-alt"></i></button>
+            <button class="file-action-btn" onclick="event.stopPropagation();downloadFile('${file.id}')" title="${t('download')}" aria-label="Download"><i class="fas fa-download"></i></button>
         </div>
-        ${!file.trashed ? `<button class="mobile-delete-btn" onclick="event.stopPropagation();quickDeleteFile('${file.id}')" title="${t('delete')}" aria-label="Delete"><i class="fas fa-trash"></i></button>` : `<div style="display:flex;gap:4px"><button class="mobile-restore-btn" onclick="event.stopPropagation();restoreFile('${file.id}')" title="${t('restore')}" aria-label="Restore"><i class="fas fa-undo"></i></button><button class="mobile-delete-btn" style="background:rgba(239,68,68,.9)" onclick="event.stopPropagation();deletePermanently('${file.id}')" title="${t('deletePermanently')}" aria-label="Delete permanently"><i class="fas fa-times"></i></button></div>`}
     </div>`;
 }
 
@@ -6376,13 +4387,13 @@ function removeFileElement(fileId) {
     // Remove grid card
     const gridCard = document.querySelector(`[data-file-id="${fileId}"]`);
     if (gridCard) gridCard.remove();
-    // Remove list row — it may not have data-file-id, so also check onclick attribute
-    document.querySelectorAll('.file-row-premium').forEach(row => {
+    // Remove list row
+    document.querySelectorAll('.file-list-item').forEach(row => {
         if (row.getAttribute('onclick')?.includes(fileId)) row.remove();
     });
     // Also try by any element that references this file
     document.querySelectorAll(`[onclick*="${fileId}"]`).forEach(el => {
-        if (el.classList.contains('file-row-premium') || el.classList.contains('file-card-premium')) el.remove();
+        if (el.classList.contains('file-list-item') || el.classList.contains('file-grid-item')) el.remove();
     });
 }
 
@@ -6527,7 +4538,7 @@ function initSwipeGestures() {
     });
 }
 function initLongPressGestures() {
-    const fileCards = document.querySelectorAll('.file-card-premium, .file-row-premium');
+    const fileCards = document.querySelectorAll('.file-grid-item, .file-list-item, .bento-card, .timeline-item');
     fileCards.forEach(el => {
         if (el._longPressInit) return;
         el._longPressInit = true;
@@ -6535,12 +4546,12 @@ function initLongPressGestures() {
         const longPressDuration = 500;
 
         el.addEventListener('touchstart', (e) => {
-            // Don't trigger long-press on delete/restore buttons
-            if (e.target.closest('.mobile-delete-btn, .mobile-restore-btn, .grid-quick-delete')) return;
+            if (e.target.closest('.mobile-delete-btn, .mobile-restore-btn, .grid-quick-delete, button, a')) return;
             timer = setTimeout(() => {
                 if (navigator.vibrate) navigator.vibrate(30); haptic('tap');
                 const fileId = el.getAttribute('onclick')?.match(/'([^']+)'/)?.[1]
-                    || el.closest('[data-file-id]')?.getAttribute('data-file-id');
+                    || el.closest('[data-file-id]')?.getAttribute('data-file-id')
+                    || el.getAttribute('data-file-id');
                 if (fileId) {
                     const rect = el.getBoundingClientRect();
                     const fakeEvent = {
@@ -6614,33 +4625,34 @@ async function restoreAllTrash() {
 // ===== EMPTY STATES (F97) =====
 function renderEmptyState() {
     const folder = APP.folders.find(f => f.id === APP.currentFolder);
-    let svg, title, desc;
+    let icon, title, desc;
     if (APP.searchQuery) {
-        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><circle cx="70" cy="55" r="32" fill="none" stroke="url(#grad1)" stroke-width="2.5"/><line x1="93" y1="78" x2="115" y2="100" stroke="url(#grad1)" stroke-width="2.5" stroke-linecap="round"/><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs><text x="70" y="60" text-anchor="middle" fill="var(--text-secondary)" font-size="22" font-family="Space Grotesk">?</text></svg>';
+        icon = 'fa-magnifying-glass';
         title = t('noSearch');
         desc = APP.lang === 'id' ? 'Coba kata kunci lain untuk menemukan file Anda' : 'Try different keywords to find your files';
     } else if (APP.currentFolder === 'trash') {
-        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><path d="M45 50h50v55a12 12 0 01-12 12H57a12 12 0 01-12-12V50z" fill="none" stroke="url(#grad2)" stroke-width="2.5"/><line x1="38" y1="50" x2="102" y2="50" stroke="url(#grad2)" stroke-width="2.5"/><path d="M55 40h30v10" fill="none" stroke="url(#grad2)" stroke-width="2.5"/><defs><linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg>';
+        icon = 'fa-trash-alt';
         title = t('noTrash');
         desc = APP.lang === 'id' ? 'File yang dihapus akan muncul di sini' : 'Deleted files will appear here';
     } else if (APP.currentFolder === 'favorites') {
-        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><path d="M70 30l14 28 30 5-22 21 5 30-27-14-27 14 5-30-22-21 30-5z" fill="none" stroke="url(#grad3)" stroke-width="2.5"/><defs><linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg>';
+        icon = 'fa-star';
         title = t('noFavorites');
         desc = APP.lang === 'id' ? 'Bintangi file untuk menambahkan ke favorit' : 'Star files to add to favorites';
     } else if (APP.currentFolder === 'recent') {
-        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><circle cx="70" cy="70" r="30" fill="none" stroke="url(#grad5)" stroke-width="2.5"/><line x1="70" y1="55" x2="70" y2="70" stroke="url(#grad5)" stroke-width="2.5" stroke-linecap="round"/><line x1="70" y1="70" x2="82" y2="78" stroke="url(#grad5)" stroke-width="2.5" stroke-linecap="round"/><defs><linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg>';
+        icon = 'fa-clock';
         title = t('noRecent');
         desc = t('noRecentDesc');
     } else {
-        svg = '<svg width="140" height="140" viewBox="0 0 140 140"><rect x="35" y="28" width="70" height="80" rx="6" fill="none" stroke="url(#grad4)" stroke-width="2.5"/><path d="M58 28V18h24v10" fill="none" stroke="url(#grad4)" stroke-width="2.5"/><path d="M63 60h24M63 72h24M63 84h14" stroke="url(#grad4)" stroke-width="2" stroke-linecap="round"/><circle cx="52" cy="60" r="3" fill="url(#grad4)"/><circle cx="52" cy="72" r="3" fill="url(#grad4)"/><circle cx="52" cy="84" r="3" fill="url(#grad4)"/><defs><linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg>';
+        icon = 'fa-folder-open';
         title = t('noFiles');
         desc = t('noFilesDesc');
     }
-    return `<div class="empty-premium">
-        <div class="empty-svg-wrap">${svg}</div>
-        <h3>${title}</h3>
-        <p>${desc}</p>
-        ${APP.currentFolder === 'all' ? `<button class="empty-action-btn" onclick="triggerUpload()"><i class="fas fa-cloud-arrow-up"></i> ${t('upload')}</button>` : ''}
+    const cta = APP.currentFolder === 'all' ? `<button class="empty-cta" onclick="triggerUpload()"><i class="fas fa-cloud-arrow-up"></i> ${t('upload')}</button>` : '';
+    return `<div class="empty-state">
+        <i class="fas ${icon} empty-icon"></i>
+        <h3 class="empty-title">${title}</h3>
+        <p class="empty-desc">${desc}</p>
+        ${cta}
     </div>`;
 }
 
@@ -7002,10 +5014,7 @@ async function executeUpload(file, folderParam) {
             if (APP.settings.aiAutoCategorize !== false) {
                 aiCategorizeFile(meta);
             }
-            // F118: Apply automation rules after upload
-            if (APP.automationRules && APP.automationRules.length > 0) {
-                applyAutomationRules(meta);
-            }
+            // Automation rules removed
             // F120: Push notification
             pushNotification('upload', t('notifUploadComplete'), file.name);
             showToast(t('uploaded'), 'success');
@@ -7478,6 +5487,30 @@ async function deleteCustomFolder(folderId) {
         },
         false
     );
+}
+
+// ===== FOLDER OPTIONS (Self-Destruct) =====
+function openFolderOptions(folderId) {
+    const isId = APP.lang === 'id';
+    const folder = APP.folders.find(f => f.id === folderId);
+    if (!folder) return;
+    const isSD = !!APP.selfDestructFolders[folderId];
+    // fakeFolders removed
+    openModal(`<div style="padding:20px;max-width:400px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:18px;font-weight:600"><i class="fas fa-folder" style="color:#f59e0b;margin-right:8px"></i>${folder.name}</h3>
+            <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+            <!-- Self-destruct option removed -->
+
+            <div style="border-top:1px solid var(--border);margin:4px 0"></div>
+            <div style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid rgba(239,68,68,.2);border-radius:10px;cursor:pointer;transition:all .15s" onclick="closeModal();deleteCustomFolder('${folderId}')" onmouseover="this.style.background='rgba(239,68,68,.05)'" onmouseout="this.style.background=''">
+                <div style="width:40px;height:40px;border-radius:10px;background:rgba(239,68,68,.08);display:flex;align-items:center;justify-content:center"><i class="fas fa-trash" style="color:#ef4444;font-size:16px"></i></div>
+                <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#ef4444">${isId?'Hapus Folder':'Delete Folder'}</div><div style="font-size:11px;color:var(--text-secondary)">${isId?'File tidak akan dihapus':'Files won\'t be deleted'}</div></div>
+            </div>
+        </div>
+    </div>`);
 }
 
 async function emptyTrash() {
@@ -8594,39 +6627,35 @@ async function handlePortalUpload(fileList, folderId) {
 // ===== PREVIEW (F6, F47, F63, F100, F101) =====
 function openPreview(fileId) {
     haptic('tap');
+    // F126: Use carousel preview for images/videos/audio/PDFs
     const file = APP.files.find(f => f.id === fileId);
     if (!file) return;
-    // Track last accessed time
+    const type = getFileType(file.name, file.mime);
+    if (['image','video','audio','pdf'].includes(type)) {
+        openPreviewCarousel(fileId);
+        return;
+    }
+    // Original preview for docs, code, etc.
     updateLastAccessed(fileId);
     closeContextMenu();
     closeDetailPanel();
-    const type = getFileType(file.name, file.mime);
     const icon = getFileIcon(type);
     const isId = APP.lang === 'id';
     let previewContent = '';
     const downloadUrl = APP.settings.proxyMode !== false
         ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`
         : `https://api.telegram.org/file/bot${APP.bots[0]?.token}/${file.filePath}`;
-    if (type === 'image') {
-        previewContent = `<div style="text-align:center"><img src="${downloadUrl}" style="max-width:100%;max-height:60vh;border-radius:8px" alt="${file.name}" onerror="this.src='';this.alt='Failed to load'"></div>`;
-    } else if (type === 'video' || type === 'audio') {
-        openMediaPlayer(fileId); return;
-    } else if (type === 'pdf') {
-        previewContent = `<iframe src="${downloadUrl}" title="PDF Preview" style="width:100%;height:60vh;border:none;border-radius:8px"></iframe>`;
-    } else if (type === 'document') {
-        // Feature 5: .docx preview using mammoth.js
+    if (type === 'document') {
         previewContent = `<div id="office-preview-container" style="min-height:200px">
             <div style="text-align:center;padding:40px"><div style="display:inline-block;width:32px;height:32px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite"></div><p style="margin-top:12px;color:var(--text-secondary);font-size:13px">${isId ? 'Memuat dokumen...' : 'Loading document...'}</p></div>
         </div>`;
         setTimeout(() => fetchDocxPreview(file, downloadUrl), 100);
     } else if (type === 'spreadsheet') {
-        // Feature 5: .xlsx preview using SheetJS
         previewContent = `<div id="office-preview-container" style="min-height:200px">
             <div style="text-align:center;padding:40px"><div style="display:inline-block;width:32px;height:32px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite"></div><p style="margin-top:12px;color:var(--text-secondary);font-size:13px">${isId ? 'Memuat spreadsheet...' : 'Loading spreadsheet...'}</p></div>
         </div>`;
         setTimeout(() => fetchXlsxPreview(file, downloadUrl), 100);
     } else if (type === 'presentation') {
-        // Feature 5: .pptx - too complex to render, show download option
         previewContent = `<div style="text-align:center;padding:40px">
             <div style="width:80px;height:80px;border-radius:20px;background:#f9731615;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
                 <i class="fas fa-file-powerpoint" style="font-size:36px;color:#f97316"></i>
@@ -9132,14 +7161,6 @@ function openSettings() {
                 </div>
             </div>` : ''}
 
-            <!-- Theme Color / Accent -->
-            <div style="margin-bottom:20px">
-                <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px"><i class="fas fa-palette" style="color:var(--accent);margin-right:6px"></i>${t('themeColor') || (APP.lang==='id'?'Warna Tema':'Theme Color')}</label>
-                <div style="display:flex;gap:10px;flex-wrap:wrap">
-                    ${ACCENT_PRESETS.map(p => `<div onclick="setAccentColor('${p.color}','${p.hover}');openSettings()" style="width:32px;height:32px;border-radius:50%;background:${p.color};cursor:pointer;border:3px solid ${localStorage.getItem('rb_accent')===p.color?'var(--text)':'transparent'};transition:all .2s ease" title="${p.name}"></div>`).join('')}
-                </div>
-            </div>
-
             <!-- Language Selector -->
             <div style="margin-bottom:20px">
                 <label style="font-size:14px;font-weight:500;display:block;margin-bottom:4px"><i class="fas fa-globe" style="color:var(--accent);margin-right:6px"></i>${t('language')}</label>
@@ -9207,44 +7228,9 @@ function openSettings() {
                 </div>
             </div>
 
-            <!-- 2FA / TOTP -->
-            <div style="margin-bottom:20px;padding:16px;background:linear-gradient(135deg,rgba(139,92,246,.06),rgba(59,130,246,.06));border:1px solid rgba(139,92,246,.15);border-radius:12px">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center"><i class="fas fa-shield-halved" style="color:#8b5cf6;font-size:16px"></i></div>
-                    <div>
-                        <div style="font-size:14px;font-weight:600;color:var(--text)">2FA ${APP.lang==='id'?'Autentikasi':'Authentication'}</div>
-                        <div style="font-size:11px;color:var(--text-secondary)">${APP.settings.totpEnabled ? (APP.lang==='id'?'2FA aktif · Kode TOTP diperlukan saat login':'2FA active · TOTP code required on login') : (APP.lang==='id'?'Tambahkan lapisan keamanan dengan TOTP':'Add extra security with TOTP')}</div>
-                    </div>
-                </div>
-                <div style="display:flex;gap:8px">
-                    ${APP.settings.totpEnabled ? `<button class="btn btn-danger btn-sm" onclick="disable2FA()"><i class="fas fa-trash"></i> ${APP.lang==='id'?'Nonaktifkan':'Disable'}</button>` : `<button class="btn btn-primary btn-sm" style="flex:1" onclick="setup2FA()"><i class="fas fa-qrcode"></i> ${APP.lang==='id'?'Setup 2FA':'Setup 2FA'}</button>`}
-                </div>
-            </div>
+            <!-- 2FA section removed -->
 
-            <!-- Recovery Codes (F9) -->
-            ${APP.settings.totpEnabled ? `<div style="margin-bottom:20px;padding:16px;background:linear-gradient(135deg,rgba(245,158,11,.04),rgba(139,92,246,.04));border:1px solid rgba(245,158,11,.12);border-radius:12px">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center"><i class="fas fa-key" style="color:#f59e0b;font-size:16px"></i></div>
-                    <div style="flex:1">
-                        <div style="font-size:14px;font-weight:600;color:var(--text)">${APP.lang==='id'?'Kode Pemulihan':'Recovery Codes'}</div>
-                        <div style="font-size:11px;color:var(--text-secondary)">${(() => { const s = getRecoveryCodeStats(); return APP.lang==='id'? `${s.remaining}/${s.total} kode tersisa` : `${s.remaining}/${s.total} codes remaining`; })()}</div>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" onclick="showRecoveryCodesInSettings()"><i class="fas fa-eye"></i> ${APP.lang==='id'?'Lihat':'View'}</button>
-                </div>
-                ${(() => { const s = getRecoveryCodeStats(); return s.remaining === 0 ? `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:6px;padding:6px 10px;font-size:11px;color:#ef4444;display:flex;align-items:center;gap:6px"><i class="fas fa-exclamation-triangle" style="font-size:10px"></i> ${APP.lang==='id'?'Semua kode telah digunakan!':'All codes used!'}</div>` : ''; })()}
-            </div>` : ''}
-
-            <!-- Sessions / Perangkat (F10) -->
-            <div style="margin-bottom:20px;padding:16px;background:linear-gradient(135deg,rgba(59,130,246,.04),rgba(16,185,129,.04));border:1px solid rgba(59,130,246,.12);border-radius:12px">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(59,130,246,.1);display:flex;align-items:center;justify-content:center"><i class="fas fa-laptop" style="color:var(--accent);font-size:16px"></i></div>
-                    <div style="flex:1">
-                        <div style="font-size:14px;font-weight:600;color:var(--text)">${APP.lang==='id'?'Perangkat':'Sessions'}</div>
-                        <div style="font-size:11px;color:var(--text-secondary)">${APP.lang==='id'?'Kelola sesi login aktif':'Manage active login sessions'}</div>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" onclick="showSessionsPanel()"><i class="fas fa-list"></i> ${APP.lang==='id'?'Kelola':'Manage'}</button>
-                </div>
-            </div>
+            <!-- Sessions section removed -->
 
             <!-- Push Notifications -->
             <div style="margin-bottom:20px">
@@ -9389,451 +7375,6 @@ function openSettings() {
         </div>`);
 }
 
-// ===== ADMIN PANEL — Separate admin login & credential management =====
-let _adminVerified = false;
-let _adminVerifyTimeout = null;
-
-// Default admin credentials (can be changed via admin panel)
-const DEFAULT_ADMIN_EMAIL = 'ardiidonovan@gmail.com';
-const DEFAULT_ADMIN_PASSWORD = 'admin123';
-
-function getAdminCredentials() {
-    const stored = localStorage.getItem('rb_admin_cred');
-    if (stored) {
-        try { return JSON.parse(stored); } catch(e) {}
-    }
-    return { email: DEFAULT_ADMIN_EMAIL, password: DEFAULT_ADMIN_PASSWORD };
-}
-
-function setAdminCredentials(email, password) {
-    localStorage.setItem('rb_admin_cred', JSON.stringify({ email, password }));
-}
-
-function isAdminLoggedIn() {
-    return _adminVerified && _adminVerifyTimeout && Date.now() < _adminVerifyTimeout;
-}
-
-function renderAdminLoginPage() {
-    const isId = APP.lang === 'id';
-    const isDark = document.documentElement.classList.contains('dark');
-    const main = document.getElementById('app-main');
-    if (!main) return;
-
-    // Hide header
-    const header = document.getElementById('app-header');
-    if (header) header.style.display = 'none';
-
-    const adminCred = getAdminCredentials();
-
-    main.innerHTML = `
-    <div class="auth-fullpage fade-in">
-        <div class="auth-fullpage-left">
-            <div class="auth-form-particles">
-                <i class="fas fa-shield-halved auth-form-particle" style="left:15%;font-size:24px;animation-duration:15s;animation-delay:-3s"></i>
-                <i class="fas fa-lock auth-form-particle" style="left:45%;font-size:18px;animation-duration:18s;animation-delay:-7s"></i>
-                <i class="fas fa-key auth-form-particle" style="left:75%;font-size:20px;animation-duration:20s;animation-delay:-12s"></i>
-                <i class="fas fa-user-shield auth-form-particle" style="left:30%;font-size:16px;animation-duration:22s;animation-delay:-5s"></i>
-                <i class="fas fa-fingerprint auth-form-particle" style="left:60%;font-size:22px;animation-duration:16s;animation-delay:-9s"></i>
-            </div>
-            <div class="auth-brand-section">
-                <div class="auth-brand-logo" style="background:linear-gradient(135deg,#ef4444,#f59e0b);box-shadow:0 12px 40px rgba(239,68,68,.4)"><i class="fas fa-shield-halved"></i></div>
-                <div class="auth-brand-title">${isId ? 'Panel Admin' : 'Admin Panel'}</div>
-                <div class="auth-brand-subtitle">${isId ? 'Area khusus administrator. Kelola kredensial, API key, dan konfigurasi sistem.' : 'Administrator area only. Manage credentials, API keys, and system configuration.'}</div>
-                <div class="auth-brand-features">
-                    <div class="auth-brand-feature">
-                        <div class="auth-brand-feature-icon" style="background:rgba(239,68,68,.15);color:#ef4444"><i class="fas fa-key"></i></div>
-                        <div class="auth-brand-feature-text"><strong>${isId ? 'Akses Terbatas' : 'Restricted Access'}</strong>${isId ? 'Hanya admin yang bisa mengakses panel ini' : 'Only admins can access this panel'}</div>
-                    </div>
-                    <div class="auth-brand-feature">
-                        <div class="auth-brand-feature-icon" style="background:rgba(245,158,11,.15);color:#f59e0b"><i class="fas fa-database"></i></div>
-                        <div class="auth-brand-feature-text"><strong>${isId ? 'Kelola API Key' : 'Manage API Keys'}</strong>${isId ? 'Bot token, S3 credentials, dan webhook' : 'Bot tokens, S3 credentials, and webhooks'}</div>
-                    </div>
-                    <div class="auth-brand-feature">
-                        <div class="auth-brand-feature-icon" style="background:rgba(16,185,129,.15);color:#10b981"><i class="fas fa-user-lock"></i></div>
-                        <div class="auth-brand-feature-text"><strong>${isId ? 'Ubah Password' : 'Change Password'}</strong>${isId ? 'Ganti kredensial admin kapan saja' : 'Change admin credentials anytime'}</div>
-                    </div>
-                </div>
-                <div class="auth-brand-quote">${isId ? '"Keamanan data dimulai dari akses yang terkontrol." — <span>RidgeBox</span>' : '"Data security starts with controlled access." — <span>RidgeBox</span>'}</div>
-            </div>
-        </div>
-        <div class="auth-fullpage-right">
-            <button class="auth-form-theme-toggle" onclick="toggleAuthTheme()" title="${isId ? 'Ganti tema' : 'Toggle theme'}" aria-label="Toggle theme"><i class="fas fa-${isDark ? 'sun' : 'moon'}" aria-hidden="true"></i></button>
-            <div class="auth-form-section">
-                <button class="auth-form-back" onclick="location.hash='#/'" aria-label="Go back"><i class="fas fa-arrow-left" aria-hidden="true"></i> ${isId ? 'Kembali' : 'Back'}</button>
-                <div class="auth-form-header">
-                    <div class="auth-form-logo" style="background:linear-gradient(135deg,#ef4444,#f59e0b);box-shadow:0 8px 24px rgba(239,68,68,.3)"><i class="fas fa-shield-halved"></i></div>
-                    <div class="auth-form-title">${isId ? 'Login Admin' : 'Admin Login'}</div>
-                    <div class="auth-form-subtitle">${isId ? 'Masukkan kredensial admin untuk mengakses panel' : 'Enter admin credentials to access the panel'}</div>
-                </div>
-                <div id="admin-login-error" class="auth-form-error" style="display:none"><i class="fas fa-exclamation-circle"></i><span id="admin-login-error-text"></span></div>
-                <div class="auth-form-input-group">
-                    <i class="fas fa-envelope input-icon"></i>
-                    <input type="email" id="admin-email" class="auth-form-input" placeholder="${isId ? 'Email Admin' : 'Admin Email'}" autocomplete="email">
-                </div>
-                <div class="auth-form-input-group">
-                    <i class="fas fa-lock input-icon"></i>
-                    <input type="password" id="admin-password" class="auth-form-input" placeholder="${isId ? 'Password Admin' : 'Admin Password'}" autocomplete="current-password">
-                    <button type="button" class="auth-form-pw-toggle" onclick="togglePwVisibility('admin-password',this)" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
-                </div>
-                <button id="admin-login-submit" class="auth-form-btn auth-form-btn-primary" style="background:linear-gradient(135deg,#ef4444,#f59e0b);box-shadow:0 6px 24px rgba(239,68,68,.3)" onclick="handleAdminLogin()">
-                    <i class="fas fa-sign-in-alt" aria-hidden="true"></i> ${isId ? 'Masuk ke Admin' : 'Login as Admin'}
-                </button>
-                <div class="auth-form-trust">
-                    <div class="auth-form-trust-badge"><i class="fas fa-shield-halved" style="color:#ef4444"></i> ${isId ? 'Khusus Admin' : 'Admin Only'}</div>
-                    <div class="auth-form-trust-badge"><i class="fas fa-lock" style="color:#f59e0b"></i> ${isId ? 'Sesi 5 Menit' : '5 Min Session'}</div>
-                </div>
-                <div style="text-align:center;margin-top:20px;font-size:12px;color:var(--text-secondary)">
-                    ${isId ? 'Bukan admin? <a href="#/login" style="color:var(--accent);cursor:pointer">Login pengguna</a>' : 'Not an admin? <a href="#/login" style="color:var(--accent);cursor:pointer">User login</a>'}
-                </div>
-            </div>
-        </div>
-    </div>`;
-
-    // Add enter key support
-    setTimeout(() => {
-        const emailInput = document.getElementById('admin-email');
-        const passInput = document.getElementById('admin-password');
-        [emailInput, passInput].forEach(inp => {
-            if (inp) inp.addEventListener('keydown', e => {
-                if (e.key === 'Enter') {
-                    const btn = document.getElementById('admin-login-submit');
-                    if (btn) btn.click();
-                }
-            });
-        });
-        if (emailInput) emailInput.focus();
-    }, 300);
-}
-
-function handleAdminLogin() {
-    const isId = APP.lang === 'id';
-    const email = document.getElementById('admin-email')?.value?.trim();
-    const password = document.getElementById('admin-password')?.value;
-    const errorEl = document.getElementById('admin-login-error');
-    const errorText = document.getElementById('admin-login-error-text');
-
-    const adminCred = getAdminCredentials();
-
-    if (!email || !password) {
-        if (errorEl) errorEl.style.display = 'flex';
-        if (errorText) errorText.textContent = isId ? 'Email dan password wajib diisi' : 'Email and password are required';
-        return;
-    }
-
-    if (email !== adminCred.email || password !== adminCred.password) {
-        if (errorEl) errorEl.style.display = 'flex';
-        if (errorText) errorText.textContent = isId ? 'Email atau password admin salah' : 'Invalid admin email or password';
-        return;
-    }
-
-    // Success
-    _adminVerified = true;
-    _adminVerifyTimeout = Date.now() + 5 * 60 * 1000; // 5 minute session
-    showToast(isId ? 'Berhasil masuk sebagai admin' : 'Logged in as admin', 'success');
-    location.hash = '#/admin';
-}
-
-function openAdminPanel() {
-    location.hash = '#/admin';
-}
-
-function showPinGate() {
-    const isId = APP.lang === 'id';
-    openModal(`<div style="padding:24px;text-align:center">
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-shield-halved" style="color:#ef4444;font-size:22px"></i></div>
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">${isId ? 'Verifikasi Admin' : 'Admin Verification'}</h3>
-        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px">${isId ? 'Masukkan PIN untuk mengakses Panel Admin' : 'Enter PIN to access Admin Panel'}</p>
-        <div style="display:flex;gap:8px;justify-content:center">
-            <button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
-        </div>
-    </div>`);
-    // Delegate to PIN lock system
-    setTimeout(() => { closeModal(); showLockScreen(_pinCallback); }, 100);
-}
-
-let _pinCallback = null;
-
-function renderAdminPanel() {
-    const isId = APP.lang === 'id';
-    const bot = APP.bots[0];
-    const main = document.getElementById('app-main');
-    if (!main) return;
-    renderHeader();
-
-    // S3/Token accounts with credentials
-    const s3AccountsHtml = APP.s3Accounts.map(a => {
-        const pInfo = S3_PROVIDER_INFO[a.providerId] || {};
-        const pIcon = pInfo.icon || 'fa-database';
-        const pIconClass = pInfo.iconPrefix || 'fas';
-        const pColor = pInfo.color || '#6b7280';
-        const isS3 = a.type === 's3';
-        return `<div style="background:var(--bg-secondary);border-radius:10px;padding:12px;margin-bottom:8px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                <div style="width:28px;height:28px;border-radius:6px;background:${pColor}22;display:flex;align-items:center;justify-content:center"><i class="${pIconClass} ${pIcon}" style="color:${pColor};font-size:12px"></i></div>
-                <span style="font-size:13px;font-weight:600;color:var(--text)">${a.label || pInfo.name || a.providerId}</span>
-                <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${a.status === 'connected' ? 'rgba(16,185,129,.1)' : 'rgba(239,68,68,.1)'};color:${a.status === 'connected' ? '#10b981' : '#ef4444'}">${a.status === 'connected' ? (isId ? 'Aktif' : 'Active') : (isId ? 'Nonaktif' : 'Inactive')}</span>
-            </div>
-            ${isS3 ? `
-            <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text-secondary);line-height:1.8">
-                <div>Endpoint: <span style="color:var(--text)">${a.endpoint || '-'}</span></div>
-                <div>Bucket: <span style="color:var(--text)">${a.bucket || '-'}</span></div>
-                <div>Region: <span style="color:var(--text)">${a.region || '-'}</span></div>
-                <div>Access Key: <span style="color:var(--text)">${a.accessKeyId ? a.accessKeyId.slice(0, 4) + '••••••••' : '-'}</span></div>
-                <div>Secret Key: <span style="color:var(--text)">••••••••••••</span></div>
-            </div>` : `
-            <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text-secondary);line-height:1.8">
-                <div>Token: <span style="color:var(--text)">${a.accessToken ? a.accessToken.slice(0, 6) + '••••••••' : '-'}</span></div>
-            </div>`}
-            <div style="margin-top:8px;display:flex;gap:6px">
-                <button class="btn btn-danger btn-sm" style="font-size:10px;padding:3px 8px" onclick="confirmDisconnectS3Account('${a.id}');setTimeout(()=>renderAdminPanel(),500)" aria-label="Disconnect"><i class="fas fa-unlink"></i> ${isId ? 'Putuskan' : 'Disconnect'}</button>
-            </div>
-        </div>`;
-    }).join('');
-
-    const adminCred = getAdminCredentials();
-    const sessionRemaining = _adminVerifyTimeout ? Math.max(0, Math.round((_adminVerifyTimeout - Date.now()) / 1000)) : 0;
-    const sessionMin = Math.floor(sessionRemaining / 60);
-    const sessionSec = sessionRemaining % 60;
-
-    main.innerHTML = `<div class="page-transition fade-in" style="max-width:640px;margin:0 auto;padding:24px 16px 48px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
-            <button class="btn btn-ghost btn-sm" onclick="_adminVerified=false;location.hash='#/'" aria-label="Go back"><i class="fas fa-arrow-left" aria-hidden="true"></i></button>
-            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(245,158,11,.1));display:flex;align-items:center;justify-content:center"><i class="fas fa-shield-halved" style="color:#ef4444;font-size:18px"></i></div>
-            <div style="flex:1">
-                <h2 style="font-size:20px;font-weight:700">${isId ? 'Panel Admin' : 'Admin Panel'}</h2>
-                <p style="font-size:12px;color:var(--text-secondary)">${isId ? 'Kelola kredensial dan API key — Hanya untuk admin' : 'Manage credentials and API keys — Admin only'}</p>
-            </div>
-            <div style="text-align:right">
-                <div style="font-size:11px;color:var(--text-secondary)">${isId ? 'Sesi berakhir' : 'Session ends'}</div>
-                <div id="admin-session-timer" style="font-size:14px;font-weight:600;color:#f59e0b;font-family:'JetBrains Mono',monospace">${sessionMin}:${String(sessionSec).padStart(2,'0')}</div>
-            </div>
-        </div>
-
-        <!-- Admin Account Info -->
-        <div style="margin-bottom:20px;padding:16px;background:linear-gradient(135deg,rgba(59,130,246,.06),rgba(139,92,246,.06));border:1px solid rgba(59,130,246,.15);border-radius:12px">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-                <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center"><i class="fas fa-user-shield" style="color:#fff;font-size:16px"></i></div>
-                <div>
-                    <div style="font-size:14px;font-weight:600;color:var(--text)">${isId ? 'Akun Admin' : 'Admin Account'}</div>
-                    <div style="font-size:12px;color:var(--text-secondary);font-family:'JetBrains Mono',monospace">${adminCred.email}</div>
-                </div>
-                <div style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;background:rgba(16,185,129,.1);color:#10b981"><i class="fas fa-circle" style="font-size:6px"></i> ${isId ? 'Aktif' : 'Active'}</div>
-            </div>
-            <button class="btn btn-secondary btn-sm" style="width:100%" onclick="showChangeAdminPasswordModal()"><i class="fas fa-key"></i> ${isId ? 'Ubah Password Admin' : 'Change Admin Password'}</button>
-        </div>
-
-        <!-- Bot Credentials -->
-        <div style="margin-bottom:20px">
-            <div style="font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;color:var(--text)"><i class="fas fa-robot" style="color:var(--accent)"></i> ${isId ? 'Bot Telegram' : 'Telegram Bot'}</div>
-            ${bot ? `<div style="background:var(--bg-secondary);border-radius:10px;padding:12px;font-size:11px;font-family:'JetBrains Mono',monospace;line-height:1.8">
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                    <span style="color:var(--text-secondary)">${t('botToken')}:</span>
-                    <span style="color:var(--text)" id="admin-bot-token">${bot.masked ? bot.token : '••••••••••••••••••••'}</span>
-                    <button style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer" onclick="toggleAdminCredential('admin-bot-token','${bot.token || ''}','${bot.masked ? 'masked' : 'hidden'}')" aria-label="Show credential"><i class="fas fa-eye"></i></button>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                    <span style="color:var(--text-secondary)">${t('chatId')}:</span>
-                    <span style="color:var(--text)" id="admin-chat-id">${bot.chatId || '-'}</span>
-                </div>
-            </div>` : `<div style="font-size:12px;color:var(--text-secondary);padding:8px">${isId ? 'Bot belum dikonfigurasi' : 'Bot not configured'}</div>`}
-        </div>
-
-        <!-- Google Drive Accounts -->
-        <div style="margin-bottom:20px">
-            <div style="font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;color:var(--text)"><i class="fab fa-google" style="color:#4285f4"></i> ${isId ? 'Akun Google Drive' : 'Google Drive Accounts'}</div>
-            ${APP.gdriveAccounts.length > 0 ? APP.gdriveAccounts.map(a => `<div style="background:var(--bg-secondary);border-radius:10px;padding:12px;margin-bottom:8px;font-size:11px;font-family:'JetBrains Mono',monospace;line-height:1.8">
-                <div style="color:var(--text)">${a.email || 'Unknown'}</div>
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                    <span style="color:var(--text-secondary)">Access Token:</span>
-                    <span style="color:var(--text)" id="admin-gdrive-token-${a.id}">••••••••••••</span>
-                    <button style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer" onclick="toggleAdminCredential('admin-gdrive-token-${a.id}','${(a.accessToken || '').slice(0, 20)}...','hidden')" aria-label="Show credential"><i class="fas fa-eye"></i></button>
-                </div>
-                <div style="color:var(--text-secondary)">Status: <span style="color:${a.status === 'connected' ? '#10b981' : '#ef4444'}">${a.status}</span></div>
-            </div>`).join('') : `<div style="font-size:12px;color:var(--text-secondary);padding:8px">${isId ? 'Belum ada akun terhubung' : 'No accounts connected'}</div>`}
-        </div>
-
-        <!-- S3 / Cloud Provider Accounts -->
-        <div style="margin-bottom:20px">
-            <div style="font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;color:var(--text)"><i class="fas fa-database" style="color:#f48120"></i> ${isId ? 'Penyedia Cloud' : 'Cloud Providers'}</div>
-            ${APP.s3Accounts.length > 0 ? s3AccountsHtml : `<div style="font-size:12px;color:var(--text-secondary);padding:8px">${isId ? 'Belum ada penyedia terhubung' : 'No providers connected'}</div>`}
-        </div>
-
-        <!-- Webhook -->
-        <div style="margin-bottom:20px">
-            <div style="font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;color:var(--text)"><i class="fas fa-bolt" style="color:#f59e0b"></i> Webhook</div>
-            <div style="background:var(--bg-secondary);border-radius:10px;padding:12px">
-                <div style="display:flex;gap:8px;margin-bottom:8px">
-                    <input type="url" id="admin-webhook-url" class="input" aria-label="Webhook URL" placeholder="https://example.com/webhook" value="${APP.settings.webhookUrl||''}" style="flex:1;font-size:12px">
-                    <button class="btn btn-primary btn-sm" onclick="testWebhook()">${isId ? 'Tes' : 'Test'}</button>
-                </div>
-                <div style="display:flex;gap:8px">
-                    <button class="btn btn-secondary btn-sm" onclick="updateSetting('webhookUrl',document.getElementById('admin-webhook-url').value);showToast('${isId?'Webhook disimpan':'Webhook saved'}','success')">${t('save')}</button>
-                    ${APP.settings.webhookUrl?`<button class="btn btn-danger btn-sm" onclick="updateSetting('webhookUrl','');renderAdminPanel()">${isId?'Hapus':'Clear'}</button>`:''}
-                </div>
-                <div style="margin-top:10px;font-size:10px;color:var(--text-secondary);line-height:1.6">
-                    <div><code style="background:var(--bg-card);padding:1px 4px;border-radius:3px">file.uploaded</code> — ${isId?'File diunggah':'File uploaded'}</div>
-                    <div><code style="background:var(--bg-card);padding:1px 4px;border-radius:3px">file.deleted</code> — ${isId?'File dihapus permanen':'File permanently deleted'}</div>
-                    <div><code style="background:var(--bg-card);padding:1px 4px;border-radius:3px">file.shared</code> — ${isId?'Link berbagi dibuat':'Share link created'}</div>
-                    <div><code style="background:var(--bg-card);padding:1px 4px;border-radius:3px">storage.warning</code> — ${isId?'Penyimpanan > 75%':'Storage > 75%'}</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Database Setup (F11) -->
-        ${APP.supabase ? `<div style="margin-bottom:20px">
-            <div style="font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;color:var(--text)"><i class="fas fa-database" style="color:#10b981"></i> ${isId ? 'Setup Database' : 'Database Setup'}</div>
-            <div style="background:var(--bg-secondary);border-radius:10px;padding:12px">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                    <span style="width:8px;height:8px;border-radius:50%;background:${localStorage.getItem('supabase_tables_ready') === '1' ? '#10b981' : '#f59e0b'};display:inline-block"></span>
-                    <span style="font-size:12px;color:var(--text-secondary)">${localStorage.getItem('supabase_tables_ready') === '1' ? (isId ? 'Database siap' : 'Database ready') : (isId ? 'Database belum disetup' : 'Database not set up')}</span>
-                </div>
-                <div style="display:flex;gap:8px">
-                    <button class="btn btn-secondary btn-sm" onclick="resetSupabaseSetup()"><i class="fas fa-redo"></i> ${isId ? 'Setup Ulang' : 'Re-setup'}</button>
-                    <button class="btn btn-secondary btn-sm" onclick="showSupabaseSetupModal()"><i class="fas fa-eye"></i> ${isId ? 'Lihat SQL' : 'View SQL'}</button>
-                </div>
-            </div>
-        </div>` : ''}
-
-        <!-- Security Notice -->
-        <div style="padding:10px 14px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.15);border-radius:8px;font-size:11px;color:#f59e0b;display:flex;align-items:center;gap:8px">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span>${isId ? 'Jangan bagikan kredensial ini kepada siapa pun. Akses admin akan kedaluwarsa dalam 5 menit.' : 'Do not share these credentials with anyone. Admin access expires in 5 minutes.'}</span>
-        </div>
-
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-            <button class="btn btn-danger btn-sm" onclick="handleAdminLogout()"><i class="fas fa-sign-out-alt"></i> ${isId ? 'Keluar Admin' : 'Logout Admin'}</button>
-            <button class="btn btn-secondary" onclick="_adminVerified=false;location.hash='#/'">${t('close')}</button>
-        </div>
-    </div>`;
-
-    // Start session timer countdown
-    if (window._adminTimerInterval) clearInterval(window._adminTimerInterval);
-    window._adminTimerInterval = setInterval(() => {
-        if (!_adminVerifyTimeout) { clearInterval(window._adminTimerInterval); return; }
-        const remaining = Math.max(0, Math.round((_adminVerifyTimeout - Date.now()) / 1000));
-        const min = Math.floor(remaining / 60);
-        const sec = remaining % 60;
-        const timerEl = document.getElementById('admin-session-timer');
-        if (timerEl) {
-            timerEl.textContent = min + ':' + String(sec).padStart(2, '0');
-            if (remaining <= 60) timerEl.style.color = '#ef4444';
-        }
-        if (remaining <= 0) {
-            clearInterval(window._adminTimerInterval);
-            _adminVerified = false;
-            showToast(isId ? 'Sesi admin berakhir, silakan login kembali' : 'Admin session expired, please login again', 'warning');
-            location.hash = '#/admin-login';
-        }
-    }, 1000);
-}
-
-function toggleAdminCredential(elementId, value, mode) {
-    const el = document.getElementById(elementId);
-    if (!el) return;
-    if (el.dataset.revealed === 'true') {
-        el.textContent = mode === 'masked' ? value : '••••••••••••';
-        el.dataset.revealed = 'false';
-    } else {
-        el.textContent = value;
-        el.dataset.revealed = 'true';
-    }
-}
-
-function handleAdminLogout() {
-    _adminVerified = false;
-    _adminVerifyTimeout = null;
-    if (window._adminTimerInterval) { clearInterval(window._adminTimerInterval); window._adminTimerInterval = null; }
-    const isId = APP.lang === 'id';
-    showToast(isId ? 'Berhasil keluar dari admin panel' : 'Logged out from admin panel', 'success');
-    location.hash = '#/';
-}
-
-function showChangeAdminPasswordModal() {
-    const isId = APP.lang === 'id';
-    const adminCred = getAdminCredentials();
-    openModal(`<div style="padding:24px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(139,92,246,.1));display:flex;align-items:center;justify-content:center"><i class="fas fa-key" style="color:var(--accent);font-size:18px"></i></div>
-            <div>
-                <h3 style="font-size:17px;font-weight:600">${isId ? 'Ubah Password Admin' : 'Change Admin Password'}</h3>
-                <p style="font-size:12px;color:var(--text-secondary)">${isId ? 'Perbarui kredensial untuk mengakses panel admin' : 'Update credentials to access the admin panel'}</p>
-            </div>
-        </div>
-
-        <div style="margin-bottom:16px">
-            <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Email Admin Saat Ini' : 'Current Admin Email'}</label>
-            <div style="padding:10px 12px;background:var(--bg-secondary);border-radius:8px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--text)">${adminCred.email}</div>
-        </div>
-
-        <div style="margin-bottom:16px">
-            <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Password Lama' : 'Current Password'}</label>
-            <input type="password" id="admin-old-password" class="input" aria-label="Current password" autocomplete="current-password" placeholder="${isId ? 'Masukkan password lama' : 'Enter current password'}">
-        </div>
-
-        <div style="margin-bottom:16px">
-            <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Email Baru (opsional)' : 'New Email (optional)'}</label>
-            <input type="email" id="admin-new-email" class="input" aria-label="New email" autocomplete="email" placeholder="${isId ? 'Kosongkan jika tidak diubah' : 'Leave empty to keep current'}" value="${adminCred.email}">
-        </div>
-
-        <div style="margin-bottom:16px">
-            <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Password Baru' : 'New Password'}</label>
-            <input type="password" id="admin-new-password" class="input" aria-label="New password" autocomplete="new-password" placeholder="${isId ? 'Masukkan password baru (min. 6 karakter)' : 'Enter new password (min. 6 characters)'}">
-        </div>
-
-        <div style="margin-bottom:20px">
-            <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">${isId ? 'Konfirmasi Password Baru' : 'Confirm New Password'}</label>
-            <input type="password" id="admin-confirm-new-password" class="input" aria-label="Confirm new password" autocomplete="new-password" placeholder="${isId ? 'Ulangi password baru' : 'Repeat new password'}">
-        </div>
-
-        <div id="admin-change-error" style="display:none;padding:10px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:8px;font-size:12px;color:#ef4444;margin-bottom:16px"></div>
-
-        <div style="display:flex;gap:8px;justify-content:flex-end">
-            <button class="btn btn-secondary" onclick="closeModal()">${t('cancel')}</button>
-            <button class="btn btn-primary" onclick="handleChangeAdminPassword()"><i class="fas fa-save"></i> ${isId ? 'Simpan Perubahan' : 'Save Changes'}</button>
-        </div>
-    </div>`);
-}
-
-function handleChangeAdminPassword() {
-    const isId = APP.lang === 'id';
-    const oldPassword = document.getElementById('admin-old-password')?.value;
-    const newEmail = document.getElementById('admin-new-email')?.value?.trim();
-    const newPassword = document.getElementById('admin-new-password')?.value;
-    const confirmPassword = document.getElementById('admin-confirm-new-password')?.value;
-    const errorEl = document.getElementById('admin-change-error');
-    const adminCred = getAdminCredentials();
-
-    // Validate old password
-    if (!oldPassword || oldPassword !== adminCred.password) {
-        if (errorEl) { errorEl.style.display = 'block'; errorEl.textContent = isId ? 'Password lama salah' : 'Current password is incorrect'; }
-        return;
-    }
-
-    // Validate new email
-    const finalEmail = newEmail || adminCred.email;
-    if (newEmail && (!newEmail.includes('@') || !newEmail.includes('.'))) {
-        if (errorEl) { errorEl.style.display = 'block'; errorEl.textContent = isId ? 'Format email tidak valid' : 'Invalid email format'; }
-        return;
-    }
-
-    // Validate new password
-    if (!newPassword || newPassword.length < 6) {
-        if (errorEl) { errorEl.style.display = 'block'; errorEl.textContent = isId ? 'Password baru minimal 6 karakter' : 'New password must be at least 6 characters'; }
-        return;
-    }
-
-    // Confirm password match
-    if (newPassword !== confirmPassword) {
-        if (errorEl) { errorEl.style.display = 'block'; errorEl.textContent = isId ? 'Konfirmasi password tidak cocok' : 'Password confirmation does not match'; }
-        return;
-    }
-
-    // Save new credentials
-    setAdminCredentials(finalEmail, newPassword);
-    closeModal();
-    showToast(isId ? 'Kredensial admin berhasil diperbarui!' : 'Admin credentials updated successfully!', 'success');
-    renderAdminPanel();
-}
 
 async function updateSetting(key, value) {
     APP.settings[key] = value;
@@ -10000,593 +7541,13 @@ function openStorageAnalytics() {
             </div>
 
             <div style="display:flex;justify-content:space-between;align-items:center">
-                <button class="btn btn-secondary" onclick="findDuplicateFiles()" style="display:flex;align-items:center;gap:6px"><i class="fas fa-clone"></i> ${isId ? 'Cari Duplikat' : 'Find Duplicates'}</button>
+                <button class="btn btn-secondary" onclick="openDuplicateFinder()" style="display:flex;align-items:center;gap:6px"><i class="fas fa-clone"></i> ${isId ? 'Cari Duplikat' : 'Find Duplicates'}</button>
                 <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
             </div>
         </div>`);
 }
 
 // ===== 2FA / TOTP AUTHENTICATION (F106) =====
-let _totpSecret = null;
-let _totpVerified = false;
-
-function generateTOTPSecret() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'; // Base32
-    let secret = '';
-    const arr = new Uint8Array(20);
-    crypto.getRandomValues(arr);
-    for (let i = 0; i < 20; i++) secret += chars[arr[i] % 32];
-    return secret;
-}
-
-function getTOTPUri(secret) {
-    const account = APP.user?.email || 'ridgebox@user';
-    return `otpauth://totp/RidgeBox:${account}?secret=${secret}&issuer=RidgeBox&algorithm=SHA1&digits=6&period=30`;
-}
-
-async function setup2FA() {
-    const isId = APP.lang === 'id';
-    if (!APP.supabase || !isLoggedIn()) {
-        showToast(isId ? 'Login diperlukan untuk 2FA' : 'Login required for 2FA', 'warning');
-        return;
-    }
-    const secret = generateTOTPSecret();
-    _totpSecret = secret;
-    const uri = getTOTPUri(secret);
-    // Generate QR code (lazy-load QRious on demand)
-    let qrDataUrl = '';
-    if (typeof QRious === 'undefined') { try { await window.LazyLibs.load('qrious'); } catch(e) {} }
-    try { const qr = new QRious({ value: uri, size: 200, background: 'var(--bg)', foreground: 'var(--text)', level: 'M' }); qrDataUrl = qr.toDataURL(); } catch(e) { qrDataUrl = ''; }
-    openModal(`<div style="padding:24px;text-align:center">
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-shield-halved" style="color:#8b5cf6;font-size:22px"></i></div>
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">${isId ? 'Setup 2FA' : 'Setup 2FA'}</h3>
-        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${isId ? 'Scan QR code dengan app authenticator (Google Authenticator, Authy)' : 'Scan QR code with authenticator app (Google Authenticator, Authy)'}</p>
-        ${qrDataUrl ? `<img src="${qrDataUrl}" style="border-radius:12px;border:1px solid var(--border);margin:0 auto 16px;display:block" alt="2FA QR">` : ''}
-        <div style="background:var(--bg-secondary);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-family:'JetBrains Mono',monospace;font-size:13px;word-break:break-all;user-select:all">${secret}</div>
-        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">${isId ? 'Masukkan kode 6 digit dari app authenticator:' : 'Enter 6-digit code from authenticator app:'}</p>
-        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:16px">
-            <input type="text" id="totp-verify-code" class="input" aria-label="Verification code" style="width:160px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:18px;letter-spacing:6px" maxlength="6" placeholder="000000" oninput="this.value=this.value.replace(/\\D/g,'')">
-        </div>
-        <div style="display:flex;gap:8px;justify-content:center">
-            <button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
-            <button class="btn btn-primary" onclick="verifyAndEnable2FA()">${isId ? 'Aktifkan 2FA' : 'Enable 2FA'}</button>
-        </div>
-    </div>`);
-}
-
-async function verifyAndEnable2FA() {
-    const isId = APP.lang === 'id';
-    const code = document.getElementById('totp-verify-code')?.value;
-    if (!code || code.length !== 6) { showToast(isId ? 'Kode harus 6 digit' : 'Code must be 6 digits', 'warning'); return; }
-    // Verify TOTP code
-    const valid = await verifyTOTP(_totpSecret, code);
-    if (valid) {
-        APP.settings.totpSecret = _totpSecret;
-        APP.settings.totpEnabled = true;
-        await updateSetting('totpSecret', _totpSecret);
-        await updateSetting('totpEnabled', true);
-        // Generate recovery codes
-        const recoveryCodes = generateRecoveryCodes(8);
-        _pendingRecoveryCodes = recoveryCodes;
-        await storeRecoveryCodes(recoveryCodes);
-        closeModal();
-        showToast(isId ? '2FA berhasil diaktifkan!' : '2FA enabled successfully!', 'success');
-        // Show recovery codes modal
-        setTimeout(() => showRecoveryCodesModal(recoveryCodes, true), 400);
-    } else {
-        showToast(isId ? 'Kode salah, coba lagi' : 'Invalid code, try again', 'error');
-    }
-}
-
-async function verifyTOTP(secret, code) {
-    // Simple TOTP verification using Web Crypto
-    try {
-        const key = base32Decode(secret);
-        const timeStep = Math.floor(Date.now() / 30000);
-        for (let offset = -1; offset <= 1; offset++) {
-            const step = timeStep + offset;
-            const timeBuf = new ArrayBuffer(8);
-            const view = new DataView(timeBuf);
-            view.setBigUint64(0, BigInt(step));
-            const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
-            const hmac = await crypto.subtle.sign('HMAC', cryptoKey, timeBuf);
-            const hmacArr = new Uint8Array(hmac);
-            const offsetByte = hmacArr[hmacArr.length - 1] & 0xf;
-            const otp = ((hmacArr[offsetByte] & 0x7f) << 24 | (hmacArr[offsetByte+1] & 0xff) << 16 | (hmacArr[offsetByte+2] & 0xff) << 8 | (hmacArr[offsetByte+3] & 0xff)) % 1000000;
-            if (String(otp).padStart(6, '0') === code) return true;
-        }
-    } catch(e) { console.error('TOTP verify error:', e); }
-    return false;
-}
-
-function base32Decode(str) {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-    let bits = '', bytes = [];
-    for (const c of str) { const val = alphabet.indexOf(c.toUpperCase()); if (val === -1) continue; bits += val.toString(2).padStart(5, '0'); }
-    for (let i = 0; i + 8 <= bits.length; i += 8) bytes.push(parseInt(bits.substr(i, 8), 2));
-    return new Uint8Array(bytes);
-}
-
-async function disable2FA() {
-    const isId = APP.lang === 'id';
-    APP.settings.totpSecret = '';
-    APP.settings.totpEnabled = false;
-    APP.settings.recoveryCodes = [];
-    await updateSetting('totpSecret', '');
-    await updateSetting('totpEnabled', false);
-    await dbPut('settings', { key: 'recoveryCodes', value: [] });
-    showToast(isId ? '2FA dinonaktifkan' : '2FA disabled', 'info');
-    openSettings();
-}
-
-async function show2FAChallenge(callback) {
-    const isId = APP.lang === 'id';
-    openModal(`<div style="padding:24px;text-align:center">
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-shield-halved" style="color:#8b5cf6;font-size:22px"></i></div>
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">2FA ${isId ? 'Verifikasi' : 'Verification'}</h3>
-        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${isId ? 'Masukkan kode dari app authenticator' : 'Enter code from authenticator app'}</p>
-        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:16px">
-            <input type="text" id="totp-challenge-code" class="input" aria-label="Verification code" style="width:160px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:18px;letter-spacing:6px" maxlength="6" placeholder="000000" oninput="this.value=this.value.replace(/\\D/g,'')">
-        </div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">
-            <button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
-            <button class="btn btn-primary" onclick="verify2FAChallenge(${callback.toString()})">${isId ? 'Verifikasi' : 'Verify'}</button>
-        </div>
-        <div style="margin-top:8px">
-            <button onclick="showRecoveryCodeLogin(${callback.toString()})" class="btn btn-ghost btn-sm" style="color:var(--accent);text-decoration:underline">${isId ? 'Gunakan kode pemulihan' : 'Use recovery code'}</button>
-        </div>
-    </div>`);
-}
-
-async function verify2FAChallenge(callback) {
-    const code = document.getElementById('totp-challenge-code')?.value;
-    if (!code || code.length !== 6) return;
-    const valid = await verifyTOTP(APP.settings.totpSecret, code);
-    if (valid) { closeModal(); _totpVerified = true; callback(); }
-    else { showToast(APP.lang==='id'?'Kode salah':'Invalid code', 'error'); }
-}
-
-// ===== FEATURE 9: 2FA RECOVERY CODES =====
-function generateRecoveryCodes(count = 8) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    const codes = [];
-    for (let i = 0; i < count; i++) {
-        let code = '';
-        for (let j = 0; j < 8; j++) {
-            const arr = new Uint8Array(1);
-            crypto.getRandomValues(arr);
-            code += chars[arr[0] % chars.length];
-        }
-        codes.push(code.slice(0, 4) + '-' + code.slice(4));
-    }
-    return codes;
-}
-
-async function hashRecoveryCode(code) {
-    // Normalize: remove dashes, uppercase
-    const normalized = code.replace(/-/g, '').toUpperCase();
-    const encoder = new TextEncoder();
-    const data = encoder.encode(normalized);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function storeRecoveryCodes(codes) {
-    // Hash each code and store with used status
-    const hashedCodes = [];
-    for (const code of codes) {
-        const hash = await hashRecoveryCode(code);
-        hashedCodes.push({ hash, used: false });
-    }
-    await dbPut('settings', { key: 'recoveryCodes', value: hashedCodes });
-    APP.settings.recoveryCodes = hashedCodes;
-}
-
-async function loadRecoveryCodes() {
-    const data = await dbGet('settings', 'recoveryCodes');
-    if (data && data.value) {
-        APP.settings.recoveryCodes = data.value;
-        return data.value;
-    }
-    return [];
-}
-
-async function verifyRecoveryCode(inputCode) {
-    const codes = APP.settings.recoveryCodes || await loadRecoveryCodes();
-    const inputHash = await hashRecoveryCode(inputCode);
-    const match = codes.find(c => c.hash === inputHash && !c.used);
-    if (match) {
-        match.used = true;
-        await dbPut('settings', { key: 'recoveryCodes', value: codes });
-        APP.settings.recoveryCodes = codes;
-        return true;
-    }
-    return false;
-}
-
-function getRecoveryCodeStats() {
-    const codes = APP.settings.recoveryCodes || [];
-    const total = codes.length;
-    const used = codes.filter(c => c.used).length;
-    const remaining = total - used;
-    return { total, used, remaining };
-}
-
-function showRecoveryCodesModal(codes, isSetup = true) {
-    const isId = APP.lang === 'id';
-    const codeList = codes.map((code, i) => {
-        const masked = code.replace(/(.{2})/g, '$1 ');
-        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;background:var(--bg-secondary);font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;letter-spacing:1px">
-            <span style="color:var(--text-secondary);font-size:11px;min-width:20px">${i + 1}.</span>
-            <span style="color:var(--text)">${code}</span>
-        </div>`;
-    }).join('');
-
-    openModal(`<div style="padding:24px;text-align:center">
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-key" style="color:#8b5cf6;font-size:22px"></i></div>
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">${isId ? 'Kode Pemulihan' : 'Recovery Codes'}</h3>
-        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${isSetup ? (isId ? 'Simpan kode ini di tempat yang aman. Setelah ditutup, kode tidak akan ditampilkan lagi.' : 'Save these codes in a safe place. Once closed, they won\'t be shown again.') : ''}</p>
-        ${isSetup ? `<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;text-align:left">
-            <i class="fas fa-exclamation-triangle" style="color:#f59e0b;font-size:14px;flex-shrink:0"></i>
-            <span style="font-size:11px;color:#f59e0b;line-height:1.4">${isId ? 'Kode ini hanya ditampilkan sekali. Simpan sekarang!' : 'These codes are shown only once. Save them now!'}</span>
-        </div>` : ''}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;max-height:240px;overflow-y:auto">${codeList}</div>
-        <div style="display:flex;gap:8px;justify-content:center">
-            <button class="btn btn-secondary" onclick="copyAllRecoveryCodes()"><i class="fas fa-copy"></i> ${isId ? 'Salin Semua' : 'Copy All'}</button>
-            <button class="btn btn-secondary" onclick="downloadRecoveryCodes()"><i class="fas fa-download"></i> ${isId ? 'Unduh TXT' : 'Download TXT'}</button>
-            <button class="btn btn-primary" onclick="closeModal()">${isId ? 'Selesai' : 'Done'}</button>
-        </div>
-    </div>`);
-}
-
-// Temp storage for plaintext codes (only during setup)
-let _pendingRecoveryCodes = [];
-
-function copyAllRecoveryCodes() {
-    const codes = _pendingRecoveryCodes;
-    if (!codes.length) { showToast(APP.lang==='id'?'Tidak ada kode':'No codes available', 'warning'); return; }
-    const text = codes.map((c, i) => `${i + 1}. ${c}`).join('\n');
-    navigator.clipboard.writeText(text).then(() => {
-        showToast(APP.lang==='id'?'Kode disalin!':'Codes copied!', 'success');
-    }).catch(() => {
-        showToast(APP.lang==='id'?'Gagal menyalin':'Copy failed', 'error');
-    });
-}
-
-function downloadRecoveryCodes() {
-    const codes = _pendingRecoveryCodes;
-    if (!codes.length) { showToast(APP.lang==='id'?'Tidak ada kode':'No codes available', 'warning'); return; }
-    const isId = APP.lang === 'id';
-    const lines = [
-        `${isId ? 'Kode Pemulihan RidgeBox' : 'RidgeBox Recovery Codes'}`,
-        `${isId ? 'Dibuat' : 'Generated'}: ${new Date().toLocaleString()}`,
-        '================================',
-        '',
-        ...codes.map((c, i) => `${i + 1}. ${c}`),
-        '',
-        '================================',
-        isId ? 'Simpan file ini di tempat yang aman.' : 'Keep this file in a safe place.',
-        isId ? 'Setiap kode hanya bisa digunakan sekali.' : 'Each code can only be used once.'
-    ];
-    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'ridgebox-recovery-codes.txt'; a.click();
-    URL.revokeObjectURL(url);
-    showToast(isId ? 'File diunduh!' : 'File downloaded!', 'success');
-}
-
-async function showRecoveryCodesInSettings() {
-    const isId = APP.lang === 'id';
-    const codes = APP.settings.recoveryCodes || await loadRecoveryCodes();
-    const stats = getRecoveryCodeStats();
-
-    if (!codes.length) {
-        openModal(`<div style="padding:24px;text-align:center">
-            <div style="width:56px;height:56px;border-radius:50%;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-key" style="color:#8b5cf6;font-size:22px"></i></div>
-            <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">${isId ? 'Kode Pemulihan' : 'Recovery Codes'}</h3>
-            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">${isId ? 'Belum ada kode pemulihan. Aktifkan 2FA terlebih dahulu.' : 'No recovery codes yet. Enable 2FA first.'}</p>
-            <button class="btn btn-primary" onclick="closeModal()">${t('close')}</button>
-        </div>`);
-        return;
-    }
-
-    const allUsed = stats.remaining === 0;
-    const codeList = codes.map((c, i) => {
-        const isUsed = c.used;
-        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;background:${isUsed ? 'rgba(239,68,68,.06)' : 'var(--bg-secondary)'};font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500">
-            <span style="color:var(--text-secondary);font-size:10px;min-width:20px">${i + 1}.</span>
-            <span style="color:${isUsed ? 'var(--text-secondary)' : 'var(--text)'};${isUsed ? 'text-decoration:line-through;opacity:.5' : ''}">${isUsed ? '••••-••••' : 'XXXX-XXXX'}</span>
-            <span style="margin-left:auto;font-size:10px;padding:2px 6px;border-radius:4px;background:${isUsed ? 'rgba(239,68,68,.1)' : 'rgba(16,185,129,.1)'};color:${isUsed ? '#ef4444' : '#10b981'};font-family:'Space Grotesk',sans-serif">${isUsed ? (isId ? 'Digunakan' : 'Used') : (isId ? 'Aktif' : 'Active')}</span>
-        </div>`;
-    }).join('');
-
-    openModal(`<div style="padding:24px;text-align:center">
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-key" style="color:#8b5cf6;font-size:22px"></i></div>
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">${isId ? 'Kode Pemulihan' : 'Recovery Codes'}</h3>
-        <div style="display:flex;gap:12px;justify-content:center;margin-bottom:12px">
-            <span style="font-size:12px;color:var(--text-secondary)">${isId ? 'Tersisa' : 'Remaining'}: <strong style="color:${stats.remaining <= 2 ? '#ef4444' : '#10b981'}">${stats.remaining}</strong>/${stats.total}</span>
-        </div>
-        ${allUsed ? `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;text-align:left">
-            <i class="fas fa-exclamation-triangle" style="color:#ef4444;font-size:14px;flex-shrink:0"></i>
-            <span style="font-size:11px;color:#ef4444;line-height:1.4">${isId ? 'Semua kode pemulihan telah digunakan! Buat kode baru segera.' : 'All recovery codes have been used! Generate new codes immediately.'}</span>
-        </div>` : ''}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;max-height:240px;overflow-y:auto">${codeList}</div>
-        <div style="display:flex;gap:8px;justify-content:center">
-            <button class="btn btn-danger btn-sm" onclick="confirmRegenerateRecoveryCodes()"><i class="fas fa-sync-alt"></i> ${isId ? 'Buat Ulang Kode' : 'Regenerate Codes'}</button>
-            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
-        </div>
-    </div>`);
-}
-
-async function confirmRegenerateRecoveryCodes() {
-    const isId = APP.lang === 'id';
-    closeModal();
-    setTimeout(() => {
-        showConfirm(
-            isId ? 'Buat Ulang Kode Pemulihan?' : 'Regenerate Recovery Codes?',
-            isId ? 'Kode lama akan tidak valid lagi. Pastikan Anda menyimpan kode baru.' : 'Old codes will become invalid. Make sure you save the new codes.',
-            async () => {
-                const newCodes = generateRecoveryCodes(8);
-                _pendingRecoveryCodes = newCodes;
-                await storeRecoveryCodes(newCodes);
-                showRecoveryCodesModal(newCodes, true);
-            },
-            true
-        );
-    }, 400);
-}
-
-function showRecoveryCodeLogin(callback) {
-    const isId = APP.lang === 'id';
-    openModal(`<div style="padding:24px;text-align:center">
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-key" style="color:#f59e0b;font-size:22px"></i></div>
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">${isId ? 'Kode Pemulihan' : 'Recovery Code'}</h3>
-        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${isId ? 'Masukkan salah satu kode pemulihan Anda' : 'Enter one of your recovery codes'}</p>
-        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px">
-            <input type="text" id="recovery-code-input" class="input" aria-label="Recovery code" style="width:200px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:16px;letter-spacing:3px" maxlength="9" placeholder="XXXX-XXXX" oninput="formatRecoveryCodeInput(this)">
-        </div>
-        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:16px">${isId ? 'Kode hanya bisa digunakan sekali.' : 'Each code can only be used once.'}</p>
-        <div style="display:flex;gap:8px;justify-content:center">
-            <button class="btn btn-secondary" onclick="show2FAChallenge(${callback.toString()})"><i class="fas fa-arrow-left"></i> ${isId ? 'Kembali ke TOTP' : 'Back to TOTP'}</button>
-            <button class="btn btn-primary" onclick="verifyRecoveryCodeLogin(${callback.toString()})">${isId ? 'Gunakan Kode' : 'Use Code'}</button>
-        </div>
-    </div>`);
-}
-
-function formatRecoveryCodeInput(input) {
-    let val = input.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    if (val.length > 4) {
-        val = val.slice(0, 4) + '-' + val.slice(4, 8);
-    }
-    input.value = val;
-}
-
-async function verifyRecoveryCodeLogin(callback) {
-    const isId = APP.lang === 'id';
-    const input = document.getElementById('recovery-code-input');
-    const code = input?.value?.trim();
-    if (!code || code.replace(/-/g, '').length !== 8) {
-        showToast(isId ? 'Kode harus 8 karakter (XXXX-XXXX)' : 'Code must be 8 characters (XXXX-XXXX)', 'warning');
-        return;
-    }
-    const valid = await verifyRecoveryCode(code);
-    if (valid) {
-        const stats = getRecoveryCodeStats();
-        closeModal();
-        _totpVerified = true;
-        showToast(isId ? `Kode pemulihan diterima. Tersisa ${stats.remaining} kode.` : `Recovery code accepted. ${stats.remaining} codes remaining.`, 'success');
-        if (stats.remaining <= 2) {
-            setTimeout(() => showToast(isId ? 'Peringatan: Kode pemulihan hampir habis! Buat ulang di Pengaturan.' : 'Warning: Recovery codes running low! Regenerate in Settings.', 'warning', 6000), 1500);
-        }
-        callback();
-    } else {
-        showToast(isId ? 'Kode pemulihan salah atau sudah digunakan' : 'Invalid or already used recovery code', 'error');
-    }
-}
-
-// ===== FEATURE 10: SESSION MANAGEMENT =====
-function parseUserAgent(ua) {
-    let browser = 'Unknown';
-    let os = 'Unknown';
-    let device = 'desktop';
-
-    // Detect browser
-    if (ua.includes('Firefox/')) browser = 'Firefox';
-    else if (ua.includes('Edg/')) browser = 'Edge';
-    else if (ua.includes('Chrome/')) browser = 'Chrome';
-    else if (ua.includes('Safari/') && !ua.includes('Chrome')) browser = 'Safari';
-    else if (ua.includes('Opera') || ua.includes('OPR/')) browser = 'Opera';
-
-    // Detect OS
-    if (ua.includes('Windows')) os = 'Windows';
-    else if (ua.includes('Mac OS')) os = 'macOS';
-    else if (ua.includes('Linux') && !ua.includes('Android')) os = 'Linux';
-    else if (ua.includes('Android')) os = 'Android';
-    else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
-    else if (ua.includes('CrOS')) os = 'Chrome OS';
-
-    // Detect device type
-    if (/Mobile|Android|iPhone|iPod/.test(ua)) device = 'mobile';
-    else if (/iPad|Tablet/.test(ua)) device = 'tablet';
-
-    return { browser, os, device };
-}
-
-function getDeviceIcon(device) {
-    if (device === 'mobile') return 'fa-mobile-screen';
-    if (device === 'tablet') return 'fa-tablet-screen-button';
-    return 'fa-desktop';
-}
-
-function getBrowserIcon(browser) {
-    const icons = { Chrome: 'fa-chrome', Firefox: 'fa-firefox', Edge: 'fa-edge', Safari: 'fa-safari', Opera: 'fa-opera' };
-    return icons[browser] || 'fa-globe';
-}
-
-function getBrowserIconPrefix(browser) {
-    const prefixes = { Chrome: 'fab', Firefox: 'fab', Edge: 'fab', Safari: 'fab', Opera: 'fab' };
-    return prefixes[browser] || 'fas';
-}
-
-async function registerCurrentSession() {
-    const ua = navigator.userAgent;
-    const info = parseUserAgent(ua);
-    // Mark all existing sessions as not current
-    try {
-        const existing = await dbGetAll('sessions');
-        for (const s of existing) {
-            if (s.current) {
-                s.current = false;
-                await dbPut('sessions', s);
-            }
-        }
-    } catch(e) {}
-    const session = {
-        id: 'sess_' + genId(),
-        device: info.device,
-        browser: info.browser,
-        os: info.os,
-        ip: '0.0.0.0',
-        lastActive: Date.now(),
-        createdAt: Date.now(),
-        current: true,
-        userAgent: ua
-    };
-    // Try to get IP
-    try {
-        const resp = await fetch('https://api.ipify.org?format=json');
-        const data = await resp.json();
-        session.ip = data.ip || '0.0.0.0';
-        await dbPut('sessions', session);
-    } catch(e) {
-        await dbPut('sessions', session);
-    }
-    return session;
-}
-
-async function updateSessionActivity() {
-    try {
-        const sessions = await dbGetAll('sessions');
-        const current = sessions.find(s => s.current);
-        if (current) {
-            current.lastActive = Date.now();
-            await dbPut('sessions', current);
-        }
-    } catch(e) {}
-}
-
-async function revokeSession(sessionId) {
-    const isId = APP.lang === 'id';
-    try {
-        await dbDelete('sessions', sessionId);
-        showToast(isId ? 'Sesi dicabut' : 'Session revoked', 'success');
-        showSessionsPanel();
-    } catch(e) {
-        showToast(isId ? 'Gagal mencabut sesi' : 'Failed to revoke session', 'error');
-    }
-}
-
-async function revokeAllOtherSessions() {
-    const isId = APP.lang === 'id';
-    try {
-        const sessions = await dbGetAll('sessions');
-        for (const s of sessions) {
-            if (!s.current) {
-                await dbDelete('sessions', s.id);
-            }
-        }
-        showToast(isId ? 'Semua sesi lain dicabut' : 'All other sessions revoked', 'success');
-        showSessionsPanel();
-    } catch(e) {
-        showToast(isId ? 'Gagal mencabut sesi' : 'Failed to revoke sessions', 'error');
-    }
-}
-
-async function showSessionsPanel() {
-    const isId = APP.lang === 'id';
-    let sessions = [];
-    try { sessions = await dbGetAll('sessions'); } catch(e) {}
-    const otherSessions = sessions.filter(s => !s.current);
-    const currentSession = sessions.find(s => s.current);
-
-    const renderSession = (s) => {
-        const isCurrent = s.current;
-        const info = { device: s.device, browser: s.browser, os: s.os };
-        const deviceIcon = getDeviceIcon(info.device);
-        const browserIcon = getBrowserIcon(info.browser);
-        const iconPrefix = getBrowserIconPrefix(info.browser);
-        const lastActive = formatTimeAgo(s.lastActive);
-        const isUnknown = !s.userAgent || s.userAgent === 'Unknown';
-
-        return `<div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;background:var(--bg-secondary);margin-bottom:8px;border:1px solid ${isCurrent ? 'rgba(16,185,129,.2)' : isUnknown ? 'rgba(245,158,11,.2)' : 'transparent'}">
-            <div style="width:40px;height:40px;border-radius:10px;background:${isCurrent ? 'rgba(16,185,129,.1)' : 'rgba(59,130,246,.1)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <i class="fas ${deviceIcon}" style="color:${isCurrent ? '#10b981' : 'var(--accent)'};font-size:16px"></i>
-            </div>
-            <div style="flex:1;min-width:0">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
-                    <span style="font-size:13px;font-weight:600;color:var(--text)">${info.browser} · ${info.os}</span>
-                    ${isCurrent ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:rgba(16,185,129,.1);color:#10b981"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 6px rgba(16,185,129,.4)"></span>${isId ? 'Perangkat ini' : 'This device'}</span>` : ''}
-                    ${isUnknown ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:rgba(245,158,11,.1);color:#f59e0b"><i class="fas fa-exclamation-triangle" style="font-size:8px"></i>${isId ? 'Tidak dikenal' : 'Unknown'}</span>` : ''}
-                </div>
-                <div style="font-size:11px;color:var(--text-secondary);display:flex;gap:10px;flex-wrap:wrap">
-                    <span><i class="${iconPrefix} ${browserIcon}" style="font-size:10px"></i> ${info.browser}</span>
-                    <span><i class="fas fa-desktop" style="font-size:9px"></i> ${info.os}</span>
-                    <span><i class="fas fa-network-wired" style="font-size:9px"></i> ${s.ip || '0.0.0.0'}</span>
-                    <span><i class="fas fa-clock" style="font-size:9px"></i> ${lastActive}</span>
-                </div>
-            </div>
-            ${!isCurrent ? `<button class="btn btn-danger btn-sm" style="flex-shrink:0;font-size:11px;padding:4px 10px" onclick="revokeSession('${s.id}')">${isId ? 'Cabut' : 'Revoke'}</button>` : ''}
-        </div>`;
-    };
-
-    const unknownWarning = otherSessions.some(s => !s.userAgent || s.userAgent === 'Unknown')
-        ? `<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
-            <i class="fas fa-exclamation-triangle" style="color:#f59e0b;font-size:14px;flex-shrink:0"></i>
-            <span style="font-size:11px;color:#f59e0b;line-height:1.4">${isId ? 'Ada sesi dari perangkat yang tidak dikenal. Cabut jika bukan Anda.' : 'There are sessions from unknown devices. Revoke them if not yours.'}</span>
-        </div>` : '';
-
-    openModal(`<div style="padding:24px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-            <div style="width:44px;height:44px;border-radius:12px;background:rgba(59,130,246,.1);display:flex;align-items:center;justify-content:center"><i class="fas fa-laptop" style="color:var(--accent);font-size:18px"></i></div>
-            <div style="flex:1">
-                <h3 style="font-size:18px;font-weight:700">${isId ? 'Perangkat' : 'Sessions'}</h3>
-                <p style="font-size:12px;color:var(--text-secondary)">${sessions.length} ${isId ? 'sesi aktif' : 'active sessions'}</p>
-            </div>
-            ${otherSessions.length > 0 ? `<button class="btn btn-danger btn-sm" onclick="confirmRevokeAllSessions()"><i class="fas fa-sign-out-alt"></i> ${isId ? 'Cabut Semua' : 'Revoke All'}</button>` : ''}
-        </div>
-        ${unknownWarning}
-        ${currentSession ? renderSession(currentSession) : ''}
-        ${otherSessions.map(s => renderSession(s)).join('')}
-        ${!sessions.length ? `<div style="text-align:center;padding:24px;color:var(--text-secondary);font-size:13px"><i class="fas fa-laptop" style="font-size:24px;margin-bottom:8px;display:block;opacity:.3"></i>${isId ? 'Belum ada sesi tercatat' : 'No sessions recorded'}</div>` : ''}
-        <div style="display:flex;justify-content:flex-end;margin-top:16px">
-            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
-        </div>
-    </div>`);
-}
-
-function confirmRevokeAllSessions() {
-    const isId = APP.lang === 'id';
-    showConfirm(
-        isId ? 'Cabut Semua Sesi Lain?' : 'Revoke All Other Sessions?',
-        isId ? 'Anda akan keluar dari semua perangkat lain.' : 'You will be logged out from all other devices.',
-        revokeAllOtherSessions,
-        true
-    );
-}
-
-function formatTimeAgo(timestamp) {
-    const diff = Date.now() - timestamp;
-    const mins = Math.floor(diff / 60000);
-    const isId = APP.lang === 'id';
-    if (mins < 1) return isId ? 'Baru saja' : 'Just now';
-    if (mins < 60) return isId ? `${mins} menit lalu` : `${mins}m ago`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return isId ? `${hours} jam lalu` : `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return isId ? `${days} hari lalu` : `${days}d ago`;
-}
 
 // ===== FEATURE 11: SUPABASE DB MIRRATION (AUTO-SETUP) =====
 const SUPABASE_SQL = `-- RidgeBox Database Schema
@@ -11045,7 +8006,7 @@ document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
     if (e.key === '?' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); openKeyboardShortcuts(); }
     else if (e.ctrlKey && e.key === 'n') { e.preventDefault(); triggerUpload(); }
-    else if (e.ctrlKey && e.key === 'f' && location.hash.startsWith('#/dashboard')) { e.preventDefault(); document.querySelector('.search-premium input')?.focus(); }
+    else if (e.ctrlKey && e.key === 'f' && location.hash.startsWith('#/dashboard')) { e.preventDefault(); document.querySelector('.header-search, .toolbar-search-input')?.focus(); }
     else if (e.ctrlKey && e.key === '.' ) { e.preventDefault(); APP.batchMode = !APP.batchMode; renderFileList(); }
     else if (e.ctrlKey && e.key === '/') { e.preventDefault(); openSettings(); }
     else if (e.key === 'F2' && APP.selectedFiles.size === 1) { e.preventDefault(); const fid = [...APP.selectedFiles][0]; renameFile(fid); }
@@ -11215,201 +8176,6 @@ async function createCollaborativeFolder() {
     if (location.hash === '#/dashboard') renderDashboard();
 }
 
-// ===== STRIPE PAYMENT INTEGRATION (F15) =====
-const PRICING_TIERS = {
-    free: { name: 'Free', price: '$0', period: '/mo', storage: '5 GB', storageBytes: 5 * 1024 * 1024 * 1024, features: ['5 GB Storage', '5 File Shares', 'Basic Encryption', '1 Provider'], color: '#64748b' },
-    pro: { name: 'Pro', price: '$4.99', period: '/mo', storage: '100 GB', storageBytes: 100 * 1024 * 1024 * 1024, features: ['100 GB Storage', 'Unlimited Shares', 'AES-256 Encryption', '5 Providers', 'Priority Support', 'Real-time Sync'], color: '#3b82f6', popular: true },
-    business: { name: 'Business', price: '$9.99', period: '/mo', storage: '1 TB', storageBytes: 1 * 1024 * 1024 * 1024 * 1024, features: ['1 TB Storage', 'Unlimited Everything', 'E2E Encryption', 'All Providers', '24/7 Support', 'API Access', 'Custom Domain', 'Team Features'], color: '#8b5cf6' }
-};
-
-function openPricingModal(tier) {
-    const isId = APP.lang === 'id';
-    const plan = PRICING_TIERS[tier] || PRICING_TIERS.free;
-    const currentTier = APP.settings.subscription?.tier || 'free';
-    const isCurrentPlan = currentTier === tier;
-    openModal(`<div style="padding:24px;text-align:center">
-        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(139,92,246,.15));display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-crown" style="color:${plan.color};font-size:22px"></i></div>
-        <h3 style="font-size:22px;font-weight:700;margin-bottom:4px">${isId ? (tier === 'free' ? 'Gratis' : tier === 'pro' ? 'Pro' : 'Bisnis') : plan.name}</h3>
-        <div style="font-size:32px;font-weight:800;color:${plan.color};margin-bottom:4px">${plan.price}<span style="font-size:14px;font-weight:400;color:var(--text-secondary)">${plan.period}</span></div>
-        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">${plan.storage} ${isId ? 'penyimpanan' : 'storage'}</div>
-        <div style="text-align:left;margin-bottom:20px">${plan.features.map(f => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px"><i class="fas fa-check" style="color:#10b981;font-size:11px"></i>${f}</div>`).join('')}</div>
-        ${isCurrentPlan ? `<button class="btn btn-secondary" style="width:100%;padding:12px;font-size:15px;font-weight:600;opacity:.7" disabled><i class="fas fa-check" style="margin-right:6px"></i>${isId ? 'Paket Saat Ini' : 'Current Plan'}</button>` :
-          tier === 'free' ? `<button class="btn btn-secondary" style="width:100%;padding:12px;font-size:15px;font-weight:600" onclick="downgradeToFree()">${isId ? 'Kembali ke Gratis' : 'Downgrade to Free'}</button>` :
-          `<button class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;font-weight:600;background:${plan.color};border:none" onclick="initStripeCheckout('${tier}')"><i class="fas fa-credit-card" style="margin-right:6px"></i>${isId ? 'Berlangganan' : 'Subscribe'}</button>`}
-        <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeModal()">${isId ? 'Batal' : 'Cancel'}</button>
-    </div>`);
-}
-
-async function initStripeCheckout(tier) {
-    const isId = APP.lang === 'id';
-    // Lazy-load Stripe on demand
-    if (typeof Stripe === 'undefined') {
-        try { await window.LazyLibs.load('stripe'); } catch(e) {
-            showToast(isId ? 'Gagal memuat Stripe' : 'Failed to load Stripe', 'error');
-            return;
-        }
-    }
-    const plan = PRICING_TIERS[tier];
-    if (!plan) { showToast('Invalid plan', 'error'); return; }
-
-    const priceId = tier === 'pro' ? APP.settings.stripePricePro : tier === 'business' ? APP.settings.stripePriceBusiness : APP.settings.stripePriceFree;
-
-    if (!priceId || priceId.includes('placeholder')) {
-        // No real Stripe price ID configured — show setup instructions
-        openModal(`<div style="padding:24px;text-align:center">
-            <i class="fas fa-credit-card" style="font-size:48px;color:var(--accent);margin-bottom:16px"></i>
-            <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">${isId ? 'Pembayaran Stripe' : 'Stripe Payment'}</h3>
-            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">${isId ? 'Integrasi Stripe memerlukan konfigurasi server. Tambahkan Stripe Price ID di Pengaturan → Stripe Config.' : 'Stripe integration requires server configuration. Add Stripe Price IDs in Settings → Stripe Config.'}</p>
-            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;text-align:left;margin-bottom:16px">
-                <div>${isId ? 'Paket' : 'Plan'}: <b>${tier.toUpperCase()}</b></div>
-                <div>${isId ? 'Harga' : 'Amount'}: <b>${plan.price}${plan.period}</b></div>
-                <div>${isId ? 'Penyimpanan' : 'Storage'}: <b>${plan.storage}</b></div>
-            </div>
-            <div style="text-align:left;margin-bottom:16px;font-size:12px;color:var(--text-secondary)">
-                <div style="font-weight:600;margin-bottom:6px">${isId ? 'Langkah konfigurasi:' : 'Setup steps:'}</div>
-                <div style="margin-bottom:4px">1. ${isId ? 'Buat akun di' : 'Create account at'} <a href="https://dashboard.stripe.com" target="_blank" style="color:var(--accent)">stripe.com</a></div>
-                <div style="margin-bottom:4px">2. ${isId ? 'Buat Products & Prices di dashboard Stripe' : 'Create Products & Prices in Stripe dashboard'}</div>
-                <div style="margin-bottom:4px">3. ${isId ? 'Salin Price ID dan masukkan di Pengaturan' : 'Copy Price IDs and enter in Settings'}</div>
-                <div>4. ${isId ? 'Tambahkan STRIPE_SECRET_KEY di Vercel env vars' : 'Add STRIPE_SECRET_KEY in Vercel env vars'}</div>
-            </div>
-            <div style="display:flex;gap:8px;justify-content:center">
-                <button class="btn btn-secondary" onclick="closeModal()">${isId ? 'Tutup' : 'Close'}</button>
-                <button class="btn btn-primary" onclick="closeModal();openSettings()"><i class="fas fa-cog"></i> ${isId ? 'Pengaturan' : 'Settings'}</button>
-            </div>
-        </div>`);
-        return;
-    }
-
-    // Real Stripe Checkout flow
-    showToast(isId ? 'Mengarahkan ke pembayaran...' : 'Redirecting to payment...', 'info');
-
-    try {
-        const userId = APP.user?.id || localStorage.getItem('rb_user_id') || '';
-        const email = APP.user?.email || '';
-
-        const resp = await fetch('/api/stripe/checkout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ priceId, userId, email })
-        });
-        const result = await resp.json();
-
-        if (result.ok && result.url) {
-            // Redirect to Stripe Checkout
-            window.location.href = result.url;
-        } else {
-            showToast((isId ? 'Gagal membuat sesi pembayaran: ' : 'Failed to create checkout session: ') + (result.error || 'Unknown error'), 'error');
-        }
-    } catch (err) {
-        showToast((isId ? 'Kesalahan pembayaran: ' : 'Payment error: ') + err.message, 'error');
-    }
-}
-
-async function manageSubscription() {
-    const isId = APP.lang === 'id';
-    const sub = APP.settings.subscription;
-    if (!sub?.stripeCustomerId && !sub?.stripeSubscriptionId) {
-        showToast(isId ? 'Belum berlangganan' : 'No active subscription', 'warning');
-        return;
-    }
-
-    try {
-        const resp = await fetch('/api/stripe/portal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                customerId: sub.stripeCustomerId,
-                userId: APP.user?.id || localStorage.getItem('rb_user_id') || ''
-            })
-        });
-        const result = await resp.json();
-
-        if (result.ok && result.url) {
-            window.location.href = result.url;
-        } else {
-            showToast((isId ? 'Gagal membuka portal: ' : 'Failed to open portal: ') + (result.error || 'Unknown error'), 'error');
-        }
-    } catch (err) {
-        showToast((isId ? 'Kesalahan portal: ' : 'Portal error: ') + err.message, 'error');
-    }
-}
-
-function downgradeToFree() {
-    const isId = APP.lang === 'id';
-    APP.settings.subscription = { tier: 'free', status: 'active', stripeCustomerId: null, stripeSubscriptionId: null, currentPeriodEnd: null };
-    localStorage.setItem('rb_subscription', JSON.stringify(APP.settings.subscription));
-    const sidebar = document.getElementById('sidebar-panel');
-    if (sidebar) sidebar.innerHTML = renderSidebarHTML();
-    renderHeader();
-    closeModal();
-    showToast(isId ? 'Beralih ke paket Gratis' : 'Switched to Free plan', 'success');
-}
-
-function getSubTierBadge() {
-    const tier = APP.settings.subscription?.tier || 'free';
-    const isId = APP.lang === 'id';
-    const labels = { free: 'Free', pro: 'Pro', business: isId ? 'Bisnis' : 'Business' };
-    return `<span class="sub-tier-badge ${tier}"><i class="fas fa-${tier === 'free' ? 'user' : tier === 'pro' ? 'bolt' : 'building'}"></i> ${labels[tier] || 'Free'}</span>`;
-}
-
-// Handle Stripe checkout success redirect
-function handleCheckoutReturn() {
-    const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
-    if (params.get('checkout') === 'success') {
-        const isId = APP.lang === 'id';
-        // Clean up URL
-        window.location.hash = '#/dashboard';
-        showToast(isId ? 'Pembayaran berhasil! Paket Anda telah diperbarui.' : 'Payment successful! Your plan has been updated.', 'success', 6000);
-        // Update subscription locally (in production, webhook handles this)
-        // Auto-detect from URL or refresh subscription data
-        refreshSubscriptionStatus();
-    } else if (params.get('checkout') === 'cancel') {
-        window.location.hash = '#/dashboard';
-        showToast(APP.lang === 'id' ? 'Pembayaran dibatalkan.' : 'Payment cancelled.', 'info');
-    }
-}
-
-async function refreshSubscriptionStatus() {
-    // In production, this would fetch from Supabase or a custom API
-    // For now, it's a no-op that could be extended
-    try {
-        if (APP.supabase && APP.user) {
-            const { data } = await APP.supabase.from('user_subscriptions').select('*').eq('user_id', APP.user.id).single();
-            if (data) {
-                APP.settings.subscription = {
-                    tier: data.tier || 'free',
-                    status: data.status || 'inactive',
-                    stripeCustomerId: data.stripe_customer_id,
-                    stripeSubscriptionId: data.stripe_subscription_id,
-                    currentPeriodEnd: data.current_period_end
-                };
-                localStorage.setItem('rb_subscription', JSON.stringify(APP.settings.subscription));
-                const sidebar = document.getElementById('sidebar-panel');
-                if (sidebar) sidebar.innerHTML = renderSidebarHTML();
-                renderHeader();
-            }
-        }
-    } catch(e) { /* silently fail */ }
-}
-
-function saveStripeConfig() {
-    const pk = document.getElementById('stripe-pk')?.value || '';
-    const priceFree = document.getElementById('stripe-price-free')?.value || '';
-    const pricePro = document.getElementById('stripe-price-pro')?.value || '';
-    const priceBusiness = document.getElementById('stripe-price-business')?.value || '';
-
-    APP.settings.stripePublishableKey = pk;
-    APP.settings.stripePriceFree = priceFree;
-    APP.settings.stripePricePro = pricePro;
-    APP.settings.stripePriceBusiness = priceBusiness;
-
-    localStorage.setItem('rb_stripe_pk', pk);
-    localStorage.setItem('rb_stripe_price_free', priceFree);
-    localStorage.setItem('rb_stripe_price_pro', pricePro);
-    localStorage.setItem('rb_stripe_price_business', priceBusiness);
-
-    showToast(APP.lang === 'id' ? 'Konfigurasi Stripe disimpan' : 'Stripe config saved', 'success');
-}
 
 // ===== FILE PREVIEW ENHANCEMENT (F117) =====
 function openEnhancedPreview(file) {
@@ -11447,22 +8213,7 @@ function openEnhancedPreview(file) {
 }
 
 // ===== MOBILE PWA IMPROVEMENTS (F118) =====
-function renderMobileBottomNav() {
-    const isId = APP.lang === 'id';
-    const items = [
-        { icon: 'fa-house', label: isId ? 'Beranda' : 'Home', action: "selectFolder('all')", active: APP.currentFolder === 'all' },
-        { icon: 'fa-folder-open', label: isId ? 'File' : 'Files', action: "location.hash='#/dashboard'", active: location.hash === '#/dashboard' },
-        { icon: 'fa-cloud-arrow-up', label: isId ? 'Unggah' : 'Upload', action: 'triggerUpload()', active: false },
-        { icon: 'fa-chart-pie', label: isId ? 'Analitik' : 'Analytics', action: "location.hash='#/analytics'", active: location.hash === '#/analytics' },
-        { icon: 'fa-gear', label: isId ? 'Pengaturan' : 'Settings', action: 'openSettings()', active: false }
-    ];
-    return `<div id="mobile-bottom-nav" style="position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);border-top:1px solid var(--border);display:flex;z-index:80;padding:6px 0 env(safe-area-inset-bottom,8px);box-shadow:0 -2px 12px rgba(0,0,0,.08)">
-        ${items.map(i => `<div onclick="${i.action}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;opacity:${i.active ? 1 : 0.5};transition:opacity .15s">
-            <i class="fas ${i.icon}" style="font-size:18px;color:${i.active ? 'var(--accent)' : 'var(--text-secondary)'}"></i>
-            <span style="font-size:9px;font-weight:600;color:${i.active ? 'var(--accent)' : 'var(--text-secondary)'}">${i.label}</span>
-        </div>`).join('')}
-    </div>`;
-}
+// renderMobileBottomNav() removed — use renderBottomNav() instead (F22)
 
 // Pull-to-refresh
 let _pullStartY = 0, _pulling = false;
@@ -13837,16 +10588,23 @@ async function init() {
                 };
             }
 
-            // Init Supabase Auth (deferred script should be loaded by now)
+            // Init Supabase Auth — ensure library is loaded
+            if (!window.supabase) {
+                // Try loading via LazyLibs first
+                try { await window.LazyLibs.load('supabase'); } catch(e) {
+                    console.warn('LazyLibs supabase load failed, waiting for defer script:', e);
+                }
+            }
             if (window.supabase) {
                 initSupabaseAuth();
             } else {
-                // Wait briefly for deferred Supabase script (max 3s)
+                // Wait briefly for deferred Supabase script (max 5s)
                 await new Promise(resolve => {
-                    const check = setInterval(() => { if (window.supabase) { clearInterval(check); resolve(); } }, 50);
-                    setTimeout(() => { clearInterval(check); resolve(); }, 3000);
+                    const check = setInterval(() => { if (window.supabase) { clearInterval(check); resolve(); } }, 100);
+                    setTimeout(() => { clearInterval(check); resolve(); }, 5000);
                 });
                 if (window.supabase) initSupabaseAuth();
+                else console.warn('Supabase library not available — running in no-auth mode');
             }
         })();
 
@@ -13893,14 +10651,10 @@ async function init() {
             initRealtimeSync();
             // F11: Ensure Supabase tables are set up
             ensureSupabaseTables();
-            // F10: Register current session
-            registerCurrentSession();
-            // F9: Load recovery codes
-            loadRecoveryCodes();
+            // Session registration removed
         }
 
-        // Update session activity periodically
-        setInterval(updateSessionActivity, 60000);
+        // Session activity update removed
 
         // F118: Init enhanced drag & drop
         initEnhancedDragDrop();
@@ -13912,7 +10666,7 @@ async function init() {
         if (APP.authReady) checkUrlRouting();
 
         // Onboarding (F95) - show on first dashboard visit
-        if (!APP.onboardingDone && location.hash === '#/dashboard') {
+        if (!APP.onboardingDone && location.hash === '#/dashboard' && isLoggedIn()) {
             setTimeout(startOnboarding, 500);
         }
 
@@ -14766,7 +11520,7 @@ document.addEventListener('keydown', (e) => {
     // File actions
     if (e.key === 'n' || e.key === 'N') { triggerUpload(); return; }
     if (e.key === 'f' || e.key === 'F') { createFolderDialog(); return; }
-    if (e.key === '/') { e.preventDefault(); const s = document.querySelector('.search-premium input'); if (s) s.focus(); return; }
+    if (e.key === '/') { e.preventDefault(); const s = document.querySelector('.header-search, .toolbar-search-input'); if (s) s.focus(); return; }
     if (e.key === 'g' || e.key === 'G') { APP.gSequence = true; setTimeout(() => { APP.gSequence = false; }, 1000); return; }
     if (e.key === 'v' || e.key === 'V') {
         const views = ['list','grid','categories'];
@@ -14944,49 +11698,7 @@ function getCategoryInfo(cat) {
     return map[cat] || map.others;
 }
 
-function renderCategoriesView() {
-    const files = APP.files.filter(f => !f.trashed);
-    // Group by category
-    const groups = {};
-    files.forEach(f => {
-        const cat = getFileCategory(f.name, f.mime);
-        if (!groups[cat]) groups[cat] = [];
-        groups[cat].push(f);
-    });
-    const catOrder = ['documents','photos','videos','audio','archives','code','others'];
-    let html = '<div class="categories-grid">';
-    catOrder.forEach((cat, idx) => {
-        const info = getCategoryInfo(cat);
-        const catFiles = groups[cat] || [];
-        const count = catFiles.length;
-        const totalSize = catFiles.reduce((s, f) => s + (f.size || 0), 0);
-        html += `<div class="category-card ${info.css} cat-card-anim" style="animation-delay:${idx * 0.06}s" onclick="filterByCategory('${cat}')">
-            <div class="cat-icon"><i class="fas ${info.icon}"></i></div>
-            <div class="cat-name">${info.name}</div>
-            <div class="cat-count">${count} ${APP.lang==='id'?'file':'files'}</div>
-            ${count > 0 ? `<div class="cat-size">${formatSize(totalSize)}</div>` : ''}
-        </div>`;
-    });
-    html += '</div>';
-    return html;
-}
-
-function filterByCategory(cat) {
-    // Map category to filterType used by existing filter
-    const catToType = {
-        documents: 'document',
-        photos: 'image',
-        videos: 'video',
-        audio: 'audio',
-        archives: 'archive',
-        code: 'code',
-        others: 'other'
-    };
-    APP.filterType = catToType[cat] || 'all';
-    APP.currentView = 'grid'; // Switch to grid to show filtered files
-    renderFileList();
-    showToast(`${getCategoryInfo(cat).name}`, 'info', 1500);
-}
+// Categories view removed
 
 // ===== CUSTOM SORT PRESETS =====
 function applySortPreset(preset) {
@@ -15050,10 +11762,11 @@ function renderSortPresets() {
 
 // ===== VIEW MODE CYCLING =====
 function cycleViewMode() {
-    const views = ['list', 'grid', 'categories'];
+    const views = ['list', 'grid'];
     const idx = views.indexOf(APP.currentView);
     APP.currentView = views[(idx + 1) % views.length];
     renderFileList();
+    showToast(APP.currentView.charAt(0).toUpperCase() + APP.currentView.slice(1) + ' View', 'info', 1500);
 }
 
 // ===== PULL-TO-REFRESH (F21 Enhanced) =====
@@ -15127,78 +11840,6 @@ function setupPullToRefresh() {
             setTimeout(() => { ptr.style.transition = 'height .2s ease'; }, 300);
         }
     }, { passive: true });
-}
-
-// ===== FILE DUPLICATE CHECKER =====
-function findDuplicates() {
-    const files = APP.files.filter(f => !f.trashed);
-    const map = {};
-    files.forEach(f => {
-        const key = f.name + '::' + f.size;
-        if (!map[key]) map[key] = [];
-        map[key].push(f);
-    });
-    return Object.entries(map).filter(([, arr]) => arr.length > 1).map(([key, arr]) => {
-        arr.sort((a, b) => (b.uploadedAt || 0) - (a.uploadedAt || 0));
-        return { key, files: arr, newest: arr[0], duplicates: arr.slice(1), savings: arr.slice(1).reduce((s, f) => s + (f.size || 0), 0) };
-    });
-}
-
-function openDuplicateChecker() {
-    const groups = findDuplicates();
-    const isId = APP.lang === 'id';
-    const totalSavings = groups.reduce((s, g) => s + g.savings, 0);
-    if (groups.length === 0) {
-        showToast(isId ? 'Tidak ada file duplikat' : 'No duplicate files found', 'success');
-        return;
-    }
-    openModal(`<div style="padding:24px;max-width:560px">
-        <h3 style="font-size:18px;font-weight:600;margin-bottom:4px"><i class="fas fa-clone" style="color:var(--accent)"></i> ${isId ? 'Cek Duplikat' : 'Duplicate Checker'}</h3>
-        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">${groups.length} ${isId ? 'grup duplikat ditemukan' : 'duplicate groups found'} · ${isId ? 'Hemat' : 'Save'} ${formatSize(totalSavings)}</p>
-        <div style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:12px">
-            ${groups.map((g, gi) => `
-                <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">
-                    <div style="padding:10px 12px;background:var(--bg-secondary);display:flex;justify-content:space-between;align-items:center">
-                        <span style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${g.newest.name}</span>
-                        <span style="font-size:11px;color:var(--text-secondary)">${g.files.length}x · ${isId ? 'hemat' : 'save'} ${formatSize(g.savings)}</span>
-                    </div>
-                    <div style="padding:8px 12px">
-                        <div style="font-size:12px;color:var(--accent);margin-bottom:4px"><i class="fas fa-check-circle"></i> ${isId ? 'Pertahankan (terbaru)' : 'Keep (newest)'}: ${formatSize(g.newest.size)} · ${formatDate(g.newest.uploadedAt)}</div>
-                        ${g.duplicates.map(f => `
-                            <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
-                                <span style="font-size:12px;color:var(--text-secondary);flex:1">${formatSize(f.size)} · ${formatDate(f.uploadedAt)}</span>
-                                <button class="btn btn-danger btn-sm" style="font-size:11px;padding:2px 8px" onclick="deleteDuplicateFile('${f.id}',${gi})" aria-label="Delete duplicate"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-        <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
-            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
-            <button class="btn btn-danger" onclick="deleteAllDuplicates()">${isId ? 'Hapus Semua Duplikat' : 'Delete All Duplicates'}</button>
-        </div>
-    </div>`);
-}
-
-async function deleteDuplicateFile(fileId, groupIdx) {
-    await moveToTrash(fileId);
-    showToast(APP.lang === 'id' ? 'Duplikat dihapus' : 'Duplicate removed', 'success');
-    openDuplicateChecker();
-}
-
-async function deleteAllDuplicates() {
-    const groups = findDuplicates();
-    let count = 0;
-    for (const g of groups) {
-        for (const f of g.duplicates) {
-            await moveToTrash(f.id);
-            count++;
-        }
-    }
-    closeModal();
-    showToast(`${count} ${APP.lang === 'id' ? 'duplikat dihapus' : 'duplicates removed'}`, 'success');
-    await refreshUI();
 }
 
 // ===== REAL STORAGE QUOTA =====
@@ -15526,6 +12167,7 @@ function openMediaPlayer(fileId) {
                 '<i class="fas fa-volume-down" style="color:var(--text-secondary);font-size:13px"></i>' +
                 '<input type="range" min="0" max="1" step="0.05" value="1" id="' + pid + '-vol" style="width:100px;accent-color:var(--accent)">' +
             '</div>' +
+            '<canvas id="' + pid + '-waveform" style="width:100%;height:48px;border-radius:8px;background:var(--bg-secondary)"></canvas>' +
             '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)">' +
                 '<span>' + formatSize(file.size) + ' · ' + file.name.split('.').pop().toUpperCase() + '</span>' +
                 '<span>' + formatDate(file.uploadedAt) + '</span>' +
@@ -15567,6 +12209,7 @@ function openMediaPlayer(fileId) {
                 var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
                 if (a.duration) a.currentTime = pct * a.duration;
             };
+            // Audio waveform removed
         });
     }
 }
@@ -15584,9 +12227,9 @@ function getCommandPaletteItems() {
         // Actions
         { id: 'upload', icon: 'fa-cloud-arrow-up', label: isId ? 'Unggah File' : 'Upload File', category: isId ? 'Aksi' : 'Actions', shortcut: cs.upload || 'Ctrl+N', action: () => triggerUpload() },
         { id: 'new-folder', icon: 'fa-folder-plus', label: isId ? 'Buat Folder' : 'Create Folder', category: isId ? 'Aksi' : 'Actions', shortcut: cs.newFolder || 'F', action: () => createFolderDialog() },
-        { id: 'toggle-view', icon: 'fa-grip', label: isId ? 'Ganti Tampilan' : 'Toggle View', category: isId ? 'Aksi' : 'Actions', shortcut: cs.toggleView || 'V', action: () => { const views = ['list','grid','categories']; const idx = views.indexOf(APP.currentView); APP.currentView = views[(idx + 1) % views.length]; renderFileList(); } },
+        { id: 'toggle-view', icon: 'fa-grip', label: isId ? 'Ganti Tampilan' : 'Toggle View', category: isId ? 'Aksi' : 'Actions', shortcut: cs.toggleView || 'V', action: () => { const views = ['list','grid']; const idx = views.indexOf(APP.currentView); APP.currentView = views[(idx + 1) % views.length]; renderFileList(); } },
         { id: 'toggle-theme', icon: 'fa-moon', label: isId ? 'Ganti Tema' : 'Toggle Theme', category: isId ? 'Aksi' : 'Actions', shortcut: cs.toggleTheme || 'D', action: () => toggleTheme() },
-        { id: 'search-files', icon: 'fa-search', label: isId ? 'Cari File' : 'Search Files', category: isId ? 'Aksi' : 'Actions', shortcut: cs.search || '/', action: () => { const s = document.querySelector('.search-premium input'); if (s) s.focus(); } },
+        { id: 'search-files', icon: 'fa-search', label: isId ? 'Cari File' : 'Search Files', category: isId ? 'Aksi' : 'Actions', shortcut: cs.search || '/', action: () => { const s = document.querySelector('.header-search, .toolbar-search-input'); if (s) s.focus(); } },
         { id: 'new-note', icon: 'fa-sticky-note', label: isId ? 'Catatan Baru' : 'New Note', category: isId ? 'Aksi' : 'Actions', shortcut: '', action: () => { createFolderDialog(); } },
         // Navigation
         { id: 'nav-dashboard', icon: 'fa-gauge-high', label: isId ? 'Ke Dashboard' : 'Go to Dashboard', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'G D', action: () => { if (typeof selectFolder === 'function') selectFolder('all'); } },
@@ -15595,14 +12238,15 @@ function getCommandPaletteItems() {
         { id: 'nav-settings', icon: 'fa-gear', label: isId ? 'Ke Pengaturan' : 'Go to Settings', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'Ctrl+/', action: () => openSettings() },
         { id: 'nav-trash', icon: 'fa-trash-alt', label: isId ? 'Ke Sampah' : 'Go to Trash', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'G T', action: () => { if (typeof selectFolder === 'function') selectFolder('trash'); } },
         { id: 'nav-recent', icon: 'fa-clock', label: isId ? 'Ke Terbaru' : 'Go to Recent', category: isId ? 'Navigasi' : 'Navigation', shortcut: '', action: () => { if (typeof selectFolder === 'function') selectFolder('recent'); } },
+        { id: 'nav-favorites', icon: 'fa-star', label: isId ? 'Ke Favorit' : 'Go to Favorites', category: isId ? 'Navigasi' : 'Navigation', shortcut: 'G F', action: () => { if (typeof selectFolder === 'function') selectFolder('favorites'); } },
         // Settings
         { id: 'set-language', icon: 'fa-language', label: isId ? 'Ganti Bahasa' : 'Change Language', category: isId ? 'Pengaturan' : 'Settings', shortcut: '', action: () => openSettings() },
         { id: 'set-theme', icon: 'fa-palette', label: isId ? 'Ganti Tema' : 'Change Theme', category: isId ? 'Pengaturan' : 'Settings', shortcut: '', action: () => openSettings() },
-        { id: 'set-2fa', icon: 'fa-shield-halved', label: isId ? 'Aktifkan 2FA' : 'Enable 2FA', category: isId ? 'Pengaturan' : 'Settings', shortcut: '', action: () => openSettings() },
-        { id: 'set-sessions', icon: 'fa-users', label: isId ? 'Kelola Sesi' : 'Manage Sessions', category: isId ? 'Pengaturan' : 'Settings', shortcut: '', action: () => { openSettings(); setTimeout(() => { const btn = document.querySelector('[onclick*="showSessionsPanel"]'); if (btn) btn.click(); }, 300); } },
+
+
         // AI Features
         { id: 'ai-search', icon: 'fa-wand-magic-sparkles', label: isId ? 'Pencarian AI' : 'AI Search', category: isId ? 'AI' : 'AI', shortcut: '', action: () => { toggleAISearchMode(); } },
-        { id: 'find-duplicates', icon: 'fa-clone', label: isId ? 'Cari File Duplikat' : 'Find Duplicate Files', category: isId ? 'AI' : 'AI', shortcut: '', action: () => { findDuplicateFiles(); } },
+        { id: 'find-duplicates', icon: 'fa-clone', label: isId ? 'Cari File Duplikat' : 'Find Duplicate Files', category: isId ? 'AI' : 'AI', shortcut: '', action: () => { openDuplicateFinder(); } },
         { id: 'ai-categorize-all', icon: 'fa-robot', label: isId ? 'Kategorikan Semua File' : 'Categorize All Files', category: isId ? 'AI' : 'AI', shortcut: '', action: () => { aiCategorizeAllFiles(); } },
     ];
 }
@@ -15964,7 +12608,7 @@ document.addEventListener('keydown', (e) => {
         else if (action === 'newFolder' || action === 'createFolder') { e.preventDefault(); createFolderDialog(); }
         else if (action === 'toggleView') { e.preventDefault(); const views = ['list','grid','categories']; const idx = views.indexOf(APP.currentView); APP.currentView = views[(idx + 1) % views.length]; renderFileList(); }
         else if (action === 'toggleTheme') { e.preventDefault(); toggleTheme(); }
-        else if (action === 'search') { e.preventDefault(); const s = document.querySelector('.search-premium input'); if (s) s.focus(); }
+        else if (action === 'search') { e.preventDefault(); const s = document.querySelector('.header-search, .toolbar-search-input'); if (s) s.focus(); }
         else if (action === 'commandPalette') { e.preventDefault(); openCommandPalette(); }
         else if (action === 'downloadZip') { e.preventDefault(); if (APP.selectedFiles.size > 0) bulkDownloadZip(); }
         else if (action === 'deleteFile') { if (APP.selectedFiles.size > 0) { const fid = [...APP.selectedFiles][0]; moveToTrash(fid); } }
@@ -15987,7 +12631,7 @@ function initHoverPreview() {
     const preview = document.getElementById('hover-preview');
     if (!preview) return;
     document.addEventListener('mouseover', (e) => {
-        const card = e.target.closest('.file-card-premium, .file-row-premium');
+        const card = e.target.closest('.file-grid-item, .file-list-item');
         if (!card) return;
         const fileId = card.dataset.fileId || card.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
         if (!fileId) return;
@@ -15995,7 +12639,7 @@ function initHoverPreview() {
         _enhancedHoverTimer = setTimeout(() => showEnhancedHoverPreview(fileId, card), 150);
     });
     document.addEventListener('mouseout', (e) => {
-        const card = e.target.closest('.file-card-premium, .file-row-premium');
+        const card = e.target.closest('.file-grid-item, .file-list-item');
         if (!card) return;
         const related = e.relatedTarget;
         if (related && (card.contains(related) || (related.closest && related.closest('.hover-preview')))) return;
@@ -16212,8 +12856,9 @@ function renderBottomNav() {
     const tabs = [
         { id: 'files', icon: 'fa-folder', label: isId ? 'File' : 'Files', badge: 0 },
         { id: 'recent', icon: 'fa-clock', label: isId ? 'Terkini' : 'Recent', badge: recentCount },
+        { id: 'upload', icon: 'fa-plus', label: isId ? 'Unggah' : 'Upload', badge: 0, isFab: true },
         { id: 'shared', icon: 'fa-share-alt', label: isId ? 'Dibagikan' : 'Shared', badge: sharedCount },
-        { id: 'settings', icon: 'fa-cog', label: isId ? 'Pengaturan' : 'Settings', badge: 0 }
+        { id: 'settings', icon: 'fa-gear', label: isId ? 'Pengaturan' : 'Settings', badge: 0 }
     ];
 
     let navEl = document.getElementById('bottom-nav');
@@ -16223,19 +12868,19 @@ function renderBottomNav() {
         navEl.className = 'bottom-nav';
         document.body.appendChild(navEl);
     }
-    navEl.innerHTML = `
-        ${tabs.map(tab => {
-            const isActive = APP.bottomNavTab === tab.id;
-            return `<div class="bottom-nav-tab ${isActive ? 'active' : ''}" onclick="switchBottomTab('${tab.id}')">
+    navEl.innerHTML = tabs.map(tab => {
+        if (tab.isFab) {
+            return `<button class="bottom-nav-fab" onclick="triggerUpload()" title="${isId ? 'Unggah File' : 'Upload Files'}">
                 <i class="fas ${tab.icon}"></i>
-                <span>${tab.label}</span>
-                ${tab.badge > 0 ? `<span class="bottom-nav-badge">${tab.badge > 99 ? '99+' : tab.badge}</span>` : ''}
-            </div>`;
-        }).join('')}
-        <button class="bottom-nav-fab" onclick="triggerUpload()" title="${isId ? 'Unggah File' : 'Upload Files'}">
-            <i class="fas fa-plus"></i>
-        </button>
-    `;
+            </button>`;
+        }
+        const isActive = APP.bottomNavTab === tab.id;
+        return `<div class="bottom-nav-tab ${isActive ? 'active' : ''}" onclick="switchBottomTab('${tab.id}')">
+            <i class="fas ${tab.icon}"></i>
+            <span>${tab.label}</span>
+            ${tab.badge > 0 ? `<span class="bottom-nav-badge">${tab.badge > 99 ? '99+' : tab.badge}</span>` : ''}
+        </div>`;
+    }).join('');
 }
 
 function switchBottomTab(tabId) {
@@ -16347,7 +12992,7 @@ updateSetting = async function(key, value) {
 // F24: AI Search - Toggle between regular and AI search
 function toggleAISearchMode() {
     APP.aiSearchMode = !APP.aiSearchMode;
-    const searchWrap = document.querySelector('.search-premium');
+    const searchWrap = document.querySelector('.header-search-wrap');
     if (searchWrap) {
         searchWrap.classList.toggle('ai-search-active', APP.aiSearchMode);
         const icon = searchWrap.querySelector('i:first-child');
@@ -16367,7 +13012,7 @@ function toggleAISearchMode() {
 async function executeAISearch(query) {
     if (!query || !query.trim()) return;
     const isId = APP.lang === 'id';
-    const searchWrap = document.querySelector('.search-premium');
+    const searchWrap = document.querySelector('.header-search-wrap');
 
     // Show loading shimmer in file list
     const container = document.getElementById('file-list-container');
@@ -16518,191 +13163,6 @@ function setAICategoryFilter(cat) {
     renderFileList();
 }
 
-// F26: Smart Duplicate Detection
-function findDuplicateFiles() {
-    const isId = APP.lang === 'id';
-    const activeFiles = APP.files.filter(f => !f.trashed);
-
-    // 1. Exact duplicates (same fileHash)
-    const hashGroups = {};
-    activeFiles.forEach(f => {
-        if (f.fileHash) {
-            if (!hashGroups[f.fileHash]) hashGroups[f.fileHash] = [];
-            hashGroups[f.fileHash].push(f);
-        }
-    });
-    const exactGroups = Object.values(hashGroups).filter(g => g.length > 1);
-
-    // 2. Similar files (similar name + same size + same type)
-    function levenshtein(a, b) {
-        const m = a.length, n = b.length;
-        const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
-        for (let i = 0; i <= m; i++) dp[i][0] = i;
-        for (let j = 0; j <= n; j++) dp[0][j] = j;
-        for (let i = 1; i <= m; i++) {
-            for (let j = 1; j <= n; j++) {
-                dp[i][j] = a[i - 1] === b[j - 1]
-                    ? dp[i - 1][j - 1]
-                    : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
-            }
-        }
-        return dp[m][n];
-    }
-
-    const similarGroups = [];
-    const checked = new Set();
-    for (let i = 0; i < activeFiles.length; i++) {
-        if (checked.has(i)) continue;
-        const group = [activeFiles[i]];
-        for (let j = i + 1; j < activeFiles.length; j++) {
-            if (checked.has(j)) continue;
-            const fi = activeFiles[i], fj = activeFiles[j];
-            const sameSize = fi.size === fj.size;
-            const sameType = getFileType(fi.name, fi.mime) === getFileType(fj.name, fj.mime);
-            if (sameSize && sameType && fi.name && fj.name) {
-                const dist = levenshtein(fi.name.toLowerCase(), fj.name.toLowerCase());
-                if (dist < 3 && dist > 0) {
-                    group.push(fj);
-                    checked.add(j);
-                }
-            }
-        }
-        if (group.length > 1) {
-            similarGroups.push(group);
-            checked.add(i);
-        }
-    }
-
-    openDuplicateModal(exactGroups, similarGroups);
-}
-
-// F26: Open Duplicate Results Modal
-function openDuplicateModal(exactGroups, similarGroups) {
-    const isId = APP.lang === 'id';
-    const totalGroups = exactGroups.length + similarGroups.length;
-    const totalSavings = [...exactGroups, ...similarGroups].reduce((sum, group) => {
-        return sum + (group.length - 1) * group[0].size;
-    }, 0);
-
-    if (totalGroups === 0) {
-        openModal(`<div style="padding:24px;text-align:center">
-            <div style="font-size:48px;margin-bottom:12px;opacity:.2"><i class="fas fa-clone"></i></div>
-            <h3 style="font-size:16px;font-weight:600;margin-bottom:8px">${isId ? 'Tidak Ada Duplikat' : 'No Duplicates Found'}</h3>
-            <p style="font-size:13px;color:var(--text-secondary)">${isId ? 'Semua file unik!' : 'All files are unique!'}</p>
-            <button class="btn btn-primary" style="margin-top:16px" onclick="closeModal()">OK</button>
-        </div>`);
-        return;
-    }
-
-    function renderGroup(group, groupIdx, isExact) {
-        const icon = getFileIcon(getFileType(group[0].name, group[0].mime));
-        const savings = (group.length - 1) * group[0].size;
-        return `<div class="dup-group" id="dup-group-${groupIdx}">
-            <div class="dup-group-header">
-                <div style="display:flex;align-items:center;gap:6px">
-                    <i class="fas ${icon.icon}" style="color:${icon.color}"></i>
-                    <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${group[0].name}</span>
-                    <span class="dup-savings-badge"><i class="fas fa-arrow-down" style="font-size:9px"></i> ${formatSize(savings)}</span>
-                </div>
-                <div style="display:flex;gap:4px">
-                    <button class="dup-action-btn" onclick="keepDuplicateNewest('${group.map(f=>f.id).join(',')}','${groupIdx}')">${isId ? 'Terbaru' : 'Keep Newest'}</button>
-                    <button class="dup-action-btn" onclick="keepDuplicateOldest('${group.map(f=>f.id).join(',')}','${groupIdx}')">${isId ? 'Terlama' : 'Keep Oldest'}</button>
-                </div>
-            </div>
-            ${group.map((f, i) => `<div class="dup-file-row">
-                <input type="checkbox" class="dup-check-${groupIdx}" aria-label="Select duplicate file" data-file-id="${f.id}" ${i === 0 ? 'checked' : ''} style="accent-color:var(--accent)">
-                <i class="fas ${icon.icon}" style="color:${icon.color};font-size:11px"></i>
-                <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
-                <span style="font-size:11px;color:var(--text-secondary)">${formatSize(f.size)}</span>
-                <span style="font-size:11px;color:var(--text-secondary)">${formatDate(f.uploadedAt)}</span>
-            </div>`).join('')}
-            <div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end">
-                <button class="dup-action-btn danger" onclick="deleteSelectedDuplicates('${groupIdx}')">${isId ? 'Hapus Terpilih' : 'Delete Selected'}</button>
-            </div>
-        </div>`;
-    }
-
-    openModal(`<div style="padding:24px;max-width:560px">
-        <h3 style="font-size:18px;font-weight:600;margin-bottom:4px"><i class="fas fa-clone" style="color:var(--accent)"></i> ${isId ? 'Deteksi Duplikat' : 'Duplicate Detection'}</h3>
-        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">
-            <span class="dup-savings-badge">${totalGroups} ${isId ? 'grup duplikat' : 'duplicate groups'} (${isId ? 'hemat' : 'save'} ${formatSize(totalSavings)})</span>
-        </p>
-
-        <!-- Tabs -->
-        <div style="display:flex;gap:8px;margin-bottom:16px">
-            <button class="dup-tab active" id="dup-tab-exact" onclick="switchDupTab('exact')">${isId ? 'Duplikat Eksak' : 'Exact Duplicates'} (${exactGroups.length})</button>
-            <button class="dup-tab" id="dup-tab-similar" onclick="switchDupTab('similar')">${isId ? 'File Serupa' : 'Similar Files'} (${similarGroups.length})</button>
-        </div>
-
-        <!-- Exact duplicates -->
-        <div id="dup-content-exact" style="max-height:400px;overflow-y:auto">
-            ${exactGroups.length === 0 ? `<p style="text-align:center;color:var(--text-secondary);padding:20px">${isId ? 'Tidak ada duplikat eksak' : 'No exact duplicates found'}</p>` : exactGroups.map((g, i) => renderGroup(g, 'e' + i, true)).join('')}
-        </div>
-
-        <!-- Similar files -->
-        <div id="dup-content-similar" style="display:none;max-height:400px;overflow-y:auto">
-            ${similarGroups.length === 0 ? `<p style="text-align:center;color:var(--text-secondary);padding:20px">${isId ? 'Tidak ada file serupa' : 'No similar files found'}</p>` : similarGroups.map((g, i) => renderGroup(g, 's' + i, false)).join('')}
-        </div>
-
-        <div style="display:flex;justify-content:flex-end;margin-top:16px">
-            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
-        </div>
-    </div>`);
-}
-
-// F26: Switch duplicate tab
-function switchDupTab(tab) {
-    document.getElementById('dup-tab-exact')?.classList.toggle('active', tab === 'exact');
-    document.getElementById('dup-tab-similar')?.classList.toggle('active', tab === 'similar');
-    const exactContent = document.getElementById('dup-content-exact');
-    const similarContent = document.getElementById('dup-content-similar');
-    if (exactContent) exactContent.style.display = tab === 'exact' ? 'block' : 'none';
-    if (similarContent) similarContent.style.display = tab === 'similar' ? 'block' : 'none';
-}
-
-// F26: Keep newest duplicate, delete rest
-async function keepDuplicateNewest(fileIdsStr, groupIdx) {
-    const ids = fileIdsStr.split(',');
-    const sorted = ids.map(id => APP.files.find(f => f.id === id)).filter(Boolean).sort((a, b) => (b.uploadedAt || 0) - (a.uploadedAt || 0));
-    // Keep the newest (first), delete the rest
-    for (let i = 1; i < sorted.length; i++) {
-        await moveToTrash(sorted[i].id);
-    }
-    const group = document.getElementById('dup-group-' + groupIdx);
-    if (group) group.style.opacity = '0.3';
-    showToast(APP.lang === 'id' ? 'Duplikat dihapus, terbaru disimpan' : 'Duplicates removed, newest kept', 'success');
-}
-
-// F26: Keep oldest duplicate, delete rest
-async function keepDuplicateOldest(fileIdsStr, groupIdx) {
-    const ids = fileIdsStr.split(',');
-    const sorted = ids.map(id => APP.files.find(f => f.id === id)).filter(Boolean).sort((a, b) => (a.uploadedAt || 0) - (b.uploadedAt || 0));
-    for (let i = 1; i < sorted.length; i++) {
-        await moveToTrash(sorted[i].id);
-    }
-    const group = document.getElementById('dup-group-' + groupIdx);
-    if (group) group.style.opacity = '0.3';
-    showToast(APP.lang === 'id' ? 'Duplikat dihapus, terlama disimpan' : 'Duplicates removed, oldest kept', 'success');
-}
-
-// F26: Delete selected duplicates in a group
-async function deleteSelectedDuplicates(groupIdx) {
-    const checks = document.querySelectorAll('.dup-check-' + groupIdx);
-    const toDelete = [];
-    checks.forEach(ch => {
-        if (!ch.checked) toDelete.push(ch.dataset.fileId);
-    });
-    if (toDelete.length === 0) {
-        showToast(APP.lang === 'id' ? 'Pilih file yang akan dihapus' : 'Select files to delete', 'warning');
-        return;
-    }
-    for (const id of toDelete) {
-        await moveToTrash(id);
-    }
-    const group = document.getElementById('dup-group-' + groupIdx);
-    if (group) group.style.opacity = '0.3';
-    showToast(`${toDelete.length} ${APP.lang === 'id' ? 'file dipindahkan ke sampah' : 'files moved to trash'}`, 'success');
-}
 
 // F27: OCR - Extract text from image/PDF
 async function executeOCR(fileId) {
@@ -17098,304 +13558,7 @@ function checkFileExpiry() {
     }
 }
 
-// ===== F118: WORKFLOW AUTOMATION RULES =====
-function addAutomationRule(rule) {
-    rule.id = 'rule_' + Date.now() + '_' + genId();
-    rule.active = true;
-    rule.createdAt = Date.now();
-    APP.automationRules.push(rule);
-    localStorage.setItem('rb_automation_rules', JSON.stringify(APP.automationRules));
-}
 
-function removeAutomationRule(ruleId) {
-    APP.automationRules = APP.automationRules.filter(r => r.id !== ruleId);
-    localStorage.setItem('rb_automation_rules', JSON.stringify(APP.automationRules));
-}
-
-function toggleAutomationRule(ruleId) {
-    const rule = APP.automationRules.find(r => r.id === ruleId);
-    if (rule) { rule.active = !rule.active; localStorage.setItem('rb_automation_rules', JSON.stringify(APP.automationRules)); }
-}
-
-async function applyAutomationRules(file) {
-    for (const rule of APP.automationRules) {
-        if (!rule.active) continue;
-        let conditionMet = false;
-
-        // Check conditions
-        if (rule.condition === 'fileType') {
-            const fileType = getFileType(file.name, file.mime);
-            conditionMet = fileType === rule.conditionValue;
-        } else if (rule.condition === 'fileSize') {
-            const sizeBytes = file.size || 0;
-            const thresholdBytes = parseInt(rule.conditionValue) * 1024 * 1024; // MB
-            conditionMet = rule.conditionOperator === 'greater' ? sizeBytes > thresholdBytes : sizeBytes < thresholdBytes;
-        } else if (rule.condition === 'uploadSource') {
-            conditionMet = (file.uploadSource || 'local') === rule.conditionValue;
-        }
-
-        if (!conditionMet) continue;
-
-        // Execute actions
-        if (rule.action === 'moveToFolder' && rule.actionValue) {
-            file.folderId = rule.actionValue;
-            await saveFile(file);
-        } else if (rule.action === 'autoEncrypt') {
-            if (!file.encrypted && APP.settings.encryption) {
-                // Encryption happens during upload, so tag for encryption
-                file.autoEncrypt = true;
-                await saveFile(file);
-            }
-        } else if (rule.action === 'autoTag' && rule.actionValue) {
-            if (!file.tags) file.tags = [];
-            if (!file.tags.includes(rule.actionValue)) {
-                file.tags.push(rule.actionValue);
-                await saveFile(file);
-            }
-        } else if (rule.action === 'autoShare') {
-            // Auto-create a share link (use simple approach without DOM)
-            if (file) {
-                const share = { id: genId(), fileId: file.id, alias: genId().substring(0,8), password: '', expiry: 0, expiresAt: 0, selfDestruct: false, permission: 'download', clicks: 0, downloadCount: 0, lastAccess: null, lastAccessedAt: null, createdAt: Date.now() };
-                APP.shares.push(share);
-                await dbPut('shares', share);
-            }
-        }
-
-        pushNotification('automation', t('notifRuleApplied'), `${rule.condition} → ${rule.action}: ${file.name}`);
-    }
-}
-
-function openAutomationRulesModal() {
-    haptic('tap');
-    const isId = APP.lang === 'id';
-    const rules = APP.automationRules || [];
-    const folders = APP.folders.filter(f => !f.system);
-
-    openModal(`<div style="padding:24px">
-        <h3 style="font-size:18px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
-            <i class="fas fa-robot" style="color:var(--accent)"></i> ${t('automationRules')}
-        </h3>
-        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${t('automationRulesDesc')}</p>
-
-        <!-- Add Rule Form -->
-        <div style="padding:16px;background:var(--bg-secondary);border-radius:12px;margin-bottom:16px;border:1px dashed var(--border)">
-            <div style="font-size:13px;font-weight:600;margin-bottom:10px">${t('addRule')}</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-                <span style="font-size:12px;font-weight:500;color:var(--text-secondary)">${t('ruleIf')}</span>
-                <select id="rule-condition" class="input" style="padding:6px 10px;font-size:12px;flex:1;min-width:120px">
-                    <option value="fileType">${t('conditionFileType')}</option>
-                    <option value="fileSize">${t('conditionFileSize')}</option>
-                    <option value="uploadSource">${t('conditionUploadSource')}</option>
-                </select>
-                <select id="rule-condition-value-type" class="input" style="padding:6px 10px;font-size:12px;flex:1;min-width:100px">
-                    <option value="image">${isId ? 'Gambar' : 'Image'}</option>
-                    <option value="video">${isId ? 'Video' : 'Video'}</option>
-                    <option value="audio">${isId ? 'Audio' : 'Audio'}</option>
-                    <option value="document">${isId ? 'Dokumen' : 'Document'}</option>
-                    <option value="archive">${isId ? 'Arsip' : 'Archive'}</option>
-                </select>
-                <input id="rule-condition-value-size" type="number" class="input" placeholder="MB" style="padding:6px 10px;font-size:12px;width:80px;display:none">
-                <select id="rule-condition-operator" class="input" style="padding:6px 10px;font-size:12px;display:none">
-                    <option value="greater">&gt;</option>
-                    <option value="less">&lt;</option>
-                </select>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-                <span style="font-size:12px;font-weight:500;color:var(--text-secondary)">${t('ruleThen')}</span>
-                <select id="rule-action" class="input" style="padding:6px 10px;font-size:12px;flex:1;min-width:140px">
-                    <option value="moveToFolder">${t('actionMoveToFolder')}</option>
-                    <option value="autoEncrypt">${t('actionAutoEncrypt')}</option>
-                    <option value="autoTag">${t('actionAutoTag')}</option>
-                    <option value="autoShare">${t('actionAutoShare')}</option>
-                </select>
-                <select id="rule-action-folder" class="input" style="padding:6px 10px;font-size:12px;flex:1;min-width:120px">
-                    ${folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('')}
-                </select>
-                <input id="rule-action-tag" type="text" class="input" placeholder="Tag name" style="padding:6px 10px;font-size:12px;flex:1;min-width:100px;display:none">
-            </div>
-            <button class="btn btn-primary btn-sm" style="width:100%" onclick="saveNewAutomationRule()"><i class="fas fa-plus"></i> ${t('addRule')}</button>
-        </div>
-
-        <!-- Rules List -->
-        ${rules.length === 0 ? `<div style="text-align:center;padding:30px 0;color:var(--text-secondary)">
-            <i class="fas fa-robot" style="font-size:32px;opacity:.2;margin-bottom:8px;display:block"></i>
-            <p style="font-size:13px">${t('noRules')}</p>
-        </div>` : rules.map(rule => `
-            <div style="display:flex;align-items:center;gap:10px;padding:12px;margin-bottom:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;border-left:3px solid ${rule.active ? '#10b981' : '#94a3b8'}">
-                <label class="toggle-switch" style="flex-shrink:0"><input type="checkbox" ${rule.active ? 'checked' : ''} onchange="toggleAutomationRule('${rule.id}');openAutomationRulesModal()"><span class="toggle-slider"></span></label>
-                <div style="flex:1;min-width:0">
-                    <div style="font-size:12px;font-weight:500;color:var(--text)"><i class="fas fa-filter" style="color:var(--accent);font-size:10px;margin-right:4px"></i>${t('ruleIf')} ${rule.condition} = ${rule.conditionValue} → ${t('ruleThen')} ${rule.action}${rule.actionValue ? ' → ' + rule.actionValue : ''}</div>
-                    <div style="font-size:10px;color:var(--text-secondary)">${rule.active ? t('ruleActive') : t('ruleInactive')} · ${timeAgo(rule.createdAt)}</div>
-                </div>
-                <button class="btn btn-ghost btn-sm" style="padding:4px 8px" onclick="removeAutomationRule('${rule.id}');openAutomationRulesModal()"><i class="fas fa-trash" style="font-size:10px;color:#ef4444"></i></button>
-            </div>
-        `).join('')}
-
-        <div style="display:flex;justify-content:flex-end;margin-top:16px">
-            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
-        </div>
-    </div>`);
-
-    // Dynamic form switching
-    setTimeout(() => {
-        const condEl = document.getElementById('rule-condition');
-        if (condEl) condEl.onchange = function() {
-            document.getElementById('rule-condition-value-type').style.display = this.value === 'fileType' ? '' : 'none';
-            document.getElementById('rule-condition-value-size').style.display = this.value === 'fileSize' ? '' : 'none';
-            document.getElementById('rule-condition-operator').style.display = this.value === 'fileSize' ? '' : 'none';
-            if (this.value === 'uploadSource') {
-                document.getElementById('rule-condition-value-type').style.display = 'none';
-            }
-        };
-        const actionEl = document.getElementById('rule-action');
-        if (actionEl) actionEl.onchange = function() {
-            document.getElementById('rule-action-folder').style.display = this.value === 'moveToFolder' ? '' : 'none';
-            document.getElementById('rule-action-tag').style.display = this.value === 'autoTag' ? '' : 'none';
-            if (this.value === 'autoEncrypt' || this.value === 'autoShare') {
-                document.getElementById('rule-action-folder').style.display = 'none';
-                document.getElementById('rule-action-tag').style.display = 'none';
-            }
-        };
-    }, 100);
-}
-
-function saveNewAutomationRule() {
-    const condition = document.getElementById('rule-condition').value;
-    let conditionValue = '';
-    let conditionOperator = '';
-    if (condition === 'fileType') {
-        conditionValue = document.getElementById('rule-condition-value-type').value;
-    } else if (condition === 'fileSize') {
-        conditionValue = document.getElementById('rule-condition-value-size').value;
-        conditionOperator = document.getElementById('rule-condition-operator').value;
-    } else if (condition === 'uploadSource') {
-        conditionValue = 'local';
-    }
-    const action = document.getElementById('rule-action').value;
-    let actionValue = '';
-    if (action === 'moveToFolder') actionValue = document.getElementById('rule-action-folder').value;
-    else if (action === 'autoTag') actionValue = document.getElementById('rule-action-tag').value;
-
-    if (!conditionValue && condition !== 'uploadSource') { showToast(APP.lang === 'id' ? 'Isi kondisi aturan' : 'Fill rule condition', 'error'); return; }
-    addAutomationRule({ condition, conditionValue, conditionOperator, action, actionValue });
-    showToast(APP.lang === 'id' ? 'Aturan ditambahkan!' : 'Rule added!', 'success');
-    openAutomationRulesModal();
-}
-
-// ===== F119: FILE REQUEST PORTAL =====
-function createFileRequest(options = {}) {
-    const isId = APP.lang === 'id';
-    const token = crypto.randomUUID ? crypto.randomUUID() : genId() + genId();
-    const request = {
-        id: 'freq_' + Date.now(),
-        token,
-        name: options.name || (isId ? 'Permintaan File' : 'File Request'),
-        folderId: options.folderId || null,
-        expiresAt: options.expiresAt || 0,
-        maxFiles: options.maxFiles || 10,
-        password: options.password || '',
-        receivedFiles: [],
-        createdAt: Date.now()
-    };
-    // Store in IndexedDB settings
-    dbPut('settings', { key: 'file_request_' + request.id, ...request });
-    const url = `${location.origin}/#/request/${token}`;
-    return { request, url };
-}
-
-function openFileRequestModal() {
-    haptic('tap');
-    const isId = APP.lang === 'id';
-    const folders = APP.folders.filter(f => !f.system);
-
-    openModal(`<div style="padding:24px">
-        <h3 style="font-size:18px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
-            <i class="fas fa-file-import" style="color:var(--accent)"></i> ${t('fileRequest')}
-        </h3>
-        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${t('fileRequestDesc')}</p>
-
-        <div style="margin-bottom:12px">
-            <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${isId ? 'Nama Permintaan' : 'Request Name'}</label>
-            <input id="freq-name" type="text" class="input" placeholder="${isId ? 'Contoh: Kumpul Tugas' : 'e.g. Collect Assignments'}" value="${isId ? 'Kumpul File' : 'Collect Files'}">
-        </div>
-        <div style="margin-bottom:12px">
-            <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${isId ? 'Simpan ke Folder' : 'Save to Folder'}</label>
-            <select id="freq-folder" class="input">
-                <option value="">${isId ? 'Pilih folder' : 'Select folder'}</option>
-                ${folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('')}
-            </select>
-        </div>
-        <div style="margin-bottom:12px">
-            <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('requestMaxFiles')}</label>
-            <input id="freq-max" type="number" class="input" value="10" min="1" max="100">
-        </div>
-        <div style="margin-bottom:12px">
-            <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('requestPassword')}</label>
-            <input id="freq-password" type="text" class="input" placeholder="••••••">
-        </div>
-        <div style="margin-bottom:12px">
-            <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('expiry')}</label>
-            <select id="freq-expiry" class="input">
-                <option value="0">${t('noExpiry')}</option>
-                <option value="86400000">${t('expiry1d')}</option>
-                <option value="604800000">${t('expiry7d')}</option>
-                <option value="2592000000">${t('expiry30d')}</option>
-            </select>
-        </div>
-        <button class="btn btn-primary" style="width:100%" onclick="submitFileRequest()"><i class="fas fa-link"></i> ${t('createRequest')}</button>
-        <div style="display:flex;justify-content:flex-end;margin-top:12px">
-            <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
-        </div>
-    </div>`);
-}
-
-async function submitFileRequest() {
-    const isId = APP.lang === 'id';
-    const result = createFileRequest({
-        name: document.getElementById('freq-name').value,
-        folderId: document.getElementById('freq-folder').value || null,
-        maxFiles: parseInt(document.getElementById('freq-max').value) || 10,
-        password: document.getElementById('freq-password').value,
-        expiresAt: parseInt(document.getElementById('freq-expiry').value) || 0
-    });
-    try { await navigator.clipboard.writeText(result.url); } catch(e) {}
-    showToast(isId ? 'Link permintaan dibuat & disalin!' : 'Request link created & copied!', 'success');
-    closeModal();
-}
-
-function renderFileRequestPortal(token) {
-    const main = document.getElementById('app-main');
-    if (!main) return;
-    renderHeader();
-    const isId = APP.lang === 'id';
-    main.innerHTML = `<div class="page-transition" style="display:flex;align-items:center;justify-content:center;min-height:80vh">
-        <div style="text-align:center;max-width:500px;padding:40px;width:100%">
-            <div style="width:64px;height:64px;border-radius:16px;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
-                <i class="fas fa-file-import" style="font-size:28px;color:#8b5cf6"></i>
-            </div>
-            <h2>${t('fileRequest')}</h2>
-            <p style="color:var(--text-secondary);margin-bottom:24px">${isId ? 'Kirim file ke pemilik folder' : 'Send files to the folder owner'}</p>
-            <div class="drop-zone" id="request-drop-zone" style="padding:40px 20px;margin-bottom:16px;cursor:pointer" onclick="document.getElementById('request-file-input').click()">
-                <i class="fas fa-cloud-arrow-up" style="font-size:36px;color:var(--accent);margin-bottom:8px"></i>
-                <p>${t('uploadDrop')}</p>
-            </div>
-            <input type="file" id="request-file-input" multiple style="display:none" onchange="handleRequestUpload(this.files)">
-        </div>
-    </div>`;
-    const zone = document.getElementById('request-drop-zone');
-    if (zone) {
-        zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
-        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-        zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('drag-over'); if (e.dataTransfer.files.length) handleRequestUpload(e.dataTransfer.files); });
-    }
-}
-
-async function handleRequestUpload(fileList) {
-    for (const file of fileList) {
-        await executeUpload(file);
-    }
-    showToast(t('uploaded'), 'success');
-}
 
 // ===== F120: NOTIFICATION CENTER =====
 function pushNotification(category, title, body, sticky = false) {
@@ -17912,6 +14075,528 @@ function submitScheduledUpload() {
     openUploadScheduleModal();
 }
 
+// ===== F126: FILE PREVIEW CAROUSEL =====
+function openPreviewCarousel(fileId) {
+    const files = getFilteredFiles().filter(f => !f.trashed);
+    const idx = files.findIndex(f => f.id === fileId);
+    APP.previewCarouselIndex = idx >= 0 ? idx : 0;
+    renderPreviewCarousel();
+}
+function renderPreviewCarousel() {
+    const files = getFilteredFiles().filter(f => !f.trashed);
+    const idx = APP.previewCarouselIndex;
+    const file = files[idx];
+    if (!file) return;
+    const isId = APP.lang === 'id';
+    const type = getFileType(file.name, file.mime);
+    const icon = getFileIcon(type);
+    const downloadUrl = APP.settings.proxyMode !== false
+        ? `/api/download?path=${encodeURIComponent(file.filePath)}&bot_index=${file.botIndex}`
+        : `https://api.telegram.org/file/bot${APP.bots[0]?.token}/${file.filePath}`;
+    let previewContent = '';
+    if (type === 'image') {
+        previewContent = `<img src="${downloadUrl}" style="max-width:100%;max-height:55vh;border-radius:8px" alt="${file.name}" onerror="this.src='';this.alt='Failed to load'">`;
+    } else if (type === 'video') {
+        previewContent = `<video src="${downloadUrl}" controls playsinline style="max-width:100%;max-height:55vh;border-radius:8px"></video>`;
+    } else if (type === 'audio') {
+        const waveformId = 'carousel-audio-waveform-' + file.id;
+        previewContent = `<div style="text-align:center;padding:30px"><div style="width:100px;height:100px;border-radius:20px;background:linear-gradient(135deg,#f59e0b20,#8b5cf620);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-music" style="font-size:40px;color:#f59e0b"></i></div><canvas id="${waveformId}" style="width:100%;height:60px;margin:8px 0"></canvas><audio id="carousel-audio-${file.id}" src="${downloadUrl}" controls style="width:100%;margin-top:12px"></audio></div>`;
+        setTimeout(() => {
+            const audioEl = document.getElementById('carousel-audio-' + file.id);
+            const canvasEl = document.getElementById(waveformId);
+            // Audio waveform removed
+        }, 300);
+    } else if (type === 'pdf') {
+        previewContent = `<iframe src="${downloadUrl}" style="width:100%;height:55vh;border:none;border-radius:8px"></iframe>`;
+    } else {
+        previewContent = `<div style="text-align:center;padding:40px"><div style="width:80px;height:80px;border-radius:20px;background:${icon.color}15;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas ${icon.icon}" style="font-size:36px;color:${icon.color}"></i></div><p style="color:var(--text-secondary)">${isId ? 'Pratinjau tidak tersedia' : 'Preview not available'}</p></div>`;
+    }
+    const hasPrev = idx > 0;
+    const hasNext = idx < files.length - 1;
+    openModal(`<div style="padding:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
+                <i class="fas ${icon.icon}" style="color:${icon.color}"></i>
+                <span style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</span>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center">
+                <span style="font-size:11px;color:var(--text-secondary);margin-right:4px">${idx+1}/${files.length}</span>
+                <button class="btn btn-ghost btn-sm" onclick="downloadFile('${file.id}')" aria-label="Download"><i class="fas fa-download"></i></button>
+                <button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div style="position:relative">
+            ${hasPrev ? `<button onclick="APP.previewCarouselIndex--;renderPreviewCarousel()" style="position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:var(--shadow);transition:all .15s" onmouseover="this.style.background='var(--accent)';this.style.color='#fff'" onmouseout="this.style.background='var(--bg-card)';this.style.color=''"><i class="fas fa-chevron-left" style="font-size:12px"></i></button>` : ''}
+            ${hasNext ? `<button onclick="APP.previewCarouselIndex++;renderPreviewCarousel()" style="position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:var(--shadow);transition:all .15s" onmouseover="this.style.background='var(--accent)';this.style.color='#fff'" onmouseout="this.style.background='var(--bg-card)';this.style.color=''"><i class="fas fa-chevron-right" style="font-size:12px"></i></button>` : ''}
+            ${previewContent}
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--text-secondary);display:flex;justify-content:space-between">
+            <span>${formatSize(file.size)} · ${type}</span>
+            <span>${formatDate(file.uploadedAt)}</span>
+        </div>
+        <div style="display:flex;gap:4px;justify-content:center;margin-top:10px">${files.slice(Math.max(0,idx-3),idx+4).map((f,i) => {
+            const realIdx = Math.max(0,idx-3)+i;
+            return `<div onclick="APP.previewCarouselIndex=${realIdx};renderPreviewCarousel()" style="width:${realIdx===idx?'24px':'8px'};height:8px;border-radius:4px;background:${realIdx===idx?'var(--accent)':'var(--border)'};cursor:pointer;transition:all .2s"></div>`;
+        }).join('')}</div>
+    </div>`);
+    // Keyboard navigation
+    const _carouselKey = (e) => {
+        if (e.key === 'ArrowLeft' && hasPrev) { APP.previewCarouselIndex--; renderPreviewCarousel(); }
+        else if (e.key === 'ArrowRight' && hasNext) { APP.previewCarouselIndex++; renderPreviewCarousel(); }
+        else if (e.key === 'Escape') { document.removeEventListener('keydown', _carouselKey); }
+    };
+    document.removeEventListener('keydown', window._carouselKeyHandler);
+    window._carouselKeyHandler = _carouselKey;
+    document.addEventListener('keydown', _carouselKey);
+    // Touch swipe support for carousel
+    const modalEl = document.querySelector('.modal-overlay, [class*="modal"]');
+    if (modalEl) {
+        let touchStartX = 0;
+        const handleSwipe = (e) => {
+            const diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0 && hasNext) { APP.previewCarouselIndex++; renderPreviewCarousel(); }
+                else if (diff < 0 && hasPrev) { APP.previewCarouselIndex--; renderPreviewCarousel(); }
+            }
+            modalEl.removeEventListener('touchend', handleSwipe);
+        };
+        modalEl.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+        modalEl.addEventListener('touchend', handleSwipe);
+    }
+}
+
+// ===== F127: QUICK ACTION FAB =====
+function toggleFAB() {
+    APP.fabExpanded = !APP.fabExpanded;
+    const fab = document.getElementById('quick-fab-menu');
+    if (fab) fab.style.display = APP.fabExpanded ? 'flex' : 'none';
+    const btn = document.getElementById('quick-fab-btn');
+    if (btn) { btn.innerHTML = APP.fabExpanded ? '<i class="fas fa-times"></i>' : '<i class="fas fa-plus"></i>'; btn.className = APP.fabExpanded ? 'fab-main fab-open' : 'fab-main'; }
+}
+function renderFAB() {
+    const isId = APP.lang === 'id';
+    const fabLabel = isId ? 'Unggah' : 'Upload';
+    return `<div id="quick-fab-wrap" class="fab-wrap">
+        <div id="quick-fab-menu" class="fab-expanded" style="display:none">
+            <div class="fab-option" onclick="triggerUpload();toggleFAB()" title="${isId?'Unggah':'Upload'}"><i class="fas fa-cloud-arrow-up"></i></div>
+            <div class="fab-option" onclick="createFolderDialog();toggleFAB()" title="${isId?'Folder Baru':'New Folder'}"><i class="fas fa-folder-plus"></i></div>
+            <div class="fab-option" onclick="openCameraUpload();toggleFAB()" title="${isId?'Kamera':'Camera'}"><i class="fas fa-camera"></i></div>
+            <div class="fab-option" onclick="openFileDropLinkModal();toggleFAB()" title="${isId?'Link Upload':'Drop Link'}"><i class="fas fa-link"></i></div>
+        </div>
+        <button id="quick-fab-btn" class="fab-main" onclick="toggleFAB()" aria-label="${fabLabel}" title="${fabLabel}">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>`;
+}
+
+// ===== F128: STORAGE BREAKDOWN PIE CHART =====
+function renderStoragePieChart() {
+    const files = APP.files.filter(f => !f.trashed);
+    const isId = APP.lang === 'id';
+    const typeConfig = [
+        { key: 'image', label: isId?'Foto':'Photos', color: '#10b981' },
+        { key: 'video', label: isId?'Video':'Videos', color: '#ef4444' },
+        { key: 'audio', label: isId?'Audio':'Audio', color: '#8b5cf6' },
+        { key: 'document', label: isId?'Dokumen':'Docs', color: '#3b82f6' },
+        { key: 'other', label: isId?'Lainnya':'Others', color: '#64748b' }
+    ];
+    const docTypes = ['document','pdf','spreadsheet','presentation','text','code'];
+    const sizes = {};
+    typeConfig.forEach(t => sizes[t.key] = 0);
+    files.forEach(f => {
+        const fType = getFileType(f.name, f.mime);
+        if (fType === 'image') sizes.image += (f.size || 0);
+        else if (fType === 'video') sizes.video += (f.size || 0);
+        else if (fType === 'audio') sizes.audio += (f.size || 0);
+        else if (docTypes.includes(fType)) sizes.document += (f.size || 0);
+        else sizes.other += (f.size || 0);
+    });
+    const total = Object.values(sizes).reduce((s,v)=>s+v,0) || 1;
+    const data = typeConfig.map(t => ({...t, size: sizes[t.key], pct: (sizes[t.key]/total*100)})).filter(t=>t.size>0);
+    // SVG Donut chart
+    const r = 50, cx = 60, cy = 60, sw = 20;
+    const circ = 2 * Math.PI * r;
+    let offset = 0;
+    const segments = data.map(d => {
+        const len = (d.pct / 100) * circ;
+        const seg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.color}" stroke-width="${sw}" stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" style="transition:all .6s ease"/>`;
+        offset += len;
+        return seg;
+    });
+    const legend = data.map(d => `<div style="display:flex;align-items:center;gap:6px;font-size:12px"><div style="width:10px;height:10px;border-radius:3px;background:${d.color}"></div><span style="flex:1;color:var(--text)">${d.label}</span><span style="color:var(--text-secondary);font-family:'JetBrains Mono',monospace">${d.pct.toFixed(1)}%</span></div>`).join('');
+    return `<div style="display:flex;gap:16px;align-items:center">
+        <svg width="120" height="120" viewBox="0 0 120 120">${segments.join('')}<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" style="font-size:13px;font-weight:700;fill:var(--text)">${formatSize(total)}</text></svg>
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px">${legend}</div>
+    </div>`;
+}
+
+// ===== F129: ACTIVITY LOG =====
+function logActivity(type, description) {
+    APP.activityLog.unshift({ type, description, timestamp: Date.now() });
+    if (APP.activityLog.length > 200) APP.activityLog = APP.activityLog.slice(0, 200);
+    localStorage.setItem('rb_activity_log', JSON.stringify(APP.activityLog));
+    APP._activityCache = APP.activityLog;
+    // Update activity timeline if visible
+    if (typeof refreshActivityUI === 'function') refreshActivityUI();
+}
+function openActivityFeed() {
+    const isId = APP.lang === 'id';
+    const log = APP.activityLog;
+    const typeConfig = {
+        upload: { icon: 'fa-cloud-arrow-up', color: '#10b981' },
+        download: { icon: 'fa-download', color: '#3b82f6' },
+        share: { icon: 'fa-share-alt', color: '#8b5cf6' },
+        delete: { icon: 'fa-trash', color: '#ef4444' },
+        rename: { icon: 'fa-pen', color: '#f59e0b' },
+        move: { icon: 'fa-arrows-alt', color: '#06b6d4' },
+        vault: { icon: 'fa-vault', color: '#64748b' },
+        encrypt: { icon: 'fa-lock', color: '#8b5cf6' },
+        login: { icon: 'fa-sign-in-alt', color: '#3b82f6' }
+    };
+    const items = log.length > 0 ? log.map(a => {
+        const cfg = typeConfig[a.type] || typeConfig.move;
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+            <div style="width:36px;height:36px;border-radius:10px;background:${cfg.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${cfg.icon}" style="color:${cfg.color};font-size:13px"></i></div>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.description}</div><div style="font-size:11px;color:var(--text-secondary)">${timeAgo(a.timestamp)}</div></div>
+        </div>`;
+    }).join('') : `<div style="text-align:center;padding:40px;color:var(--text-secondary)"><i class="fas fa-clock-rotate-left" style="font-size:32px;opacity:.3"></i><p style="margin-top:12px">${isId?'Belum ada aktivitas':'No activity yet'}</p></div>`;
+    openModal(`<div style="padding:20px;max-width:500px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:18px;font-weight:600"><i class="fas fa-clock-rotate-left" style="color:#10b981;margin-right:8px"></i>${isId?'Riwayat Aktivitas':'Activity Feed'}</h3>
+            <div style="display:flex;gap:6px">
+                <button class="btn btn-ghost btn-sm" onclick="APP.activityLog=[];localStorage.removeItem('rb_activity_log');openActivityFeed()"><i class="fas fa-trash"></i></button>
+                <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div style="max-height:60vh;overflow-y:auto">${items}</div>
+    </div>`);
+}
+
+// ===== F130: DUPLICATE FINDER =====
+function openDuplicateFinder() {
+    const isId = APP.lang === 'id';
+    const files = APP.files.filter(f => !f.trashed);
+    // Group by name+size
+    const groups = {};
+    files.forEach(f => {
+        const key = f.name + '_' + f.size;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(f);
+    });
+    const duplicates = Object.values(groups).filter(g => g.length > 1);
+    const totalWaste = duplicates.reduce((sum, g) => sum + (g.length - 1) * (g[0].size || 0), 0);
+    const dupHtml = duplicates.length > 0 ? duplicates.map(g => {
+        return `<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <i class="fas ${getFileIcon(getFileType(g[0].name, g[0].mime)).icon}" style="color:${getFileIcon(getFileType(g[0].name, g[0].mime)).color}"></i>
+                <span style="font-weight:600;font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${g[0].name}</span>
+                <span style="font-size:11px;color:var(--text-secondary)">${g.length} ${isId?'salinan':'copies'} · ${formatSize(g[0].size)}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">${g.map((f,i) => `<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;background:var(--bg-secondary);border-radius:6px;font-size:11px">
+                <span style="flex:1;color:var(--text-secondary)">${formatDate(f.uploadedAt)}</span>
+                ${i>0?`<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px" onclick="moveToTrash('${f.id}');openDuplicateFinder()"><i class="fas fa-trash" style="color:#ef4444"></i></button>`:`<span style="font-size:10px;color:#10b981;font-weight:600">${isId?'Asli':'Original'}</span>`}
+            </div>`).join('')}</div>
+        </div>`;
+    }).join('') : `<div style="text-align:center;padding:40px;color:var(--text-secondary)"><i class="fas fa-check-circle" style="font-size:40px;color:#10b981;opacity:.5"></i><p style="margin-top:12px">${isId?'Tidak ada file duplikat':'No duplicate files found'}</p></div>`;
+    openModal(`<div style="padding:20px;max-width:500px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:18px;font-weight:600"><i class="fas fa-clone" style="color:#ef4444;margin-right:8px"></i>${isId?'Pencarian Duplikat':'Duplicate Finder'}</h3>
+            <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        ${duplicates.length > 0 ? `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="fas fa-exclamation-triangle" style="color:#ef4444"></i><span style="font-size:12px;color:var(--text);flex:1">${duplicates.length} ${isId?'kelompok duplikat':'duplicate groups'} · ${formatSize(totalWaste)} ${isId?'terbuang':'wasted'}</span><button class="btn btn-sm" style="background:#ef4444;color:#fff;font-size:11px;padding:4px 10px" onclick="deleteAllDuplicates()">${isId?'Hapus Semua':'Delete All'}</button></div>` : ''}
+        <div style="max-height:55vh;overflow-y:auto">${dupHtml}</div>
+    </div>`);
+}
+function deleteAllDuplicates() {
+    const files = APP.files.filter(f => !f.trashed);
+    const groups = {};
+    files.forEach(f => {
+        const key = f.name + '_' + f.size;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(f);
+    });
+    const duplicates = Object.values(groups).filter(g => g.length > 1);
+    let deleted = 0;
+    duplicates.forEach(g => {
+        // Keep the first (oldest), trash the rest
+        g.slice(1).forEach(f => {
+            moveToTrash(f.id);
+            deleted++;
+        });
+    });
+    showToast(`${deleted} ${APP.lang==='id'?'duplikat dihapus':'duplicates removed'}`, 'success');
+    openDuplicateFinder();
+}
+
+// ===== F131: MULTI-SELECT DRAG =====
+function initDragSelect() {
+    const container = document.getElementById('file-list-container');
+    if (!container) return;
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let selBox = null;
+    container.addEventListener('mousedown', e => {
+        if (e.target.closest('.file-card, .file-row, button, a, input, select')) return;
+        // Allow drag select when in batch mode OR when shift key is held
+        if (!APP.batchMode && !e.shiftKey) return;
+        // Auto-enable batch mode
+        if (!APP.batchMode) { APP.batchMode = true; renderFileList(); }
+        // Remember which files were already selected before drag
+        APP._dragPreselected = new Set(APP.selectedFiles);
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        selBox = document.createElement('div');
+        selBox.id = 'drag-select-box';
+        selBox.style.cssText = 'position:fixed;border:2px dashed var(--accent);background:rgba(59,130,246,.08);pointer-events:none;z-index:100;border-radius:4px';
+        document.body.appendChild(selBox);
+        e.preventDefault();
+    });
+    document.addEventListener('mousemove', e => {
+        if (!isDragging || !selBox) return;
+        const x = Math.min(startX, e.clientX);
+        const y = Math.min(startY, e.clientY);
+        const w = Math.abs(e.clientX - startX);
+        const h = Math.abs(e.clientY - startY);
+        selBox.style.left = x + 'px';
+        selBox.style.top = y + 'px';
+        selBox.style.width = w + 'px';
+        selBox.style.height = h + 'px';
+        // Select files within the box
+        const box = selBox.getBoundingClientRect();
+        document.querySelectorAll('.file-card, .file-row').forEach(el => {
+            const r = el.getBoundingClientRect();
+            const overlap = !(r.right < box.left || r.left > box.right || r.bottom < box.top || r.top > box.bottom);
+            const fid = el.dataset.fileId;
+            if (overlap && fid) {
+                APP.selectedFiles.add(fid);
+                el.classList.add('selected');
+            } else if (fid) {
+                // Only deselect if not previously selected before drag started
+                if (!APP._dragPreselected?.has(fid)) {
+                    APP.selectedFiles.delete(fid);
+                }
+                el.classList.toggle('selected', APP.selectedFiles.has(fid));
+            }
+        });
+    });
+    document.addEventListener('mouseup', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        APP._dragPreselected = null;
+        if (selBox) { selBox.remove(); selBox = null; }
+        updateQuickActions();
+    });
+}
+
+// ===== F132: FILE DROP LINK =====
+function openFileDropLinkModal() {
+    const isId = APP.lang === 'id';
+    const links = APP.fileDropLinks || [];
+    const linksHtml = links.length > 0 ? links.map(l => {
+        return `<div style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px">
+            <i class="fas fa-cloud-arrow-up" style="color:#3b82f6"></i>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.name}</div><div style="font-size:11px;color:var(--text-secondary)">${l.uploads || 0} ${isId?'upload':'uploads'} · ${l.expiresAt ? formatDate(l.expiresAt) : (isId?'Tanpa batas':'No expiry')}</div></div>
+            <button class="btn btn-ghost btn-sm" onclick="copyToClipboard('${location.origin}/#/drop/${l.token}')"><i class="fas fa-copy"></i></button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteFileDropLink('${l.token}');openFileDropLinkModal()"><i class="fas fa-trash" style="color:#ef4444"></i></button>
+        </div>`;
+    }).join('') : `<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:12px">${isId?'Belum ada link drop':'No drop links yet'}</div>`;
+    openModal(`<div style="padding:20px;max-width:480px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:18px;font-weight:600"><i class="fas fa-cloud-arrow-up" style="color:#3b82f6;margin-right:8px"></i>${isId?'Link Upload Masuk':'File Drop Link'}</h3>
+            <button class="btn btn-ghost btn-sm" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">${isId?'Buat link untuk orang lain upload file ke akun kamu tanpa perlu login':'Create a link for others to upload files to your account without logging in'}</p>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+            <input id="drop-link-name" class="input" style="flex:1" placeholder="${isId?'Nama link (opsional)':'Link name (optional)'}">
+            <button class="btn btn-primary btn-sm" onclick="createFileDropLink()"><i class="fas fa-plus"></i> ${isId?'Buat':'Create'}</button>
+        </div>
+        <div style="max-height:40vh;overflow-y:auto">${linksHtml}</div>
+    </div>`);
+}
+function createFileDropLink() {
+    const nameEl = document.getElementById('drop-link-name');
+    const name = nameEl ? nameEl.value.trim() : '';
+    const isId = APP.lang === 'id';
+    const token = genId();
+    const link = { token, name: name || (isId ? 'Upload Link' : 'Upload Link'), uploads: 0, createdAt: Date.now(), expiresAt: null };
+    APP.fileDropLinks.push(link);
+    localStorage.setItem('rb_drop_links', JSON.stringify(APP.fileDropLinks));
+    const url = `${location.origin}/#/drop/${token}`;
+    copyToClipboard(url);
+    showToast(isId ? 'Link dibuat & disalin!' : 'Link created & copied!', 'success');
+    openFileDropLinkModal();
+}
+function deleteFileDropLink(token) {
+    APP.fileDropLinks = APP.fileDropLinks.filter(l => l.token !== token);
+    localStorage.setItem('rb_drop_links', JSON.stringify(APP.fileDropLinks));
+}
+function renderDropPortal(token) {
+    const main = document.getElementById('app-main');
+    if (!main) return;
+    const dropLink = APP.fileDropLinks.find(l => l.token === token);
+    if (!dropLink) {
+        main.innerHTML = `<div class="page-transition" style="display:flex;align-items:center;justify-content:center;min-height:80vh">
+            <div style="text-align:center;max-width:400px;padding:40px">
+                <div style="width:64px;height:64px;border-radius:16px;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                    <i class="fas fa-link-slash" style="font-size:28px;color:#ef4444"></i>
+                </div>
+                <h2 style="font-size:20px;font-weight:700">Link Tidak Valid</h2>
+                <p style="color:var(--text-secondary);margin-top:8px">Link upload ini sudah tidak tersedia atau telah dihapus.</p>
+                <a href="#/" class="btn btn-primary" style="margin-top:20px"><i class="fas fa-home"></i> Home</a>
+            </div>
+        </div>`;
+        return;
+    }
+    const isId = APP.lang === 'id';
+    const linkName = dropLink.name || (isId ? 'Upload Link' : 'Upload Link');
+    renderHeader();
+    main.innerHTML = `<div class="page-transition" style="display:flex;align-items:center;justify-content:center;min-height:80vh">
+        <div style="text-align:center;max-width:500px;padding:40px;width:100%">
+            <div style="width:64px;height:64px;border-radius:16px;background:rgba(59,130,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                <i class="fas fa-cloud-arrow-up" style="font-size:28px;color:var(--accent)"></i>
+            </div>
+            <h2 style="font-size:20px;font-weight:700">${isId ? 'Upload ke RidgeBox' : 'Upload to RidgeBox'}</h2>
+            <p style="color:var(--text-secondary);margin-bottom:24px">${linkName}</p>
+            <div class="drop-zone" id="drop-portal-zone" style="padding:40px 20px;margin-bottom:16px;cursor:pointer" onclick="document.getElementById('drop-portal-input').click()">
+                <i class="fas fa-cloud-arrow-up" style="font-size:36px;color:var(--accent);margin-bottom:8px"></i>
+                <p>${isId ? 'Seret file atau klik untuk upload' : 'Drop files or click to upload'}</p>
+            </div>
+            <input type="file" id="drop-portal-input" multiple style="display:none" onchange="handleDropPortalUpload(this.files, '${token}')">
+            <div id="drop-portal-progress" style="display:none;margin-top:12px">
+                <div style="height:4px;background:var(--bg-secondary);border-radius:99px;overflow:hidden"><div id="drop-portal-bar" style="height:100%;width:0%;background:var(--accent);border-radius:99px;transition:width .3s ease"></div></div>
+                <p id="drop-portal-status" style="font-size:12px;color:var(--text-secondary);margin-top:6px">${isId ? 'Mengupload...' : 'Uploading...'}</p>
+            </div>
+            <div id="drop-portal-done" style="display:none;margin-top:16px;padding:16px;background:rgba(16,185,129,.1);border-radius:12px">
+                <i class="fas fa-check-circle" style="color:#10b981;font-size:24px"></i>
+                <p style="margin-top:8px;font-weight:600;color:#10b981">${isId ? 'Upload berhasil!' : 'Upload successful!'}</p>
+            </div>
+        </div>
+    </div>`;
+    // Setup drag & drop
+    const zone = document.getElementById('drop-portal-zone');
+    if (zone) {
+        zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('drag-over'); if (e.dataTransfer.files.length) handleDropPortalUpload(e.dataTransfer.files, token); });
+    }
+}
+async function handleDropPortalUpload(fileList, token) {
+    const dropLink = APP.fileDropLinks.find(l => l.token === token);
+    if (!dropLink) return;
+    const progressEl = document.getElementById('drop-portal-progress');
+    const barEl = document.getElementById('drop-portal-bar');
+    const doneEl = document.getElementById('drop-portal-done');
+    const zoneEl = document.getElementById('drop-portal-zone');
+    if (progressEl) progressEl.style.display = 'block';
+    if (zoneEl) zoneEl.style.display = 'none';
+    for (let i = 0; i < fileList.length; i++) {
+        const file = fileList[i];
+        if (barEl) barEl.style.width = `${((i + 0.5) / fileList.length) * 100}%`;
+        await executeUpload(file, null);
+        if (barEl) barEl.style.width = `${((i + 1) / fileList.length) * 100}%`;
+    }
+    // Update upload count
+    dropLink.uploads = (dropLink.uploads || 0) + fileList.length;
+    localStorage.setItem('rb_drop_links', JSON.stringify(APP.fileDropLinks));
+    logActivity('upload', `${fileList.length} file via Drop Link`);
+    if (progressEl) progressEl.style.display = 'none';
+    if (doneEl) doneEl.style.display = 'block';
+    haptic('uploadComplete');
+}
+
+// ===== F133: HIDDEN VAULT =====
+function openVaultModal() {
+    const isId = APP.lang === 'id';
+    if (!APP.vaultPin) {
+        openModal(`<div style="padding:20px;max-width:400px">
+            <div style="text-align:center;margin-bottom:20px"><div style="width:80px;height:80px;border-radius:20px;background:rgba(100,116,139,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-vault" style="font-size:36px;color:#64748b"></i></div><h3 style="font-size:18px;font-weight:600">${isId?'Buat Brankas':'Create Vault'}</h3><p style="font-size:12px;color:var(--text-secondary);margin-top:4px">${isId?'Buat PIN untuk mengamankan file rahasia':'Create a PIN to secure your secret files'}</p></div>
+            <input id="vault-pin-setup" type="password" maxlength="6" class="input" style="text-align:center;font-size:24px;letter-spacing:8px" placeholder="●●●●●●" oninput="if(this.value.length===6)document.getElementById('vault-pin-confirm').focus()">
+            <input id="vault-pin-confirm" type="password" maxlength="6" class="input" style="text-align:center;font-size:24px;letter-spacing:8px;margin-top:8px" placeholder="${isId?'Konfirmasi PIN':'Confirm PIN'}">
+            <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="setupVaultPin()"><i class="fas fa-lock"></i> ${isId?'Buat Brankas':'Create Vault'}</button>
+        </div>`);
+    } else if (!APP.vaultUnlocked) {
+        openModal(`<div style="padding:20px;max-width:400px">
+            <div style="text-align:center;margin-bottom:20px"><div style="width:80px;height:80px;border-radius:20px;background:rgba(100,116,139,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fas fa-vault" style="font-size:36px;color:#64748b"></i></div><h3 style="font-size:18px;font-weight:600">${isId?'Buka Brankas':'Unlock Vault'}</h3><p style="font-size:12px;color:var(--text-secondary);margin-top:4px">${isId?'Masukkan PIN brankas':'Enter vault PIN'}</p></div>
+            <input id="vault-pin-input" type="password" maxlength="6" class="input" style="text-align:center;font-size:24px;letter-spacing:8px" placeholder="●●●●●●" onkeydown="if(event.key==='Enter')unlockVault()">
+            <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="unlockVault()"><i class="fas fa-unlock"></i> ${isId?'Buka':'Unlock'}</button>
+        </div>`);
+    } else {
+        showVaultContents();
+    }
+}
+function setupVaultPin() {
+    const pin = document.getElementById('vault-pin-setup').value;
+    const confirm = document.getElementById('vault-pin-confirm').value;
+    const isId = APP.lang === 'id';
+    if (pin.length < 4) { showToast(isId?'PIN minimal 4 digit':'PIN must be at least 4 digits', 'error'); return; }
+    if (pin !== confirm) { showToast(isId?'PIN tidak cocok':'PINs do not match', 'error'); return; }
+    APP.vaultPin = pin;
+    localStorage.setItem('rb_vault_pin', pin);
+    APP.vaultUnlocked = true;
+    showToast(isId?'Brankas dibuat!':'Vault created!', 'success');
+    logActivity('vault', isId?'Brankas dibuat':'Vault created');
+    showVaultContents();
+}
+function unlockVault() {
+    const pin = document.getElementById('vault-pin-input').value;
+    const isId = APP.lang === 'id';
+    if (pin === APP.vaultPin) {
+        APP.vaultUnlocked = true;
+        showToast(isId?'Brankas terbuka!':'Vault unlocked!', 'success');
+        showVaultContents();
+    } else {
+        showToast(isId?'PIN salah!':'Wrong PIN!', 'error');
+    }
+}
+function showVaultContents() {
+    const isId = APP.lang === 'id';
+    const vaultFiles = APP.vaultFiles.map(vf => {
+        const f = APP.files.find(x => x.id === vf.fileId);
+        if (!f) return null;
+        const type = getFileType(f.name, f.mime);
+        const icon = getFileIcon(type);
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px">
+            <i class="fas ${icon.icon}" style="color:${icon.color}"></i>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</div><div style="font-size:11px;color:var(--text-secondary)">${formatSize(f.size)}</div></div>
+            <button class="btn btn-ghost btn-sm" onclick="removeFromVault('${f.id}');showVaultContents()"><i class="fas fa-unlock" style="color:#10b981"></i></button>
+        </div>`;
+    }).filter(Boolean);
+    openModal(`<div style="padding:20px;max-width:480px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:18px;font-weight:600"><i class="fas fa-vault" style="color:#64748b;margin-right:8px"></i>${isId?'Brankas Rahasia':'Secret Vault'}</h3>
+            <button class="btn btn-ghost btn-sm" onclick="APP.vaultUnlocked=false;closeModal()"><i class="fas fa-lock"></i></button>
+        </div>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">${isId?'File di brankas tersembunyi dari daftar file biasa':'Files in vault are hidden from the regular file list'}</p>
+        <div style="max-height:50vh;overflow-y:auto">${vaultFiles.length > 0 ? vaultFiles.join('') : `<div style="text-align:center;padding:30px;color:var(--text-secondary)"><i class="fas fa-vault" style="font-size:32px;opacity:.3"></i><p style="margin-top:8px">${isId?'Brankas kosong':'Vault is empty'}</p><p style="font-size:11px">${isId?'Klik kanan file → Pindah ke Brankas':'Right-click file → Move to Vault'}</p></div>`}</div>
+    </div>`);
+}
+function moveToVault(fileId) {
+    const isId = APP.lang === 'id';
+    if (!APP.vaultPin) { openVaultModal(); return; }
+    if (!APP.vaultUnlocked) { openVaultModal(); return; }
+    if (APP.vaultFiles.some(v => v.fileId === fileId)) return;
+    APP.vaultFiles.push({ fileId, addedAt: Date.now() });
+    localStorage.setItem('rb_vault_files', JSON.stringify(APP.vaultFiles));
+    logActivity('vault', isId?'File dipindah ke brankas':'File moved to vault');
+    showToast(isId?'File dipindah ke brankas':'File moved to vault', 'success');
+    renderFileList();
+}
+function removeFromVault(fileId) {
+    APP.vaultFiles = APP.vaultFiles.filter(v => v.fileId !== fileId);
+    localStorage.setItem('rb_vault_files', JSON.stringify(APP.vaultFiles));
+    renderFileList();
+}
+function isFileInVault(fileId) {
+    return APP.vaultPin && APP.vaultFiles.some(v => v.fileId === fileId);
+}
+
+// ===== HELPER: Save files to IndexedDB =====
+function saveFiles() {
+    if (typeof saveAllData === 'function') saveAllData();
+    else if (typeof saveToDB === 'function') saveToDB();
+}
+
 // ===== INIT ALL NEW FEATURES =====
 function initNewFeatures() {
     // Init Transfer Queue
@@ -17927,6 +14612,14 @@ function initNewFeatures() {
     // Setup upload scheduler
     setupUploadScheduler();
 
+    // Init drag select
+    initDragSelect();
+
+    // Self-destruct folders check removed
+
+    // Activity log preload
+    if (!APP._activityCache) APP._activityCache = APP.activityLog;
+
     // Apply automation rules on new file uploads (hook into existing upload flow)
     const _origHandleFileSelect = handleFileSelect;
     handleFileSelect = async function(fileList) {
@@ -17941,11 +14634,22 @@ function initNewFeatures() {
     };
 }
 
+// [Removed gimmick UI/UX features]: Upload Progress Orb, Upload Orb Styles IIFE,
+// Pull-to-Refresh with Particles, Interactive Empty State, Empty State Animation Styles IIFE,
+// Enhanced Swipe Actions, Warm Dark Mode, Bottom Nav Enhanced Animation,
+// Split View, Split Detail, Enhanced Commands, Breadcrumb Drag, Storage Ring Widget
+
+// ===== INIT UI/UX FEATURES =====
+function initUIUXFeatures() {
+    console.log('[RidgeBox] UI/UX features initialized');
+}
+
 // Auto-init when app loads
 if (typeof window !== 'undefined') {
     const _origInit = window.addEventListener;
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(initNewFeatures, 2000); // Delay to let main app init first
+        setTimeout(initUIUXFeatures, 3000); // UI/UX features init after other features
     });
 }
 

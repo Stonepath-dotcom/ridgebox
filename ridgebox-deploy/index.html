@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Ridgebox — Cloud Storage</title>
+<title>RidgeBox — Cloud Storage</title>
 <meta name="description" content="Simpan file gratis tanpa server. Unlimited storage, end-to-end encryption.">
 <meta name="theme-color" content="#3b82f6">
 <meta name="color-scheme" content="light dark">
@@ -11,97 +11,74 @@
 <link rel="icon" href="/logo-icon.png" type="image/png">
 <link rel="apple-touch-icon" href="/logo-icon.png">
 <link rel="preload" as="image" href="/logo-icon.png" fetchpriority="high">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="preload" href="/app.js?v=20250612e" as="script" fetchpriority="low">
-<link rel="preload" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
+<link rel="preload" href="/app.js?v=20250612d" as="script" fetchpriority="low">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
-<!-- Heavy libs: lazy-loaded on demand via LazyLibs -->
 <style>
-/* Critical CSS — inlined for first paint performance */
-:root{--accent:#3b82f6;--accent-hover:#2563eb;--bg:#ffffff;--bg-secondary:#f8fafc;--bg-card:#ffffff;--text:#0f172a;--text-secondary:#475569;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.1);--shadow-lg:0 10px 40px rgba(0,0,0,.15);--radius:12px;--sidebar-w:260px;--header-h:60px;--transition:all .2s ease}
-.dark{--bg:#0f172a;--bg-secondary:#1e293b;--bg-card:#1e293b;--text:#f1f5f9;--text-secondary:#94a3b8;--border:#334155;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 10px 40px rgba(0,0,0,.4)}
+/* Critical CSS — inlined for first paint */
+:root{--accent:#3b82f6;--accent-hover:#2563eb;--accent-soft:#eff6ff;--bg:#ffffff;--bg-secondary:#f9fafb;--bg-card:#ffffff;--text:#111827;--text-secondary:#6b7280;--text-tertiary:#9ca3af;--border:#e5e7eb;--shadow:0 1px 3px rgba(0,0,0,.06);--radius:8px;--sidebar-w:260px;--header-h:56px;--transition:.15s ease;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;--font-mono:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace}
+.dark{--bg:#111827;--bg-secondary:#1f2937;--bg-card:#1f2937;--text:#f9fafb;--text-secondary:#9ca3af;--text-tertiary:#6b7280;--border:#374151;--shadow:0 1px 3px rgba(0,0,0,.3);--accent-soft:rgba(59,130,246,.1)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh;-webkit-overflow-scrolling:touch;max-width:100vw}
+body{font-family:var(--font);font-size:14px;line-height:1.5;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh;-webkit-font-smoothing:antialiased}
 #app-main{max-width:100vw;overflow-x:hidden}
-.skip-nav{position:absolute;top:-100%;left:16px;z-index:9999;padding:12px 24px;background:var(--accent);color:#fff;border-radius:0 0 8px 8px;font-weight:600;font-size:14px;text-decoration:none;transition:top .2s ease}
-.skip-nav:focus{top:0;outline:3px solid #fbbf24;outline-offset:2px}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
-*:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
-.btn:focus-visible,.input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
-@media(prefers-contrast:high){:root{--border:#000;--text-secondary:#333}.dark{--border:#fff;--text-secondary:#ccc}}
-@keyframes skShimmer{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:var(--radius);font-weight:500;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--text);transition:var(--transition);font-family:inherit}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.input{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:var(--bg);color:var(--text);font-family:inherit}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-.skeleton{background:linear-gradient(90deg,var(--bg-secondary) 25%,var(--border) 50%,var(--bg-secondary) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
-.page-transition{max-width:100vw;overflow-x:hidden}
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--text-secondary);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--accent)}
-.font-mono{font-family:'JetBrains Mono',monospace}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;border-radius:8px;font-weight:500;font-size:14px;cursor:pointer;border:none;transition:var(--transition);font-family:inherit}
-.input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;transition:var(--transition)}
 </style>
-<link rel="preload" href="/styles.css?v=20250612e" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="/styles.css?v=20250612e"></noscript>
+<link rel="preload" href="/styles.css?v=20250612d" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="/styles.css?v=20250612d"></noscript>
 </head>
 <body>
-<a href="#app-main" class="skip-nav">Skip to main content</a>
-<div id="scroll-progress" class="scroll-progress" style="width:0" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-<button id="back-to-top" class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top"><i class="fas fa-chevron-up" aria-hidden="true"></i></button>
-<div id="upload-progress-global" class="upload-progress-global" role="progressbar" aria-label="Upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="bar" id="global-progress-bar" style="width:0"></div></div>
+<a href="#app-main" class="skip-nav" style="position:absolute;top:-100%;left:16px;z-index:9999;padding:8px 16px;background:var(--accent);color:#fff;border-radius:0 0 6px 6px;font-weight:600;font-size:13px;text-decoration:none">Skip to main content</a>
+<div id="upload-progress-global" style="position:fixed;top:0;left:0;right:0;z-index:200;height:3px;background:transparent" role="progressbar" aria-label="Upload progress"><div id="global-progress-bar" style="height:100%;background:var(--accent);border-radius:0 2px 2px 0;transition:width .3s ease;width:0"></div></div>
 <header id="app-header" role="banner" style="max-width:100vw;overflow-x:hidden"></header>
-<div id="sidebar-mobile-overlay" class="sidebar-mobile-overlay" onclick="toggleMobileSidebar(false)" role="presentation"></div>
+<div id="sidebar-mobile-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45" onclick="toggleMobileSidebar(false)" role="presentation"></div>
 <main id="app-main" role="main">
-<div id="app-skeleton" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0a0a1a 0%,#1a1145 50%,#0a0a1a 100%);flex-direction:column;gap:24px;padding:20px">
-<img src="/logo-icon.png" alt="RidgeBox" width="80" height="80" style="border-radius:20px;animation:heroFloat 6s ease-in-out infinite;box-shadow:0 8px 32px rgba(59,130,246,.3)" />
-<div style="width:180px;height:12px;border-radius:6px;background:rgba(255,255,255,.15);animation:shimmer 1.5s infinite"></div>
-<div style="width:120px;height:8px;border-radius:4px;background:rgba(255,255,255,.08);animation:shimmer 1.5s .3s infinite"></div>
-<style>@keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}</style>
+<div id="app-skeleton" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);flex-direction:column;gap:16px;padding:20px">
+<div style="width:48px;height:48px;border-radius:10px;background:var(--accent);animation:pulse 2s ease infinite;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 40 40" fill="none"><path d="M20 4L6 12v16l14 8 14-8V12L20 4z" fill="rgba(255,255,255,.9)"/></svg></div>
+<div style="width:120px;height:8px;border-radius:4px;background:var(--border);animation:shimmer 1.5s infinite"></div>
 </div>
 </main>
-<aside id="detail-panel" class="detail-panel" role="complementary" aria-label="File details"></aside>
-<div id="modal-backdrop" class="modal-backdrop" style="display:none" onclick="closeModal()" role="dialog" aria-modal="true" aria-label="Dialog"><div id="modal-content" class="modal-content" onclick="event.stopPropagation()" role="document"></div></div>
-<div id="context-menu-backdrop" class="context-menu-backdrop" role="presentation"></div>
-<nav id="context-menu" class="context-menu" role="menu" aria-label="Context menu"></nav>
-<div id="hover-preview" class="hover-preview" role="tooltip" aria-hidden="true"></div>
-<div id="cmd-palette-overlay" class="cmd-palette-overlay" onclick="closeCommandPalette()" role="dialog" aria-modal="true" aria-label="Command palette">
-    <div class="cmd-palette" onclick="event.stopPropagation()" role="search">
-        <div class="cmd-palette-input-wrap">
-            <i class="fas fa-search" aria-hidden="true"></i>
+<aside id="detail-panel" style="position:fixed;top:0;right:0;bottom:0;width:360px;background:var(--bg);border-left:1px solid var(--border);z-index:60;transform:translateX(100%);transition:transform .25s ease;overflow-y:auto" role="complementary" aria-label="File details"></aside>
+<div id="modal-backdrop" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:16px" onclick="closeModal()" role="dialog" aria-modal="true"><div id="modal-content" style="background:var(--bg);border-radius:12px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 10px 24px rgba(0,0,0,.1)" onclick="event.stopPropagation()" role="document"></div></div>
+<div id="context-menu-backdrop" style="display:none;position:fixed;inset:0;z-index:89"></div>
+<nav id="context-menu" style="position:fixed;z-index:90;background:var(--bg);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.1);min-width:220px;display:none;padding:4px" role="menu" aria-label="Context menu"></nav>
+<div id="hover-preview" style="position:fixed;z-index:80;background:var(--bg);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.1);padding:12px;width:280px;display:none;pointer-events:none" role="tooltip" aria-hidden="true"></div>
+<div id="cmd-palette-overlay" style="display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.5);align-items:flex-start;justify-content:center;padding:80px 16px 16px" onclick="closeCommandPalette()" role="dialog" aria-modal="true" aria-label="Command palette">
+    <div style="background:var(--bg);border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.1);max-width:560px;width:100%;overflow:hidden" onclick="event.stopPropagation()" role="search">
+        <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border)">
+            <i class="fas fa-search" style="color:var(--text-tertiary);font-size:14px" aria-hidden="true"></i>
             <label for="cmd-palette-input" class="sr-only">Search commands</label>
-            <input id="cmd-palette-input" class="cmd-palette-input" type="text" autocomplete="off" aria-label="Search commands" role="combobox" aria-expanded="true" aria-controls="cmd-palette-list">
-            <kbd style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text-secondary)">Esc</kbd>
+            <input id="cmd-palette-input" style="flex:1;border:none;outline:none;font-size:14px;background:transparent;color:var(--text);font-family:inherit" type="text" autocomplete="off" aria-label="Search commands">
+            <kbd style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:9px;color:var(--text-secondary)">Esc</kbd>
         </div>
-        <div id="cmd-palette-list" class="cmd-palette-list"></div>
+        <div id="cmd-palette-list" style="max-height:320px;overflow-y:auto;padding:4px"></div>
     </div>
 </div>
-<div id="toast-container" class="toast-container" role="status" aria-live="polite" aria-label="Notifications"></div>
-<div id="parallax-orbs" class="parallax-orbs" aria-hidden="true"></div>
-
-<div id="quick-actions-bar" class="quick-actions-bar" role="toolbar" aria-label="Quick actions"></div><div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:110" role="dialog" aria-modal="true" aria-label="Onboarding"></div>
-<div id="pin-lock-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(30,41,59,.97));backdrop-filter:blur(20px);align-items:center;justify-content:center" role="dialog" aria-modal="true" aria-label="PIN lock"></div>
-
+<div id="toast-container" style="position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none" role="status" aria-live="polite"></div>
+<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:110" role="dialog" aria-modal="true" aria-label="Onboarding"></div>
+<div id="pin-lock-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:var(--bg);align-items:center;justify-content:center" role="dialog" aria-modal="true" aria-label="PIN lock"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
 <script>
-/* Performance: Defer app.js execution to reduce Total Blocking Time */
+/* Defer app.js execution */
 (function(){
   var ric = window.requestIdleCallback || function(cb){setTimeout(cb,1)};
   function bootApp(){
     var s=document.createElement('script');
-    s.src='/app.js?v=20250612e';
+    s.src='/app.js?v=20250612d';
     document.head.appendChild(s);
   }
   if(document.readyState==='complete') ric(bootApp,{timeout:1500});
   else window.addEventListener('load',function(){ric(bootApp,{timeout:1500})});
 })();
 </script>
-<script>/* Lazy Library Loader — loads heavy libs on demand */
+<script>/* Lazy Library Loader */
 window.LazyLibs={_p:{},load:function(n){if(this._p[n])return this._p[n];var u={supabase:'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',xlsx:'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',mammoth:'https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js',jszip:'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',qrious:'https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js',stripe:'https://js.stripe.com/v3/'};if(!u[n])return Promise.reject('Unknown lib: '+n);this._p[n]=new Promise(function(res,rej){var s=document.createElement('script');s.src=u[n];s.onload=res;s.onerror=function(){delete LazyLibs._p[n];rej(n+' load failed');};document.head.appendChild(s);});return this._p[n];}};
 </script>
 </body>
