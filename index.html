@@ -13,7 +13,7 @@
 <link rel="preload" as="image" href="/logo-icon.png" fetchpriority="high">
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="preload" href="/app.js?v=20250612g" as="script" fetchpriority="low">
+<link rel="preload" href="/app.js?v=20250612h" as="script" fetchpriority="low">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 <style>
@@ -31,8 +31,8 @@ body{font-family:var(--font);font-size:14px;line-height:1.5;background:var(--bg)
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 </style>
-<link rel="preload" href="/styles.css?v=20250612g" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="/styles.css?v=20250612g"></noscript>
+<link rel="preload" href="/styles.css?v=20250612h" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="/styles.css?v=20250612h"></noscript>
 </head>
 <body>
 <a href="#app-main" class="skip-nav" style="position:absolute;top:-100%;left:16px;z-index:9999;padding:8px 16px;background:var(--accent);color:#fff;border-radius:0 0 6px 6px;font-weight:600;font-size:13px;text-decoration:none">Skip to main content</a>
@@ -46,7 +46,7 @@ body{font-family:var(--font);font-size:14px;line-height:1.5;background:var(--bg)
 <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:20px">
 <div style="position:relative">
 <div style="position:absolute;inset:-12px;border-radius:28px;background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(139,92,246,.15),rgba(59,130,246,.1));filter:blur(16px);animation:logoGlow 4s ease-in-out infinite"></div>
-<img src="/logo-icon.png" alt="RidgeBox" width="88" height="88" style="border-radius:22px;animation:heroFloat 8s ease-in-out infinite;box-shadow:0 12px 40px rgba(59,130,246,.25),0 4px 12px rgba(0,0,0,.3);position:relative;z-index:1" />
+<img src="/logo-icon.png" alt="RidgeBox" width="88" height="88" style="border-radius:22px;animation:heroFloat 12s ease-in-out infinite;box-shadow:0 12px 40px rgba(59,130,246,.25),0 4px 12px rgba(0,0,0,.3);position:relative;z-index:1" />
 </div>
 <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:8px">
 <span style="font-size:22px;font-weight:700;background:linear-gradient(135deg,#ffffff 0%,rgba(255,255,255,.7) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.3px">RidgeBox</span>
@@ -56,7 +56,7 @@ body{font-family:var(--font);font-size:14px;line-height:1.5;background:var(--bg)
 <span style="font-size:11px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase">Loading</span>
 </div>
 </div>
-<style>@keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}@keyframes logoGlow{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}@keyframes loadingSlide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}</style>
+<style>@keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}@keyframes logoGlow{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}@keyframes loadingSlide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}</style>
 </div>
 </main>
 <aside id="detail-panel" style="position:fixed;top:0;right:0;bottom:0;width:360px;background:var(--bg);border-left:1px solid var(--border);z-index:60;transform:translateX(100%);transition:transform .25s ease;overflow-y:auto" role="complementary" aria-label="File details"></aside>
@@ -85,7 +85,7 @@ body{font-family:var(--font);font-size:14px;line-height:1.5;background:var(--bg)
   var ric = window.requestIdleCallback || function(cb){setTimeout(cb,1)};
   function bootApp(){
     var s=document.createElement('script');
-    s.src='/app.js?v=20250612g';
+    s.src='/app.js?v=20250612h';
     document.head.appendChild(s);
   }
   if(document.readyState==='complete') ric(bootApp,{timeout:1500});
