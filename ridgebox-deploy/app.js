@@ -96,7 +96,18 @@ const APP = {
     bottomNavTab: 'files',
     // AI Features (F24-F27)
     aiSearchMode: false,
-    aiCategoryFilter: null
+    aiCategoryFilter: null,
+    // NEW FEATURES (F116-F125)
+    transferQueue: [],
+    transferQueueActive: false,
+    transferQueueConcurrency: 2,
+    fileExpiryRules: JSON.parse(localStorage.getItem('rb_file_expiry_rules') || '{}'),
+    automationRules: JSON.parse(localStorage.getItem('rb_automation_rules') || '[]'),
+    notificationCenter: [],
+    notificationCenterUnread: 0,
+    lockedFiles: new Set(JSON.parse(localStorage.getItem('rb_locked_files') || '[]')),
+    bookmarkedFolders: JSON.parse(localStorage.getItem('rb_bookmarked_folders') || '[]'),
+    scheduledUploadTasks: JSON.parse(localStorage.getItem('rb_scheduled_uploads') || '[]')
 };
 
 // ===== i18n (F105) =====
@@ -374,7 +385,105 @@ const T = {
         authSendReset: 'Kirim Link Reset',
         authBackToLogin: 'Kembali ke halaman masuk',
         authTerms: 'Dengan mendaftar, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi kami',
-        authConfigNeeded: 'Supabase belum dikonfigurasi. Tambahkan SUPABASE_URL dan SUPABASE_ANON_KEY di Vercel env vars.'
+        authConfigNeeded: 'Supabase belum dikonfigurasi. Tambahkan SUPABASE_URL dan SUPABASE_ANON_KEY di Vercel env vars.',
+        // NEW: F116-F125 i18n
+        transferQueue: 'Antrian Transfer',
+        transferQueueDesc: 'Kelola antrian upload & download',
+        queuePaused: 'Antrian Dijeda',
+        queueActive: 'Antrian Aktif',
+        queueEmpty: 'Antrian kosong',
+        pauseQueue: 'Jeda Antrian',
+        resumeQueue: 'Lanjutkan Antrian',
+        clearQueue: 'Bersihkan Antrian',
+        retryAll: 'Coba Ulang Semua',
+        priority: 'Prioritas',
+        high: 'Tinggi',
+        medium: 'Sedang',
+        low: 'Rendah',
+        queued: 'Diantrikan',
+        processing: 'Memproses',
+        paused: 'Dijeda',
+        completed: 'Selesai',
+        failed: 'Gagal',
+        retrying: 'Mencoba ulang',
+        fileExpiry: 'Masa Berlaku File',
+        fileExpiryDesc: 'Atur file otomatis terhapus setelah waktu tertentu',
+        autoDeleteAfter: 'Hapus otomatis setelah',
+        expiry1d: '1 hari',
+        expiry7d: '7 hari',
+        expiry30d: '30 hari',
+        expiry90d: '90 hari',
+        noExpiry: 'Tanpa batas',
+        setExpiry: 'Atur Masa Berlaku',
+        expiresAt: 'Berakhir pada',
+        autoDeleted: 'File otomatis dihapus',
+        automationRules: 'Aturan Otomatis',
+        automationRulesDesc: 'Buat aturan otomatis untuk mengelola file',
+        addRule: 'Tambah Aturan',
+        ruleIf: 'Jika',
+        ruleThen: 'Maka',
+        conditionFileType: 'Tipe File',
+        conditionFileSize: 'Ukuran File',
+        conditionUploadSource: 'Sumber Upload',
+        actionMoveToFolder: 'Pindah ke Folder',
+        actionAutoEncrypt: 'Enkripsi Otomatis',
+        actionAutoTag: 'Tag Otomatis',
+        actionAutoShare: 'Bagikan Otomatis',
+        ruleActive: 'Aturan Aktif',
+        ruleInactive: 'Aturan Nonaktif',
+        noRules: 'Belum ada aturan',
+        fileRequest: 'Permintaan File',
+        fileRequestDesc: 'Buat link untuk orang lain mengirim file ke Anda',
+        createRequest: 'Buat Permintaan',
+        requestLink: 'Link Permintaan',
+        requestExpires: 'Permintaan Berakhir',
+        requestMaxFiles: 'Maks File',
+        requestPassword: 'Kata Sandi (opsional)',
+        requestReceived: 'File Diterima',
+        notificationCenter: 'Pusat Notifikasi',
+        notificationCenterDesc: 'Semua notifikasi di satu tempat',
+        markAllRead: 'Tandai Semua Dibaca',
+        noNotifications: 'Tidak ada notifikasi',
+        notifUploadComplete: 'Upload selesai',
+        notifDownloadComplete: 'Download selesai',
+        notifShareAccessed: 'Link dibagikan diakses',
+        notifStorageWarning: 'Peringatan penyimpanan',
+        notifFileExpiring: 'File segera berakhir',
+        notifAutoDeleted: 'File dihapus otomatis',
+        notifRuleApplied: 'Aturan otomatis diterapkan',
+        fileLock: 'Kunci File',
+        fileLockDesc: 'Kunci file agar tidak bisa dihapus atau diubah',
+        lockFile: 'Kunci File',
+        unlockFile: 'Buka Kunci',
+        fileLocked: 'File dikunci',
+        fileUnlocked: 'File dibuka kunci',
+        fileLockedDesc: 'File ini dikunci dan tidak bisa dihapus atau diubah',
+        bulkShare: 'Bagikan Banyak File',
+        bulkShareDesc: 'Bagikan beberapa file sekaligus dalam satu link',
+        createBulkShare: 'Buat Link Bagikan',
+        selectFilesToShare: 'Pilih file untuk dibagikan',
+        filesInBundle: 'file dalam paket',
+        storageInsights: 'Insight Penyimpanan',
+        storageInsightsDesc: 'Saran pembersihan dan analisis penyimpanan',
+        duplicateFiles: 'File Duplikat',
+        oldFiles: 'File Lama',
+        largeFilesSuggestion: 'File Besar',
+        cleanupSuggestions: 'Saran Pembersihan',
+        potentialSavings: 'Penghematan Potensial',
+        scanNow: 'Pindai Sekarang',
+        bookmarkFolder: 'Sematkan Folder',
+        unbookmarkFolder: 'Lepas Sematan',
+        bookmarkedFolders: 'Folder Favorit',
+        noBookmarks: 'Belum ada folder favorit',
+        uploadSchedule: 'Jadwal Unggah',
+        uploadScheduleDesc: 'Jadwalkan upload di waktu tertentu',
+        scheduleUpload: 'Jadwalkan Unggah',
+        scheduledAt: 'Dijadwalkan pada',
+        nextRun: 'Berikutnya',
+        repeatDaily: 'Ulangi Harian',
+        repeatWeekly: 'Ulangi Mingguan',
+        oneTime: 'Sekali Saja',
+        noScheduledUploads: 'Tidak ada jadwal unggah'
     },
     en: {
         appName: 'Ridgebox',
@@ -649,7 +758,105 @@ const T = {
         authSendReset: 'Send Reset Link',
         authBackToLogin: 'Back to sign in',
         authTerms: 'By signing up, you agree to our Terms of Service and Privacy Policy',
-        authConfigNeeded: 'Supabase not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY in Vercel env vars.'
+        authConfigNeeded: 'Supabase not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY in Vercel env vars.',
+        // NEW: F116-F125 i18n
+        transferQueue: 'Transfer Queue',
+        transferQueueDesc: 'Manage upload & download queue',
+        queuePaused: 'Queue Paused',
+        queueActive: 'Queue Active',
+        queueEmpty: 'Queue is empty',
+        pauseQueue: 'Pause Queue',
+        resumeQueue: 'Resume Queue',
+        clearQueue: 'Clear Queue',
+        retryAll: 'Retry All',
+        priority: 'Priority',
+        high: 'High',
+        medium: 'Medium',
+        low: 'Low',
+        queued: 'Queued',
+        processing: 'Processing',
+        paused: 'Paused',
+        completed: 'Completed',
+        failed: 'Failed',
+        retrying: 'Retrying',
+        fileExpiry: 'File Expiry',
+        fileExpiryDesc: 'Set files to auto-delete after a period',
+        autoDeleteAfter: 'Auto-delete after',
+        expiry1d: '1 day',
+        expiry7d: '7 days',
+        expiry30d: '30 days',
+        expiry90d: '90 days',
+        noExpiry: 'No expiry',
+        setExpiry: 'Set Expiry',
+        expiresAt: 'Expires at',
+        autoDeleted: 'File auto-deleted',
+        automationRules: 'Automation Rules',
+        automationRulesDesc: 'Create automatic rules to manage files',
+        addRule: 'Add Rule',
+        ruleIf: 'If',
+        ruleThen: 'Then',
+        conditionFileType: 'File Type',
+        conditionFileSize: 'File Size',
+        conditionUploadSource: 'Upload Source',
+        actionMoveToFolder: 'Move to Folder',
+        actionAutoEncrypt: 'Auto Encrypt',
+        actionAutoTag: 'Auto Tag',
+        actionAutoShare: 'Auto Share',
+        ruleActive: 'Rule Active',
+        ruleInactive: 'Rule Inactive',
+        noRules: 'No rules yet',
+        fileRequest: 'File Request',
+        fileRequestDesc: 'Create a link for others to send files to you',
+        createRequest: 'Create Request',
+        requestLink: 'Request Link',
+        requestExpires: 'Request Expires',
+        requestMaxFiles: 'Max Files',
+        requestPassword: 'Password (optional)',
+        requestReceived: 'Files Received',
+        notificationCenter: 'Notification Center',
+        notificationCenterDesc: 'All notifications in one place',
+        markAllRead: 'Mark All Read',
+        noNotifications: 'No notifications',
+        notifUploadComplete: 'Upload complete',
+        notifDownloadComplete: 'Download complete',
+        notifShareAccessed: 'Shared link accessed',
+        notifStorageWarning: 'Storage warning',
+        notifFileExpiring: 'File expiring soon',
+        notifAutoDeleted: 'File auto-deleted',
+        notifRuleApplied: 'Automation rule applied',
+        fileLock: 'File Lock',
+        fileLockDesc: 'Lock files to prevent deletion or modification',
+        lockFile: 'Lock File',
+        unlockFile: 'Unlock File',
+        fileLocked: 'File locked',
+        fileUnlocked: 'File unlocked',
+        fileLockedDesc: 'This file is locked and cannot be deleted or modified',
+        bulkShare: 'Bulk Share',
+        bulkShareDesc: 'Share multiple files at once in one link',
+        createBulkShare: 'Create Share Link',
+        selectFilesToShare: 'Select files to share',
+        filesInBundle: 'files in bundle',
+        storageInsights: 'Storage Insights',
+        storageInsightsDesc: 'Cleanup suggestions and storage analysis',
+        duplicateFiles: 'Duplicate Files',
+        oldFiles: 'Old Files',
+        largeFilesSuggestion: 'Large Files',
+        cleanupSuggestions: 'Cleanup Suggestions',
+        potentialSavings: 'Potential Savings',
+        scanNow: 'Scan Now',
+        bookmarkFolder: 'Bookmark Folder',
+        unbookmarkFolder: 'Remove Bookmark',
+        bookmarkedFolders: 'Bookmarked Folders',
+        noBookmarks: 'No bookmarked folders',
+        uploadSchedule: 'Upload Schedule',
+        uploadScheduleDesc: 'Schedule uploads at specific times',
+        scheduleUpload: 'Schedule Upload',
+        scheduledAt: 'Scheduled at',
+        nextRun: 'Next Run',
+        repeatDaily: 'Repeat Daily',
+        repeatWeekly: 'Repeat Weekly',
+        oneTime: 'One Time',
+        noScheduledUploads: 'No scheduled uploads'
     },
     ja: {
         appName:'Ridgebox',appTagline:'無料＆安全なクラウドストレージ',appDesc:'無料サーバーレスファイルストレージ。無制限、エンドツーエンド暗号化。',dashboard:'ダッシュボード',home:'ホーム',settings:'設定',search:'ファイル検索...',upload:'アップロード',uploadDrop:'ファイルをドロップまたはクリック',uploadFromUrl:'URLからアップロード',uploadFromCamera:'カメラからアップロード',allFiles:'全ファイル',recent:'最近',favorites:'お気に入り',trash:'ゴミ箱',newFolder:'新規フォルダ',rename:'名前変更',delete:'削除',move:'移動',pin:'ピン留め',unpin:'ピン解除',star:'スター',unstar:'スター解除',share:'共有',download:'ダウンロード',preview:'プレビュー',encrypt:'暗号化',decrypt:'復号化',shareLink:'共有リンク',password:'パスワード',expiry:'有効期限',selfDestruct:'自己破壊',copyLink:'リンクコピー',cancel:'キャンセル',save:'保存',close:'閉じる',confirm:'確認',yes:'はい',no:'いいえ',addTag:'タグ追加',addCaption:'キャプション追加',version:'バージョン',versions:'バージョン',today:'今日',thisWeek:'今週',largeFiles:'大きいファイル',pinned:'ピン留め中',encrypted:'暗号化済み',batchMode:'バッチモード',selectAll:'全選択',bulkDelete:'選択削除',bulkDownload:'ZIPダウンロード',compare:'比較',analytics:'分析',storage:'ストレージ',noFiles:'ファイルなし',noFilesDesc:'最初のファイルをアップロード',noTrash:'ゴミ箱は空です',noFavorites:'お気に入りなし',noSearch:'見つかりません',purgeIn:'削除まで',days:'日',proxyMode:'プロキシモード',pinSetup:'PIN設定',autoCleanup:'自動クリーンアップ',encryptionSetting:'AES-256暗号化',theme:'テーマ',language:'言語',light:'ライト',dark:'ダーク',onboarding:'ようこそ！',onboardingDesc:'Ridgeboxの使い方をご案内',connectionOk:'接続済み',connectionOff:'未接続',folderName:'フォルダ名',create:'作成',movedToTrash:'ゴミ箱へ移動',restored:'復元済み',deletedForever:'完全削除',uploaded:'アップロード成功',uploadError:'アップロード失敗',linkCopied:'リンクコピー済み',shareCreated:'共有リンク作成',customAlias:'カスタムエイリアス',selfDestructUsed:'リンク使用済み',cameraCapture:'写真/動画撮影',startRecording:'録画開始',stopRecording:'録画停止',takePhoto:'写真撮影',scheduledUpload:'予約アップロード',versionHistory:'バージョン履歴',fileDescription:'ファイル説明',shareAnalytics:'共有統計',autoTag:'自動タグ',collaborativeFolder:'コラボフォルダ',uploadPortal:'アップロードポータル',storageAnalytics:'ストレージ分析',compareFiles:'ファイル比較',selectTwo:'2つのファイルを選択',difference:'差分',identical:'同一',qrCode:'QRコード',browseFiles:'ファイル閲覧',getStarted:'始めましょう',learnMore:'詳しく',features:'機能',pricing:'料金',faq:'FAQ',changelog:'変更履歴',security:'セキュリティ',testimonials:'レビュー',hero:'無料クラウドストレージ',heroSub:'無料＆無制限',heroDesc:'エンドツーエンド暗号化で無制限にファイル保存。サーバー不要、無料。',free:'無料',unlimited:'無制限',secure:'安全',fast:'高速',offline:'オフライン',openSource:'オープンソース',chatId:'チャットID',botToken:'ボットトークン',masked:'マスク済み',restore:'復元',emptyTrash:'ゴミ箱を空に',sortByDate:'日付',sortByName:'名前',sortBySize:'サイズ',sortById:'ID',listView:'リスト',gridView:'グリッド',backToHome:'ホームへ戻る',openDashboard:'ダッシュボード',pageNotFound:'ページが見つかりません',pageNotFoundDesc:'お探しのページは存在しません',sharedFile:'共有ファイル',downloadFile:'ファイルダウンロード',linkExpired:'リンク期限切れ',linkExpiredDesc:'このリンクは無効です',wrongPassword:'パスワードが間違っています',enterPassword:'パスワード入力',protectedFile:'保護ファイル',enterPin:'PIN入力',wrongPin:'PINが間違っています',notifications:'通知',enableNotif:'通知を有効化',notifEnabled:'通知有効',notifDenied:'通知拒否',downloadProgress:'ダウンロード進捗',uploadProgress:'アップロード進捗',prevStep:'前へ',nextStep:'次へ',done:'完了',skip:'スキップ',step1Title:'ファイルアップロード',step1Desc:'ドラッグ＆ドロップでアップロード',step2Title:'管理＆共有',step2Desc:'フォルダで整理して安全に共有',step3Title:'暗号化＆セキュリティ',step3Desc:'AES-256暗号化とPINで保護',step4Title:'コラボレーション',step4Desc:'チーム用フォルダを共有',qrCodeTab:'QRコード',linkTab:'リンク',downloadQR:'QRダウンロード',expiresIn:'有効期限',never:'なし',expired:'期限切れ',downloadCount:'ダウンロード数',times:'回',totalShares:'合計リンク',totalDownloads:'合計DL',lastAccessed:'最終アクセス',activeLinks:'アクティブリンク',expiredLinks:'期限切れリンク',shareStats:'共有統計',createGallery:'ギャラリー作成',galleryTitle:'公開ギャラリー',galleryDesc:'ギャラリー説明',galleryName:'ギャラリー名',viewGallery:'ギャラリー表示',galleryEmpty:'ギャラリーは空です',noFilesInGallery:'ファイルなし',galleryCreated:'ギャラリー作成済み',addToGallery:'ギャラリーに追加',expiresNever:'無期限',expires1h:'1時間',expires24h:'24時間',expires7d:'7日間',expires30d:'30日間',autoLock:'自動ロック',autoLockDesc:'アイドル時自動ロック',autoLockIn:'自動ロックまで',minutes:'分',disabled:'無効',notes:'メモ',addNotes:'メモ追加...',bulkRename:'一括名前変更',prefix:'プレフィックス',suffix:'サフィックス',pattern:'パターン',resumeUpload:'アップロード再開？',resumeUploadDesc:'未完了のアップロードがあります',retryingUpload:'アップロード再試行中...',chunkedUpload:'分割アップロード',uploadingChunk:'チャンクアップロード中',notificationsSetting:'通知',notifSettingDesc:'ブラウザ通知を有効化',thumbnailCache:'サムネイルキャッシュ',advSearch:'詳細検索',nameContains:'名前含む',dateRange:'日付範囲',sizeRange:'サイズ範囲',fileType:'ファイルタイプ',documents:'ドキュメント',photos:'写真',videos:'動画',audio:'音声',archives:'アーカイブ',applyFilter:'適用',clearFilter:'クリア',from:'開始',to:'終了',themeColor:'テーマカラー',biometricUnlock:'生体認証ロック',biometricDesc:'指紋・顔認証でロック解除',exportData:'データエクスポート',importData:'データインポート',exportDesc:'設定とファイル情報をバックアップ',importDesc:'バックアップからデータを復元'
@@ -2362,6 +2569,9 @@ function checkUrlRouting() {
     } else if (hash.startsWith('#/gallery/')) {
         const galleryId = hash.replace('#/gallery/', '');
         renderGallery(galleryId);
+    } else if (hash.startsWith('#/request/')) {
+        const token = hash.replace('#/request/', '');
+        renderFileRequestPortal(token);
     } else if (hash === '#/analytics') {
         checkPinThenRender(() => renderAnalytics());
     } else {
@@ -2579,6 +2789,14 @@ function renderHeader() {
             </div>
             ${getSubTierBadge()}
             ${APP.activeUploads > 0 ? `<span style="font-size:11px;color:var(--accent)"><i class="fas fa-spinner fa-spin"></i></span>` : ''}
+            <button class="header-pill-btn" onclick="openTransferQueueModal()" title="${t('transferQueue')}" aria-label="Transfer Queue" style="position:relative">
+                <i class="fas fa-list-check" aria-hidden="true"></i>
+                <span id="transfer-queue-badge" style="position:absolute;top:-2px;right:-2px;min-width:14px;height:14px;border-radius:99px;background:#ef4444;color:#fff;font-size:8px;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 3px"></span>
+            </button>
+            <button class="header-pill-btn" onclick="openNotificationCenter()" title="${t('notificationCenter')}" aria-label="Notifications" style="position:relative">
+                <i class="fas fa-bell" aria-hidden="true"></i>
+                <span id="notification-badge" style="position:absolute;top:-2px;right:-2px;min-width:14px;height:14px;border-radius:99px;background:#ef4444;color:#fff;font-size:8px;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 3px"></span>
+            </button>
             <button class="header-pill-btn" onclick="toggleTheme()" title="${t('theme')}" aria-label="Toggle theme">
                 <i class="fas fa-${APP.theme === 'dark' ? 'sun' : 'moon'} ${APP.theme === 'dark' ? 'theme-icon-sun' : 'theme-icon-moon'}" aria-hidden="true"></i>
             </button>
@@ -2744,6 +2962,11 @@ function showContextMenu(e, fileId) {
         <div class="context-menu-separator"></div>
         <div class="context-menu-item" onclick="closeContextMenu();showCaptionEditor('${fileId}')"><i class="fas fa-caption"></i> ${t('addCaption')}</div>
         <div class="context-menu-item" onclick="closeContextMenu();showMovePicker('${fileId}')"><i class="fas fa-folder-open"></i> ${t('move')}</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" onclick="closeContextMenu();${isFileLocked(fileId) ? `unlockFile('${fileId}')` : `lockFile('${fileId}')`}"><i class="fas fa-${isFileLocked(fileId) ? 'lock-open' : 'lock'}"></i> ${isFileLocked(fileId) ? t('unlockFile') : t('lockFile')}</div>
+        <div class="context-menu-item" onclick="closeContextMenu();openFileExpiryModal('${fileId}')"><i class="fas fa-hourglass-half"></i> ${t('fileExpiry')}</div>
+        <div class="context-menu-item" onclick="closeContextMenu();${isFolderBookmarked(APP.currentFolder) ? `unbookmarkFolder('${APP.currentFolder}')` : `bookmarkFolder('${APP.currentFolder}')`}"><i class="fas fa-bookmark"></i> ${isFolderBookmarked(APP.currentFolder) ? t('unbookmarkFolder') : t('bookmarkFolder')}</div>
+        <div class="context-menu-separator"></div>
         <div class="context-menu-item danger" onclick="closeContextMenu();moveToTrash('${fileId}')"><i class="fas fa-trash"></i> ${t('delete')}</div>
         ${APP.selectedFiles.size > 1 && APP.selectedFiles.has(fileId) ? `<div class="context-menu-separator"></div><div class="context-menu-item" onclick="closeContextMenu();bulkDownloadZip()"><i class="fas fa-file-archive"></i> ${t('bulkDownload')}</div>` : ''}
         `;
@@ -3251,6 +3474,7 @@ function updateQuickActions() {
         <button class="btn btn-secondary btn-sm" onclick="bulkMoveToFolder()"><i class="fas fa-folder-open"></i> ${APP.lang==='id'?'Pindah':'Move'}</button>
         <button class="btn btn-danger btn-sm" onclick="bulkDelete()"><i class="fas fa-trash"></i> ${t('bulkDelete')}</button>
         <button class="btn btn-secondary btn-sm" onclick="bulkDownloadZip()"><i class="fas fa-download"></i> ${t('bulkDownload')}</button>
+        <button class="btn btn-secondary btn-sm" onclick="openBulkShareModal()"><i class="fas fa-share-alt"></i> ${t('bulkShare')}</button>
         <button class="btn btn-secondary btn-sm" onclick="openCompareModal()"><i class="fas fa-columns"></i> ${t('compare')}</button>
         <button class="btn btn-ghost btn-sm" onclick="clearSelection()" aria-label="Clear selection"><i class="fas fa-times"></i></button>
     `;
@@ -4314,7 +4538,7 @@ function renderHomepage() {
                 </div>
             </div>
             <div style="max-width:960px;margin:32px auto 0;padding-top:20px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px">
-                <p style="font-size:12px;color:var(--text-secondary)">${isId?'Ridgebox — Cloud Storage Gratis & Aman. Dibuat dengan':'Ridgebox — Free & Secure Cloud Storage. Made with'} <i class="fas fa-heart" style="color:#ef4444"></i></p>
+                <p style="font-size:12px;color:var(--text-secondary)">${isId?'Ridgebox — Cloud Storage Gratis & Aman':'Ridgebox — Free & Secure Cloud Storage'}</p>
                 <p style="font-size:12px;color:var(--text-secondary)">© 2025 Ridgebox. ${isId?'Hak cipta dilindungi.':'All rights reserved.'}</p>
             </div>
         </footer>
@@ -5111,7 +5335,12 @@ function renderDashboard() {
         { icon: 'fa-folder-plus', label: isId ? 'Folder Baru' : 'New Folder', action: 'createFolderDialog()', primary: false },
         { icon: 'fa-camera', label: isId ? 'Kamera' : 'Camera Upload', action: 'openCameraUpload()', primary: false },
         { icon: 'fa-share-from-square', label: isId ? 'Bagikan' : 'Share File', action: 'APP.batchMode=false;renderFileList()', primary: false },
-        { icon: 'fa-link', label: isId ? 'Unggah URL' : 'URL Upload', action: 'openUrlUpload()', primary: false }
+        { icon: 'fa-link', label: isId ? 'Unggah URL' : 'URL Upload', action: 'openUrlUpload()', primary: false },
+        { icon: 'fa-list-check', label: isId ? 'Antrian' : 'Queue', action: 'openTransferQueueModal()', primary: false },
+        { icon: 'fa-robot', label: isId ? 'Otomatis' : 'Automate', action: 'openAutomationRulesModal()', primary: false },
+        { icon: 'fa-file-import', label: isId ? 'Minta File' : 'Request', action: 'openFileRequestModal()', primary: false },
+        { icon: 'fa-chart-pie', label: isId ? 'Insight' : 'Insights', action: 'openStorageInsightsModal()', primary: false },
+        { icon: 'fa-calendar-alt', label: isId ? 'Jadwal' : 'Schedule', action: 'openUploadScheduleModal()', primary: false }
     ];
     // Add "Pilih Drive" option when GDrive accounts are connected
     if (APP.gdriveAccounts.filter(a => a.status === 'connected').length > 0) {
@@ -6773,6 +7002,12 @@ async function executeUpload(file, folderParam) {
             if (APP.settings.aiAutoCategorize !== false) {
                 aiCategorizeFile(meta);
             }
+            // F118: Apply automation rules after upload
+            if (APP.automationRules && APP.automationRules.length > 0) {
+                applyAutomationRules(meta);
+            }
+            // F120: Push notification
+            pushNotification('upload', t('notifUploadComplete'), file.name);
             showToast(t('uploaded'), 'success');
             haptic('uploadComplete');
             sendNotification('Ridgebox', `${file.name} ${t('uploaded').toLowerCase()}`);
@@ -16605,5 +16840,1112 @@ function downloadOCRText(fileId) {
     a.download = (file.name.replace(/\.[^.]+$/, '') || 'extracted') + '_text.txt';
     a.click();
     URL.revokeObjectURL(url);
+}
+
+// ============================================================
+//   NEW FEATURES F116–F125: System Workflow Enhancements
+// ============================================================
+
+// ===== F116: TRANSFER QUEUE MANAGER =====
+// Manages upload/download queue with priority, pause/resume, retry
+const TransferQueue = {
+    _queue: [],
+    _active: [],
+    _paused: false,
+    _maxConcurrent: 2,
+    _idCounter: 0,
+
+    init() {
+        this._queue = APP.transferQueue || [];
+        this._paused = APP.transferQueueActive === false;
+        this._maxConcurrent = APP.transferQueueConcurrency || 2;
+        this._processQueue();
+    },
+
+    add(type, data, priority = 'medium') {
+        const id = 'tq_' + (++this._idCounter) + '_' + Date.now();
+        const item = { id, type, data, priority, status: 'queued', progress: 0, retries: 0, maxRetries: 3, addedAt: Date.now(), error: null };
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        const insertIdx = this._queue.findIndex(q => priorityOrder[q.priority] > priorityOrder[priority]);
+        if (insertIdx === -1) this._queue.push(item);
+        else this._queue.splice(insertIdx, 0, item);
+        APP.transferQueue = this._queue;
+        pushNotification('transferQueue', type === 'upload' ? t('uploadProgress') : t('downloadProgress'), t('queued') + ': ' + (data.name || data.fileName || 'File'));
+        this._processQueue();
+        this._renderBadge();
+        return id;
+    },
+
+    pause() { this._paused = true; APP.transferQueueActive = false; this._renderBadge(); },
+    resume() { this._paused = false; APP.transferQueueActive = true; this._processQueue(); this._renderBadge(); },
+    clear() { this._queue = this._queue.filter(q => q.status === 'processing'); this._renderBadge(); },
+
+    retryAll() {
+        this._queue.filter(q => q.status === 'failed').forEach(q => { q.status = 'queued'; q.retries = 0; q.error = null; });
+        this._processQueue();
+    },
+
+    remove(id) {
+        this._queue = this._queue.filter(q => q.id !== id);
+        this._active = this._active.filter(q => q.id !== id);
+        this._renderBadge();
+    },
+
+    async _processQueue() {
+        if (this._paused) return;
+        while (this._active.length < this._maxConcurrent && this._queue.some(q => q.status === 'queued')) {
+            const next = this._queue.find(q => q.status === 'queued');
+            if (!next) break;
+            next.status = 'processing';
+            this._active.push(next);
+            this._executeItem(next);
+        }
+    },
+
+    async _executeItem(item) {
+        try {
+            if (item.type === 'upload') {
+                await executeUpload(item.data.file || item.data, item.data.folderId);
+            } else if (item.type === 'download') {
+                await downloadFile(item.data.fileId);
+            }
+            item.status = 'completed';
+            item.progress = 100;
+            pushNotification('transferQueue', t('completed'), (item.data.name || 'File') + ' ✓');
+        } catch (err) {
+            item.error = err.message || 'Unknown error';
+            if (item.retries < item.maxRetries) {
+                item.retries++;
+                item.status = 'queued';
+                pushNotification('transferQueue', t('retrying'), (item.data.name || 'File') + ` (${item.retries}/${item.maxRetries})`);
+            } else {
+                item.status = 'failed';
+                pushNotification('transferQueue', t('failed'), (item.data.name || 'File') + ': ' + item.error);
+            }
+        } finally {
+            this._active = this._active.filter(q => q.id !== item.id);
+            this._renderBadge();
+            this._processQueue();
+        }
+    },
+
+    getStats() {
+        const queued = this._queue.filter(q => q.status === 'queued').length;
+        const processing = this._active.length;
+        const completed = this._queue.filter(q => q.status === 'completed').length;
+        const failed = this._queue.filter(q => q.status === 'failed').length;
+        return { queued, processing, completed, failed, total: this._queue.length };
+    },
+
+    _renderBadge() {
+        const badge = document.getElementById('transfer-queue-badge');
+        if (!badge) return;
+        const stats = this.getStats();
+        const active = stats.queued + stats.processing;
+        badge.textContent = active > 0 ? active : '';
+        badge.style.display = active > 0 ? 'flex' : 'none';
+    }
+};
+
+function openTransferQueueModal() {
+    haptic('tap');
+    const isId = APP.lang === 'id';
+    const stats = TransferQueue.getStats();
+    const items = TransferQueue._queue;
+    const statusColors = { queued: '#3b82f6', processing: '#f59e0b', completed: '#10b981', failed: '#ef4444' };
+    const statusIcons = { queued: 'fa-clock', processing: 'fa-spinner fa-spin', completed: 'fa-check', failed: 'fa-times' };
+    const priorityIcons = { high: 'fa-arrow-up', medium: 'fa-minus', low: 'fa-arrow-down' };
+    const priorityColors = { high: '#ef4444', medium: '#f59e0b', low: '#64748b' };
+
+    openModal(`<div style="padding:24px">
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-list-check" style="color:var(--accent)"></i> ${t('transferQueue')}
+            ${TransferQueue._paused ? `<span style="font-size:11px;padding:2px 8px;border-radius:99px;background:#f59e0b18;color:#f59e0b;font-weight:600">${t('queuePaused')}</span>` : ''}
+        </h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${t('transferQueueDesc')}</p>
+
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+            <div style="text-align:center;padding:10px 8px;background:rgba(59,130,246,.08);border-radius:10px">
+                <div style="font-size:18px;font-weight:700;color:#3b82f6">${stats.queued}</div>
+                <div style="font-size:10px;color:var(--text-secondary)">${t('queued')}</div>
+            </div>
+            <div style="text-align:center;padding:10px 8px;background:rgba(245,158,11,.08);border-radius:10px">
+                <div style="font-size:18px;font-weight:700;color:#f59e0b">${stats.processing}</div>
+                <div style="font-size:10px;color:var(--text-secondary)">${t('processing')}</div>
+            </div>
+            <div style="text-align:center;padding:10px 8px;background:rgba(16,185,129,.08);border-radius:10px">
+                <div style="font-size:18px;font-weight:700;color:#10b981">${stats.completed}</div>
+                <div style="font-size:10px;color:var(--text-secondary)">${t('completed')}</div>
+            </div>
+            <div style="text-align:center;padding:10px 8px;background:rgba(239,68,68,.08);border-radius:10px">
+                <div style="font-size:18px;font-weight:700;color:#ef4444">${stats.failed}</div>
+                <div style="font-size:10px;color:var(--text-secondary)">${t('failed')}</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+            ${TransferQueue._paused
+                ? `<button class="btn btn-primary btn-sm" style="flex:1" onclick="TransferQueue.resume();openTransferQueueModal()"><i class="fas fa-play"></i> ${t('resumeQueue')}</button>`
+                : `<button class="btn btn-secondary btn-sm" style="flex:1" onclick="TransferQueue.pause();openTransferQueueModal()"><i class="fas fa-pause"></i> ${t('pauseQueue')}</button>`
+            }
+            <button class="btn btn-secondary btn-sm" style="flex:1" onclick="TransferQueue.clearQueue();openTransferQueueModal()"><i class="fas fa-trash"></i> ${t('clearQueue')}</button>
+            <button class="btn btn-secondary btn-sm" style="flex:1" onclick="TransferQueue.retryAll();openTransferQueueModal()"><i class="fas fa-redo"></i> ${t('retryAll')}</button>
+        </div>
+
+        <!-- Queue Items -->
+        <div style="max-height:400px;overflow-y:auto">
+            ${items.length === 0 ? `<div style="text-align:center;padding:40px 0;color:var(--text-secondary)">
+                <i class="fas fa-inbox" style="font-size:32px;opacity:.3;margin-bottom:8px;display:block"></i>
+                <p style="font-size:13px">${t('queueEmpty')}</p>
+            </div>` : items.map(item => `
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;border-left:3px solid ${statusColors[item.status]}">
+                    <div style="width:28px;height:28px;border-radius:8px;background:${statusColors[item.status]}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        <i class="fas ${statusIcons[item.status]}" style="color:${statusColors[item.status]};font-size:11px"></i>
+                    </div>
+                    <div style="flex:1;min-width:0">
+                        <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.data.name || item.data.fileName || 'File'}</div>
+                        <div style="font-size:10px;color:var(--text-secondary);display:flex;gap:8px;align-items:center">
+                            <span>${item.type === 'upload' ? (isId ? 'Unggah' : 'Upload') : (isId ? 'Unduh' : 'Download')}</span>
+                            <span style="color:${priorityColors[item.priority]}"><i class="fas ${priorityIcons[item.priority]}" style="font-size:8px"></i> ${t(item.priority)}</span>
+                            ${item.retries > 0 ? `<span>${isId ? 'Ulang' : 'Retry'} ${item.retries}/${item.maxRetries}</span>` : ''}
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:4px">
+                        ${item.status === 'failed' ? `<button class="btn btn-ghost btn-sm" style="padding:4px 8px" onclick="TransferQueue.remove('${item.id}');TransferQueue.add('${item.type}',${JSON.stringify(item.data).replace(/"/g,'&quot;')},'${item.priority}');openTransferQueueModal()" title="Retry"><i class="fas fa-redo" style="font-size:10px"></i></button>` : ''}
+                        <button class="btn btn-ghost btn-sm" style="padding:4px 8px" onclick="TransferQueue.remove('${item.id}');openTransferQueueModal()" title="Remove"><i class="fas fa-times" style="font-size:10px"></i></button>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
+        </div>
+    </div>`);
+}
+
+// ===== F117: FILE EXPIRY / AUTO-DELETE =====
+function setFileExpiry(fileId, durationMs) {
+    const file = APP.files.find(f => f.id === fileId);
+    if (!file) return;
+    if (durationMs === 0) {
+        delete file.expiresAt;
+        delete APP.fileExpiryRules[fileId];
+    } else {
+        file.expiresAt = Date.now() + durationMs;
+        APP.fileExpiryRules[fileId] = file.expiresAt;
+    }
+    localStorage.setItem('rb_file_expiry_rules', JSON.stringify(APP.fileExpiryRules));
+    saveFile(file);
+}
+
+function openFileExpiryModal(fileId) {
+    haptic('tap');
+    const isId = APP.lang === 'id';
+    const file = APP.files.find(f => f.id === fileId);
+    if (!file) return;
+    const currentExpiry = APP.fileExpiryRules[fileId] || file.expiresAt;
+    const options = [
+        { value: 0, label: t('noExpiry'), icon: 'fa-infinity' },
+        { value: 86400000, label: t('expiry1d'), icon: 'fa-clock' },
+        { value: 604800000, label: t('expiry7d'), icon: 'fa-calendar-day' },
+        { value: 2592000000, label: t('expiry30d'), icon: 'fa-calendar-week' },
+        { value: 7776000000, label: t('expiry90d'), icon: 'fa-calendar' }
+    ];
+
+    openModal(`<div style="padding:24px">
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-hourglass-half" style="color:var(--accent)"></i> ${t('fileExpiry')}
+        </h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">${file.name}</p>
+        ${currentExpiry ? `<div style="font-size:11px;color:${currentExpiry < Date.now() ? '#ef4444' : '#f59e0b'};margin-bottom:16px"><i class="fas fa-clock"></i> ${t('expiresAt')}: ${new Date(currentExpiry).toLocaleString()}</div>` : '<div style="margin-bottom:16px"></div>'}
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">${t('fileExpiryDesc')}</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+            ${options.map(opt => `
+                <button class="btn ${currentExpiry && opt.value > 0 ? 'btn-secondary' : opt.value === 0 && !currentExpiry ? 'btn-primary' : 'btn-secondary'}" style="width:100%;justify-content:flex-start;gap:10px;padding:12px 16px" onclick="setFileExpiry('${fileId}',${opt.value});closeModal();showToast('${opt.value === 0 ? (isId ? 'Masa berlaku dihapus' : 'Expiry removed') : (isId ? 'Masa berlaku diatur' : 'Expiry set')}','success')">
+                    <i class="fas ${opt.icon}" style="width:16px;text-align:center"></i> ${opt.label}
+                </button>
+            `).join('')}
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+            <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+        </div>
+    </div>`);
+}
+
+// Check expired files and auto-delete (run periodically)
+function checkFileExpiry() {
+    const now = Date.now();
+    const expiredFiles = APP.files.filter(f => !f.trashed && APP.fileExpiryRules[f.id] && APP.fileExpiryRules[f.id] <= now);
+    for (const file of expiredFiles) {
+        if (APP.lockedFiles.has(file.id)) continue; // Don't auto-delete locked files
+        moveFileToTrash(file.id);
+        delete APP.fileExpiryRules[file.id];
+        pushNotification('fileExpiry', t('autoDeleted'), file.name);
+    }
+    if (expiredFiles.length > 0) {
+        localStorage.setItem('rb_file_expiry_rules', JSON.stringify(APP.fileExpiryRules));
+        refreshUI();
+    }
+    // Warn about files expiring in 1 hour
+    const oneHourFromNow = now + 3600000;
+    const expiringSoon = APP.files.filter(f => !f.trashed && APP.fileExpiryRules[f.id] && APP.fileExpiryRules[f.id] <= oneHourFromNow && APP.fileExpiryRules[f.id] > now);
+    for (const file of expiringSoon) {
+        const remaining = Math.round((APP.fileExpiryRules[file.id] - now) / 60000);
+        pushNotification('fileExpiring', t('notifFileExpiring'), `${file.name} — ${remaining} ${APP.lang === 'id' ? 'menit lagi' : 'min left'}`);
+    }
+}
+
+// ===== F118: WORKFLOW AUTOMATION RULES =====
+function addAutomationRule(rule) {
+    rule.id = 'rule_' + Date.now() + '_' + genId();
+    rule.active = true;
+    rule.createdAt = Date.now();
+    APP.automationRules.push(rule);
+    localStorage.setItem('rb_automation_rules', JSON.stringify(APP.automationRules));
+}
+
+function removeAutomationRule(ruleId) {
+    APP.automationRules = APP.automationRules.filter(r => r.id !== ruleId);
+    localStorage.setItem('rb_automation_rules', JSON.stringify(APP.automationRules));
+}
+
+function toggleAutomationRule(ruleId) {
+    const rule = APP.automationRules.find(r => r.id === ruleId);
+    if (rule) { rule.active = !rule.active; localStorage.setItem('rb_automation_rules', JSON.stringify(APP.automationRules)); }
+}
+
+async function applyAutomationRules(file) {
+    for (const rule of APP.automationRules) {
+        if (!rule.active) continue;
+        let conditionMet = false;
+
+        // Check conditions
+        if (rule.condition === 'fileType') {
+            const fileType = getFileType(file.name, file.mime);
+            conditionMet = fileType === rule.conditionValue;
+        } else if (rule.condition === 'fileSize') {
+            const sizeBytes = file.size || 0;
+            const thresholdBytes = parseInt(rule.conditionValue) * 1024 * 1024; // MB
+            conditionMet = rule.conditionOperator === 'greater' ? sizeBytes > thresholdBytes : sizeBytes < thresholdBytes;
+        } else if (rule.condition === 'uploadSource') {
+            conditionMet = (file.uploadSource || 'local') === rule.conditionValue;
+        }
+
+        if (!conditionMet) continue;
+
+        // Execute actions
+        if (rule.action === 'moveToFolder' && rule.actionValue) {
+            file.folderId = rule.actionValue;
+            await saveFile(file);
+        } else if (rule.action === 'autoEncrypt') {
+            if (!file.encrypted && APP.settings.encryption) {
+                // Encryption happens during upload, so tag for encryption
+                file.autoEncrypt = true;
+                await saveFile(file);
+            }
+        } else if (rule.action === 'autoTag' && rule.actionValue) {
+            if (!file.tags) file.tags = [];
+            if (!file.tags.includes(rule.actionValue)) {
+                file.tags.push(rule.actionValue);
+                await saveFile(file);
+            }
+        } else if (rule.action === 'autoShare') {
+            // Auto-create a share link (use simple approach without DOM)
+            if (file) {
+                const share = { id: genId(), fileId: file.id, alias: genId().substring(0,8), password: '', expiry: 0, expiresAt: 0, selfDestruct: false, permission: 'download', clicks: 0, downloadCount: 0, lastAccess: null, lastAccessedAt: null, createdAt: Date.now() };
+                APP.shares.push(share);
+                await dbPut('shares', share);
+            }
+        }
+
+        pushNotification('automation', t('notifRuleApplied'), `${rule.condition} → ${rule.action}: ${file.name}`);
+    }
+}
+
+function openAutomationRulesModal() {
+    haptic('tap');
+    const isId = APP.lang === 'id';
+    const rules = APP.automationRules || [];
+    const folders = APP.folders.filter(f => !f.system);
+
+    openModal(`<div style="padding:24px">
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-robot" style="color:var(--accent)"></i> ${t('automationRules')}
+        </h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${t('automationRulesDesc')}</p>
+
+        <!-- Add Rule Form -->
+        <div style="padding:16px;background:var(--bg-secondary);border-radius:12px;margin-bottom:16px;border:1px dashed var(--border)">
+            <div style="font-size:13px;font-weight:600;margin-bottom:10px">${t('addRule')}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+                <span style="font-size:12px;font-weight:500;color:var(--text-secondary)">${t('ruleIf')}</span>
+                <select id="rule-condition" class="input" style="padding:6px 10px;font-size:12px;flex:1;min-width:120px">
+                    <option value="fileType">${t('conditionFileType')}</option>
+                    <option value="fileSize">${t('conditionFileSize')}</option>
+                    <option value="uploadSource">${t('conditionUploadSource')}</option>
+                </select>
+                <select id="rule-condition-value-type" class="input" style="padding:6px 10px;font-size:12px;flex:1;min-width:100px">
+                    <option value="image">${isId ? 'Gambar' : 'Image'}</option>
+                    <option value="video">${isId ? 'Video' : 'Video'}</option>
+                    <option value="audio">${isId ? 'Audio' : 'Audio'}</option>
+                    <option value="document">${isId ? 'Dokumen' : 'Document'}</option>
+                    <option value="archive">${isId ? 'Arsip' : 'Archive'}</option>
+                </select>
+                <input id="rule-condition-value-size" type="number" class="input" placeholder="MB" style="padding:6px 10px;font-size:12px;width:80px;display:none">
+                <select id="rule-condition-operator" class="input" style="padding:6px 10px;font-size:12px;display:none">
+                    <option value="greater">&gt;</option>
+                    <option value="less">&lt;</option>
+                </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+                <span style="font-size:12px;font-weight:500;color:var(--text-secondary)">${t('ruleThen')}</span>
+                <select id="rule-action" class="input" style="padding:6px 10px;font-size:12px;flex:1;min-width:140px">
+                    <option value="moveToFolder">${t('actionMoveToFolder')}</option>
+                    <option value="autoEncrypt">${t('actionAutoEncrypt')}</option>
+                    <option value="autoTag">${t('actionAutoTag')}</option>
+                    <option value="autoShare">${t('actionAutoShare')}</option>
+                </select>
+                <select id="rule-action-folder" class="input" style="padding:6px 10px;font-size:12px;flex:1;min-width:120px">
+                    ${folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('')}
+                </select>
+                <input id="rule-action-tag" type="text" class="input" placeholder="Tag name" style="padding:6px 10px;font-size:12px;flex:1;min-width:100px;display:none">
+            </div>
+            <button class="btn btn-primary btn-sm" style="width:100%" onclick="saveNewAutomationRule()"><i class="fas fa-plus"></i> ${t('addRule')}</button>
+        </div>
+
+        <!-- Rules List -->
+        ${rules.length === 0 ? `<div style="text-align:center;padding:30px 0;color:var(--text-secondary)">
+            <i class="fas fa-robot" style="font-size:32px;opacity:.2;margin-bottom:8px;display:block"></i>
+            <p style="font-size:13px">${t('noRules')}</p>
+        </div>` : rules.map(rule => `
+            <div style="display:flex;align-items:center;gap:10px;padding:12px;margin-bottom:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;border-left:3px solid ${rule.active ? '#10b981' : '#94a3b8'}">
+                <label class="toggle-switch" style="flex-shrink:0"><input type="checkbox" ${rule.active ? 'checked' : ''} onchange="toggleAutomationRule('${rule.id}');openAutomationRulesModal()"><span class="toggle-slider"></span></label>
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:12px;font-weight:500;color:var(--text)"><i class="fas fa-filter" style="color:var(--accent);font-size:10px;margin-right:4px"></i>${t('ruleIf')} ${rule.condition} = ${rule.conditionValue} → ${t('ruleThen')} ${rule.action}${rule.actionValue ? ' → ' + rule.actionValue : ''}</div>
+                    <div style="font-size:10px;color:var(--text-secondary)">${rule.active ? t('ruleActive') : t('ruleInactive')} · ${timeAgo(rule.createdAt)}</div>
+                </div>
+                <button class="btn btn-ghost btn-sm" style="padding:4px 8px" onclick="removeAutomationRule('${rule.id}');openAutomationRulesModal()"><i class="fas fa-trash" style="font-size:10px;color:#ef4444"></i></button>
+            </div>
+        `).join('')}
+
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
+        </div>
+    </div>`);
+
+    // Dynamic form switching
+    setTimeout(() => {
+        const condEl = document.getElementById('rule-condition');
+        if (condEl) condEl.onchange = function() {
+            document.getElementById('rule-condition-value-type').style.display = this.value === 'fileType' ? '' : 'none';
+            document.getElementById('rule-condition-value-size').style.display = this.value === 'fileSize' ? '' : 'none';
+            document.getElementById('rule-condition-operator').style.display = this.value === 'fileSize' ? '' : 'none';
+            if (this.value === 'uploadSource') {
+                document.getElementById('rule-condition-value-type').style.display = 'none';
+            }
+        };
+        const actionEl = document.getElementById('rule-action');
+        if (actionEl) actionEl.onchange = function() {
+            document.getElementById('rule-action-folder').style.display = this.value === 'moveToFolder' ? '' : 'none';
+            document.getElementById('rule-action-tag').style.display = this.value === 'autoTag' ? '' : 'none';
+            if (this.value === 'autoEncrypt' || this.value === 'autoShare') {
+                document.getElementById('rule-action-folder').style.display = 'none';
+                document.getElementById('rule-action-tag').style.display = 'none';
+            }
+        };
+    }, 100);
+}
+
+function saveNewAutomationRule() {
+    const condition = document.getElementById('rule-condition').value;
+    let conditionValue = '';
+    let conditionOperator = '';
+    if (condition === 'fileType') {
+        conditionValue = document.getElementById('rule-condition-value-type').value;
+    } else if (condition === 'fileSize') {
+        conditionValue = document.getElementById('rule-condition-value-size').value;
+        conditionOperator = document.getElementById('rule-condition-operator').value;
+    } else if (condition === 'uploadSource') {
+        conditionValue = 'local';
+    }
+    const action = document.getElementById('rule-action').value;
+    let actionValue = '';
+    if (action === 'moveToFolder') actionValue = document.getElementById('rule-action-folder').value;
+    else if (action === 'autoTag') actionValue = document.getElementById('rule-action-tag').value;
+
+    if (!conditionValue && condition !== 'uploadSource') { showToast(APP.lang === 'id' ? 'Isi kondisi aturan' : 'Fill rule condition', 'error'); return; }
+    addAutomationRule({ condition, conditionValue, conditionOperator, action, actionValue });
+    showToast(APP.lang === 'id' ? 'Aturan ditambahkan!' : 'Rule added!', 'success');
+    openAutomationRulesModal();
+}
+
+// ===== F119: FILE REQUEST PORTAL =====
+function createFileRequest(options = {}) {
+    const isId = APP.lang === 'id';
+    const token = crypto.randomUUID ? crypto.randomUUID() : genId() + genId();
+    const request = {
+        id: 'freq_' + Date.now(),
+        token,
+        name: options.name || (isId ? 'Permintaan File' : 'File Request'),
+        folderId: options.folderId || null,
+        expiresAt: options.expiresAt || 0,
+        maxFiles: options.maxFiles || 10,
+        password: options.password || '',
+        receivedFiles: [],
+        createdAt: Date.now()
+    };
+    // Store in IndexedDB settings
+    dbPut('settings', { key: 'file_request_' + request.id, ...request });
+    const url = `${location.origin}/#/request/${token}`;
+    return { request, url };
+}
+
+function openFileRequestModal() {
+    haptic('tap');
+    const isId = APP.lang === 'id';
+    const folders = APP.folders.filter(f => !f.system);
+
+    openModal(`<div style="padding:24px">
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-file-import" style="color:var(--accent)"></i> ${t('fileRequest')}
+        </h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${t('fileRequestDesc')}</p>
+
+        <div style="margin-bottom:12px">
+            <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${isId ? 'Nama Permintaan' : 'Request Name'}</label>
+            <input id="freq-name" type="text" class="input" placeholder="${isId ? 'Contoh: Kumpul Tugas' : 'e.g. Collect Assignments'}" value="${isId ? 'Kumpul File' : 'Collect Files'}">
+        </div>
+        <div style="margin-bottom:12px">
+            <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${isId ? 'Simpan ke Folder' : 'Save to Folder'}</label>
+            <select id="freq-folder" class="input">
+                <option value="">${isId ? 'Pilih folder' : 'Select folder'}</option>
+                ${folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('')}
+            </select>
+        </div>
+        <div style="margin-bottom:12px">
+            <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('requestMaxFiles')}</label>
+            <input id="freq-max" type="number" class="input" value="10" min="1" max="100">
+        </div>
+        <div style="margin-bottom:12px">
+            <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('requestPassword')}</label>
+            <input id="freq-password" type="text" class="input" placeholder="••••••">
+        </div>
+        <div style="margin-bottom:12px">
+            <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('expiry')}</label>
+            <select id="freq-expiry" class="input">
+                <option value="0">${t('noExpiry')}</option>
+                <option value="86400000">${t('expiry1d')}</option>
+                <option value="604800000">${t('expiry7d')}</option>
+                <option value="2592000000">${t('expiry30d')}</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="submitFileRequest()"><i class="fas fa-link"></i> ${t('createRequest')}</button>
+        <div style="display:flex;justify-content:flex-end;margin-top:12px">
+            <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+        </div>
+    </div>`);
+}
+
+async function submitFileRequest() {
+    const isId = APP.lang === 'id';
+    const result = createFileRequest({
+        name: document.getElementById('freq-name').value,
+        folderId: document.getElementById('freq-folder').value || null,
+        maxFiles: parseInt(document.getElementById('freq-max').value) || 10,
+        password: document.getElementById('freq-password').value,
+        expiresAt: parseInt(document.getElementById('freq-expiry').value) || 0
+    });
+    try { await navigator.clipboard.writeText(result.url); } catch(e) {}
+    showToast(isId ? 'Link permintaan dibuat & disalin!' : 'Request link created & copied!', 'success');
+    closeModal();
+}
+
+function renderFileRequestPortal(token) {
+    const main = document.getElementById('app-main');
+    if (!main) return;
+    renderHeader();
+    const isId = APP.lang === 'id';
+    main.innerHTML = `<div class="page-transition" style="display:flex;align-items:center;justify-content:center;min-height:80vh">
+        <div style="text-align:center;max-width:500px;padding:40px;width:100%">
+            <div style="width:64px;height:64px;border-radius:16px;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                <i class="fas fa-file-import" style="font-size:28px;color:#8b5cf6"></i>
+            </div>
+            <h2>${t('fileRequest')}</h2>
+            <p style="color:var(--text-secondary);margin-bottom:24px">${isId ? 'Kirim file ke pemilik folder' : 'Send files to the folder owner'}</p>
+            <div class="drop-zone" id="request-drop-zone" style="padding:40px 20px;margin-bottom:16px;cursor:pointer" onclick="document.getElementById('request-file-input').click()">
+                <i class="fas fa-cloud-arrow-up" style="font-size:36px;color:var(--accent);margin-bottom:8px"></i>
+                <p>${t('uploadDrop')}</p>
+            </div>
+            <input type="file" id="request-file-input" multiple style="display:none" onchange="handleRequestUpload(this.files)">
+        </div>
+    </div>`;
+    const zone = document.getElementById('request-drop-zone');
+    if (zone) {
+        zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('drag-over'); if (e.dataTransfer.files.length) handleRequestUpload(e.dataTransfer.files); });
+    }
+}
+
+async function handleRequestUpload(fileList) {
+    for (const file of fileList) {
+        await executeUpload(file);
+    }
+    showToast(t('uploaded'), 'success');
+}
+
+// ===== F120: NOTIFICATION CENTER =====
+function pushNotification(category, title, body, sticky = false) {
+    const notif = {
+        id: 'notif_' + Date.now() + '_' + genId(),
+        category,
+        title,
+        body,
+        sticky,
+        read: false,
+        timestamp: Date.now()
+    };
+    APP.notificationCenter.unshift(notif);
+    if (APP.notificationCenter.length > 100) APP.notificationCenter = APP.notificationCenter.slice(0, 100);
+    APP.notificationCenterUnread = APP.notificationCenter.filter(n => !n.read).length;
+    renderNotificationCenterBadge();
+    // Also show toast for non-sticky
+    if (!sticky) showToast(`${title}: ${body}`, category === 'fileExpiry' || category === 'fileExpiring' ? 'warning' : 'info');
+}
+
+function renderNotificationCenterBadge() {
+    const badge = document.getElementById('notification-badge');
+    if (!badge) return;
+    badge.textContent = APP.notificationCenterUnread > 0 ? (APP.notificationCenterUnread > 99 ? '99+' : APP.notificationCenterUnread) : '';
+    badge.style.display = APP.notificationCenterUnread > 0 ? 'flex' : 'none';
+}
+
+function markAllNotificationsRead() {
+    APP.notificationCenter.forEach(n => n.read = true);
+    APP.notificationCenterUnread = 0;
+    renderNotificationCenterBadge();
+}
+
+function clearNotificationCenter() {
+    APP.notificationCenter = [];
+    APP.notificationCenterUnread = 0;
+    renderNotificationCenterBadge();
+}
+
+function openNotificationCenter() {
+    haptic('tap');
+    const isId = APP.lang === 'id';
+    const notifs = APP.notificationCenter.slice(0, 50);
+    const catIcons = {
+        transferQueue: 'fa-list-check', fileExpiry: 'fa-hourglass-half', fileExpiring: 'fa-clock',
+        automation: 'fa-robot', fileRequest: 'fa-file-import', fileLock: 'fa-lock',
+        bulkShare: 'fa-share-alt', storageInsights: 'fa-chart-pie', upload: 'fa-cloud-arrow-up',
+        download: 'fa-download', share: 'fa-share-alt', storage: 'fa-database', general: 'fa-bell'
+    };
+    const catColors = {
+        transferQueue: '#3b82f6', fileExpiry: '#f59e0b', fileExpiring: '#ef4444',
+        automation: '#8b5cf6', fileRequest: '#8b5cf6', fileLock: '#ef4444',
+        bulkShare: '#10b981', storageInsights: '#06b6d4', upload: '#10b981',
+        download: '#3b82f6', share: '#8b5cf6', storage: '#f59e0b', general: '#64748b'
+    };
+
+    openModal(`<div style="padding:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <h3 style="font-size:18px;font-weight:600;display:flex;align-items:center;gap:8px">
+                <i class="fas fa-bell" style="color:var(--accent)"></i> ${t('notificationCenter')}
+                ${APP.notificationCenterUnread > 0 ? `<span style="font-size:11px;padding:2px 8px;border-radius:99px;background:#ef444418;color:#ef4444;font-weight:600">${APP.notificationCenterUnread} ${isId ? 'baru' : 'new'}</span>` : ''}
+            </h3>
+            <div style="display:flex;gap:6px">
+                <button class="btn btn-ghost btn-sm" onclick="markAllNotificationsRead();openNotificationCenter()"><i class="fas fa-check-double"></i> ${t('markAllRead')}</button>
+                <button class="btn btn-ghost btn-sm" onclick="clearNotificationCenter();openNotificationCenter()"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+
+        <div style="max-height:500px;overflow-y:auto">
+            ${notifs.length === 0 ? `<div style="text-align:center;padding:40px 0;color:var(--text-secondary)">
+                <i class="fas fa-bell-slash" style="font-size:32px;opacity:.2;margin-bottom:8px;display:block"></i>
+                <p style="font-size:13px">${t('noNotifications')}</p>
+            </div>` : notifs.map(n => `
+                <div style="display:flex;gap:10px;padding:12px;margin-bottom:4px;background:${n.read ? 'transparent' : 'var(--bg-secondary)'};border-radius:10px;border-left:3px solid ${catColors[n.category] || '#64748b'};${n.read ? 'opacity:.6' : ''}">
+                    <div style="width:32px;height:32px;border-radius:8px;background:${catColors[n.category] || '#64748b'}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        <i class="fas ${catIcons[n.category] || 'fa-bell'}" style="color:${catColors[n.category] || '#64748b'};font-size:12px"></i>
+                    </div>
+                    <div style="flex:1;min-width:0">
+                        <div style="font-size:12px;font-weight:${n.read ? '400' : '600'};color:var(--text)">${n.title}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n.body}</div>
+                        <div style="font-size:10px;color:var(--text-secondary);margin-top:2px">${timeAgo(n.timestamp)}</div>
+                    </div>
+                    ${!n.read ? '<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px"></div>' : ''}
+                </div>
+            `).join('')}
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
+        </div>
+    </div>`);
+}
+
+// ===== F121: FILE LOCK =====
+function lockFile(fileId) {
+    if (APP.lockedFiles.has(fileId)) return;
+    APP.lockedFiles.add(fileId);
+    localStorage.setItem('rb_locked_files', JSON.stringify([...APP.lockedFiles]));
+    const file = APP.files.find(f => f.id === fileId);
+    if (file) { file.locked = true; saveFile(file); }
+    pushNotification('fileLock', t('fileLocked'), file ? file.name : '');
+    showToast(t('fileLocked'), 'success');
+    refreshUI();
+}
+
+function unlockFile(fileId) {
+    APP.lockedFiles.delete(fileId);
+    localStorage.setItem('rb_locked_files', JSON.stringify([...APP.lockedFiles]));
+    const file = APP.files.find(f => f.id === fileId);
+    if (file) { file.locked = false; saveFile(file); }
+    pushNotification('fileLock', t('fileUnlocked'), file ? file.name : '');
+    showToast(t('fileUnlocked'), 'success');
+    refreshUI();
+}
+
+function isFileLocked(fileId) {
+    return APP.lockedFiles.has(fileId);
+}
+
+// Override delete/move functions to check lock — we add lock check to the existing moveToTrash
+const _originalMoveToTrash_moveFileToTrash = moveToTrash;
+// Note: moveFileToTrash is our override name, moveToTrash is the original
+// We keep the lock check in the override function
+function moveFileToTrash(fileId) {
+    if (isFileLocked(fileId)) {
+        showToast(APP.lang === 'id' ? 'File dikunci, buka kunci dulu' : 'File is locked, unlock first', 'error');
+        return;
+    }
+    return moveToTrash(fileId);
+}
+
+// ===== F122: BULK SHARE =====
+function openBulkShareModal() {
+    haptic('tap');
+    const isId = APP.lang === 'id';
+    const selectedFiles = APP.files.filter(f => APP.selectedFiles.has(f.id) && !f.trashed);
+    if (selectedFiles.length < 2) {
+        showToast(isId ? 'Pilih minimal 2 file' : 'Select at least 2 files', 'error');
+        return;
+    }
+
+    openModal(`<div style="padding:24px">
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-share-alt" style="color:var(--accent)"></i> ${t('bulkShare')}
+        </h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${t('bulkShareDesc')} — ${selectedFiles.length} ${t('filesInBundle')}</p>
+
+        <!-- File list preview -->
+        <div style="max-height:200px;overflow-y:auto;margin-bottom:16px;padding:12px;background:var(--bg-secondary);border-radius:10px">
+            ${selectedFiles.map(f => `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px">
+                <i class="fas ${getFileIcon(getFileType(f.name, f.mime))}" style="color:var(--accent);width:16px;text-align:center"></i>
+                <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</span>
+                <span style="color:var(--text-secondary);font-size:10px">${formatSize(f.size)}</span>
+            </div>`).join('')}
+        </div>
+
+        <!-- Share options -->
+        <div style="display:flex;flex-direction:column;gap:12px">
+            <div>
+                <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('password')} (${isId ? 'opsional' : 'optional'})</label>
+                <input type="text" id="bulk-share-password" class="input" placeholder="••••••">
+            </div>
+            <div>
+                <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('expiry')}</label>
+                <select id="bulk-share-expiry" class="input">
+                    <option value="0">${t('noExpiry')}</option>
+                    <option value="1">${t('expires1h')}</option>
+                    <option value="24">${t('expires24h')}</option>
+                    <option value="168">${t('expires7d')}</option>
+                    <option value="720">${t('expires30d')}</option>
+                </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+                <label class="toggle-switch"><input type="checkbox" id="bulk-share-selfdestruct"><span class="toggle-slider"></span></label>
+                <label for="bulk-share-selfdestruct" style="font-size:13px;cursor:pointer">${t('selfDestruct')}</label>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="executeBulkShare()"><i class="fas fa-share-alt"></i> ${t('createBulkShare')}</button>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px">
+            <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+        </div>
+    </div>`);
+}
+
+async function executeBulkShare() {
+    const isId = APP.lang === 'id';
+    const selectedFiles = APP.files.filter(f => APP.selectedFiles.has(f.id) && !f.trashed);
+    const password = document.getElementById('bulk-share-password').value;
+    const expiryHours = parseInt(document.getElementById('bulk-share-expiry').value);
+    const selfDestruct = document.getElementById('bulk-share-selfdestruct').checked;
+
+    // Create a gallery-type share that bundles all files
+    const bundleId = 'bundle_' + Date.now();
+    const alias = bundleId.slice(-8);
+    const fileIds = selectedFiles.map(f => f.id);
+
+    const share = {
+        id: bundleId,
+        fileId: fileIds[0],
+        fileIds: fileIds,
+        type: 'bulk',
+        alias,
+        password: password || '',
+        expiry: expiryHours > 0 ? Date.now() + expiryHours * 3600000 : 0,
+        selfDestruct,
+        downloadCount: 0,
+        createdAt: Date.now()
+    };
+
+    APP.shares.push(share);
+    await dbPut('shares', share);
+
+    const payload = {
+        bundle: fileIds,
+        names: selectedFiles.map(f => f.name),
+        pw: password || '',
+        ex: share.expiry,
+        sd: selfDestruct ? 1 : 0,
+        sid: share.id,
+        al: alias
+    };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    const shareUrl = `${location.origin}/#/s/${encoded}`;
+
+    try { await navigator.clipboard.writeText(shareUrl); } catch(e) {}
+    showToast(isId ? 'Link bagikan banyak file dibuat & disalin!' : 'Bulk share link created & copied!', 'success');
+    pushNotification('bulkShare', t('shareCreated'), `${selectedFiles.length} ${t('filesInBundle')}`);
+    closeModal();
+}
+
+// ===== F123: STORAGE INSIGHTS / CLEANUP SUGGESTIONS =====
+function scanStorageInsights() {
+    const isId = APP.lang === 'id';
+    const activeFiles = APP.files.filter(f => !f.trashed);
+    const insights = { duplicates: [], oldFiles: [], largeFiles: [], potentialSavings: 0 };
+
+    // Find duplicates (by name + size)
+    const seen = {};
+    for (const file of activeFiles) {
+        const key = (file.name + '_' + file.size).toLowerCase();
+        if (seen[key]) {
+            insights.duplicates.push({ original: seen[key], duplicate: file, size: file.size });
+            insights.potentialSavings += file.size;
+        } else {
+            seen[key] = file;
+        }
+    }
+
+    // Find old files (>6 months, not opened)
+    const sixMonthsAgo = Date.now() - 180 * 24 * 3600000;
+    for (const file of activeFiles) {
+        const lastAccessed = file.lastAccessedAt || file.createdAt || 0;
+        if (lastAccessed < sixMonthsAgo && lastAccessed > 0) {
+            insights.oldFiles.push(file);
+            insights.potentialSavings += file.size;
+        }
+    }
+
+    // Find large files (>100MB)
+    for (const file of activeFiles) {
+        if (file.size > 100 * 1024 * 1024) {
+            insights.largeFiles.push(file);
+        }
+    }
+
+    return insights;
+}
+
+function openStorageInsightsModal() {
+    haptic('tap');
+    const isId = APP.lang === 'id';
+    const insights = scanStorageInsights();
+    const totalSavings = formatSize(insights.potentialSavings);
+
+    openModal(`<div style="padding:24px">
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-chart-pie" style="color:var(--accent)"></i> ${t('storageInsights')}
+        </h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${t('storageInsightsDesc')}</p>
+
+        <!-- Savings potential -->
+        <div style="padding:16px;background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(6,182,212,.04));border:1px solid rgba(16,185,129,.2);border-radius:12px;margin-bottom:16px;text-align:center">
+            <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">${t('potentialSavings')}</div>
+            <div style="font-size:28px;font-weight:700;color:#10b981">${totalSavings}</div>
+        </div>
+
+        <!-- Duplicates -->
+        <div style="margin-bottom:16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div style="width:28px;height:28px;border-radius:8px;background:#ef444418;display:flex;align-items:center;justify-content:center"><i class="fas fa-copy" style="color:#ef4444;font-size:12px"></i></div>
+                <div style="font-size:13px;font-weight:600">${t('duplicateFiles')} (${insights.duplicates.length})</div>
+                ${insights.duplicates.length > 0 ? `<span style="font-size:11px;color:#ef4444;font-weight:500">${formatSize(insights.duplicates.reduce((s,d) => s + d.size, 0))}</span>` : ''}
+            </div>
+            ${insights.duplicates.length === 0 ? `<div style="font-size:12px;color:var(--text-secondary);padding-left:36px">${isId ? 'Tidak ada duplikat' : 'No duplicates found'}</div>` :
+            insights.duplicates.slice(0, 5).map(d => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0 6px 36px;font-size:12px">
+                <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.duplicate.name}</span>
+                <span style="color:var(--text-secondary)">${formatSize(d.size)}</span>
+                <button class="btn btn-ghost btn-sm" style="padding:2px 6px" onclick="moveFileToTrash('${d.duplicate.id}');openStorageInsightsModal()"><i class="fas fa-trash" style="font-size:9px;color:#ef4444"></i></button>
+            </div>`).join('')}
+        </div>
+
+        <!-- Old Files -->
+        <div style="margin-bottom:16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div style="width:28px;height:28px;border-radius:8px;background:#f59e0b18;display:flex;align-items:center;justify-content:center"><i class="fas fa-clock-rotate-left" style="color:#f59e0b;font-size:12px"></i></div>
+                <div style="font-size:13px;font-weight:600">${t('oldFiles')} (${insights.oldFiles.length})</div>
+                ${insights.oldFiles.length > 0 ? `<span style="font-size:11px;color:#f59e0b;font-weight:500">${formatSize(insights.oldFiles.reduce((s,f) => s + f.size, 0))}</span>` : ''}
+            </div>
+            ${insights.oldFiles.length === 0 ? `<div style="font-size:12px;color:var(--text-secondary);padding-left:36px">${isId ? 'Tidak ada file lama' : 'No old files'}</div>` :
+            insights.oldFiles.slice(0, 5).map(f => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0 6px 36px;font-size:12px">
+                <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</span>
+                <span style="color:var(--text-secondary)">${formatSize(f.size)}</span>
+                <span style="color:var(--text-secondary);font-size:10px">${timeAgo(f.lastAccessedAt || f.createdAt)}</span>
+            </div>`).join('')}
+        </div>
+
+        <!-- Large Files -->
+        <div style="margin-bottom:16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div style="width:28px;height:28px;border-radius:8px;background:#3b82f618;display:flex;align-items:center;justify-content:center"><i class="fas fa-weight-hanging" style="color:#3b82f6;font-size:12px"></i></div>
+                <div style="font-size:13px;font-weight:600">${t('largeFilesSuggestion')} (${insights.largeFiles.length})</div>
+            </div>
+            ${insights.largeFiles.length === 0 ? `<div style="font-size:12px;color:var(--text-secondary);padding-left:36px">${isId ? 'Tidak ada file besar' : 'No large files'}</div>` :
+            insights.largeFiles.slice(0, 5).map(f => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0 6px 36px;font-size:12px">
+                <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</span>
+                <span style="color:#3b82f6;font-weight:500">${formatSize(f.size)}</span>
+            </div>`).join('')}
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
+        </div>
+    </div>`);
+}
+
+// ===== F124: BOOKMARK FOLDERS =====
+function bookmarkFolder(folderId) {
+    if (APP.bookmarkedFolders.includes(folderId)) return;
+    APP.bookmarkedFolders.push(folderId);
+    localStorage.setItem('rb_bookmarked_folders', JSON.stringify(APP.bookmarkedFolders));
+    showToast(t('bookmarkFolder'), 'success');
+    renderSidebar();
+}
+
+function unbookmarkFolder(folderId) {
+    APP.bookmarkedFolders = APP.bookmarkedFolders.filter(id => id !== folderId);
+    localStorage.setItem('rb_bookmarked_folders', JSON.stringify(APP.bookmarkedFolders));
+    showToast(t('unbookmarkFolder'), 'success');
+    renderSidebar();
+}
+
+function isFolderBookmarked(folderId) {
+    return APP.bookmarkedFolders.includes(folderId);
+}
+
+// Override renderSidebarHTML to add bookmark section
+const _originalRenderSidebarHTML = renderSidebarHTML;
+function renderSidebarHTMLWithBookmarks() {
+    const isId = APP.lang === 'id';
+    const bookmarked = APP.bookmarkedFolders.map(id => APP.folders.find(f => f.id === id)).filter(Boolean);
+    let html = _originalRenderSidebarHTML();
+
+    if (bookmarked.length > 0) {
+        const bookmarkSection = `
+        <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">
+            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);padding:4px 12px;text-transform:uppercase;letter-spacing:.5px">${t('bookmarkedFolders')}</div>
+            ${bookmarked.map(f => `
+                <div class="sidebar-item ${APP.currentFolder === f.id ? 'active' : ''}" onclick="selectFolder('${f.id}')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-radius:8px;margin:2px 6px;font-size:13px;transition:background .15s" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background=''">
+                    <i class="fas fa-bookmark" style="color:#f59e0b;font-size:11px"></i>
+                    <span style="flex:1">${f.name}</span>
+                </div>
+            `).join('')}
+        </div>`;
+
+        // Insert before closing of sidebar
+        html = html.replace('</div>', bookmarkSection + '</div>');
+    }
+    return html;
+}
+
+// ===== F125: UPLOAD SCHEDULE =====
+function scheduleUpload(task) {
+    task.id = 'sched_' + Date.now() + '_' + genId();
+    task.status = 'scheduled';
+    task.createdAt = Date.now();
+    APP.scheduledUploadTasks.push(task);
+    localStorage.setItem('rb_scheduled_uploads', JSON.stringify(APP.scheduledUploadTasks));
+    setupUploadScheduler();
+    return task;
+}
+
+function removeScheduledUpload(taskId) {
+    APP.scheduledUploadTasks = APP.scheduledUploadTasks.filter(t => t.id !== taskId);
+    localStorage.setItem('rb_scheduled_uploads', JSON.stringify(APP.scheduledUploadTasks));
+}
+
+function setupUploadScheduler() {
+    // Clear existing timers
+    if (APP._schedTimers) APP._schedTimers.forEach(clearTimeout);
+    APP._schedTimers = [];
+
+    for (const task of APP.scheduledUploadTasks) {
+        if (task.status !== 'scheduled') continue;
+        const delay = task.scheduledAt - Date.now();
+        if (delay <= 0) {
+            // Execute immediately if time has passed
+            executeScheduledUpload(task);
+        } else if (delay < 86400000) { // Only set timer for <24h
+            const timer = setTimeout(() => executeScheduledUpload(task), delay);
+            APP._schedTimers.push(timer);
+        }
+    }
+}
+
+async function executeScheduledUpload(task) {
+    task.status = 'processing';
+    try {
+        if (task.file) {
+            await executeUpload(task.file, task.folderId);
+        }
+        task.status = 'completed';
+        task.completedAt = Date.now();
+        pushNotification('upload', t('notifUploadComplete'), task.file ? task.file.name : 'Scheduled upload');
+    } catch (e) {
+        task.status = 'failed';
+        task.error = e.message;
+        pushNotification('upload', t('failed'), task.file ? task.file.name : 'Scheduled upload');
+    }
+    localStorage.setItem('rb_scheduled_uploads', JSON.stringify(APP.scheduledUploadTasks));
+}
+
+function openUploadScheduleModal() {
+    haptic('tap');
+    const isId = APP.lang === 'id';
+    const tasks = APP.scheduledUploadTasks || [];
+
+    openModal(`<div style="padding:24px">
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-calendar-alt" style="color:var(--accent)"></i> ${t('uploadSchedule')}
+        </h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${t('uploadScheduleDesc')}</p>
+
+        <!-- Schedule new upload -->
+        <div style="padding:16px;background:var(--bg-secondary);border-radius:12px;margin-bottom:16px;border:1px dashed var(--border)">
+            <div style="font-size:13px;font-weight:600;margin-bottom:10px">${t('scheduleUpload')}</div>
+            <div style="margin-bottom:10px">
+                <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${t('scheduledAt')}</label>
+                <input id="sched-datetime" type="datetime-local" class="input" min="${new Date().toISOString().slice(0,16)}">
+            </div>
+            <div style="margin-bottom:10px">
+                <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${isId ? 'Ulangi' : 'Repeat'}</label>
+                <select id="sched-repeat" class="input">
+                    <option value="once">${t('oneTime')}</option>
+                    <option value="daily">${t('repeatDaily')}</option>
+                    <option value="weekly">${t('repeatWeekly')}</option>
+                </select>
+            </div>
+            <div style="margin-bottom:10px">
+                <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">${isId ? 'Pilih File' : 'Select File'}</label>
+                <input id="sched-file" type="file" class="input" style="padding:6px">
+            </div>
+            <button class="btn btn-primary btn-sm" style="width:100%" onclick="submitScheduledUpload()"><i class="fas fa-clock"></i> ${t('scheduleUpload')}</button>
+        </div>
+
+        <!-- Scheduled tasks list -->
+        ${tasks.length === 0 ? `<div style="text-align:center;padding:30px 0;color:var(--text-secondary)">
+            <i class="fas fa-calendar-xmark" style="font-size:32px;opacity:.2;margin-bottom:8px;display:block"></i>
+            <p style="font-size:13px">${t('noScheduledUploads')}</p>
+        </div>` : tasks.map(task => {
+            const statusColors = { scheduled: '#3b82f6', processing: '#f59e0b', completed: '#10b981', failed: '#ef4444' };
+            const statusIcons = { scheduled: 'fa-clock', processing: 'fa-spinner fa-spin', completed: 'fa-check', failed: 'fa-times' };
+            return `
+            <div style="display:flex;align-items:center;gap:10px;padding:12px;margin-bottom:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;border-left:3px solid ${statusColors[task.status]}">
+                <div style="width:28px;height:28px;border-radius:8px;background:${statusColors[task.status]}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <i class="fas ${statusIcons[task.status]}" style="color:${statusColors[task.status]};font-size:11px"></i>
+                </div>
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:12px;font-weight:500">${task.fileName || (isId ? 'File terjadwal' : 'Scheduled file')}</div>
+                    <div style="font-size:10px;color:var(--text-secondary)">${t('scheduledAt')}: ${new Date(task.scheduledAt).toLocaleString()} · ${task.repeat === 'daily' ? t('repeatDaily') : task.repeat === 'weekly' ? t('repeatWeekly') : t('oneTime')}</div>
+                </div>
+                <button class="btn btn-ghost btn-sm" style="padding:4px 8px" onclick="removeScheduledUpload('${task.id}');openUploadScheduleModal()"><i class="fas fa-trash" style="font-size:10px;color:#ef4444"></i></button>
+            </div>`;
+        }).join('')}
+
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+            <button class="btn btn-secondary" onclick="closeModal()">${t('close')}</button>
+        </div>
+    </div>`);
+}
+
+function submitScheduledUpload() {
+    const isId = APP.lang === 'id';
+    const datetime = document.getElementById('sched-datetime').value;
+    const repeat = document.getElementById('sched-repeat').value;
+    const fileInput = document.getElementById('sched-file');
+
+    if (!datetime) { showToast(isId ? 'Pilih waktu' : 'Select time', 'error'); return; }
+    if (!fileInput.files || !fileInput.files[0]) { showToast(isId ? 'Pilih file' : 'Select a file', 'error'); return; }
+
+    const scheduledAt = new Date(datetime).getTime();
+    const file = fileInput.files[0];
+
+    scheduleUpload({
+        scheduledAt,
+        repeat,
+        fileName: file.name,
+        fileSize: file.size,
+        file: file,
+        folderId: APP.currentFolder !== 'all' ? APP.currentFolder : null
+    });
+
+    showToast(isId ? 'Upload dijadwalkan!' : 'Upload scheduled!', 'success');
+    openUploadScheduleModal();
+}
+
+// ===== INIT ALL NEW FEATURES =====
+function initNewFeatures() {
+    // Init Transfer Queue
+    TransferQueue.init();
+
+    // Init Notification Center badge
+    renderNotificationCenterBadge();
+
+    // Check file expiry every 5 minutes
+    setInterval(checkFileExpiry, 300000);
+    checkFileExpiry(); // Check on init
+
+    // Setup upload scheduler
+    setupUploadScheduler();
+
+    // Apply automation rules on new file uploads (hook into existing upload flow)
+    const _origHandleFileSelect = handleFileSelect;
+    handleFileSelect = async function(fileList) {
+        if (!fileList || fileList.length === 0) return;
+        showUploadPreview(fileList);
+        for (const file of fileList) {
+            // Add to transfer queue instead of direct upload
+            TransferQueue.add('upload', { file, name: file.name, folderId: APP.currentFolder !== 'all' ? APP.currentFolder : null }, 'medium');
+        }
+        const inp = document.getElementById('file-upload-input');
+        if (inp) inp.value = '';
+    };
+}
+
+// Auto-init when app loads
+if (typeof window !== 'undefined') {
+    const _origInit = window.addEventListener;
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initNewFeatures, 2000); // Delay to let main app init first
+    });
 }
 
